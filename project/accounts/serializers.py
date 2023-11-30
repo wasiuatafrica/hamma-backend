@@ -19,7 +19,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "password",
             "has_2fa",
             "twofa_type",
-            "signup_type",
+            # "signup_type",
             "totp_url",
             "date_joined",
             "last_login",
@@ -29,7 +29,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'has_2fa': {'read_only': True},
             'twofa_type': {'read_only': True},
             'totp_url': {'read_only': True},
-            'signup_type': {'read_only': True},
+            # 'signup_type': {'read_only': True},
         }
 class TokenSerializer(serializers.Serializer):
     user_email=serializers.EmailField()
