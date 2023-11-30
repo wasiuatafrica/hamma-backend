@@ -17,7 +17,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_ft9ja_staff=models.BooleanField(default=False, null=True, blank=True)
     is_ft9ja_staff_payouts=models.BooleanField(default=False, null=True, blank=True)
     is_ft9ja_staff_receipts=models.BooleanField(default=False, null=True, blank=True)
-    signup_type=models.CharField(max_length=50, null=True, blank=True, default="none", choices=(("email","email"), ("google","google")))
+    # signup_type=models.CharField(max_length=50, null=True, blank=True, default="none", choices=(("email","email"), ("google","google")))
     date_joined = models.DateTimeField(default=timezone.now)
     has_second_email= models.TextField(max_length=255, blank=True, null=True)
     has_2fa=models.BooleanField(default=True, null=True, blank=True)

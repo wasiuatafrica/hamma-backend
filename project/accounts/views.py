@@ -22,7 +22,7 @@ class Registration(APIView):
         if serializer.is_valid():
             user=serializer.save()
             user.set_password(request.data.get("password"))
-            user.signup_type="email"
+            # user.signup_type="email"
             user.save()
             # Create the referral object. 
             referred_by= models.Profile.objects.filter(referral_code=ref_code).first()
@@ -248,58 +248,58 @@ class ResetForgettenPassword(APIView):
             return Response({"detail":"User with this email not found."}, status=status.HTTP_404_NOT_FOUND) 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class SignupwithGoogle(APIView):
-    serializer_class = serializers.SignInWithGoogleSerilaizer
-    permission_classes = [permissions.AllowAny]
+# class SignupwithGoogle(APIView):
+#     serializer_class = serializers.SignInWithGoogleSerilaizer
+#     permission_classes = [permissions.AllowAny]
 
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
+#     def post(self, request):
+#         serializer = self.serializer_class(data=request.data)
+#         if serializer.is_valid():
 
-            if User.objects.filter(email=serializer.validated_data["email"]).exists():
-                try:
-                    user = User.objects.get(email=serializer.validated_data["email"], is_active=True, signup_type="google")
-                except User.DoesNotExist:
-                    return Response({"detail": "User not found or user account is deactivated"}, status=status.HTTP_404_NOT_FOUND)
+#             if User.objects.filter(email=serializer.validated_data["email"]).exists():
+#                 try:
+#                     user = User.objects.get(email=serializer.validated_data["email"], is_active=True, signup_type="google")
+#                 except User.DoesNotExist:
+#                     return Response({"detail": "User not found or user account is deactivated"}, status=status.HTTP_404_NOT_FOUND)
                 
-                if user.has_2fa:
-                        return Response({"detail": "oppps! You have 2FA setup, you have to login using your email and password option."}, status=status.HTTP_403_FORBIDDEN)
+#                 if user.has_2fa:
+#                         return Response({"detail": "oppps! You have 2FA setup, you have to login using your email and password option."}, status=status.HTTP_403_FORBIDDEN)
                     
-                refresh = RefreshToken.for_user(user)
-                user_data = serializers.CustomUserSerializer(user, many=False).data
-                # update last_login
-                user.last_login=timezone.now()
-                user.save()
-                token_data = {
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                    "user": user_data,
+#                 refresh = RefreshToken.for_user(user)
+#                 user_data = serializers.CustomUserSerializer(user, many=False).data
+#                 # update last_login
+#                 user.last_login=timezone.now()
+#                 user.save()
+#                 token_data = {
+#                     'refresh': str(refresh),
+#                     'access': str(refresh.access_token),
+#                     "user": user_data,
                     
-                }
+#                 }
 
-                return Response(token_data)
+#                 return Response(token_data)
 
-            password = generate_random_password()
+#             password = generate_random_password()
 
-            # Create a new user
-            google_user = User.objects.create(
-                email=serializer.validated_data["email"],
-                firstname=serializer.validated_data["firstname"],
-                lastname=serializer.validated_data["lastname"],
-                signup_type="google",
-                is_active=True,
-                last_login=timezone.now()
-            )
-            google_user.set_password(password)
-            google_user.save()
+#             # Create a new user
+#             google_user = User.objects.create(
+#                 email=serializer.validated_data["email"],
+#                 firstname=serializer.validated_data["firstname"],
+#                 lastname=serializer.validated_data["lastname"],
+#                 signup_type="google",
+#                 is_active=True,
+#                 last_login=timezone.now()
+#             )
+#             google_user.set_password(password)
+#             google_user.save()
 
-            refresh = RefreshToken.for_user(google_user)
-            user_data = serializers.CustomUserSerializer(google_user, many=False).data
-            token_data = {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-                "user": user_data,
-            }
+#             refresh = RefreshToken.for_user(google_user)
+#             user_data = serializers.CustomUserSerializer(google_user, many=False).data
+#             token_data = {
+#                 'refresh': str(refresh),
+#                 'access': str(refresh.access_token),
+#                 "user": user_data,
+#             }
 
-            return Response(token_data, status=status.HTTP_201_CREATED)
-        return Response({"detail": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+#             return Response(token_data, status=status.HTTP_201_CREATED)
+#         return Response({"detail": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
