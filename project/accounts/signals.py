@@ -28,10 +28,10 @@ def create_wallet_and_send_email(sender, instance, created, **kwargs):
             context={
                 "token":token.token
             }
-            html_message = render_to_string('token.html', context)
+            html_message = render_to_string('accounts/registration_token.html', context)
             plain_message = strip_tags(html_message)
             subject = 'Token'
-            from_email = 'nwaforglory680@gmail.com'
+            from_email = "teamft9ja@gmail.com"
             recipient_list = [instance.email]
             send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
 

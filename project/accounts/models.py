@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from Accounts.managers import CustomUserManager
+from accounts.managers import CustomUserManager
 import auto_prefetch
 import random
 import string
@@ -30,18 +30,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
-
-    @property
-    def clan_id(self):
-        clan = self.clan_set.first()  # Check if the user is a clan member
-        if clan:
-            return clan.id
-
-        clan_admin = self.clan_admin.first()  # Check if the user is a clan admin
-        if clan_admin:
-            return clan_admin.id
-        
-        return None 
         
     @property
     def fullname(self):

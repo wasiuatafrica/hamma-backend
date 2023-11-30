@@ -1,5 +1,5 @@
 from django.test import TestCase
-from Accounts import models
+from accounts import models
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.urls import reverse
@@ -18,6 +18,18 @@ class CustomUserTestCase(TestCase):
         self.user.set_password('password123')
         self.user.save()
         self.access_token= RefreshToken.for_user(self.user).access_token
+
+        # create another user to test Referal
+        self.ref_user = models.CustomUser.objects.create(
+            email="nwafor2@gmail.com",
+            firstname="Ebube",
+            lastname="David",
+            is_active=True,
+        )
+        self.ref_user.set_password('password123')
+        self.ref_user.save()
+        self.ref_user_code=models.Profile.objects.get(user=self.ref_user).referral_code
+
 
     def test_custom_user_creation(self):
         '''Test the custom user creation'''
@@ -57,7 +69,8 @@ class CustomUserAPITestEndpoint(CustomUserTestCase,APITestCase):
             "email":"nwafor15@gmail.com",
             "password":"Nwafor6.com",
             "firstname":"Glory",
-            "lastname":"Ebube"
+            "lastname":"Ebube",
+            "ref_code":self.ref_user_code
     }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -166,7 +179,6 @@ class TestSetOrOff2FAEndPoint(AuthenticateUserForTesting):
         self.authenticate_user()
         response=self.client.post(self.url, self.data)
         self.assertIn('detail', response.data)
-        print(response.content)
 
 class TestLoginWithEmailViewEndPoint(CustomUserTestCase):
     def setUp(self):

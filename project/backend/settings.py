@@ -1,14 +1,16 @@
 
 import os, dj_database_url
 from pathlib import Path
-
 from datetime import timedelta
+
+
+import environ
+environ.Env.read_env()
+env = environ.Env()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-print(os.environ.get('SECRET_KEY'), "Heloo")
-
 DEBUG=os.environ.get('DEBUG') == 'True'
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
@@ -50,6 +52,11 @@ INSTALLED_APPS = [
     'reporting',
     'anyon',
     'notifications',
+
+
+    # Thired party lib
+    'django_otp',
+    'django_otp.plugins.otp_totp',
 ]
 
 
@@ -63,6 +70,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     # "allauth.account.middleware.AccountMiddleware",
+    'django_otp.middleware.OTPMiddleware',#otp
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -263,7 +271,7 @@ SENDGRID_API_KEY = (
     os.environ.get("SENDGRID_API_KEY")
 )
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
-DEFAULT_FROM_EMAIL = "anyon@anyon.com"
+DEFAULT_FROM_EMAIL = "teamft9ja@gmail.com"
 # echo to stdout or any other file-like object that is passed to the backend via the stream kwarg.
 SENDGRID_ECHO_TO_STDOUT = False
 

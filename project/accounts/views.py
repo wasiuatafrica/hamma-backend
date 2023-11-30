@@ -18,11 +18,17 @@ class Registration(APIView):
     permission_classes=[permissions.AllowAny]
     def post(self, request):
         serializer=self.serializer_class(data=request.data)
+        ref_code= request.data.get('ref_code')
         if serializer.is_valid():
             user=serializer.save()
             user.set_password(request.data.get("password"))
             user.signup_type="email"
             user.save()
+            # Create the referral object. 
+            referred_by= models.Profile.objects.filter(referral_code=ref_code).first()
+            if referred_by:
+                referral=models.Referral.objects.create(user=referred_by.user, person_referred=user)
+                print(referral.status, referral.user, "hhhhh")
             return Response({"detail":"A token has been sent to your mail","user":serializer.data}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     # Allow users request for resending of token for users who

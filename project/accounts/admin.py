@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from Accounts.forms import CustomUserCreationForm, CustomUserChangeForm
-from Accounts.models import CustomUser, Profile, Referral, FirstLogin, ReferralPayment
+from .forms import CustomUserCreationForm, CustomUserChangeForm
+from .models import CustomUser, Profile, Referral, FirstLogin, ReferralPayment
 
 class ProfileAdmin(admin.ModelAdmin):
     search_fields = ['user__email','referral_code']
