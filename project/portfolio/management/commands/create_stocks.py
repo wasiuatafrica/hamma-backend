@@ -7,7 +7,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         file_path = 'stocks.xlsx'  # Hardcoded file path
-
+        
         try:
             df = pd.read_excel(file_path)
             self.stdout.write(self.style.SUCCESS(f'Successfully loaded data from {file_path}'))

@@ -34,6 +34,8 @@ class Stock(auto_prefetch.Model):
 
 class Portfolio(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='portfolio')
+    created = models.DateTimeField(auto_now_add=True)
+    
 
     def __str__(self):
         return f"{self.user} - Portfolio"
