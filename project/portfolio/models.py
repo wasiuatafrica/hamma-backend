@@ -14,7 +14,7 @@ TRADING_STATUS_CHOICES = [
 class Wallet(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    created =models.DateTimeField(auto_now_add=True)
+    created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
         return f"{self.user} - {self.balance}"
@@ -26,7 +26,7 @@ class Stock(auto_prefetch.Model):
     sector = models.CharField(max_length=50, null=True, blank=True)
     listing_date = models.DateField(_('Listing Date'), null=True, blank=True)
     incorporation_date = models.DateField(_('Incorporation Date'), null=True, blank=True)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     
     def __str__(self):
         return str(self.id) + ":" + self.exchange + ":" + self.symbol
@@ -34,7 +34,7 @@ class Stock(auto_prefetch.Model):
 
 class Portfolio(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='portfolio')
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     
 
     def __str__(self):
@@ -59,7 +59,7 @@ class Holding(auto_prefetch.Model):
     portfolio = auto_prefetch.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='holdings')
     stock = auto_prefetch.ForeignKey(Stock, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -92,7 +92,7 @@ class PayStackReceipts(auto_prefetch.Model):
 class WithdrawalRequest(auto_prefetch.Model):
     wallet=auto_prefetch.ForeignKey(Wallet, on_delete=models.CASCADE)
     amount = models.FloatField(null=True, blank=True)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True,null=True, blank=True)
     updated = models.DateTimeField(auto_now=True)
     status= models.CharField(max_length=20, default='Unprocessed', blank=True,null=True)
     
@@ -111,7 +111,7 @@ class WithdrawalOTPRequest(auto_prefetch.Model):
     expiration_time=models.DateTimeField(null=True, blank=True)
     otp= models.IntegerField(blank=True,null=True)
     used=models.BooleanField(default=False)
-    created=models.DateTimeField(auto_now_add=True)
+    created=models.DateTimeField(auto_now_add=True,null=True, blank=True)
     
 class Trade(models.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)

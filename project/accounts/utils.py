@@ -40,6 +40,18 @@ def  verify_token(user_email,token, _type=""):
         return True
     return False
 
+def send_welcome_email(user):
+    # Send token to users email
+    context={
+        "firstname":user.firstname
+    }
+    html_message = render_to_string('accounts/welcome_email.html', context)
+    plain_message = strip_tags(html_message)
+    subject = 'welcome to Anyon'
+    from_email = "teamft9ja@gmail.com"
+    recipient_list = [user.email]
+    send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+
 
 def resendToken(instance, _type):
 
@@ -52,7 +64,8 @@ def resendToken(instance, _type):
         token=models.TwoFactorToken.objects.create(user=instance,expiration=timezone.now() + timezone.timedelta(minutes=10))
     # Send token to users email
     context={
-        "token":token.token
+        "token":token.token,
+        "firstname":instance.firstname
     }
     html_message = render_to_string('accounts/token.html', context)
     plain_message = strip_tags(html_message)
@@ -91,7 +104,9 @@ def SetTOTP(user):
     full_path = f'{media_path}{filename}'
     device.qr_code_path = full_path
     device.save()
-    # Save the image to media directory
+    # # Save the image to media directory
+    # user.totp_url=img
+    # user.save()
     img.save(full_path)
 
     return full_path

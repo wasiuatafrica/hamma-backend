@@ -100,6 +100,23 @@ DATABASES = {
 
  }
 
+# if DEBUG:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': BASE_DIR / 'db.sqlite3',
+#         }
+#     }
+# else:
+#     DATABASES = {
+#         "default": dj_database_url.config(
+#             conn_max_age=600,
+#             default=os.environ.get('DATABASE_URL')
+#             #  default=config('DATABASE_URL')
+#             )
+
+#     }
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
