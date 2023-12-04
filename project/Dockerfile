@@ -23,8 +23,8 @@ RUN apt-get update \
 RUN pip install --upgrade pip
 COPY ./requirements.txt .
 RUN pip install -r requirements.txt
-RUN pip install django_otp
-RUN pip install qrcode
+# RUN pip install django_otp
+# RUN pip install qrcode
 
 # copy entrypoint.sh
 COPY ./entrypoint.sh /usr/src/app/

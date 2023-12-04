@@ -79,6 +79,10 @@ class Receipts(auto_prefetch.Model):
     date = models.DateField(auto_now_add=True)
     receipt_status = models.CharField(max_length=20,default='Unprocessed'  )
     comment = models.TextField(blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    approved_date = models.DateTimeField(auto_now=True)
+    payment_method= models.CharField(max_length=20,default='Bank Transfer'  )
+    
     
 class PayStackReceipts(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)

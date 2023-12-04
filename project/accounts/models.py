@@ -23,7 +23,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     has_2fa=models.BooleanField(default=True, null=True, blank=True)
     totp_url=models.ImageField(upload_to="qr_img", null=True, blank=True)
     twofa_type =models.CharField(max_length=50, null=True, blank=True, default="email", choices=(("email","email"), ("sms","sms"),("authapps","authapps"),("none","none")))
-    is_first_time_user = models.BooleanField(default=True, null=True, blank=True)
+    # is_first_time_user = models.BooleanField(default=True, null=True, blank=True)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["firstname", "lastname"]
 

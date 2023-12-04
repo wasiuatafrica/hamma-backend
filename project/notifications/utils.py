@@ -12,6 +12,7 @@ table_name = 'Anyon'
 table = dynamodb.Table(table_name)
 
 def save_and_send_notification(user_id, message):
+    notification_id = shortuuid.uuid()
     data = {
                 'notification_id': notification_id,
                 'user_id': str(user_id),
@@ -20,7 +21,7 @@ def save_and_send_notification(user_id, message):
                 'message': message,
             }
     try:
-        notification_id = shortuuid.uuid()
+        
         # Create a new notification item in DynamoDB
         response = table.put_item(
             Item= data

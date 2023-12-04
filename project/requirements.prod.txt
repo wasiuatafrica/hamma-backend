@@ -1,7 +1,7 @@
 boto3
 botocore
 dj-rest-auth
-Django==4.2.7
+Django==4.2.8
 django-allauth==0.54.0
 django-cors-headers
 django-rest-passwordreset
