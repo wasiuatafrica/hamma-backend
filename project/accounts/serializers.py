@@ -19,6 +19,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "password",
             "has_2fa",
             "twofa_type",
+            "is_active",
             # "signup_type",
             "totp_url",
             "date_joined",

@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework import permissions
 from . import serializers
 from . import models
-from .utils import verify_token, resendToken,SetTOTP, verifyTOTP,generate_random_password
+from .utils import verify_token, resendToken,SetTOTP, verifyTOTP,generate_random_password, send_welcome_email
 from rest_framework import viewsets
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone  
@@ -52,7 +52,6 @@ class VerifyToken(APIView):
         token_reponse=verify_token(user_email, token)
         if not token_reponse:
             return Response({"detail":"Token or user_email is invalid"}, status=status.HTTP_400_BAD_REQUEST)
-        
         return Response({"detail":"Account verifed."})
 
 class ProfileView(APIView):
@@ -126,7 +125,7 @@ class DashBoardUpdatePassword(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 # verify_one_time_token
-class LoginWithEmailView(APIView):
+class LoginWithEmailView(APIView):  
     permission_classes = [permissions.AllowAny]
     serializer_class = serializers.LoginWithEmailSeriailizer  # Use the correct serializer class
 
@@ -196,7 +195,11 @@ class LoginWith2FA(APIView):
                         'access': str(refresh.access_token),
                         "user": user_data
                     }
-
+                    # Send welcome email here
+                    if user.is_first_time_user:
+                        send_welcome_email(user)
+                        user.is_first_time_user = False
+                        user.save()
                     return Response(token_data, status=status.HTTP_200_OK)
                 else:
                     return Response({"detail": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
