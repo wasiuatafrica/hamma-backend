@@ -141,10 +141,10 @@ GitHub.sublime-settings
 !.vscode/extensions.json 
 .history
 
-/accounts/migrations/*
-/anyon/migrations/*
-/blog/migrations/*
-/execution/migrations/*
-/notifications/migrations/*
-/portfolio/migrations/*
-/reporting/migrations/*
+project/accounts/migrations/*
+project/anyon/migrations/*
+project/blog/migrations/*
+project/execution/migrations/*
+project/notifications/migrations/*
+project/portfolio/migrations/*
+project/reporting/migrations/*
