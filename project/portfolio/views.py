@@ -149,10 +149,10 @@ class HoldingListCreate(generics.ListCreateAPIView):
     serializer_class = HoldingSerializer
     permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        # Update the user's portfolio when a new holding is created
-        portfolio = Portfolio.objects.get(user=self.request.user)
-        serializer.save(portfolio=portfolio)
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset().filter(user=request.user)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 class HoldingDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Holding.objects.all()

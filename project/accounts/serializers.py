@@ -74,6 +74,10 @@ class Turn2FAOnOrOff(serializers.Serializer):
 class LoginWithEmailSeriailizer(serializers.Serializer):
     email=serializers.EmailField()
     password=serializers.CharField(max_length=200)
+    
+class LoginTokenSeriailizer(serializers.Serializer):
+    email=serializers.EmailField()
+    token=serializers.CharField(max_length=8)
 
 class DashBoardChangePassword(serializers.Serializer):
     current_password=serializers.CharField(max_length=200)

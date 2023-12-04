@@ -15,7 +15,7 @@ class TransactionSerializer(serializers.ModelSerializer):
 class WalletSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wallet
-        fields = ('user', 'balance')
+        fields = ('balance',)
         
 class StockSerializer(serializers.ModelSerializer):
     class Meta:

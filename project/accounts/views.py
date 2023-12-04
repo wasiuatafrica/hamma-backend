@@ -11,6 +11,7 @@ from .utils import verify_token, resendToken,SetTOTP, verifyTOTP,generate_random
 from rest_framework import viewsets
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone  
+from portfolio.models import Wallet,Portfolio
 
 User=get_user_model()
 class Registration(APIView):
@@ -52,7 +53,9 @@ class VerifyToken(APIView):
         token_reponse=verify_token(user_email, token)
         if not token_reponse:
             return Response({"detail":"Token or user_email is invalid"}, status=status.HTTP_400_BAD_REQUEST)
-        
+        user=User.objects.get(email=user_email)
+        Wallet.objects.create(user=user)
+        Portfolio.objects.create(user=user)
         return Response({"detail":"Account verifed."})
 
 class ProfileView(APIView):
@@ -148,12 +151,37 @@ class LoginWithEmailView(APIView):
                     user = User.objects.get(email=email, is_active=True)
                     resendToken(user, "login")
                     return Response({"detail": "Please check your mail for your 2fa token"}, status=status.HTTP_202_ACCEPTED)
+               
+            else:
+                return Response({"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class LoginWith2FA(APIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class =serializers.LoginTokenSeriailizer
+    
+    def post(self, request, *args, **kwargs):
+        email = request.data.get("email")
+        # password = request.data.get("password")
+        token = request.data.get("token")
+
+        serializer=self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            try:
+                user = User.objects.get(email=email, is_active=True)
+            except User.DoesNotExist:
+                return Response({"detail": "User not found or user account not active or user email not verified"}, status=status.HTTP_404_NOT_FOUND)
+            # if user.check_password(password):
+            if user.twofa_type =="authapps": #user is bringing token from authapps
+                v_token= verifyTOTP(user, token)
+            else:
+                v_token=verify_token(email, token) 
+            if v_token:
+                refresh = RefreshToken.for_user(user)
+                user_data =serializers.CustomUserSerializer(user, many=False).data
                 # update last_login
                 user.last_login=timezone.now()
                 user.save()
-                refresh = RefreshToken.for_user(user)
-                user_data =serializers.CustomUserSerializer(user, many=False).data
-
                 token_data = {
                     'refresh': str(refresh),
                     'access': str(refresh.access_token),
@@ -162,46 +190,9 @@ class LoginWithEmailView(APIView):
 
                 return Response(token_data, status=status.HTTP_200_OK)
             else:
-                return Response({"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-class LoginWith2FA(APIView):
-    permission_classes = [permissions.AllowAny]
-    serializer_class =serializers.LoginWithEmailSeriailizer
-    
-    def post(self, request, *args, **kwargs):
-        email = request.data.get("email")
-        password = request.data.get("password")
-        token = request.data.get("token")
-
-        serializer=self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            try:
-                user = User.objects.get(email=email, is_active=True)
-            except User.DoesNotExist:
-                return Response({"detail": "User not found or user account not active"}, status=status.HTTP_404_NOT_FOUND)
-            if user.check_password(password):
-                if user.twofa_type =="authapps": #user is bringing token from authapps
-                    v_token= verifyTOTP(user, token)
-                else:
-                    v_token=verify_token(email, token) 
-                if v_token:
-                    refresh = RefreshToken.for_user(user)
-                    user_data =serializers.CustomUserSerializer(user, many=False).data
-                    # update last_login
-                    user.last_login=timezone.now()
-                    user.save()
-                    token_data = {
-                        'refresh': str(refresh),
-                        'access': str(refresh.access_token),
-                        "user": user_data
-                    }
-
-                    return Response(token_data, status=status.HTTP_200_OK)
-                else:
-                    return Response({"detail": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
-            else:
-                return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({"detail": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+            # else:
+            #     return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ResetForgettenPassword(APIView):
