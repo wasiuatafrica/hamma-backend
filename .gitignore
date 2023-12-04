@@ -6,7 +6,16 @@ __pycache__
 db.sqlite3
 media
 
-static/admin_dash/
+
+migrations/*
+
+project/accounts/migrations/*
+project/anyon/migrations/*
+project/blog/migrations/*
+project/execution/migrations/*
+project/notifications/migrations/*
+project/portfolio/migrations/*
+project/reporting/migrations/*
 
 # Backup files # 
 *.bak 
@@ -140,11 +149,3 @@ GitHub.sublime-settings
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
-
-project/accounts/migrations/*
-project/anyon/migrations/*
-project/blog/migrations/*
-project/execution/migrations/*
-project/notifications/migrations/*
-project/portfolio/migrations/*
-project/reporting/migrations/*

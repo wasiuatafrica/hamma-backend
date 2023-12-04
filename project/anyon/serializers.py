@@ -20,4 +20,4 @@ class AdminReceiptsViewSerializer(serializers.ModelSerializer):
     def get_fullname(self, obj):
         user = obj.user
         if user:
-            return f"{user.firstname} {user.lastname}"
+            return f"{user.firstname.title()} {user.lastname.title()}"

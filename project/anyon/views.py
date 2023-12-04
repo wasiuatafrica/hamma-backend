@@ -64,7 +64,6 @@ class AdminManageUser(APIView):
 
 class AdminReceiptsView(APIView):
     serializer_class = serializers.AdminReceiptsViewSerializer
-    # parser_classes = (MultiPartParser, FormParser)
     
     def get(self, request):
         receipts=models.Receipts.objects.all().order_by('-id')
@@ -74,11 +73,8 @@ class AdminReceiptsView(APIView):
         return Response(serializer.data) 
     
     def post(self, request):
-        # serializers = self.serializer_class(data=request.data)
-        # if serializers.is_valid():
         id = request.data["id"]
         amount = request.data["amount"]
-        # print(type(amount))
         receipt_status =request.data["receipt_status"]
         
         receipt=models.Receipts.objects.get(id=id)
