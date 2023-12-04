@@ -128,7 +128,7 @@ class DashBoardUpdatePassword(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 # verify_one_time_token
-class LoginWithEmailView(APIView):  
+class LoginWithEmailView(APIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = serializers.LoginWithEmailSeriailizer  # Use the correct serializer class
 
@@ -150,30 +150,18 @@ class LoginWithEmailView(APIView):
                     user = User.objects.get(email=email, is_active=True)
                     resendToken(user, "login")
                     return Response({"detail": "Please check your mail for your 2fa token"}, status=status.HTTP_202_ACCEPTED)
-                # update last_login
-                user.last_login=timezone.now()
-                user.save()
-                refresh = RefreshToken.for_user(user)
-                user_data =serializers.CustomUserSerializer(user, many=False).data
-
-                token_data = {
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                    "user": user_data
-                }
-
-                return Response(token_data, status=status.HTTP_200_OK)
+               
             else:
                 return Response({"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class LoginWith2FA(APIView):
     permission_classes = [permissions.AllowAny]
-    serializer_class =serializers.LoginWithEmailSeriailizer
+    serializer_class =serializers.LoginTokenSeriailizer
     
     def post(self, request, *args, **kwargs):
         email = request.data.get("email")
-        password = request.data.get("password")
+        # password = request.data.get("password")
         token = request.data.get("token")
 
         serializer=self.serializer_class(data=request.data)
