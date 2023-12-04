@@ -14,9 +14,9 @@ from rest_framework_simplejwt.views import (
 
 urlpatterns =  (   [
         path("devadmin/", admin.site.urls),
-        # path("", views.Home.as_view(), name="home"),
+        path("home/", views.Home.as_view(), name="home"),
         path("", include("django.contrib.auth.urls")),
-        path("accounts/", include("allauth.urls")),
+        path('drf/', include('rest_framework.urls')),
         path("auth/", include("accounts.urls")),
         path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
         path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),

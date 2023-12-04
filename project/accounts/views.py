@@ -11,6 +11,7 @@ from .utils import verify_token, resendToken,SetTOTP, verifyTOTP,generate_random
 from rest_framework import viewsets
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone  
+from portfolio.models import Wallet,Portfolio
 
 User=get_user_model()
 class Registration(APIView):
@@ -169,6 +170,7 @@ class LoginWith2FA(APIView):
             try:
                 user = User.objects.get(email=email, is_active=True)
             except User.DoesNotExist:
+
                 return Response({"detail": "User not found or user account not active"}, status=status.HTTP_404_NOT_FOUND)
             if user.check_password(password):
                 if user.twofa_type =="authapps": #user is bringing token from authapps
@@ -194,8 +196,11 @@ class LoginWith2FA(APIView):
                     return Response(token_data, status=status.HTTP_200_OK)
                 else:
                     return Response({"detail": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+
             else:
-                return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({"detail": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+            # else:
+            #     return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ResetForgettenPassword(APIView):

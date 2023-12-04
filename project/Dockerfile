@@ -23,14 +23,16 @@ RUN apt-get update \
 RUN pip install --upgrade pip
 COPY ./requirements.txt .
 RUN pip install -r requirements.txt
+RUN pip install django_otp
+RUN pip install qrcode
 
 # copy entrypoint.sh
-COPY ./entrypoint_1.sh /usr/src/app/
-RUN sed -i 's/\r$//g' /usr/src/app/entrypoint_1.sh
-RUN chmod +x /usr/src/app/entrypoint_1.sh
+COPY ./entrypoint.sh /usr/src/app/
+RUN sed -i 's/\r$//g' /usr/src/app/entrypoint.sh
+RUN chmod +x /usr/src/app/entrypoint.sh
 
 # copy project
 COPY . .
 
 # run entrypoint.sh
-ENTRYPOINT ["/usr/src/app/entrypoint_1.sh"]
+ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
