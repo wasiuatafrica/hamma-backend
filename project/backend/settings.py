@@ -268,7 +268,7 @@ SENDGRID_API_KEY = (
 )
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 # DEFAULT_FROM_EMAIL = "teamft9ja@gmail.com"
-DEFAULT_FROM_EMAIL = "info@anyon.com"
+DEFAULT_FROM_EMAIL = "teamanyon@anyon.com"
 # echo to stdout or any other file-like object that is passed to the backend via the stream kwarg.
 SENDGRID_ECHO_TO_STDOUT = False
 
