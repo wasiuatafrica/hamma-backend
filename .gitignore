@@ -9,7 +9,7 @@ media
 
 migrations/*
 
-project/accounts/migrations/*
+!project/accounts/migrations/*
 project/anyon/migrations/*
 project/blog/migrations/*
 project/execution/migrations/*
