@@ -48,7 +48,7 @@ def send_welcome_email(user):
     html_message = render_to_string('accounts/welcome_email.html', context)
     plain_message = strip_tags(html_message)
     subject = 'Welcome to Anyon'
-    from_email = "teamanyon@anyon.com"
+    from_email = "teamft9ja@gmail.com"
     recipient_list = [user.email]
     send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
 
