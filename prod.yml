@@ -80,8 +80,7 @@ services:
     environment:
       DOZZLE_USERNAME: platinex
       DOZZLE_PASSWORD: parsta      
-    depends_on:
-      - web
+    
 
 volumes:
   postgres_data:
