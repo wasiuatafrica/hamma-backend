@@ -3,27 +3,29 @@ version: '3.8'
 services:
   web:
     build:
-      context: ./main
+      context: ./project
       dockerfile: Dockerfile.prod
-    command: daphne -b 0.0.0.0 -p 8000 chatrep.asgi:application
+    command: daphne -b 0.0.0.0 -p 8000 backend.asgi:application
     volumes:
       - static_volume:/home/app/web/staticfiles
       - media_volume:/home/app/web/mediafiles
     expose:
       - 8000
     env_file:
-      - ../envs/.env.prod
+      - ./envs/.env.prod
+    depends_on:
+      - db
       
   celery:
     build:
-      context: ./main
+      context: ./project
       dockerfile: Dockerfile.prod
-    command: celery --app=chatrep worker --loglevel=info 
+    command: celery --app=backend worker --loglevel=info 
     
     volumes:
-      - ./main/:/usr/src/app/
+      - ./project/:/usr/src/app/
     env_file:
-      - ../envs/.env.prod
+      - ./envs/.env.prod
     depends_on:
       - web
       - redis
@@ -31,52 +33,61 @@ services:
   redis:
     image: redis:7-alpine
   
-
-  nginx-proxy:
-    container_name: nginx-proxy
-    build: nginx
-    restart: always
-    ports:
-      - 443:443
-      - 80:80
+  db:
+    image: postgres:15.0-alpine
     volumes:
-      - static_volume:/home/app/web/staticfiles
-      - media_volume:/home/app/web/mediafiles
-      - certs:/etc/nginx/certs
-      - html:/usr/share/nginx/html
-      - vhost:/etc/nginx/vhost.d
-      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=anyon
+      - POSTGRES_PASSWORD=anyon2
+      - POSTGRES_DB=anyon
+
+  # nginx-proxy:
+  #   container_name: nginx-proxy
+  #   build: nginx
+  #   restart: always
+  #   ports:
+  #     - 443:443
+  #     - 80:80
+  #   volumes:
+  #     - static_volume:/home/app/web/staticfiles
+  #     - media_volume:/home/app/web/mediafiles
+  #     - certs:/etc/nginx/certs
+  #     - html:/usr/share/nginx/html
+  #     - vhost:/etc/nginx/vhost.d
+  #     - /var/run/docker.sock:/tmp/docker.sock:ro
+  #   depends_on:
+  #     - web
+  # nginx-proxy-letsencrypt:
+  #   image: jrcs/letsencrypt-nginx-proxy-companion
+  #   env_file:
+  #     - ./.env.prod.proxy-companion
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - certs:/etc/nginx/certs
+  #     - html:/usr/share/nginx/html
+  #     - vhost:/etc/nginx/vhost.d
+  #     - acme:/etc/acme.sh
+  #   depends_on:
+  #     - nginx-proxy
+
+  dozzle:
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+    - 8080:8080
+    environment:
+      DOZZLE_USERNAME: platinex
+      DOZZLE_PASSWORD: parsta      
     depends_on:
       - web
-  nginx-proxy-letsencrypt:
-    image: jrcs/letsencrypt-nginx-proxy-companion
-    env_file:
-      - ./.env.prod.proxy-companion
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - certs:/etc/nginx/certs
-      - html:/usr/share/nginx/html
-      - vhost:/etc/nginx/vhost.d
-      - acme:/etc/acme.sh
-    depends_on:
-      - nginx-proxy
-
-  # dozzle:
-  #   container_name: dozzle
-  #   image: amir20/dozzle:latest
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   expose:
-  #     - 8080
-  #   env_file:
-  #   - ../envs/.env.prod
-    # depends_on:
-    #   - nginx-proxy
 
 volumes:
+  postgres_data:
   static_volume:
   media_volume:
-  certs:
-  html:
-  vhost:
-  acme:
+  # certs:
+  # html:
+  # vhost:
+  # acme:

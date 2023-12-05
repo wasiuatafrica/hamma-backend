@@ -14,6 +14,7 @@ from portfolio import models
 from rest_framework.parsers import MultiPartParser, FormParser
 from notifications.utils import save_and_send_notification
 from decimal import Decimal
+from django.forms.models import model_to_dict
 
 User=get_user_model()
 
@@ -73,27 +74,63 @@ class AdminReceiptsView(APIView):
         return Response(serializer.data) 
     
     def post(self, request):
+        
+        statuses = ['approved','rejected']
+        
         id = request.data["id"]
         amount = request.data["amount"]
         receipt_status =request.data["receipt_status"]
+        comment =request.data["comment"]
+        
+        if receipt_status not in statuses:
+            return Response('receipt_status must either be approved or rejected ')
         
         receipt=models.Receipts.objects.get(id=id)
-        receipt.amount=amount
         receipt.receipt_status=receipt_status
         receipt.save()
         
-        wallet=models.Wallet.objects.get(user=receipt.user)
-        amount = Decimal(amount)
-        wallet.balance += amount
-        wallet.save()
-        
-        save_and_send_notification(wallet.user.id, f"{amount} credited to you wallet.")
-        
-        models.Transaction.objects.create(user=wallet.user, transaction_type='deposit',amount=amount)
-        
-        serializers = self.serializer_class(data=receipt)
-        
-        if serializers.is_valid():
-            return Response(serializers.data)
-        return Response(serializers.errors)
-    
+        if receipt_status == 'approved':
+            receipt.amount=amount
+            receipt.save()
+            
+            wallet=models.Wallet.objects.get(user=receipt.user)
+            amount = Decimal(amount)
+            wallet.balance += amount
+            wallet.save()
+            
+            save_and_send_notification(wallet.user.id, f"{amount} credited to your wallet.")
+            
+            models.Transaction.objects.create(user=wallet.user, transaction_type='deposit',amount=amount)
+            
+            receipt_data = {
+                'id': receipt.id,
+                'user': receipt.user.id,
+                'fullname':receipt.user.fullname,
+                'amount': receipt.amount,
+                'payment_method': receipt.payment_method,
+                'receipt_status': receipt.receipt_status,
+                'comment': receipt.comment,
+                'created': receipt.created,
+                'approved_date': receipt.approved_date,
+                'image_url': receipt.image.url if receipt.image else None,
+            }
+            return Response(receipt_data)
+        elif receipt_status == 'rejected':
+            receipt.comment = comment
+            receipt.save()
+
+            receipt_data = {
+                'id': receipt.id,
+                'user': receipt.user.id,
+                'fullname':receipt.user.fullname,
+                'amount': receipt.amount,
+                'payment_method': receipt.payment_method,
+                'receipt_status': receipt.receipt_status,
+                'comment': receipt.comment,
+                'created': receipt.created,
+                'approved_date': receipt.approved_date,
+                'image_url': receipt.image.url if receipt.image else None,
+            }
+            save_and_send_notification(receipt.user.id, f"Yoour payment receipt has been rejected. Reason: {receipt.comment}.")
+            
+            return Response(receipt_data)

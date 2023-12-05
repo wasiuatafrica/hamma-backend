@@ -1,7 +1,8 @@
 from django.shortcuts import render
-from rest_framework.response import Response
+from rest_framework.response import Response,SimpleTemplateResponse
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
+
 
 
 class Home(APIView):
@@ -19,3 +20,11 @@ class Home(APIView):
             'path("reset-password/", views.ResetForgettenPassword.as_view())',
             ]
         return Response(links)
+
+  
+    
+def docuser(request):
+    return render(request, 'docs/docuser.html')
+
+def docadmin(request):
+    return render(request, 'docs/docadmin.html')

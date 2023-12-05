@@ -16,6 +16,7 @@ from django.core.mail import send_mail
 from django.utils import timezone
 from .utils import get_symbol_data
 from notifications.utils import save_and_send_notification
+from django.shortcuts import get_object_or_404
 
 User= get_user_model()
 
@@ -131,7 +132,8 @@ class GetSingleStock(APIView):
     
     def get(self, request, *args, **kwargs):
         symbol = self.kwargs.get('symbol')
-        queryset = Stock.objects.get(symbol=symbol)
+        # queryset = Stock.objects.get(symbol=symbol)
+        queryset = get_object_or_404(Stock, symbol=symbol)
         symbol_data = get_symbol_data(symbol)
         serializer = self.serializer_class(queryset)
         response_data = {

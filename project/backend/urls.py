@@ -15,6 +15,8 @@ from rest_framework_simplejwt.views import (
 urlpatterns =  (   [
         path("devadmin/", admin.site.urls),
         path("home/", views.Home.as_view(), name="home"),
+        path("", views.docuser,),
+        path("docadmin/", views.docadmin,),
         path("", include("django.contrib.auth.urls")),
         path('drf/', include('rest_framework.urls')),
         path("auth/", include("accounts.urls")),

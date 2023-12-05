@@ -145,7 +145,7 @@ class LoginWithEmailView(APIView):
             except User.DoesNotExist:
                 return Response({"detail": "This account does not exist"}, status=status.HTTP_404_NOT_FOUND)
             if not user.is_active :
-                    return Response({"detail": "This account is not active. Please use the verify account before login."}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"detail": "This account is not active. Please verify account before login."}, status=status.HTTP_400_BAD_REQUEST)
             if user.check_password(password):
                 if user.has_2fa:
                     if user.twofa_type =="authapps": #send the user to the login

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Anyon API Documentation</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h3>Admin Dashboard API Documentation</h3>
+      <h5>Base_url:http://ec2-16-171-107-174.eu-north-1.compute.amazonaws.com:8000</h5>
+      <hp>Click on each to uncollapse</hp>
+    </div>
+
+    
+    <div class="container mt-5">
+      <h3 data-toggle="collapse" data-target="#login">1. Login</h3>
+      <div id="login" class="collapse">
+        <h4>1a. Login</h4>
+        <p>POST /auth/login/</p>
+
+        <h5>Request Body:</h5>
+        <pre>
+    {
+        "email": "user@example.com",
+        "password": "your_password"
+    }
+            </pre>
+
+            <h5>Response:</h5>
+
+            <h6>Success Response (200 OK):</h6>
+            <pre>
+    {
+        "detail": "Please provide token from your 2fa application"
+    }
+            </pre>
+
+            <h6>Success Response (202 Accepted):</h6>
+            <pre>
+    {
+        "detail": "Please check your mail for your 2fa token"
+    }
+            </pre>
+
+            <h6>Error Response (404 Not Found):</h6>
+            <pre>
+    {
+        "detail": "This account does not exist"
+    }
+            </pre>
+
+            <h6>Error Response (400 Bad Request):</h6>
+            <pre>
+    {
+        "detail": "This account is not active. Please verify account before login."
+    }
+            </pre>
+
+        <h3 data-toggle="collapse" data-target="#verifyLogin">
+          1b. Verify Login Token
+        </h3>
+        <div id="verifyLogin" class="collapse">
+          <p>POST /auth/login-with-2fa/</p>
+
+          <h3>Request:</h3>
+          <p>
+            Send a POST request to perform the second stage of the login process
+            (after receiving the 2FA token).
+          </p>
+
+          <h4>Request Body:</h4>
+          <pre>
+    {
+        "email": "user@example.com",
+        "token": "your_token"
+    }
+        </pre
+            >
+
+          <h3>Response:</h3>
+          <p>Status Codes:</p>
+          <ul>
+            <li>200 OK - Successful login</li>
+            <li>401 Unauthorized - Invalid token</li>
+            <li>404 Not Found - User not found or inactive account</li>
+          </ul>
+
+          <h4>Success Response (200 OK):</h4>
+          <pre>
+    {
+        "refresh": "your_refresh_token",
+        "access": "your_access_token",
+        "user": {
+            "id": 1,
+            "email": "user@example.com",
+            "firstname": "John",
+            "lastname": "Doe",
+            "has_2fa": true,
+            "twofa_type": "authapps",
+            "is_active": true,
+            "totp_url": "your_totp_url",
+            "date_joined": "2023-12-05T12:34:56.789Z",
+            "last_login": "2023-12-05T12:34:56.789Z"
+        }
+    }
+        </pre
+            >
+
+            <h4>Error Response (401 Unauthorized):</h4>
+            <pre>
+    {
+        "detail": "Invalid token"
+    }
+        </pre
+            >
+
+            <h4>Error Response (404 Not Found):</h4>
+            <pre>
+    {
+        "detail": "User not found or user account not active"
+    }
+        </pre
+          >
+        </div>
+      </div>
+    </div>
+
+
+        
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  </body>
+</html>
