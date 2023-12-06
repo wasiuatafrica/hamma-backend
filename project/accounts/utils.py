@@ -43,7 +43,7 @@ def  verify_token(user_email,token, _type=""):
 def send_welcome_email(user):
     # Send token to users email
     context={
-        "firstname":user.firstname
+        "firstname":user.firstname.title()
     }
     html_message = render_to_string('accounts/welcome_email.html', context)
     plain_message = strip_tags(html_message)

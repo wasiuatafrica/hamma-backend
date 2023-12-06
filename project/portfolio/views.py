@@ -17,7 +17,10 @@ from django.utils import timezone
 from .utils import get_symbol_data
 from notifications.utils import save_and_send_notification
 from django.shortcuts import get_object_or_404
-
+from decimal import Decimal
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+ 
 User= get_user_model()
 
 class WalletDetail(generics.RetrieveAPIView):
@@ -44,42 +47,57 @@ class WalletDeposit(generics.UpdateAPIView):
 
 
 class WalletWithdraw(APIView):
+    from decimal import Decimal
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        amount = request.data.get('amount', 0)
-        stage = request.data.get('stage',None)
+        stage = request.data.get('stage')
+        
+        amount = request.data.get('amount')
         wallet = Wallet.objects.get(user=request.user)
 
-        if wallet.balance >= float(amount):
-            if stage == 1:
+        if not amount or not stage:
+            return Response("amount and stage must be sent sent")
+        if int(stage) > 2:
+            return Response("stage must be 1 or 2")
+        
+        if stage == '1':
+            
+            if wallet.balance >= Decimal(amount):
                 # Stage 1: Generate OTP and send to user
                 otp = self.generate_otp()
                 otp_request =WithdrawalOTPRequest.objects.create(user=request.user, otp=otp,
-                                                        expiration_time=timezone.now() + timezone.timedelta(minutes=5))
+                                                        expiration_time=timezone.now() + timezone.timedelta(minutes=10))
 
                 # Send OTP to the user
                 self.send_otp(user=request.user, otp=otp)
 
                 return Response({"detail": "OTP has been sent to your email for verification.",
-                                 "otp_request_id": otp_request.id},
+                                    "otp_request_id": otp_request.id},
                                 status=status.HTTP_200_OK)
+            else:
+                # Handle insufficient funds error
+                raise serializers.ValidationError("Insufficient funds in the wallet.")
 
-            elif request.data['stage'] == 2:
-                # Stage 2: Verify OTP and create withdrawal request
-                otp_request_id = request.data.get('otp_request_id')
-                provided_token = request.data.get('otp_token', '')
+        elif request.data['stage'] == '2':
+            # Stage 2: Verify OTP and create withdrawal request
+            otp_request_id = request.data.get('otp_request_id')
+            provided_token = request.data.get('otp_token', '')
+            amount = request.data.get('amount')
 
-                otp_request = self.get_valid_otp_request(otp_request_id)
+            otp_request = self.get_valid_otp_request(otp_request_id)                
 
-                if otp_request and self.verify_otp(otp_request, provided_token):
-                    # Proceed with withdrawal request creation
-                    WithdrawalRequest.objects.create(wallet=wallet, amount=amount)
-                    return Response({"detail": "Withdrawal request has been created successfully."},
-                                    status=status.HTTP_200_OK)
-                else:
-                    # Handle invalid OTP or expired OTP request
-                    raise serializers.ValidationError("Invalid or expired OTP. Please try again.")
+            if otp_request and self.verify_otp(otp_request, provided_token):
+                # Proceed with withdrawal request creation
+                WithdrawalRequest.objects.create(wallet=wallet, amount=amount)
+                otp_request.used = True
+                otp_request.save()
+                save_and_send_notification(request.user.id, 'Your withdrawal is processing.')
+                return Response({"detail": "Withdrawal request has been created successfully."},
+                                status=status.HTTP_200_OK)
+            else:
+                # Handle invalid OTP or expired OTP request
+                raise serializers.ValidationError("Invalid or expired OTP. Please try again.")
 
         else:
             # Handle insufficient funds error
@@ -87,18 +105,30 @@ class WalletWithdraw(APIView):
 
     def generate_otp(self):
         # Generate a 6-digit OTP
-        return ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        return ''.join([str(random.randint(0, 9)) for _ in range(8)])
 
+    # def send_otp(self, user, otp):
+    #     # Send OTP via email (you can add SMS or other methods here)
+    #     send_mail(
+    #         'Withdrawal OTP',
+    #         f'Your withdrawal OTP is: {otp}',
+    #         'teamft9ja@gmail.com',
+    #         [user.email],
+    #         fail_silently=False,
+    #     )
     def send_otp(self, user, otp):
-        # Send OTP via email (you can add SMS or other methods here)
-        send_mail(
-            'Withdrawal OTP',
-            f'Your withdrawal OTP is: {otp}',
-            'from@example.com',
-            [user.email],
-            fail_silently=False,
-        )
-
+        # Send token to users email
+        context={
+            "firstname":user.firstname.title(),
+            'token':otp
+        }
+        html_message = render_to_string('portfolio/token.html', context)
+        plain_message = strip_tags(html_message)
+        subject = 'Anyon Withdrawal OTP'
+        from_email = "teamft9ja@gmail.com"
+        recipient_list = [user.email]
+        send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+        
     def get_valid_otp_request(self, otp_request_id):
         try:
             otp_request =WithdrawalOTPRequest.objects.get(id=otp_request_id, user=self.request.user, used=False,
@@ -109,7 +139,8 @@ class WalletWithdraw(APIView):
 
     def verify_otp(self, otp_request, provided_token):
         # Verify OTP token
-        return otp_request.otp == provided_token
+        
+        return otp_request.otp == int(provided_token)
 
 class StockList(generics.ListAPIView):
     queryset = Stock.objects.all()

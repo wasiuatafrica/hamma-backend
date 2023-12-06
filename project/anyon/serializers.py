@@ -2,6 +2,10 @@ from rest_framework import serializers
 from portfolio import models
 from accounts import serializers as acc_serializers
 
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
 class AdminReceiptsViewSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
     fullname = serializers.SerializerMethodField()
@@ -21,3 +25,29 @@ class AdminReceiptsViewSerializer(serializers.ModelSerializer):
         user = obj.user
         if user:
             return f"{user.firstname.title()} {user.lastname.title()}"
+        
+        
+class WithdrawalSerializer(serializers.ModelSerializer):
+    fullname = serializers.SerializerMethodField()
+    user_id = serializers.SerializerMethodField()
+    class Meta:
+        model = models.WithdrawalRequest
+        fields = (
+            'id',
+            'fullname',
+            'user_id',
+            'amount',
+            'status',
+            'created'
+        )
+        
+    
+    def get_fullname(self, obj):
+        user = obj.wallet.user
+        if user:
+            return user.fullname
+        
+    def get_user_id(self, obj):
+        user = obj.wallet.user
+        if user:
+            return user.id

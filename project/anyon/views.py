@@ -11,16 +11,40 @@ from rest_framework import permissions
 from . import permissions as acc_permissions 
 from rest_framework.generics import get_object_or_404
 from portfolio import models
-from rest_framework.parsers import MultiPartParser, FormParser
 from notifications.utils import save_and_send_notification
 from decimal import Decimal
-from django.forms.models import model_to_dict
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
 
 User=get_user_model()
 
+
+class LoginView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = serializers.LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        email = serializer.validated_data['email']
+        password = serializer.validated_data['password']
+        
+        # Authenticate user
+        user = authenticate(request, email=email, password=password)
+        
+        if user is not None:
+            refresh = RefreshToken.for_user(user)
+            
+            token_data = {
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                }
+            return Response(token_data, status=status.HTTP_200_OK)
+        else:
+            return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
 class AdminManageUser(APIView):
     serializer_class= acc_serializers.CustomUserSerializer
-    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+    # permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
 
     def get_object(self, user_id):
         # Get a single user by ID
@@ -134,3 +158,63 @@ class AdminReceiptsView(APIView):
             save_and_send_notification(receipt.user.id, f"Yoour payment receipt has been rejected. Reason: {receipt.comment}.")
             
             return Response(receipt_data)
+        
+class WithdrawalView(APIView):
+    serializer_class = serializers.WithdrawalSerializer
+    
+    def get(self, request):
+        receipts=models.WithdrawalRequest.objects.all().order_by('-id')
+        serializer = self.serializer_class(data=receipts, many=True)
+        serializer.is_valid()
+        return Response(serializer.data) 
+    
+    def post(self, request):
+        id = request.data.get('id')
+        action = request.data.get('action')
+        withdrawal= models.WithdrawalRequest.objects.get(id=id)
+        wallet = withdrawal.wallet
+        allowed = ['approved','rejected']
+        
+        if action not in allowed:
+            return Response('action must be approved or rejected')
+        
+        if action == 'approved' and wallet.balance > Decimal(withdrawal.amount):
+            wallet.balance -= Decimal(withdrawal.amount)
+            wallet.save()
+            
+            withdrawal.status = 'approved'
+            withdrawal.save()
+            
+            save_and_send_notification(wallet.user.id, f"Your withdrawal of {withdrawal.amount} has been processed.")
+            models.Transaction.objects.create(user=wallet.user, transaction_type='withdrawal',amount=withdrawal.amount)
+            
+            data = {
+                'id':withdrawal.id,
+                'fullname':withdrawal.wallet.user.fullname,
+                'user_id':withdrawal.wallet.user.id,
+                'amount':withdrawal.amount,
+                'status':withdrawal.status,
+                'created':withdrawal.created,
+            }
+            
+            return Response(data)
+        
+        elif action == 'rejected':
+            withdrawal.status = 'rejected'
+            withdrawal.save()
+            
+            save_and_send_notification(wallet.user.id, f"Your withdrawal of {withdrawal.amount} has been rejected.")
+            
+            data = {
+                'id':withdrawal.id,
+                'fullname':withdrawal.wallet.user.fullname,
+                'user_id':withdrawal.wallet.user.id,
+                'amount':withdrawal.amount,
+                'status':withdrawal.status,
+                'created':withdrawal.created,
+            }
+            
+            return Response(data)
+        
+        else:
+            return Response("Insufficient fund")

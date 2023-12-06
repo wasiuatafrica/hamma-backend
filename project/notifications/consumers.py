@@ -6,6 +6,7 @@ from .utils import get_notifications, update_notification
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def initialize(self):
         self.user_id = self.scope['user'].id
+        # self.user_id = self.scope['query_string'].decode('utf-8').split('=')[1]
         
     async def connect(self):
         await self.accept()
@@ -17,7 +18,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         )
         
         
-        notifications = await get_notifications(self.user_id)
+        notifications =  get_notifications(self.user_id)
         for notification in notifications:
             await self.send_notification({'message': notification})
 
