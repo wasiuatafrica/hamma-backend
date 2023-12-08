@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from portfolio.models import Stock, Trade, Wallet, Holding, Portfolio, Transaction
+from notifications.utils import save_and_send_notification
 from rest_framework.permissions import IsAuthenticated
 
 
@@ -30,7 +31,8 @@ class TradeAPIView(APIView):
                 holding=holding,
                 quantity=quantity,
                 price=price,
-                is_buy=True
+                order_type='buy',
+                status='completed',
             )
                         
             holding.quantity +=quantity
@@ -40,6 +42,8 @@ class TradeAPIView(APIView):
             wallet.save()
             
             Transaction.objects.create(user=request.user,transaction_type='buy',amount=quantity * price)
+            save_and_send_notification(request.user.id,f'You bought {quantity} units of {stock.symbol} at {price} per unit. Total value:{quantity * price}naira ')
+            
             return Response({'message': 'Buy order executed successfully.'}, status=status.HTTP_201_CREATED)
         elif not is_buy:
             
@@ -50,7 +54,8 @@ class TradeAPIView(APIView):
                     holding=holding,
                     quantity=quantity,
                     price=price,
-                    is_buy=False
+                    order_type='sell',
+                    status='completed',
                 )
                 holding.quantity -= quantity
                 holding.save()
@@ -59,6 +64,8 @@ class TradeAPIView(APIView):
                 wallet.save()
                 
                 Transaction.objects.create(user=request.user,transaction_type='sell',amount=quantity * price)
+                save_and_send_notification(request.user.id,f'You sold {quantity} units of {stock.symbol} at {price} per unit. Total value:{quantity * price}naira ')
+                
                 return Response({'message': 'Sell order executed successfully.'}, status=status.HTTP_201_CREATED)
             else:
                 return Response({'error': 'Not enough stocks to sell.'}, status=status.HTTP_400_BAD_REQUEST)

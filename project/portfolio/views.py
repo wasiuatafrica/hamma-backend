@@ -177,38 +177,51 @@ class StockDetail(generics.RetrieveAPIView):
     queryset = Stock.objects.all()
     serializer_class = StockSerializer
     
-class HoldingListCreate(generics.ListCreateAPIView):
-    queryset = Holding.objects.all()
-    serializer_class = HoldingSerializer
-    permission_classes = [IsAuthenticated]
+# class HoldingListCreate(generics.ListCreateAPIView):
+#     queryset = Holding.objects.all()
+#     serializer_class = HoldingSerializer
+#     permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset().filter(user=request.user)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-class HoldingDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Holding.objects.all()
-    serializer_class = HoldingSerializer
-    permission_classes = [IsAuthenticated]
+# class HoldingDetail(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Holding.objects.all()
+#     serializer_class = HoldingSerializer
+#     permission_classes = [IsAuthenticated]
 
-class PortfolioDetail(generics.RetrieveAPIView):
-    queryset = Portfolio.objects.all()
-    serializer_class = PortfolioSerializer
-    permission_classes = [IsAuthenticated]
+# class PortfolioDetail(generics.RetrieveAPIView):
+#     queryset = Portfolio.objects.all()
+#     serializer_class = PortfolioSerializer
+#     permission_classes = [IsAuthenticated]
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
+#     def retrieve(self, request, *args, **kwargs):
+#         instance = self.get_object()
+#         serializer = self.get_serializer(instance)
 
-        # Add calculated values to the response data
-        response_data = serializer.data
-        response_data['equity'] = instance.calculate_equity()
-        response_data['current_value'] = instance.calculate_current_value()
-        response_data['positions'] = instance.get_positions()
+#         # Add calculated values to the response data
+#         response_data = serializer.data
+#         response_data['equity'] = instance.calculate_equity()
+#         response_data['current_value'] = instance.calculate_current_value()
+#         response_data['positions'] = instance.get_positions()
 
-        return Response(response_data)
+#         return Response(response_data)
     
+    
+class PortfolioDetail(APIView):
+    def get(self, request):
+        portfolio= Portfolio.objects.get(user=request.user)
+        serializer1= PortfolioSerializer(portfolio)
+        serializer2=HoldingSerializer(portfolio.holdings.all(), many=True)
+        data = {
+            'porfolio':serializer1.data,
+            'holdings':serializer2.data
+        }
+        return Response(data)
+        
+        
 class ReceiptsView(APIView):
     serializer_class = ReceiptsViewSerializer
     parser_classes = (MultiPartParser, FormParser)

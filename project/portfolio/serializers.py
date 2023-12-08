@@ -24,14 +24,41 @@ class StockSerializer(serializers.ModelSerializer):
     
 
 class HoldingSerializer(serializers.ModelSerializer):
+    stock = serializers.SerializerMethodField()
+    
     class Meta:
         model = Holding
-        fields = '__all__'
+        fields = (
+            'id',
+            'stock',
+            'quantity',
+            'created',
+            'updated','current_value',
+            'filled',
+            'incomplete',
+            'shares',
+            'avg_cost',
+            'ltp',
+            'cur_val',
+            'pnl',
+            'change',
+            'percent_change',
+            'avg_volume_3_months',
+            'volume',
+            
+        )
 
+    def get_stock(self,obj):
+        return obj.stock.symbol
+    
 class PortfolioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Portfolio
-        fields = '__all__'
+        fields = (
+            'portfolio_value',
+            'total_invested',
+            'profit_loss'
+        )
 
 class ReceiptsViewSerializer(serializers.ModelSerializer):
     class Meta:

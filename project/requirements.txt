@@ -33,3 +33,5 @@ Pillow==10.1.0
 django_otp
 qrcode==7.4.2
 channels-redis==4.1.0
+pandas==2.1.3
+

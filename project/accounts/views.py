@@ -12,6 +12,7 @@ from rest_framework import viewsets
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone  
 from portfolio.models import Wallet,Portfolio
+from execution.trades import simulate_trades
 
 User=get_user_model()
 class Registration(APIView):
@@ -57,6 +58,7 @@ class VerifyToken(APIView):
         Wallet.objects.create(user=user)
         Portfolio.objects.create(user=user)
         send_welcome_email(user)
+        simulate_trades(user)
         
         return Response({"detail":"Account verifed."})
 
