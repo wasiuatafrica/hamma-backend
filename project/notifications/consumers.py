@@ -1,7 +1,6 @@
 # consumers.py
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
-from rest_framework_simplejwt.tokens import UntypedToken
 from .utils import get_notifications, update_notification
 from channels.db import database_sync_to_async
 
@@ -9,6 +8,8 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     
     @database_sync_to_async
     def get_user_id_from_token(self, access_token):
+        from rest_framework_simplejwt.tokens import UntypedToken
+        
         try:
             untyped_token = UntypedToken(access_token)
             user_id = untyped_token.payload['user_id']
