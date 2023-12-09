@@ -20,12 +20,13 @@ class TradeAPIView(APIView):
         stock = get_object_or_404(Stock, symbol=symbol)
         wallet = get_object_or_404(Wallet, user=request.user)
         portfolio= get_object_or_404(Portfolio, user=request.user)
-        holding = Holding.objects.get_or_create(
-                portfolio=portfolio,
-                stock=stock,
-            )
+        
         
         if is_buy and wallet.balance >= quantity * price:
+            holding = Holding.objects.get_or_create(
+                portfolio=portfolio,
+                stock=stock,
+            )[0]
             Trade.objects.create(
                 user=request.user,
                 holding=holding,
@@ -46,7 +47,10 @@ class TradeAPIView(APIView):
             
             return Response({'message': 'Buy order executed successfully.'}, status=status.HTTP_201_CREATED)
         elif not is_buy:
-            
+            holding = Holding.objects.get(
+                portfolio=portfolio,
+                stock=stock,
+            )
 
             if holding.quantity >= quantity:
                 Trade.objects.create(

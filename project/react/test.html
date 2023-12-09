@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Notifications</title>
+</head>
+<body>
+    <ul id="notificationList"></ul>
+
+    <script>
+        const accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzAzMTcxMjc0LCJpYXQiOjE3MDE4NzUyNzQsImp0aSI6IjlkOTUzYWRhZDljMzQ1ODJhNmIxNzQ5Yzk5MTU1MGViIiwidXNlcl9pZCI6MX0.Dtk9JCm8TcGca5OJyxN3_jwJMKj8Lm-PvTtPGnbbdi8";  
+
+        const wsURL = `ws://127.0.0.1:8000/ws/notifications/?token=${accessToken}`;
+        const socket = new WebSocket(wsURL);
+
+        socket.addEventListener('open', (event) => {
+            console.log('WebSocket connected:', event);
+        });
+
+        socket.addEventListener('message', (event) => {
+            const data = JSON.parse(event.data);
+            console.log('message received');  // Log to see the content and type
+            console.log(data);  // Log to see the content and type
+            if (data.hasOwnProperty('message') && Array.isArray(data.message)) {
+                const notifications = data.message;
+                notifications.forEach(notification => displayNotification(notification));
+            } else {
+                console.error('Invalid data format:', notifications);
+            }
+        });
+        
+
+        socket.addEventListener('close', (event) => {
+            console.log('WebSocket closed:', event);
+        });
+
+        function displayNotification(notification) {
+            const notificationList = document.getElementById('notificationList');
+            const listItem = document.createElement('li');
+        
+            // Set the ID of the list item
+            const listItemID = `${notification.notification_id}-${notification.user_id}`;
+            listItem.id = listItemID;
+        
+            // Convert the notification object to a string for display
+            listItem.textContent = JSON.stringify(notification);
+        
+            listItem.addEventListener('click', () => {
+                sendNotificationId(listItemID);
+            });
+            notificationList.appendChild(listItem);
+        }
+        
+
+        function sendNotificationId(notificationId) {
+            const data = {
+                notification_id: notificationId
+            };
+            socket.send(JSON.stringify(data));
+        }
+    </script>
+</body>
+</html>

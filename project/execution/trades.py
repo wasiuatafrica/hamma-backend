@@ -13,10 +13,11 @@ def simulate_trades(user):
     
     portfolio = Portfolio.objects.get(user=user)
 
-    for _ in range(10):
+    for _ in range(20):
         # Simulate Buy
         quantity = random.randint(1, 150)
-        price = Decimal(round(random.uniform(100, 500), 2))
+        price = round(Decimal(random.uniform(100, 500)),2)
+        
         stock = random.choice(stocks)
         holding = Holding.objects.get_or_create(portfolio=portfolio, stock=stock)[0]
 
@@ -37,13 +38,13 @@ def simulate_trades(user):
             wallet.save()
 
             Transaction.objects.create(user=user, transaction_type='buy', amount=quantity * price)
-            save_and_send_notification(user.id,f'You bought {quantity} units of {stock.symbol} at {price} per unit. Total value:{quantity * price}naira ')
+            save_and_send_notification(user.id,f'You bought {quantity} units of {stock.symbol} stocks at {price} per unit. Total value:{round(quantity * price, 2)}naira ')
             
     print('buy simulated')
-    for _ in range(10):
+    for _ in range(20):
         # Simulate Sell
         quantity = random.randint(1, 50)
-        price = Decimal(round(random.uniform(100, 500), 2))
+        price = round(Decimal(random.uniform(100, 500)),2)
         stock = random.choice(stocks)
 
         holding = Holding.objects.get_or_create(portfolio=portfolio, stock=stock)[0]
@@ -65,7 +66,11 @@ def simulate_trades(user):
             wallet.save()
 
             Transaction.objects.create(user=user, transaction_type='sell', amount=quantity * price)
-            save_and_send_notification(user.id,f'You sold {quantity} units of {stock.symbol} at {price} per unit. Total value:{quantity * price}naira ')
+            save_and_send_notification(user.id,f'You sold {quantity} units of {stock.symbol} stocks at {price} per unit. Total value:{round(quantity * price, 2)}naira ')
             
 
     print('sell simulated')
+    holding2 = Holding.objects.filter(portfolio=portfolio,quantity=0)
+    if holding2:
+        for hol in holding2:
+            hol.delete()

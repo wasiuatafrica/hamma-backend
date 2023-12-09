@@ -183,6 +183,7 @@ class LoginWith2FA(APIView):
                 v_token=verify_token(email, token) 
             if v_token:
                 refresh = RefreshToken.for_user(user)
+                refresh.save()
                 user_data =serializers.CustomUserSerializer(user, many=False).data
                 # update last_login
                 user.last_login=timezone.now()
@@ -192,11 +193,6 @@ class LoginWith2FA(APIView):
                     'access': str(refresh.access_token),
                     "user": user_data
                 }
-                # Send welcome email here
-                # if user.is_first_time_user:
-                #     send_welcome_email(user)
-                #     user.is_first_time_user = False
-                #     user.save()
                 return Response(token_data, status=status.HTTP_200_OK)
             else:
                 return Response({"detail": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)

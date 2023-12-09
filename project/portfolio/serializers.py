@@ -33,7 +33,7 @@ class HoldingSerializer(serializers.ModelSerializer):
             'stock',
             'quantity',
             'created',
-            'updated','current_value',
+            'updated',
             'filled',
             'incomplete',
             'shares',

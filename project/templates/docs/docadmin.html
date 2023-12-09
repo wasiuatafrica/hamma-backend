@@ -265,7 +265,43 @@
   </div>
 </div>
 
-        
+<div class="container mt-5">
+    <h3 data-toggle="collapse" data-target="#trades">5. Trades</h3>
+    <div id="trades" class="collapse">
+
+        <h4>5a. Get All Trades</h4>
+        <p>GET /anyon/trades/</p>
+
+        <h5>Response:</h5>
+        <pre>
+            Retrieve a list of all trades.
+            [
+                {
+                    "id": 1,
+                    "symbol": "AAPL",
+                    "order_type": "Buy",
+                    "quantity": 10,
+                    "price": 150.0,
+                    "status": "Filled",
+                    "updated": "2023-12-05T12:34:56.789Z",
+                    "fullname": "John Doe",
+                    "user_id": 1
+                    // ... other fields
+                },
+                // ... additional trades
+            ]
+        </pre>
+
+        <h6>Notes:</h6>
+        <ul>
+            <li>1. Each trade object contains details such as "symbol," "order_type," "quantity," "price," "status," etc.</li>
+            <li>2. "fullname" is the combined first and last name of the user associated with the trade.</li>
+            <li>3. "user_id" represents the user ID associated with the trade.</li>
+        </ul>
+
+    </div>
+</div>
+   
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>

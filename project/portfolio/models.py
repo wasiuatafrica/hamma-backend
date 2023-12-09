@@ -43,26 +43,26 @@ class Portfolio(auto_prefetch.Model):
     def __str__(self):
         return f"{self.user} - Portfolio"
     
-    # def calculate_equity(self):
-    #     # Calculate the total equity based on the current value of all holdings
-    #     total_equity = sum(holding.calculate_value() for holding in self.holdings.all())
-    #     return total_equity
-
-    # def calculate_current_value(self):
-    #     # Calculate the total current value of all holdings
-    #     total_value = sum(holding.current_value for holding in self.holdings.all())
-    #     return total_value
     
     def portfolio_value(self):
-        return sum(holding.cur_val for holding in self.holdings.all())
+        holdings = self.holdings.all()
+        if not holdings.exists():
+            return Decimal(0)
+        return sum(holding.cur_val for holding in holdings)
 
     @property
     def total_invested(self):
-        return sum(holding.avg_cost * holding.filled for holding in self.holdings.all())
+        holdings = self.holdings.all()
+        if not holdings.exists():
+            return Decimal(0)
+        return sum(holding.avg_cost() * holding.filled for holding in holdings)
 
     @property
     def profit_loss(self):
-        return sum((holding.ltp - holding.avg_cost) * holding.filled for holding in self.holdings.all())
+        holdings = self.holdings.all()
+        if not holdings.exists():
+            return Decimal(0)
+        return sum((holding.ltp - holding.avg_cost()) * holding.filled for holding in holdings)
 
     def get_positions(self):
         # Get a list of positions (holdings) in the portfolio
@@ -79,13 +79,15 @@ class Holding(auto_prefetch.Model):
     def __str__(self):
         return f"{self.portfolio.user} - {self.stock.symbol} - {self.quantity}"
 
-    @property
-    def current_value(self):
-        return self.quantity * self.ltp
+    # @property
+    # def current_value(self):
+    #     return self.quantity * self.ltp
     
     @property
     def filled(self):
-        return self.trades.filter(status='completed').aggregate(total_quantity=Sum('quantity'))['total_quantity'] 
+        trades= self.trades.filter(status='completed') 
+        # print(trades)
+        return trades.aggregate(total_quantity=Sum('quantity'))['total_quantity'] 
 
     @property
     def incomplete(self):
@@ -96,20 +98,28 @@ class Holding(auto_prefetch.Model):
         return self.filled + self.incomplete
 
     
-    @property
-    def avg_cost(self):
-        prices = self.trades.filter(status='completed').values_list('price', flat=True)
-        print(prices)
+    @classmethod
+    def calculate_avg_cost(cls, holding_id):
+        trades = Trade.objects.filter(holding_id=holding_id, status='completed')
+        # print(trades)
+        if not trades.exists():
+            return Decimal(0)
+
+        prices = trades.values_list('price', flat=True)
+        # print(prices)
         avg_price = sum(prices) / len(prices)
-        print(avg_price)
-        
-        return Decimal(avg_price)
+        # print('avg',avg_price)
+        return round(Decimal(avg_price),2)
+
+    def avg_cost(self):
+        # print(self.stock.symbol)
+        return self.calculate_avg_cost(self.id)
     
     
     @property
     def ltp(self):
         random_factor = Decimal(uniform(0.8, 1.2))
-        return self.avg_cost * random_factor
+        return round(self.avg_cost() * random_factor,2)
 
     @property
     def cur_val(self):
@@ -117,16 +127,16 @@ class Holding(auto_prefetch.Model):
 
     @property
     def pnl(self):
-        profit_loss = (self.ltp - self.avg_cost) * self.filled
+        profit_loss = (self.ltp - self.avg_cost()) * self.filled
         return f"+{profit_loss:.2f}" if profit_loss >= 0 else f"-{abs(profit_loss):.2f}"
 
     @property
     def change(self):
-        return self.stock.price_change
+        return round(self.ltp - self.avg_cost(),2)
 
     @property
     def percent_change(self):
-        return (self.change / self.ltp) * 100 if self.ltp != 0 else 0
+        return round((self.change / self.ltp),2) * 100 if self.ltp != 0 else 0
 
     @property
     def avg_volume_3_months(self):
@@ -189,6 +199,7 @@ class Trade(models.Model):
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     timestamp = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
     # is_buy = models.BooleanField(default=True)
     status = models.CharField(max_length=20, default='pending')
     order_type = models.CharField(max_length=20, default='buy')

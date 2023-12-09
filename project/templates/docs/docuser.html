@@ -699,6 +699,110 @@
     
         </div>
     </div>
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#holdings">9. Holdings</h3>
+        <div id="holdings" class="collapse">
+    
+            <h4>9a. Get Portfolio Details with Holdings</h4>
+            <p>GET /portfolio/portfolio/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Retrieve the portfolio details along with a list of holdings for the authenticated user.
+                {
+                    "portfolio": {
+                        "portfolio_value": 10000.0,
+                        "total_invested": 8000.0,
+                        "profit_loss": 2000.0
+                    },
+                    "holdings": [
+                        {
+                            "id": 1,
+                            "stock": "AAPL",
+                            "quantity": 10,
+                            "created": "2023-12-05T12:34:56.789Z",
+                            "updated": "2023-12-05T12:34:56.789Z",
+                            "filled": 8,
+                            "incomplete": 2,
+                            "shares": 5,
+                            "avg_cost": 150.0,
+                            "ltp": 180.0,
+                            "cur_val": 900.0,
+                            "pnl": 100.0,
+                            "change": 30.0,
+                            "percent_change": 20.0,
+                            "avg_volume_3_months": 500000,
+                            "volume": 100,
+                            // ... other fields
+                        },
+                        // ... additional holdings
+                    ]
+                }
+            </pre>
+    
+            <h6>Notes:</h6>
+            <ul>
+                <li>1. "portfolio" contains overall portfolio details.</li>
+                <li>2. "holdings" is an array containing details of individual holdings.</li>
+            </ul>
+    
+        </div>
+    </div>
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#notifications">10. Notifications</h3>
+        <div id="notifications" class="collapse">
+    
+            <h4>WebSocket Connection for Notifications</h4>
+            <p>WebSocket connection for real-time notifications. Replace the access token with a valid token.</p>
+    
+            <h5>WebSocket URL:</h5>
+            <p>ws://{base_url}/ws/notifications/?token=${accessToken}</p>
+    
+            <h6>WebSocket Consumer (Django Channels):</h6>
+            <pre>
+    class NotificationConsumer(AsyncWebsocketConsumer):
+        # ... (Code for handling WebSocket connections and notifications)
+            </pre>
+    
+            <h6>React Implementation:</h6>
+            <pre>
+    const accessToken = "access_token_here";
+    const wsURL = `ws://{base_url}/ws/notifications/?token=${accessToken}`;
+    const socket = new WebSocket(wsURL);
+    
+    socket.addEventListener('open', (event) => {
+        console.log('WebSocket connected:', event);
+    });
+    
+    socket.addEventListener('message', (event) => {
+        const data = JSON.parse(event.data);
+        console.log('Message received:', data);
+        if (data.hasOwnProperty('message') && Array.isArray(data.message)) {
+            const notifications = data.message;
+            notifications.forEach(notification => displayNotification(notification));
+        } else {
+            console.error('Invalid data format:', notifications);
+        }
+    });
+    
+    socket.addEventListener('close', (event) => {
+        console.log('WebSocket closed:', event);
+    });
+    
+    function displayNotification(notification) {
+        // Implementation to display notifications in your React app
+    }
+    
+    function sendNotificationId(notificationId) {
+        const data = {
+            notification_id: notificationId
+        };
+        socket.send(JSON.stringify(data));
+    }
+            </pre>
+    
+        </div>
+    </div>
     
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>

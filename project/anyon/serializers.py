@@ -51,3 +51,34 @@ class WithdrawalSerializer(serializers.ModelSerializer):
         user = obj.wallet.user
         if user:
             return user.id
+        
+class TradeSerializer(serializers.ModelSerializer):
+    fullname = serializers.SerializerMethodField()
+    user_id = serializers.SerializerMethodField()
+    symbol = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = models.Trade
+        fields = (
+            'id',
+            'symbol',
+            'order_type',
+            'quantity',
+            'price',
+            'status',
+            'updated',
+            'fullname',
+            'user_id',
+            
+        )
+        
+    def get_fullname(self, obj):
+        user = obj.user
+        if user:
+            return f"{user.firstname.title()} {user.lastname.title()}"
+        
+    def get_user_id(self,obj):
+        return obj.user.id
+    
+    def get_symbol(self,obj):
+        return obj.holding.stock.symbol
