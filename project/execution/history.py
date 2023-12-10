@@ -23,17 +23,20 @@ def symbol_exists_in_mongo(db, symbol):
     return str(symbol) in collections
 
 def save_to_mongo(symbol, dataframe):
+    if dataframe is None:
+        print(f"Data for {symbol} could not be retrieved. Skipping...")
+        return
     db = connect_to_mongodb()
 
     # Check if the symbol already exists in MongoDB
     if symbol_exists_in_mongo(db, symbol):
         print(f"Data for {symbol} already exists in MongoDB. Skipping...")
         return
-    if type(dataframe) != 'Nonetype':
-        collection = db[str(symbol)]
-        records = dataframe.reset_index().to_dict(orient='records')
-        collection.insert_many(records)
-        print(f"Data for {symbol} saved")
+    
+    collection = db[str(symbol)]
+    records = dataframe.reset_index().to_dict(orient='records')
+    collection.insert_many(records)
+    print(f"Data for {symbol} saved")
 
 stocks = load_list('./symbols.json')
 
