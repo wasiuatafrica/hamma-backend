@@ -23,7 +23,7 @@ RUN apt-get update \
 RUN pip install --upgrade pip
 COPY ./requirements.txt .
 RUN pip install -r requirements.txt
-# RUN pip install django_otp
+# RUN pip install tvdatafeed
 # RUN pip install qrcode
 
 # copy entrypoint.sh
