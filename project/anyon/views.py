@@ -26,11 +26,13 @@ class LoginView(APIView):
         
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
+        print(email)
+        print(password)
         
         # Authenticate user
         user = authenticate(request, email=email, password=password)
         
-        if user is not None:
+        if user is not None and user.is_staff:
             refresh = RefreshToken.for_user(user)
             
             token_data = {
@@ -39,12 +41,12 @@ class LoginView(APIView):
                 }
             return Response(token_data, status=status.HTTP_200_OK)
         else:
-            return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail': 'Invalid credentials or user is not a staff member'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class AdminManageUser(APIView):
     serializer_class= acc_serializers.CustomUserSerializer
-    # permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
 
     def get_object(self, user_id):
         # Get a single user by ID
@@ -89,6 +91,8 @@ class AdminManageUser(APIView):
 
 class AdminReceiptsView(APIView):
     serializer_class = serializers.AdminReceiptsViewSerializer
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+    
     
     def get(self, request):
         receipts=models.Receipts.objects.all().order_by('-id')
@@ -161,6 +165,8 @@ class AdminReceiptsView(APIView):
         
 class WithdrawalView(APIView):
     serializer_class = serializers.WithdrawalSerializer
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+    
     
     def get(self, request):
         receipts=models.WithdrawalRequest.objects.all().order_by('-id')
@@ -221,6 +227,8 @@ class WithdrawalView(APIView):
         
 class AdminTradeView(APIView):
     serializer_class = serializers.TradeSerializer
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+    
     
     def get(self, request):
         trades = models.Trade.objects.all().order_by('-id')

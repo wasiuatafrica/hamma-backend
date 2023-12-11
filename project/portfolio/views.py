@@ -14,7 +14,7 @@ from rest_framework.decorators import api_view, permission_classes
 import random
 from django.core.mail import send_mail
 from django.utils import timezone
-from .utils import get_symbol_data
+from .utils import get_symbol_data,get_historical_data
 from notifications.utils import save_and_send_notification
 from django.shortcuts import get_object_or_404
 from decimal import Decimal
@@ -166,10 +166,12 @@ class GetSingleStock(APIView):
         # queryset = Stock.objects.get(symbol=symbol)
         queryset = get_object_or_404(Stock, symbol=symbol)
         symbol_data = get_symbol_data(symbol)
+        historical_data=get_historical_data(symbol)
         serializer = self.serializer_class(queryset)
         response_data = {
             'stock_detail': serializer.data,
-            'first_symbol_data': symbol_data
+            'order_book': symbol_data,
+            'historical_data':historical_data
         }
         return Response(response_data)
 

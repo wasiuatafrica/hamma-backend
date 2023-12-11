@@ -3,17 +3,18 @@ from django.core.mail import send_mail
 from pymongo import MongoClient
 import json
 from bson import ObjectId
+from bson import json_util
 
-
-def connect_to_mongodb():
+def connect_to_mongodb(db_name):
     client = MongoClient("mongodb+srv://trademql5:trademql5@trademql5.fmlxv.mongodb.net/",tls=True,
                              tlsAllowInvalidCertificates=True)
-    db = client["anyon_orderbook"]
+    # db = client["anyon_orderbook"]
+    db = client[db_name]
     return db
 
 
 def get_symbol_data(symbol):
-    db = connect_to_mongodb()
+    db = connect_to_mongodb("anyon_orderbook")
     collection = db[symbol]
     
     # Sort the records in descending order based on some timestamp field (replace 'timestamp' with your actual field)
@@ -34,3 +35,9 @@ def get_symbol_data(symbol):
     return json_data
 
 
+def get_historical_data(symbol):
+    db = connect_to_mongodb("anyon_history")
+    collection = db[symbol]
+    records = list(collection.find())
+    serialized_records = json.loads(json_util.dumps(records))
+    return serialized_records
