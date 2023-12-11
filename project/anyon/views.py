@@ -7,6 +7,7 @@ from . import serializers
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 from rest_framework import permissions
 from . import permissions as acc_permissions 
 from rest_framework.generics import get_object_or_404
@@ -21,16 +22,17 @@ User=get_user_model()
 
 class LoginView(APIView):
     serializer_class= serializers.LoginSerializer
+    permission_classes= ( AllowAny,)
     
     def post(self, request, *args, **kwargs):
-        print(request.data)
+        # print(request.data)
         serializer = serializers.LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
-        print(email)
-        print(password)
+        # print(email)
+        # print(password)
         
         # Authenticate user
         user = authenticate(request, email=email, password=password)
