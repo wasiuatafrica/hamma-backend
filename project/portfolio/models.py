@@ -34,6 +34,24 @@ class Stock(auto_prefetch.Model):
     def __str__(self):
         return  self.symbol
     
+    @property
+    def ltp(self):
+        random_factor = Decimal(uniform(4, 50))
+        return round(random_factor,2)
+    
+    @property
+    def current_price(self):
+        random_factor = Decimal(uniform(0.8, 1.2))
+        return round(self.ltp * random_factor,2)
+
+
+    @property
+    def change(self):
+        return round(self.ltp - self.current_price,2)
+
+    @property
+    def percent_change(self):
+        return round((self.change / self.ltp),2) * 100 if self.ltp != 0 else 0
 
 class Portfolio(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='portfolio')

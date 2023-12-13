@@ -149,11 +149,15 @@ class StockList(generics.ListAPIView):
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        symbol_data = get_symbol_data(queryset.first().symbol)
+        first = queryset.first()
+        symbol_data = get_symbol_data(first.symbol)
         serializer = self.get_serializer(queryset, many=True)
+        historical_data=get_historical_data(first.symbol)
+        
         response_data = {
             'stock_list': serializer.data,
-            'first_symbol_data': symbol_data
+            'first_symbol_order_book': symbol_data,
+            'historical_data':historical_data
         }
         return Response(response_data)
     

@@ -20,7 +20,14 @@ class WalletSerializer(serializers.ModelSerializer):
 class StockSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stock
-        fields = '__all__'
+        fields = (
+            'company',
+            'symbol',
+            'sector',
+            'current_price',
+            'change',
+            'percent_change'
+        )
     
 
 class HoldingSerializer(serializers.ModelSerializer):
