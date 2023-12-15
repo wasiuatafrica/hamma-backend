@@ -28,7 +28,7 @@ urlpatterns =  (   [
         path('execution/',include("execution.urls")),
         path('portfolio/',include("portfolio.urls")),
         path('reporting/',include("reporting.urls")),
-        
+        path('affilate/',include("affilate.urls")),
     ]
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)  
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

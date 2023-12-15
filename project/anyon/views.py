@@ -1,7 +1,8 @@
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from accounts import models
+from accounts.models import Referral as acc_Referral
+from accounts import models 
 from accounts import serializers as acc_serializers
 from . import serializers
 from rest_framework.views import APIView
@@ -16,6 +17,7 @@ from notifications.utils import save_and_send_notification
 from decimal import Decimal
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from affilate import models as aff_models, serializers as aff_serializers
 
 User=get_user_model()
 
@@ -134,7 +136,13 @@ class AdminReceiptsView(APIView):
             save_and_send_notification(wallet.user.id, f"{amount} credited to your wallet.")
             
             models.Transaction.objects.create(user=wallet.user, transaction_type='deposit',amount=amount)
-            
+            referred_by=acc_Referral.acc_Referral.objects.get(person_referred=wallet.user)
+            sum_user_trans=sum(trans.amount for trans in aff_models.__annotations__Transaction.objects.filter(user=wallet.user)).referred_by
+            if sum_user_trans >= 50000 :
+                aff_models.RewardActivities.objects.create(trader=wallet.user, amount=5000, reward_type="Purchased an account", user=referred_by)
+                # send notfication
+                save_and_send_notification(referred_by.referred_by.id, f"{wallet.user.firstname} just depoisted >= 50000. Congratulations")
+
             receipt_data = {
                 'id': receipt.id,
                 'user': receipt.user.id,
@@ -241,3 +249,66 @@ class AdminTradeView(APIView):
         serializer.is_valid()
         return Response(serializer.data)
         
+
+
+class AdminApproveAndViewRewardActivities(APIView):
+    serializer_class=aff_serializers.RewardActivitiesSerializer
+
+
+    def get_object(self, id):
+        try:
+            return aff_models.RewardActivities.objects.get(id=id)
+        except aff_models.RewardActivities.DoesNotExist:
+            return None
+
+    def get(self, request):
+        filter= request.GET.get("filter_params")
+        query_type= request.GET.get("query_type")
+        activities=""
+        
+        if filter and query_type:
+            print("fq")
+            if query_type == "email":
+                print("email")
+                activities= aff_models.RewardActivities.objects.filter(user__email=filter)
+            elif query_type == "purhase_account":
+                print("acc")
+                activities= aff_models.RewardActivities.objects.filter(reward_type="Purchased an account")
+            elif query_type == "broker_commission":
+                print("broker")
+                activities= aff_models.RewardActivities.objects.filter(reward_type="Brokage Commission")
+        else:
+            activities= aff_models.RewardActivities.objects.all()
+        serializer=self.serializer_class(activities, many=True).data
+        return Response(serializer)
+
+    def put(self, request):
+        reward_id=request.GET.get("id")
+        instance=self.get_object(reward_id)
+     
+        if not reward_id:
+            return Response({"detail":"The reward's ID to be updated is required"}, status.HTTP_400_BAD_REQUEST)
+        if instance is None:
+            return Response({"detail": "User instance not found"}, status.HTTP_404_NOT_FOUND)
+        serializer=self.serializer_class(instance,data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            if serializer.validated_data["status"]=='approved' :
+                save_and_send_notification(instance.user.id, f"Your reward commision of {instance.amount} has been processed.")
+            elif serializer.validated_data["status"]=='declined' :
+                save_and_send_notification(instance.user.id, f"Your reward commision from {instance.username} has been declined due to {instance.comment}.")
+            return Response (serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AffilateManagement(APIView):
+
+    def get(self, request):
+        filter= request.GET.get("email")
+        rank=""
+        if filter:
+            rank=aff_models.Rankings.objects.filter(user=filter).order_by("min_brokage_commission")
+        else:
+            rank=aff_models.Rankings.objects.all().order_by("min_brokage_commission")
+        serializer=self.serializer_class(rank, many=True).data
+        return Response(serializer)

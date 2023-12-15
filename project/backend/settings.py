@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'accounts',
     'blog',
+    "affilate",
     'execution',
     'portfolio',
     'reporting',
