@@ -43,9 +43,9 @@ class MarketsConsumer(AsyncWebsocketConsumer):
         )
         
         
-        notifications =  
-        # print(notifications)
-        await self.send_first_data({'data': notifications})
+        # notifications =  
+        # # print(notifications)
+        # await self.send_first_data({'data': notifications})
         
 
     async def disconnect(self, close_code):
