@@ -15,7 +15,7 @@ def simulate_trades(user):
     wallet.save()
     Transaction.objects.create(user=user, transaction_type='deposit', amount=Decimal(500000))
     
-    refer_object=Referral.objects.get(person_referred=wallet.user)
+    refer_object=Referral.objects.filter(person_referred=wallet.user).first()
     
     if refer_object and refer_object.converted == False:
         sum_user_trans=sum(trans.amount for trans in Transaction.objects.filter(user=wallet.user, transaction_type = 'deposit'))
