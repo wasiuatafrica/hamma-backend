@@ -10,12 +10,13 @@ media
 migrations/*
 
 !project/accounts/migrations/*
-project/anyon/migrations/*
-project/blog/migrations/*
-project/execution/migrations/*
-project/notifications/migrations/*
-project/portfolio/migrations/*
-project/reporting/migrations/*
+!project/anyon/migrations/*
+!project/blog/migrations/*
+!project/execution/migrations/*
+!project/notifications/migrations/*
+!project/portfolio/migrations/*
+!project/reporting/migrations/*
+!project/lock/migrations/*
 
 # Backup files # 
 *.bak 
@@ -95,8 +96,7 @@ nosetests.xml
 coverage.xml 
 *.cover 
 .hypothesis/ 
-.
-FT9JA-Dahboard/
+
 # Jupyter Notebook 
 .ipynb_checkpoints 
 

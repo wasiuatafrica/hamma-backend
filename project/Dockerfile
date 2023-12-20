@@ -23,7 +23,7 @@ RUN apt-get update \
 RUN pip install --upgrade pip
 COPY ./requirements.txt .
 RUN pip install -r requirements.txt
-# RUN pip install tvdatafeed
+RUN pip install django-silk
 # RUN pip install qrcode
 
 # copy entrypoint.sh

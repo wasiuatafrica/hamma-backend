@@ -8,6 +8,7 @@ from django.utils import timezone
 import random
 import string
 
+from .models import Referral
 # Authenticator functions
 from django_otp import devices_for_user
 from django_otp.plugins.otp_totp.models import TOTPDevice
@@ -17,7 +18,7 @@ User=get_user_model()
 
 def get_ref_code():
     code = str(uuid.uuid4())[:7].replace("-", "").lower()
-    return f"FT{code}"
+    return f"AYN{code}"
 
 
 # Create your tests here.
@@ -122,3 +123,10 @@ def verifyTOTP(user,token):
         return True
     return False
 
+def get_referrer(user):
+    referrer = Referral.objects.get(person_referred=user)
+    return referrer.user if referrer else None
+
+def get_referees(user):
+    referees = Referral.objects.filter(user=user)
+    return referees.count if referees else None

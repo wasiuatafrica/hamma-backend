@@ -26,7 +26,7 @@ def create_wallet_and_send_email(sender, instance, created, **kwargs):
         # Send token to users email
         context={
             "token":token.token,
-            "firstname":instance.firstname
+            "firstname":instance.firstname.title()
         }
         html_message = render_to_string('accounts/registration_token.html', context)
         plain_message = strip_tags(html_message)

@@ -3,5 +3,8 @@ from . import models
 
 admin.site.register(models.RewardActivities)
 admin.site.register(models.Rankings)
-
+admin.site.register(models.ReferralWallet)
+admin.site.register(models.ReferralWithdrawalRequest)
+admin.site.register(models.BrokageCommission)
+admin.site.register(models.CampaignQuarter)
 # Register your models here.

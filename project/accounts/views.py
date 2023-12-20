@@ -13,6 +13,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone  
 from portfolio.models import Wallet,Portfolio
 from execution.trades import simulate_trades
+from .tasks import set_up_user
 
 User=get_user_model()
 class Registration(APIView):
@@ -30,7 +31,7 @@ class Registration(APIView):
             referred_by= models.Profile.objects.filter(referral_code=ref_code).first()
             if referred_by:
                 referral=models.Referral.objects.create(user=referred_by.user, person_referred=user)
-                print(referral.status, referral.user, "hhhhh")
+                # print(referral.status, referral.user, "hhhhh")
             return Response({"detail":"A token has been sent to your mail","user":serializer.data}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     # Allow users request for resending of token for users who
@@ -54,11 +55,8 @@ class VerifyToken(APIView):
         token_reponse=verify_token(user_email, token)
         if not token_reponse:
             return Response({"detail":"Token or user_email is invalid"}, status=status.HTTP_400_BAD_REQUEST)
-        user=User.objects.get(email=user_email)
-        Wallet.objects.create(user=user)
-        Portfolio.objects.create(user=user)
-        send_welcome_email(user)
-        simulate_trades(user)
+        
+        set_up_user.delay(user_email)
         
         return Response({"detail":"Account verifed."})
 

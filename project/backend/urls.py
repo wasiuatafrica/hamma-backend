@@ -29,8 +29,10 @@ urlpatterns =  (   [
         path('portfolio/',include("portfolio.urls")),
         path('reporting/',include("reporting.urls")),
         path('affilate/',include("affilate.urls")),
+        path('lock/',include("lock.urls")),
     ]
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)  
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 )
 
+urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]

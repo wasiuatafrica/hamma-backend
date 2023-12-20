@@ -47,15 +47,18 @@ INSTALLED_APPS = [
     'portfolio',
     'reporting',
     'anyon',
+    'lock',
     'notifications',
     'django_otp',
     'django_otp.plugins.otp_totp',
+    'silk'
 ]
 
 
 SITE_ID = 1
 
 MIDDLEWARE = [
+    'silk.middleware.SilkyMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -139,7 +142,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Lagos'
+# TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
@@ -168,6 +172,9 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5173",
+    'https://anyon-affiliate-program.netlify.app',
+    'https://anyon-admin-dashboard.netlify.app',
+    'https://dashboardanyon.netlify.app',
 ]
 
 DATE_INPUT_FORMATS = ["%d-%m-%Y"]
@@ -298,6 +305,8 @@ CELERY_BROKER_URL = "redis://redis:6379"
 CELERY_RESULT_BACKEND = "redis://redis:6379"
 CELERY_TASK_SERIALIZER ='json'
 CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = "Africa/Lagos"
+
 
 CACHES = {
     "default": {

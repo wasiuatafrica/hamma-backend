@@ -16,21 +16,32 @@ services:
   redis:
     image: redis:7-alpine
 
-  # celery:
-  #   build: ./project
-  #   command: celery -A backend worker -l info
-  #   volumes:
-  #     - ./project/:/usr/src/app/
-  #   depends_on:
-  #     - redis
+  celery:
+    build:
+      context: ./project
+      dockerfile: Dockerfile
+    command: celery --app=backend worker --loglevel=info 
+    
+    volumes:
+      - ./project/:/usr/src/app/
+    env_file:
+      - ./envs/.env.dev
+    depends_on:
+      - web
+      - redis
 
-  # celery-beat:
-  #   build: ./project
-  #   command: celery -A backend beat -l info
-  #   volumes:
-  #     - ./project/:/usr/src/app/
-  #   depends_on:
-  #     - redis
+  celery-beat:
+    build:
+      context: ./project
+      dockerfile: Dockerfile
+    command: celery --app=backend beat --loglevel=info 
+    
+    volumes:
+      - ./project/:/usr/src/app/
+    env_file:
+      - ./envs/.env.dev
+    depends_on:
+      - celery
   
   dozzle:
     image: amir20/dozzle:v5.7.0

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .forms import CustomUserCreationForm, CustomUserChangeForm
-from .models import CustomUser, Profile, Referral, FirstLogin, ReferralPayment
+from .models import CustomUser, Profile, Referral, FirstLogin
 
 class ProfileAdmin(admin.ModelAdmin):
     search_fields = ['user__email','referral_code']
@@ -12,11 +12,6 @@ class ReferralAdmin(admin.ModelAdmin):
 
 admin.site.register(Referral, ReferralAdmin)
 admin.site.register(FirstLogin)
-class ReferralPaymentAdmin(admin.ModelAdmin):
-    search_fields = ("user__email",)
-
-admin.site.register(ReferralPayment,ReferralPaymentAdmin)
-
 
 class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
@@ -27,11 +22,7 @@ class CustomUserAdmin(UserAdmin):
         "lastname",
         "email",
         "is_staff",
-        "is_active",
-        "is_ft9ja_staff",
-        "is_ft9ja_staff_payouts",
-        "is_ft9ja_staff_receipts",
-    )
+        "is_active",)
     
     fieldsets = (
         (
@@ -43,9 +34,6 @@ class CustomUserAdmin(UserAdmin):
                     "email",
                     "password",
                     # "phone",
-                    "is_ft9ja_staff",
-                    "is_ft9ja_staff_payouts",
-                    "is_ft9ja_staff_receipts",
                 )
             },
         ),
@@ -64,11 +52,7 @@ class CustomUserAdmin(UserAdmin):
                     "password2",
                     # "phone",
                     "is_staff",
-                    "is_active",
-                    "is_ft9ja_staff",
-                    "is_ft9ja_staff_payouts",
-                    "is_ft9ja_staff_receipts",
-                ),
+                    "is_active",)
             },
         ),
     )

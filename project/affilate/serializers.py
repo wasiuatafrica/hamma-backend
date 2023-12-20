@@ -11,17 +11,9 @@ class RewardActivitiesSerializer(serializers.ModelSerializer):
             "trader",
             'username',
             "reward_type",
-            "date",
+            "created",
             "amount",
             "status",
             "comment"
         ]
 
-class RankingsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=models.Rankings
-        fields=[
-            "user",
-            "min_brokage_commission",
-            'referal_count',
-        ]

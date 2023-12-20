@@ -2,6 +2,10 @@ import random
 from portfolio.models import Stock, Trade, Wallet, Holding, Portfolio, Transaction
 from notifications.utils import save_and_send_notification
 from decimal import Decimal
+from accounts.models import Referral
+from portfolio.models import Transaction
+from affilate.models import ReferralWallet,RewardActivities
+
 
 def simulate_trades(user):
     stocks = Stock.objects.all()
@@ -10,6 +14,21 @@ def simulate_trades(user):
     wallet.balance += Decimal(500000)
     wallet.save()
     Transaction.objects.create(user=user, transaction_type='deposit', amount=Decimal(500000))
+    
+    refer_object=Referral.objects.get(person_referred=wallet.user)
+    
+    if refer_object and refer_object.converted == False:
+        sum_user_trans=sum(trans.amount for trans in Transaction.objects.filter(user=wallet.user, transaction_type = 'deposit'))
+        if sum_user_trans >= 50000 :
+            referal_wallet = ReferralWallet.objects.get_or_create(user=refer_object.user)[0]
+            referal_wallet.balance += Decimal(5000)
+            referal_wallet.save()
+            
+            refer_object.converted == True
+            refer_object.save()
+            
+            
+            RewardActivities.objects.create(trader=wallet.user, amount=5000, reward_type="Deposit Referral Commission", user=refer_object.user)
     
     portfolio = Portfolio.objects.get(user=user)
 

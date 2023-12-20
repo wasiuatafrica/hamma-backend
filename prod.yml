@@ -31,6 +31,19 @@ services:
     depends_on:
       - web
       - redis
+
+  celery-beat:
+    build:
+      context: ./project
+      dockerfile: Dockerfile.prod
+    command: celery --app=backend beat --loglevel=info 
+    
+    volumes:
+      - ./project/:/usr/src/app/
+    env_file:
+      - ./envs/.env.prod
+    depends_on:
+      - celery
  
   redis:
     image: redis:7-alpine

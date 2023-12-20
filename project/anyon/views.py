@@ -136,12 +136,23 @@ class AdminReceiptsView(APIView):
             save_and_send_notification(wallet.user.id, f"{amount} credited to your wallet.")
             
             models.Transaction.objects.create(user=wallet.user, transaction_type='deposit',amount=amount)
-            referred_by=acc_Referral.acc_Referral.objects.get(person_referred=wallet.user)
-            sum_user_trans=sum(trans.amount for trans in aff_models.__annotations__Transaction.objects.filter(user=wallet.user)).referred_by
-            if sum_user_trans >= 50000 :
-                aff_models.RewardActivities.objects.create(trader=wallet.user, amount=5000, reward_type="Purchased an account", user=referred_by)
-                # send notfication
-                save_and_send_notification(referred_by.referred_by.id, f"{wallet.user.firstname} just depoisted >= 50000. Congratulations")
+            
+            refer_object=acc_Referral.objects.get(person_referred=wallet.user)
+            
+            if refer_object and refer_object.converted == False:
+                sum_user_trans=sum(trans.amount for trans in models.Transaction.objects.filter(user=wallet.user, transaction_type = 'deposit'))
+                if sum_user_trans >= 50000 :
+                    referal_wallet = aff_models.ReferralWallet.objects.get_or_create(user=refer_object.user)[0]
+                    referal_wallet.balance += Decimal(5000)
+                    referal_wallet.save()
+                    
+                    refer_object.converted == True
+                    refer_object.save()
+                    
+                    
+                    aff_models.RewardActivities.objects.create(trader=wallet.user, amount=5000, reward_type="Deposit Referral Commission", user=refer_object.user)
+                    # send notfication
+                    # save_and_send_notification(referred_by.referred_by.id, f"{wallet.user.firstname} just depoisted >= 50000. Congratulations")
 
             receipt_data = {
                 'id': receipt.id,
