@@ -181,7 +181,7 @@ class LoginWith2FA(APIView):
                 v_token=verify_token(email, token) 
             if v_token:
                 refresh = RefreshToken.for_user(user)
-                refresh.save()
+                # refresh.save()
                 user_data =serializers.CustomUserSerializer(user, many=False).data
                 # update last_login
                 user.last_login=timezone.now()
