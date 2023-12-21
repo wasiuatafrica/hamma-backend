@@ -98,8 +98,6 @@ services:
       - ./config:/config
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /tmp/acme-challenge:/tmp/acme-challenge
-    networks:
-      - app
     restart: always
 
   letsencrypt:
