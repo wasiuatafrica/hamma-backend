@@ -1,3 +1,14 @@
+server {
+    listen 80;
+    server_name api.gohamma.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name api.gohamma.com;
+}
+
 location /static/ {
   alias /home/app/web/staticfiles/;
   add_header Access-Control-Allow-Origin *;
