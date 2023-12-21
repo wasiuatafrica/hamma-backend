@@ -4,7 +4,10 @@ from notifications.utils import save_and_send_notification
 from decimal import Decimal
 from accounts.models import Referral
 from portfolio.models import Transaction
-from affilate.models import ReferralWallet,RewardActivities
+from affilate.models import ReferralWallet,RewardActivities,BrokageCommission
+
+from django.shortcuts import get_object_or_404
+from accounts.utils import get_referrer
 
 
 def simulate_trades(user):
@@ -39,9 +42,13 @@ def simulate_trades(user):
         
         stock = random.choice(stocks)
         holding = Holding.objects.get_or_create(portfolio=portfolio, stock=stock)[0]
+        
+        trade_amount= quantity * price
+        master_commission = 0.01 * trade_amount
+        brokerage_commission = 0.1 * master_commission
 
         if wallet.balance >= quantity * price:
-            Trade.objects.create(
+            trade = Trade.objects.create(
                 user=user,
                 holding=holding,
                 quantity=quantity,
@@ -59,6 +66,15 @@ def simulate_trades(user):
             Transaction.objects.create(user=user, transaction_type='buy', amount=quantity * price)
             save_and_send_notification(user.id,f'You bought {quantity} units of {stock.symbol} stocks at {price} per unit. Total value:{round(quantity * price, 2)}naira ')
             
+            referrer = get_referrer(user)
+            if referrer:
+                BrokageCommission.objects.create(user=referrer, commission= brokerage_commission, trade = trade,person_referred=user)
+                RewardActivities.objects.create(user=referrer, trader=user, reward_type = '10% Brokerage Commission', amount=brokerage_commission, status='completed')
+                ref_wallet = get_object_or_404(ReferralWallet, user=referrer)
+                ref_wallet.balance += round(Decimal(brokerage_commission),2)
+                ref_wallet.save()
+                
+                save_and_send_notification(referrer.id, f"Your {brokerage_commission} as brokerage commsion")
     print('buy simulated')
     for _ in range(20):
         # Simulate Sell
@@ -67,6 +83,10 @@ def simulate_trades(user):
         stock = random.choice(stocks)
 
         holding = Holding.objects.get_or_create(portfolio=portfolio, stock=stock)[0]
+        
+        trade_amount= quantity * price
+        master_commission = 0.01 * trade_amount
+        brokerage_commission = 0.1 * master_commission
 
         if holding.quantity >= quantity:
             Trade.objects.create(
@@ -87,6 +107,15 @@ def simulate_trades(user):
             Transaction.objects.create(user=user, transaction_type='sell', amount=quantity * price)
             save_and_send_notification(user.id,f'You sold {quantity} units of {stock.symbol} stocks at {price} per unit. Total value:{round(quantity * price, 2)}naira ')
             
+            referrer = get_referrer(user)
+            if referrer:
+                BrokageCommission.objects.create(user=referrer, commission= brokerage_commission, trade = trade,person_referred=user)
+                RewardActivities.objects.create(user=referrer, trader=user, reward_type = '10% Brokerage Commission', amount=brokerage_commission, status='completed')
+                ref_wallet = get_object_or_404(ReferralWallet, user=referrer)
+                ref_wallet.balance += round(Decimal(brokerage_commission),2)
+                ref_wallet.save()
+                
+                save_and_send_notification(referrer.id, f"Your {brokerage_commission} as brokerage commsion")
 
     print('sell simulated')
     holding2 = Holding.objects.filter(portfolio=portfolio,quantity=0)
