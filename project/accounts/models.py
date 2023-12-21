@@ -85,9 +85,42 @@ class Referral(auto_prefetch.Model):
         CustomUser, on_delete=models.CASCADE, related_name="referred_by"
     )
     converted = models.BooleanField(default=False)
+    paid = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return f"{self.user} Referral"
+    
+    @property
+    def stage(self):
+        return 'Converted' if self.converted else 'Registered'
+    
+    @property
+    def amount_deposit(self):
+        transactions = self.person_referred.transactions.filter(transaction_type='deposit')
+        if transactions:
+            amount= transactions.aggregate(total_commission=models.Sum('amount'))['total_commission']
+        else:
+            amount = 0
+            
+        return amount
+    
+    @property
+    def commission(self):
+        return '5000' if self.converted else '0'
+    
+    @property
+    def brokage_commission(self):
+        commissions = self.person_referred.brokage_commsissions.all()
+        if commissions:
+            amount= commissions.aggregate(total_commission=models.Sum('commission'))['total_commission']
+        else:
+            amount= 0
+        return amount
+        
+    @property
+    def status(self):
+        return 'Paid' if self.paid else 'Unpaid'
     
         
 class FirstLogin(auto_prefetch.Model):

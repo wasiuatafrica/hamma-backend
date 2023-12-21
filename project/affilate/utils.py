@@ -36,11 +36,10 @@ def get_rank_details(user, first_day):
     else:
         active_referees = 0
         
-    fullname= user.fullname
-    
     return {
         'brokerage_commission':brokerage_commission,
         'active_referees':active_referees,
-        'username':fullname
+        'username':user.fullname,
+        'user_id':user.id
     }
     

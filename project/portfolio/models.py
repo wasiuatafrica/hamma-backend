@@ -195,7 +195,7 @@ class WithdrawalRequest(auto_prefetch.Model):
     status= models.CharField(max_length=20, default='Unprocessed', blank=True,null=True)
     
 class Transaction(auto_prefetch.Model):
-    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
     transaction_type = models.CharField(max_length=10, choices=[('deposit', 'Deposit'), ('withdrawal', 'Withdrawal'),('buy', 'Buy'), ('sell', 'Sell')])
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateTimeField(auto_now_add=True)

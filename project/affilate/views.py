@@ -63,9 +63,10 @@ class RankingView(APIView):
     def get(self, request):
         first_day, last_day = get_quarter_dates()
         data_list=[]
-        users = User.objects.all()
+        # users = User.objects.all()
+        users = acc_models.Referral.objects.all()
         for user in users:
-            data_list.append(get_rank_details(user, first_day))
+            data_list.append(get_rank_details(user.user, first_day))
             
         sorted_data = sorted(data_list, key=lambda x: x['brokerage_commission'], reverse=True)
         return Response(sorted_data)
@@ -121,3 +122,12 @@ class ReferralWithdrawal(APIView):
             return Response('Success')
         else:
             return Response('Insufficient balance')
+        
+class Referrees(APIView):
+    serializer_class = aff_serializers.RefereeListSerializer
+    
+    def get(self, request):
+        referees = get_referees(request.user)
+        serializer = self.serializer_class(referees, many=True)
+        return Response(serializer.data)
+        

@@ -8,7 +8,8 @@ urlpatterns=[
     path("reward-activities/", views.RewardActivitiesView.as_view(), name='reward-activities'),
     path("ranking/", views.RankingView.as_view(), name='ranking'),
     path("home/", views.HomeView.as_view(), name='home'),
-    path('withdraw/', views.ReferralWithdrawal.as_view())
+    path('withdraw/', views.ReferralWithdrawal.as_view()),
+    path('referees/', views.Referrees.as_view())
     
 
 ]

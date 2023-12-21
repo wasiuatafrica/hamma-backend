@@ -129,4 +129,4 @@ def get_referrer(user):
 
 def get_referees(user):
     referees = Referral.objects.filter(user=user)
-    return referees.count if referees else None
+    return referees if referees else None

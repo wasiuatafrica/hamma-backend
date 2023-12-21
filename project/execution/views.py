@@ -6,8 +6,8 @@ from portfolio.models import Stock, Trade, Wallet, Holding, Portfolio, Transacti
 from notifications.utils import save_and_send_notification
 from rest_framework.permissions import IsAuthenticated
 from accounts.utils import get_referrer
-from affilate.models import BrokageCommission,RewardActivities
-
+from affilate.models import BrokageCommission,RewardActivities, ReferralWallet
+from decimal import Decimal
 
 class TradeAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -24,7 +24,8 @@ class TradeAPIView(APIView):
         portfolio= get_object_or_404(Portfolio, user=request.user)
         
         trade_amount= quantity * price
-        brokerage_commission = 0.1 * trade_amount
+        master_commission = 0.01 * trade_amount
+        brokerage_commission = 0.1 * master_commission
         
         if is_buy and wallet.balance >= trade_amount:
             holding = Holding.objects.get_or_create(
@@ -51,8 +52,12 @@ class TradeAPIView(APIView):
             
             referrer = get_referrer(request.user)
             if referrer:
-                BrokageCommission.objects.create(user=referrer, commission= brokerage_commission, trade = trade)
+                BrokageCommission.objects.create(user=referrer, commission= brokerage_commission, trade = trade, person_referred=request.user)
                 RewardActivities.objects.create(user=referrer, trader=request.user, reward_type = '10% Brokerage Commission', amount=brokerage_commission, status='completed')
+                ref_wallet = get_object_or_404(ReferralWallet, user=referrer)
+                ref_wallet.balance += round(Decimal(brokerage_commission),2)
+                ref_wallet.save()
+                
             
             return Response({'message': 'Buy order executed successfully.'}, status=status.HTTP_201_CREATED)
         elif not is_buy:
@@ -81,8 +86,11 @@ class TradeAPIView(APIView):
                 
                 referrer = get_referrer(request.user)
                 if referrer:
-                    BrokageCommission.objects.create(user=referrer, commission= brokerage_commission, trade = trade)
+                    BrokageCommission.objects.create(user=referrer, commission= brokerage_commission, trade = trade,person_referred=request.user)
                     RewardActivities.objects.create(user=referrer, trader=request.user, reward_type = '10% Brokerage Commission', amount=brokerage_commission, status='completed')
+                    ref_wallet = get_object_or_404(ReferralWallet, user=referrer)
+                    ref_wallet.balance += round(Decimal(brokerage_commission),2)
+                    ref_wallet.save()
                 
                 return Response({'message': 'Sell order executed successfully.'}, status=status.HTTP_201_CREATED)
             else:

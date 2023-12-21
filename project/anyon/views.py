@@ -293,23 +293,23 @@ class AdminApproveAndViewRewardActivities(APIView):
         serializer=self.serializer_class(activities, many=True).data
         return Response(serializer)
 
-    def put(self, request):
-        reward_id=request.GET.get("id")
-        instance=self.get_object(reward_id)
+    # def put(self, request):
+    #     reward_id=request.GET.get("id")
+    #     instance=self.get_object(reward_id)
      
-        if not reward_id:
-            return Response({"detail":"The reward's ID to be updated is required"}, status.HTTP_400_BAD_REQUEST)
-        if instance is None:
-            return Response({"detail": "User instance not found"}, status.HTTP_404_NOT_FOUND)
-        serializer=self.serializer_class(instance,data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            if serializer.validated_data["status"]=='approved' :
-                save_and_send_notification(instance.user.id, f"Your reward commision of {instance.amount} has been processed.")
-            elif serializer.validated_data["status"]=='declined' :
-                save_and_send_notification(instance.user.id, f"Your reward commision from {instance.username} has been declined due to {instance.comment}.")
-            return Response (serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #     if not reward_id:
+    #         return Response({"detail":"The reward's ID to be updated is required"}, status.HTTP_400_BAD_REQUEST)
+    #     if instance is None:
+    #         return Response({"detail": "User instance not found"}, status.HTTP_404_NOT_FOUND)
+    #     serializer=self.serializer_class(instance,data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         if serializer.validated_data["status"]=='approved' :
+    #             save_and_send_notification(instance.user.id, f"Your reward commision of {instance.amount} has been processed.")
+    #         elif serializer.validated_data["status"]=='declined' :
+    #             save_and_send_notification(instance.user.id, f"Your reward commision from {instance.username} has been declined due to {instance.comment}.")
+    #         return Response (serializer.data)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AffilateManagement(APIView):

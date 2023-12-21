@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from . import models
+from accounts.models import Referral
 
 
 class RewardActivitiesSerializer(serializers.ModelSerializer):
@@ -17,3 +18,19 @@ class RewardActivitiesSerializer(serializers.ModelSerializer):
             "comment"
         ]
 
+class RefereeListSerializer(serializers.ModelSerializer):
+    username= serializers.SerializerMethodField()
+    class Meta:
+        model=Referral
+        fields=[
+            'username',
+            'stage',
+            'amount_deposit',
+            'commission',
+            'brokage_commission',
+            'status',
+            'created'
+        ]
+        
+    def get_username(self, obj):
+        return obj.person_referred.fullname

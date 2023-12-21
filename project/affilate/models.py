@@ -38,7 +38,8 @@ class ReferralWallet(auto_prefetch.Model):
     created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
     
 class BrokageCommission(auto_prefetch.Model):
-    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE,related_name='brokage_commsissions', null=True, blank=True)
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    person_refferred = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE,related_name='brokage_commsissions', null=True, blank=True)
     commission = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
     trade = auto_prefetch.ForeignKey(Trade, on_delete=models.CASCADE,related_name='brokage_commsissions', null=True, blank=True)
