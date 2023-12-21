@@ -18,6 +18,7 @@ from decimal import Decimal
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from affilate import models as aff_models, serializers as aff_serializers
+from affilate.utils import get_quarter_dates,get_rank_details
 
 User=get_user_model()
 
@@ -316,10 +317,17 @@ class AffilateManagement(APIView):
 
     def get(self, request):
         filter= request.GET.get("email")
-        rank=""
+        
+        first_day, last_day = get_quarter_dates()
+        data_list=[]
+        # users = User.objects.all()
         if filter:
-            rank=aff_models.Rankings.objects.filter(user=filter).order_by("min_brokage_commission")
-        else:
-            rank=aff_models.Rankings.objects.all().order_by("min_brokage_commission")
-        serializer=self.serializer_class(rank, many=True).data
-        return Response(serializer)
+            users = acc_Referral.objects.filter(user__email=filter)
+        else:            
+            users = acc_Referral.objects.all()
+            
+        for user in users:
+            data_list.append(get_rank_details(user.user, first_day))
+            
+        sorted_data = sorted(data_list, key=lambda x: x['brokerage_commission'], reverse=True)
+        return Response(sorted_data)
