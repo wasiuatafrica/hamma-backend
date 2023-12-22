@@ -31,8 +31,8 @@ def create_wallet_and_send_email(sender, instance, created, **kwargs):
         html_message = render_to_string('accounts/registration_token.html', context)
         plain_message = strip_tags(html_message)
         subject = 'Email Confirmation'
-        from_email = "teamft9ja@gmail.com"
-        # hello@gohamma.com
+        from_email = "teamgohamma@gmail.com"
+        
         recipient_list = [instance.email]
         send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
 
