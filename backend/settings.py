@@ -307,9 +307,9 @@ if os.environ.get('server') == 'local':
     REDIS_URL = 'memory://localhost/'
 else:
     # Use Redis for production
-    CELERY_BROKER_URL = os.environ.get('REDIS_URL')
-    CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL')
-    REDIS_URL = os.environ.get('REDIS_URL')
+    CELERY_BROKER_URL = os.environ.get('REDISCLOUD_URL')
+    CELERY_RESULT_BACKEND = os.environ.get('REDISCLOUD_URL')
+    REDIS_URL = os.environ.get('REDISCLOUD_URL')
 
 CELERY_TASK_SERIALIZER ='json'
 CELERY_RESULT_SERIALIZER = 'json'
