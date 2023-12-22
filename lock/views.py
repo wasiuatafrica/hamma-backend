@@ -13,7 +13,7 @@ class SavingsLockList(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        savings_locks = SavingsLock.objects.filter(user=request.user).order_by(-id)
+        savings_locks = SavingsLock.objects.filter(user=request.user).order_by('-id')
         serializer = SavingsLockSerializer(savings_locks, many=True)
         return Response(serializer.data)
 
