@@ -1,0 +1,19 @@
+from django.urls import path
+from rest_framework.routers import SimpleRouter
+from . import views
+
+urlpatterns=[
+    path("register/", views.Registration.as_view(), name="register"),
+    # path("sign-with-google/", views.SignupwithGoogle.as_view()),
+    path("verify_token/", views.VerifyToken.as_view(), name="verify_token"),
+    path("profile/", views.ProfileView.as_view(), name="profile"),
+    path("2fa_on_off/", views.SetOrOff2FA.as_view(), name="2fa_on_off"),
+    path("login/", views.LoginWithEmailView.as_view(), name="login"),
+    path("login-with-2fa/", views.LoginWith2FA.as_view()),
+    path("update-password-dashboard/", views.DashBoardUpdatePassword.as_view(), name="update-password-dashboard"),
+    path("reset-password/", views.ResetForgettenPassword.as_view()),
+
+    # OTP
+    # path('creat_totp/', views.TOTPCreateView.as_view(), name='totp-create'),
+    # path('verify-totp/<token>/', views.TOTPVerifyView.as_view(), name='totp-login'),
+]
