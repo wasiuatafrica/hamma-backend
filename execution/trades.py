@@ -44,8 +44,8 @@ def simulate_trades(user):
         holding = Holding.objects.get_or_create(portfolio=portfolio, stock=stock)[0]
         
         trade_amount= quantity * price
-        master_commission = 0.01 * trade_amount
-        brokerage_commission = 0.1 * master_commission
+        master_commission = round(Decimal(0.01) * trade_amount,2)
+        brokerage_commission = round(Decimal(0.1) * master_commission,2)
 
         if wallet.balance >= quantity * price:
             trade = Trade.objects.create(
