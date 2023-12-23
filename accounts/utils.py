@@ -86,7 +86,6 @@ def get_user_totp_device(user, confirmed=None):
             return device
         
 import os
-import base64
 from django.conf import settings
 def SetTOTP(user):
     device = get_user_totp_device(user)
@@ -94,48 +93,6 @@ def SetTOTP(user):
         device = user.totpdevice_set.create(confirmed=False)
 
     url = device.config_url
-
-    # Generate QR Code
-    # qr = qrcode.QRCode(
-    #     version=1,
-    #     error_correction=qrcode.constants.ERROR_CORRECT_L,
-    #     box_size=10,
-    #     border=4,
-    # )
-    # qr.add_data(url)
-    # qr.make(fit=True)
-
-    # img = qr.make_image(fill_color="black", back_color="white")
-
-    # # Save QR Code image to media directory
-    # media_path = os.path.join(settings.MEDIAFILES_LOCATION, 'token')
-    # os.makedirs(media_path, exist_ok=True)  # Ensure the directory exists
-
-    # filename = f'{user.email}_totp_qr.png'
-    # full_path = os.path.join(media_path, filename)
-
-    # # Update the device with the QR code path
-    # device.qr_code_path = full_path
-    # device.save()
-    # user.totp_url = full_path
-    # user.save()
-    # # Save the image to the media directory
-    # # img.save(full_path)
-    # context={
-    #     "img":device.config_url,
-    #     "firstname":user.firstname
-    # }
-    # html_message = render_to_string('accounts/qrcode.html', context)
-    # plain_message = strip_tags(html_message)
-    # subject = 'Token'
-    # from_email = "teamgohamma@gmail.com"
-    # recipient_list = [user.email]
-    # send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
-
-    # # Save the image to the media directory
-    # img.save(full_path)
-
-    # print(device.config_url, "xn nsd hsh ctfc")
 
     return url
 
