@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Example</title>
+  <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+</head>
+<body>
+
+<!-- Display the QR code here -->
+<div id="qrcode"></div>
+
+<script>
+  // Extract the OTP authentication URI from the URL
+  const otpAuthURI = "otpauth://totp/nwaforglory6%40gmail.com?secret=4UA6ANLEVACUKMMLGKJZ553DLIEKFWYB&algorithm=SHA1&digits=6&period=30";
+
+  // Create a QR Code instance
+  const qr = new QRCode(document.getElementById("qrcode"), {
+    text: otpAuthURI,
+    width: 128,
+    height: 128,
+  });
+
+  // You can customize the size and other properties as needed
+</script>
+
+</body>
+</html>

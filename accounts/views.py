@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework import permissions
 from . import serializers
 from . import models
-from .utils import verify_token, resendToken,SetTOTP, verifyTOTP,generate_random_password, send_welcome_email
+from .utils import verify_token, resendToken,SetTOTP, verifyTOTP,generate_random_password, send_welcome_email,sms_2FA
 from rest_framework import viewsets
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone  
@@ -150,6 +150,11 @@ class LoginWithEmailView(APIView):
                 if user.has_2fa:
                     if user.twofa_type =="authapps": #send the user to the login
                         return Response({"detail": "Please provide token from your 2fa application"}, status=status.HTTP_202_ACCEPTED)
+                    elif user.twofa_type =="sms": #send the user to the login
+                        user_phone=models.Profile.objects.get(user=user).phone
+                        sms_token=resendToken(user, "sms")
+                        send_sms_2fa=sms_2FA(user_phone,sms_token)
+                        return Response({"detail": "Please provide  sms token sent to your phone", "sms":sms_token}, status=status.HTTP_202_ACCEPTED)
                     user = User.objects.get(email=email, is_active=True)
                     resendToken(user, "login")
                     return Response({"detail": "Please check your mail for your 2fa token"}, status=status.HTTP_202_ACCEPTED)
