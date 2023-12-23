@@ -61,6 +61,8 @@ def resendToken(instance, _type):
         token.delete()
     if _type =="signup":
         token=models.TwoFactorToken.objects.create(user=instance,expiration=timezone.now() + timezone.timedelta(hours=1))
+    elif _type =="password":
+        token=models.TwoFactorToken.objects.create(user=instance,expiration=timezone.now() + timezone.timedelta(minutes=10))
     elif _type =="login":
         token=models.TwoFactorToken.objects.create(user=instance,expiration=timezone.now() + timezone.timedelta(minutes=10))
 
@@ -68,11 +70,15 @@ def resendToken(instance, _type):
         token=models.TwoFactorToken.objects.create(user=instance,expiration=timezone.now() + timezone.timedelta(minutes=60))
         return token.token
     # Send token to users email
+    
     context={
         "token":token.token,
         "firstname":instance.firstname
     }
-    html_message = render_to_string('accounts/token.html', context)
+    if _type =="password":
+        html_message = render_to_string('accounts/reset_password.html', context)
+    else:
+        html_message = render_to_string('accounts/token.html', context)
     plain_message = strip_tags(html_message)
     subject = 'Token'
     from_email = "teamgohamma@gmail.com"

@@ -218,7 +218,7 @@ class ResetForgettenPassword(APIView):
         if not user and email:
             return Response({"detail": "User not found or invalid email"}, status=status.HTTP_404_NOT_FOUND)
 
-        resendToken(user, "login")
+        resendToken(user, "password")
 
         return Response({"detail": "Reset password token has been sent to your email. Token will expire in 10mins"})
 
