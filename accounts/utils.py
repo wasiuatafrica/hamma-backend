@@ -61,14 +61,24 @@ def resendToken(instance, _type):
         token.delete()
     if _type =="signup":
         token=models.TwoFactorToken.objects.create(user=instance,expiration=timezone.now() + timezone.timedelta(hours=1))
+    elif _type =="password":
+        token=models.TwoFactorToken.objects.create(user=instance,expiration=timezone.now() + timezone.timedelta(minutes=10))
     elif _type =="login":
         token=models.TwoFactorToken.objects.create(user=instance,expiration=timezone.now() + timezone.timedelta(minutes=10))
+
+    elif _type =="sms":
+        token=models.TwoFactorToken.objects.create(user=instance,expiration=timezone.now() + timezone.timedelta(minutes=60))
+        return token.token
     # Send token to users email
+    
     context={
         "token":token.token,
         "firstname":instance.firstname
     }
-    html_message = render_to_string('accounts/token.html', context)
+    if _type =="password":
+        html_message = render_to_string('accounts/reset_password.html', context)
+    else:
+        html_message = render_to_string('accounts/token.html', context)
     plain_message = strip_tags(html_message)
     subject = 'Token'
     from_email = "teamgohamma@gmail.com"
@@ -81,37 +91,16 @@ def get_user_totp_device(user, confirmed=None):
         if isinstance(device, TOTPDevice):
             return device
         
-
+import os
+from django.conf import settings
 def SetTOTP(user):
     device = get_user_totp_device(user)
     if not device:
         device = user.totpdevice_set.create(confirmed=False)
+
     url = device.config_url
 
-        # Generate QR Code
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
-        box_size=10,
-        border=4,
-    )
-    qr.add_data(url)
-    qr.make(fit=True)
-
-    img = qr.make_image(fill_color="black", back_color="white")
-    # Save QR Code image to media directory
-    media_path = 'media/'
-    filename = f'{user.email}_totp_qr.png'
-    full_path = f'{media_path}{filename}'
-    device.qr_code_path = full_path
-    device.save()
-    # # Save the image to media directory
-    # user.totp_url=img
-    # user.save()
-    img.save(full_path)
-
-    return full_path
-    
+    return url
 
 # Use this to verify/enable a TOTP device
 def verifyTOTP(user,token):
@@ -122,6 +111,19 @@ def verifyTOTP(user,token):
             device.save()
         return True
     return False
+
+
+import requests
+
+def sms_2FA(phone, token):
+    print(phone)
+    resp = requests.post('https://textbelt.com/text', {
+    'phone': phone,
+    'message': f'Hello, here is your 2fa token {token}',
+    'key': 'textbelt',
+    })
+    print(resp.json())
+    return resp.json()
 
 def get_referrer(user):
     referrer = Referral.objects.filter(person_referred=user).first()

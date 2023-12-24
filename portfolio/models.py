@@ -229,3 +229,21 @@ class Trade(models.Model):
     def amount(self):
         return self.quantity * self.price
     
+
+class Alert(auto_prefetch.Model):
+    user= auto_prefetch.ForeignKey(User,on_delete=models.CASCADE)
+    stock= auto_prefetch.ForeignKey(Stock,on_delete=models.CASCADE)
+    alert_name=models.CharField(max_length=50)
+    description=models.TextField(default="")
+    price_action=models.CharField(max_length=50, choices=(("above", "above"), ("below", "below")))
+    from_price=models.FloatField()
+    to_price=models.FloatField()
+    from_volume=models.FloatField()
+    to_volume=models.FloatField()    
+    schedules=models.CharField(max_length=50, choices=(("Daily","Daily"),("Weekly", "Weekly"), ("MOnthly", "Monthly")))
+    created_at=models.DateTimeField(auto_now_add=True)
+    communication_channel=models.CharField(max_length=50, choices=(("email", "email"), ("notification", "notification")))
+
+
+    def __str__(self) -> str:
+        return "f{self.stock.symbol} alert"
