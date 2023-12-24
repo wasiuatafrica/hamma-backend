@@ -8,30 +8,6 @@ media
 
 
 
-accounts/migrations/*
-!accounts/migrations/__init__.py
-
-anyon/migrations/*
-!anyon/migrations/__init__.py
-
-blog/migrations/*
-execution/migrations/*
-!execution/migrations/__init__.py
-
-notifications/migrations/*
-!notifications/migrations/__init__.py
-
-portfolio/migrations/*
-!portfolio/migrations/__init__.py
-
-reporting/migrations/*
-lock/migrations/*
-!lock/migrations/__init__.py
-
-affilate/migrations/*
-!affilate/migrations/__init__.py
-
-
 # Backup files # 
 *.bak 
 
