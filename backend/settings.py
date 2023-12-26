@@ -305,11 +305,25 @@ if os.environ.get('server') == 'local':
     CELERY_BROKER_URL = 'memory://localhost/'
     CELERY_RESULT_BACKEND = 'cache+memory://localhost/'
     REDIS_URL = 'memory://localhost/'
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        },
+    }
 else:
     # Use Redis for production
     CELERY_BROKER_URL = os.environ.get('REDISCLOUD_URL')
     CELERY_RESULT_BACKEND = os.environ.get('REDISCLOUD_URL')
     REDIS_URL = os.environ.get('REDISCLOUD_URL')
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [REDIS_URL],
+            },
+        },
+    }
+
 
 CELERY_TASK_SERIALIZER ='json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -325,12 +339,5 @@ CACHES = {
     }
 }
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [REDIS_URL],
-        },
-    },
-}
+
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

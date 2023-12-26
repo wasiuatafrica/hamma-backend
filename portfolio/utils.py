@@ -41,3 +41,16 @@ def get_historical_data(symbol):
     records = list(collection.find())
     serialized_records = json.loads(json_util.dumps(records))
     return serialized_records
+
+def get_mini_data():
+    db = connect_to_mongodb("anyon_history")
+    collection_names = db.list_collection_names()
+    # print(collection_names)
+    result_list = []
+    
+    for collection_name in collection_names:
+        collection = db[collection_name]
+        last_27_items = list(collection.find().sort('datetime', -1).limit(27))
+        result_list.append({collection_name:json.loads(json_util.dumps(last_27_items))})
+        
+    return result_list
