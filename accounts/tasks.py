@@ -13,7 +13,4 @@ User=get_user_model()
 @shared_task
 def set_up_user(user_email):
     user=User.objects.get(email=user_email)
-    Wallet.objects.create(user=user)
-    Portfolio.objects.create(user=user)
-    send_welcome_email(user)
     simulate_trades(user)

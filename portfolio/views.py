@@ -14,36 +14,33 @@ from rest_framework.decorators import api_view, permission_classes
 import random
 from django.core.mail import send_mail
 from django.utils import timezone
-from .utils import get_symbol_data,get_historical_data
+from .utils import get_symbol_data,get_historical_data, get_mini_data
 from notifications.utils import save_and_send_notification
 from django.shortcuts import get_object_or_404
 from decimal import Decimal
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from lock.models import SavingsLock
+from django.db.models import Sum
  
 User= get_user_model()
 
-class WalletDetail(generics.RetrieveAPIView):
-    queryset = Wallet.objects.all()
-    serializer_class = WalletSerializer
-    permission_classes = [IsAuthenticated]
 
-    def get_object(self):
-        return self.queryset.get(user=self.request.user)
 
-class WalletDeposit(generics.UpdateAPIView):
-    queryset = Wallet.objects.all()
-    serializer_class = WalletSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_object(self):
-        return self.queryset.get(user=self.request.user)
-
-    def perform_update(self, serializer):
-        amount = self.request.data.get('amount', 0)
-        wallet = self.get_object()
-        wallet.balance += float(amount)
-        wallet.save()
+class WalletBalance(APIView):
+    def get(self, request):
+        wallet = Wallet.objects.get(user=request.user)
+        savings = SavingsLock.objects.filter(user=request.user, status='ongoing')
+        if savings:
+            savings_amount= savings.aggregate(total_quantity=Sum('amount'))['total_quantity'] 
+        else:
+            savings_amount= Decimal(0)
+        data = {
+                'balance': wallet.balance,
+                'reserved':savings_amount,
+                'total':wallet.balance + savings_amount
+            }
+        return Response(data)
 
 
 class WalletWithdraw(APIView):
@@ -157,9 +154,15 @@ class StockList(generics.ListAPIView):
         response_data = {
             'stock_list': serializer.data,
             'first_symbol_order_book': symbol_data,
-            'historical_data':historical_data
+            'historical_data':historical_data,
+            # 'mini_data':get_mini_data()
         }
         return Response(response_data)
+
+class MiniData(APIView):
+    def get(self, request):
+        data = get_mini_data()
+        return Response(data)
     
 class GetSingleStock(APIView):
     serializer_class = StockSerializer

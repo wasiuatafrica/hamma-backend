@@ -56,6 +56,11 @@ class VerifyToken(APIView):
         if not token_reponse:
             return Response({"detail":"Token or user_email is invalid"}, status=status.HTTP_400_BAD_REQUEST)
         
+        user=User.objects.get(email=user_email)
+        
+        Wallet.objects.create(user=user)
+        Portfolio.objects.create(user=user)
+        send_welcome_email(user)
         set_up_user.delay(user_email)
         
         return Response({"detail":"Account verifed."})

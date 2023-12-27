@@ -127,7 +127,7 @@ def sms_2FA(phone, token):
     return resp.json()
 
 def get_referrer(user):
-    referrer = Referral.objects.get(person_referred=user)
+    referrer = Referral.objects.filter(person_referred=user).first()
     return referrer.user if referrer else None
 
 def get_referees(user):

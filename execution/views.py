@@ -24,8 +24,8 @@ class TradeAPIView(APIView):
         portfolio= get_object_or_404(Portfolio, user=request.user)
         
         trade_amount= quantity * price
-        master_commission = 0.01 * trade_amount
-        brokerage_commission = 0.1 * master_commission
+        master_commission = round(Decimal(0.01) * trade_amount, 2)
+        brokerage_commission = round(Decimal(0.1) * master_commission,2)
         
         if is_buy:
             
