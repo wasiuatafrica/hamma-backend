@@ -42,15 +42,44 @@ def get_historical_data(symbol):
     serialized_records = json.loads(json_util.dumps(records))
     return serialized_records
 
+# def get_mini_data():
+#     db = connect_to_mongodb("anyon_history")
+#     collection_names = db.list_collection_names()
+#     # print(collection_names)
+#     result_list = []
+    
+#     for collection_name in collection_names:
+#         collection = db[collection_name]
+#         last_27_items = list(collection.find().sort('datetime', -1).limit(27))
+#         result_list.append({collection_name:json.loads(json_util.dumps(last_27_items))})
+        
+#     return result_list
+
+
+def get_trend(closing_prices):
+    # Function to determine the trend (up or down) based on closing prices
+    if closing_prices[-1] > closing_prices[0]:
+        return 'up'
+    elif closing_prices[-1] < closing_prices[0]:
+        return 'down'
+    else:
+        return 'neutral'
+
 def get_mini_data():
     db = connect_to_mongodb("anyon_history")
     collection_names = db.list_collection_names()
-    # print(collection_names)
     result_list = []
     
     for collection_name in collection_names:
         collection = db[collection_name]
         last_27_items = list(collection.find().sort('datetime', -1).limit(27))
-        result_list.append({collection_name:json.loads(json_util.dumps(last_27_items))})
+        
+        if len(last_27_items) >= 2:
+            closing_prices = [item['close'] for item in last_27_items]
+            trend = get_trend(closing_prices)
+        else:
+            trend = 'insufficient_data'
+            
+        result_list.append({collection_name: trend})
         
     return result_list
