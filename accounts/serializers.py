@@ -32,6 +32,16 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'totp_url': {'read_only': True},
             # 'signup_type': {'read_only': True},
         }
+
+class UpdateCustomUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model=models.CustomUser
+        fields=[
+            "firstname",
+            "lastname",
+        ]
+
 class TokenSerializer(serializers.Serializer):
     user_email=serializers.EmailField()
     token=serializers.CharField(max_length=10)

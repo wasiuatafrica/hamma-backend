@@ -99,6 +99,7 @@ def SetTOTP(user):
         device = user.totpdevice_set.create(confirmed=False)
 
     url = device.config_url
+    # print(TOTPDevice.objects.all().delete(), "Heloo")
 
     return url
 

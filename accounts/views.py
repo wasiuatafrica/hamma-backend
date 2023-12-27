@@ -87,10 +87,15 @@ class ProfileView(APIView):
     def put(self, request):
         instance = self.get_object(request)
         serializer=self.serializer_class(instance,data=request.data)
+        user_serializer=serializers.UpdateCustomUserSerializer(request.user, data=request.data)
         if instance is None:
             return Response({"detail": "User instance not found"}, status=status.HTTP_404_NOT_FOUND)
         if serializer.is_valid():
             serializer.save()
+            if user_serializer.is_valid():
+                user_serializer.save()
+            else:
+                return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             user=serializers.CustomUserSerializer(request.user, many=False).data
             return Response({"detail":serializer.data, "user":user})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
