@@ -98,31 +98,31 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASES = {
-    "default": dj_database_url.config(
-        conn_max_age=600,
-         default=os.environ.get('DATABASE_URL')
-        #  default=config('DATABASE_URL')
-        )
+# DATABASES = {
+#     "default": dj_database_url.config(
+#         conn_max_age=600,
+#          default=os.environ.get('DATABASE_URL')
+#         #  default=config('DATABASE_URL')
+#         )
 
- }
+#  }
 
-# if DEBUG:
-#     DATABASES = {
-#         'default': {
-#             'ENGINE': 'django.db.backends.sqlite3',
-#             'NAME': BASE_DIR / 'db.sqlite3',
-#         }
-#     }
-# else:
-#     DATABASES = {
-#         "default": dj_database_url.config(
-#             conn_max_age=600,
-#             default=os.environ.get('DATABASE_URL')
-#             #  default=config('DATABASE_URL')
-#             )
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
+    DATABASES = {
+        "default": dj_database_url.config(
+            conn_max_age=600,
+            default=os.environ.get('DATABASE_URL')
+            #  default=config('DATABASE_URL')
+            )
 
-#     }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -221,6 +221,7 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 # ACCOUNT_EMAIL_SUBJECT_PREFIX ='ANYON.COM - '
 
 
+OTP_TOTP_ISSUER = 'Anyon'
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=29),
