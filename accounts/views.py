@@ -97,6 +97,7 @@ class ProfileView(APIView):
 
 # Set up 2fa for account
 class SetOrOff2FA(APIView):
+
     serializer_class=serializers.Turn2FAOnOrOff
     def post(self, request):
         serializer=self.serializer_class(data=request.data)
@@ -107,7 +108,7 @@ class SetOrOff2FA(APIView):
                 # user.has_2fa=False
                 user.twofa_type = "email"
                 user.save()
-                return Response({"detail":"2FA turn off successsfully", "user":serializers.CustomUserSerializer(request.user, many=False).data})
+                return Response({"detail":"2fa changed to email.", "user":serializers.CustomUserSerializer(request.user, many=False).data})
             # else the user wants to turn on 2fa
             user.has_2fa=True
             user.twofa_type = serializer.validated_data["action"]
