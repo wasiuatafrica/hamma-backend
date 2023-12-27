@@ -986,6 +986,54 @@
             <ul>
                 <li>1. "status" in reward activities can be "Pending", "Approved", "Rejected", or other relevant status.</li>
             </ul>
+            
+    
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#2fa">13. 2FA SETUP</h3>
+        <div id="2fa" class="collapse">
+    
+           
+
+            <h4>13. 2FA SETUP</h4>
+            <p>post /auth/2fa_on_off/</p>
+            <pre>
+                To set 2fa, a key-value pair is used nad value depending on the preffered 2fa of choice.
+                here is a list of valid values: ["email", "sms", "authapps"] and key: "action".
+
+                By default, every user has email as default 2fa. 
+                <b>NOTE:</b> 2fa cannot be disabled but can be switched between valid values as described above.
+                To switch, send your preffered method as value.
+
+                <h5><Param></Param>:</h5>
+                Example:
+                {"action":"authapps"}
+            </pre>
+    
+            <h5>Response:</h5>
+            <pre>
+                The response returns the qrcode url for users with authapps methods. This can be displayed for scanning.
+                other 2fa methods like "sms", "email",  token is sent to their email or phone number.
+                {
+                    "detail": "2FA turn on successsfully",
+                    "qr_url": "otpauth://totp/Gohamma?secret=RQNUWNAPP5FQO5RE3NYQV3EY3I4GCOXN&algorithm=SHA1&digits=6&period=30&issuer=Anyon",
+                    "user": {
+                      "id": 1,
+                      "email": "nwaforglory6@gmail.com",
+                      "firstname": "Glory",
+                      "lastname": "Ebube",
+                      "has_2fa": true,
+                      "twofa_type": "authapps",
+                      "is_active": true,
+                      "totp_url": null,
+                      "date_joined": "2023-09-19T18:06:06.470786+01:00",
+                      "last_login": "2023-12-27T11:33:10.237618+01:00"
+                    }
+                  }
+            </pre>
+            
     
         </div>
     </div>
