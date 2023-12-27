@@ -78,7 +78,7 @@ def get_mini_data():
             closing_prices = [item['close'] for item in last_27_items]
             trend = get_trend(closing_prices)
         else:
-            trend = 'insufficient_data'
+            trend = 'insufficient_data' 
             
         result_list.append({collection_name: trend})
         
