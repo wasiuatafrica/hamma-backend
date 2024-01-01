@@ -136,8 +136,10 @@ class Holding(auto_prefetch.Model):
     
     @property
     def ltp(self):
-        random_factor = Decimal(uniform(0.8, 1.2))
-        return round(self.avg_cost() * random_factor,2)
+        from .utils import get_price
+        data=get_price(self.stock.symbol)
+        price= data['current_price']
+        return price
 
     @property
     def cur_val(self):

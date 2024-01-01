@@ -1,9 +1,8 @@
-import uuid
 from django.core.mail import send_mail
 from pymongo import MongoClient
 import json
-from bson import ObjectId
 from bson import json_util
+import websockets
 
 def connect_to_mongodb(db_name):
     client = MongoClient("mongodb+srv://trademql5:trademql5@trademql5.fmlxv.mongodb.net/",tls=True,
@@ -83,3 +82,19 @@ def get_mini_data():
         result_list.append({collection_name: trend})
         
     return result_list
+
+def get_price(stock):
+    uri = f"ws://ec2-16-16-77-63.eu-north-1.compute.amazonaws.com:8765/{stock}"
+    with websockets.connect(uri) as websocket:
+        try:
+            # Sending authentication token
+            auth_token = "Ab$455"
+            websocket.send(auth_token)
+
+            data = websocket.recv()
+            stock_data = json.loads(data)
+            print(stock_data)
+            return stock_data
+        except websockets.exceptions.ConnectionClosed as e:
+            if e.code != 1000:
+                print(f"Connection closed unexpectedly: {e}")
