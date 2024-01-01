@@ -3,10 +3,10 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import (Wallet, Stock, Portfolio, Holding, Receipts, PayStackReceipts, WithdrawalRequest, 
+from .models import (Wallet, Stock, Portfolio, Holding, Receipts, PayStackReceipts, WithdrawalRequest, Alert,
                      Transaction, WithdrawalOTPRequest)
 from .serializers import (WalletSerializer, StockSerializer, PortfolioSerializer, 
-                          HoldingSerializer, ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
+                          HoldingSerializer, ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,AlertSerializer,
                           TransactionSerializer)
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
@@ -272,7 +272,6 @@ class TransactionList(generics.ListAPIView):
         # Only retrieve transactions for the logged-in user
         return Transaction.objects.filter(user=self.request.user)
     
-   
 class AlertView(APIView):
     serializer_class= AlertSerializer
 
