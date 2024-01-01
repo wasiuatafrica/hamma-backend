@@ -3,10 +3,10 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import (Wallet, Stock, Portfolio, Holding, Receipts, PayStackReceipts, WithdrawalRequest, Alert,
+from .models import (Wallet, Stock, Portfolio, Holding, Receipts, PayStackReceipts, WithdrawalRequest, 
                      Transaction, WithdrawalOTPRequest)
 from .serializers import (WalletSerializer, StockSerializer, PortfolioSerializer, 
-                          HoldingSerializer, ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,AlertSerializer,
+                          HoldingSerializer, ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
                           TransactionSerializer)
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
@@ -271,69 +271,3 @@ class TransactionList(generics.ListAPIView):
     def get_queryset(self):
         # Only retrieve transactions for the logged-in user
         return Transaction.objects.filter(user=self.request.user)
-    
-class AlertView(APIView):
-    serializer_class= AlertSerializer
-
-
-    def get(self, request):
-        alerts=Alert.objects.filter(user=request.user)
-        serializer=AlertSerializer(alerts, many=True).data
-        return Response(serializer)
-    
-    def post(self, request):
-        serializer=self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            # ensure below < above for price and volume
-            if serializer.validated_data["price_action"] == "above":
-                if not serializer.validated_data["from_price"] < serializer.validated_data["to_price"]:
-                    return Response({"detail": "from_price must be less than to_price"}, status=status.HTTP_400_BAD_REQUEST)
-                if not serializer.validated_data["from_volume"] < serializer.validated_data["to_volume"]:
-                    return Response({"detail": "from_volume must be less than to_volume"}, status=status.HTTP_400_BAD_REQUEST)
-            if serializer.validated_data["price_action"] == "below":
-                if not serializer.validated_data["from_price"] > serializer.validated_data["to_price"]:
-                    return Response({"detail": "from_price must be greater than to_price"}, status=status.HTTP_400_BAD_REQUEST)
-                if not serializer.validated_data["from_volume"] > serializer.validated_data["to_volume"]:
-                    return Response({"detail": "from_volume must be greater than to_volume"}, status=status.HTTP_400_BAD_REQUEST)
-
-            serializer.save()
-            return Response(serializer.data, status.HTTP_201_CREATED)
-        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-    
-class AlertUpdateView(APIView):
-    serializer_class = AlertSerializer
-
-    def get_queryset(self, id, user):
-        alert = Alert.objects.filter(id=id, user=user).first()
-        return alert
-
-    def get(self, request, *args, **kwargs):
-        id = kwargs.get("id")
-        alert = self.get_queryset(id, request.user)
-        if alert is not None:
-            serializer = AlertSerializer(alert, many=False)
-            return Response(serializer.data)
-        return Response({"detail": "Alert not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    def put(self, request, *args, **kwargs):
-        id = kwargs.get("id")
-        alert = self.get_queryset(id, request.user)
-        if alert is not None:
-            serializer = self.serializer_class(alert, data=request.data)
-            if serializer.is_valid():
-                # ensure below < above for price and volume
-                if serializer.validated_data["price_action"] == "above":
-                    if not serializer.validated_data["from_price"] < serializer.validated_data["to_price"]:
-                        return Response({"detail": "from_price must be less than to_price"}, status=status.HTTP_400_BAD_REQUEST)
-                    if not serializer.validated_data["from_volume"] < serializer.validated_data["to_volume"]:
-                        return Response({"detail": "from_volume must be less than to_volume"}, status=status.HTTP_400_BAD_REQUEST)
-                if serializer.validated_data["price_action"] == "below":
-                    if not serializer.validated_data["from_price"] > serializer.validated_data["to_price"]:
-                        return Response({"detail": "from_price must be greater than to_price"}, status=status.HTTP_400_BAD_REQUEST)
-                    if not serializer.validated_data["from_volume"] > serializer.validated_data["to_volume"]:
-                        return Response({"detail": "from_volume must be greater than to_volume"}, status=status.HTTP_400_BAD_REQUEST)
-                serializer.save()
-                return Response(serializer.data)
-            return
-        
-
