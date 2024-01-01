@@ -248,4 +248,4 @@ class Alert(auto_prefetch.Model):
 
 
     def __str__(self) -> str:
-        return "f{self.stock.symbol} alert"
+        return f"{self.stock.symbol} alert"
