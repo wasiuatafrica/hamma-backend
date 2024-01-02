@@ -22,6 +22,7 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from lock.models import SavingsLock
 from django.db.models import Sum
+from asgiref.sync import sync_to_async
  
 User= get_user_model()
 
@@ -141,23 +142,53 @@ class WalletWithdraw(APIView):
 
 class StockList(generics.ListAPIView):
     queryset = Stock.objects.all()
-    serializer_class = StockSerializer
     permission_classes =[AllowAny,]
     
-    def list(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
+        from .utils import get_details3
+        
         queryset = self.get_queryset()
         first = queryset.first()
+        
+        details = get_details3(queryset)
         symbol_data = get_symbol_data(first.symbol)
-        serializer = self.get_serializer(queryset, many=True)
         historical_data=get_historical_data(first.symbol)
         
         response_data = {
-            'stock_list': serializer.data,
+            'stock_list': details,
             'first_symbol_order_book': symbol_data,
             'historical_data':historical_data,
-            # 'mini_data':get_mini_data()
         }
         return Response(response_data)
+# class StockList(generics.ListAPIView):
+#     queryset = Stock.objects.all()
+#     permission_classes = [AllowAny]
+
+#     async def async_get_queryset(self):
+#         return await sync_to_async(lambda: list(self.queryset.all()))()
+
+#     async def get(self, request, *args, **kwargs):
+#         from .utils import get_details3, get_symbol_data, get_historical_data
+
+#         queryset = await self.async_get_queryset()
+#         details = await sync_to_async(get_details3)(queryset)
+
+#         # Assume that get_symbol_data and get_historical_data are already async or being converted
+#         first_symbol = queryset[0].symbol if queryset else None
+
+#         if first_symbol:
+#             symbol_data = await get_symbol_data(first_symbol)
+#             historical_data = await get_historical_data(first_symbol)
+#         else:
+#             symbol_data = historical_data = None  # Handle case with no data
+
+#         response_data = {
+#             'stock_list': details,
+#             'first_symbol_order_book': symbol_data,
+#             'historical_data': historical_data,
+#         }
+
+#         return Response(response_data)
 
 class MiniData(APIView):
     def get(self, request):
@@ -196,28 +227,6 @@ class StockDetail(generics.RetrieveAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-# class HoldingDetail(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = Holding.objects.all()
-#     serializer_class = HoldingSerializer
-#     permission_classes = [IsAuthenticated]
-
-# class PortfolioDetail(generics.RetrieveAPIView):
-#     queryset = Portfolio.objects.all()
-#     serializer_class = PortfolioSerializer
-#     permission_classes = [IsAuthenticated]
-
-#     def retrieve(self, request, *args, **kwargs):
-#         instance = self.get_object()
-#         serializer = self.get_serializer(instance)
-
-#         # Add calculated values to the response data
-#         response_data = serializer.data
-#         response_data['equity'] = instance.calculate_equity()
-#         response_data['current_value'] = instance.calculate_current_value()
-#         response_data['positions'] = instance.get_positions()
-
-#         return Response(response_data)
-    
     
 class PortfolioDetail(APIView):
     def get(self, request):
@@ -271,7 +280,13 @@ class TransactionList(generics.ListAPIView):
     def get_queryset(self):
         # Only retrieve transactions for the logged-in user
         return Transaction.objects.filter(user=self.request.user)
-    
+
+class Symbols(APIView):
+    def get(self, request):
+        stocks = Stock.objects.all()
+        symbols = [{stock.symbol:stock.id} for stock in stocks]
+        return Response(symbols)
+
 class AlertView(APIView):
     serializer_class= AlertSerializer
 
@@ -282,21 +297,15 @@ class AlertView(APIView):
         return Response(serializer)
     
     def post(self, request):
+        action= ['price', 'volume']
         serializer=self.serializer_class(data=request.data)
         if serializer.is_valid():
             # ensure below < above for price and volume
-            if serializer.validated_data["price_action"] == "above":
-                if not serializer.validated_data["from_price"] < serializer.validated_data["to_price"]:
-                    return Response({"detail": "from_price must be less than to_price"}, status=status.HTTP_400_BAD_REQUEST)
-                if not serializer.validated_data["from_volume"] < serializer.validated_data["to_volume"]:
-                    return Response({"detail": "from_volume must be less than to_volume"}, status=status.HTTP_400_BAD_REQUEST)
-            if serializer.validated_data["price_action"] == "below":
-                if not serializer.validated_data["from_price"] > serializer.validated_data["to_price"]:
-                    return Response({"detail": "from_price must be greater than to_price"}, status=status.HTTP_400_BAD_REQUEST)
-                if not serializer.validated_data["from_volume"] > serializer.validated_data["to_volume"]:
-                    return Response({"detail": "from_volume must be greater than to_volume"}, status=status.HTTP_400_BAD_REQUEST)
-
-            serializer.save()
+            if serializer.validated_data["alert_type"] not in action:
+                return Response({"detail": "alert type must be 'price' or 'volume' "}, status=status.HTTP_400_BAD_REQUEST)
+            
+            stock = get_object_or_404(Stock, symbol =serializer.validated_data["stock"])
+            serializer.save(user=request.user,stock=stock)
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
     
@@ -318,22 +327,17 @@ class AlertUpdateView(APIView):
     def put(self, request, *args, **kwargs):
         id = kwargs.get("id")
         alert = self.get_queryset(id, request.user)
+        action= ['price', 'volume']
+        # print(alert.alert_name)
         if alert is not None:
             serializer = self.serializer_class(alert, data=request.data)
+            # print(serializer)
             if serializer.is_valid():
                 # ensure below < above for price and volume
-                if serializer.validated_data["price_action"] == "above":
-                    if not serializer.validated_data["from_price"] < serializer.validated_data["to_price"]:
-                        return Response({"detail": "from_price must be less than to_price"}, status=status.HTTP_400_BAD_REQUEST)
-                    if not serializer.validated_data["from_volume"] < serializer.validated_data["to_volume"]:
-                        return Response({"detail": "from_volume must be less than to_volume"}, status=status.HTTP_400_BAD_REQUEST)
-                if serializer.validated_data["price_action"] == "below":
-                    if not serializer.validated_data["from_price"] > serializer.validated_data["to_price"]:
-                        return Response({"detail": "from_price must be greater than to_price"}, status=status.HTTP_400_BAD_REQUEST)
-                    if not serializer.validated_data["from_volume"] > serializer.validated_data["to_volume"]:
-                        return Response({"detail": "from_volume must be greater than to_volume"}, status=status.HTTP_400_BAD_REQUEST)
+                if serializer.validated_data["alert_type"] not in action:
+                    return Response({"detail": "alert type must be 'price' or 'volume' "}, status=status.HTTP_400_BAD_REQUEST)
                 serializer.save()
                 return Response(serializer.data)
-            return
+            return Response('invalid data')
         
 

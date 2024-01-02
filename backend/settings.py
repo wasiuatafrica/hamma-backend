@@ -54,14 +54,14 @@ INSTALLED_APPS = [
     'notifications',
     'django_otp',
     'django_otp.plugins.otp_totp',
-    'silk'
+    # 'silk'
 ]
 
 
 SITE_ID = 1
 
 MIDDLEWARE = [
-    'silk.middleware.SilkyMiddleware',
+    # 'silk.middleware.SilkyMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -303,8 +303,8 @@ CORS_ALLOW_HEADERS = [
 
 if os.environ.get('server') == 'local':
     # Use in-memory for local development
-    CELERY_BROKER_URL = 'memory://localhost/'
-    CELERY_RESULT_BACKEND = 'cache+memory://localhost/'
+    CELERY_BROKER_URL = 'redis://localhost:6379/0'
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
     REDIS_URL = 'memory://localhost/'
     CHANNEL_LAYERS = {
         'default': {

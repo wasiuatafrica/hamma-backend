@@ -80,4 +80,8 @@ class PayStackReceiptsSerializer(serializers.ModelSerializer):
 class AlertSerializer(serializers.ModelSerializer):
     class Meta:
         model=Alert
-        fields= "__all__"
+        fields= fields = [
+            'id', 'stock', 'alert_name', 'description', 
+            'alert_type', 'action', 'to_price', 'to_volume', 
+            'frequency', 'expire',  'trigerred'
+        ]

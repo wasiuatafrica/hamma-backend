@@ -31,16 +31,6 @@ prices = {stock: 100.0 for stock in stocks}
 # Authentication token
 AUTH_TOKEN = "Ab$455"
 
-async def update_prices():
-    """Background task to update mock prices"""
-    print('Updating prices...')
-    while True:
-        for stock in stocks:
-            print(f"updating {stock} price")
-            price_change = random.uniform(-3, 3)
-            prices[stock] += round(price_change,2)
-            print
-        await asyncio.sleep(5)  # Update every second
 
 async def produce_mock_data(websocket, path):
     # Simple authentication check
@@ -62,18 +52,6 @@ async def produce_mock_data(websocket, path):
         
         print('Entering loop ....')
         while True:
-            # open_price = prices[stock]
-            # new_price = prices[stock]
-            # volume = random.randint(1000, 10000)
-            # percentage_change = round(((new_price - open_price) / open_price) * 100, 2)
-            
-            # message = json.dumps({
-            #     "stock": stock,
-            #     "open_price": round(open_price, 2),
-            #     "current_price": round(new_price, 2),
-            #     "volume": volume,
-            #     "percentage_change": percentage_change
-            # })
             open_price = prices.get(stock, 100)  # Starting open price is 100.
             volume = random.randint(1000, 10000)
             price_change = random.uniform(-3, 3)
@@ -103,10 +81,6 @@ def get_next_price(stock, price_change):
 async def main():
     # Start the background task
     print('Server started....')
-    # asyncio.create_task(update_prices())
-
-    # Start WebSocket server and handle paths
-    # async with websockets.serve(produce_mock_data, 'localhost', 8765):
     async with websockets.serve(produce_mock_data, 'ec2-16-16-77-63.eu-north-1.compute.amazonaws.com', 8765):
         await asyncio.Future()  # Run forever
     print('Running....')

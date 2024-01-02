@@ -6,6 +6,7 @@ from django.db.models import Sum, Avg, F
 import auto_prefetch
 from random import uniform
 from decimal import Decimal
+from datetime import datetime, timedelta
 
 User= get_user_model()
 
@@ -36,13 +37,19 @@ class Stock(auto_prefetch.Model):
     
     @property
     def ltp(self):
-        random_factor = Decimal(uniform(4, 50))
-        return round(random_factor,2)
+        from .utils import get_price
+        data=get_price(self.symbol)
+        price= data['current_price']
+        return price
+
     
     @property
     def current_price(self):
-        random_factor = Decimal(uniform(0.8, 1.2))
-        return round(self.ltp * random_factor,2)
+        from .utils import get_price
+        data=get_price(self.symbol)
+        price= data['current_price']
+        return price
+
 
 
     @property
@@ -237,14 +244,15 @@ class Alert(auto_prefetch.Model):
     stock= auto_prefetch.ForeignKey(Stock,on_delete=models.CASCADE)
     alert_name=models.CharField(max_length=50)
     description=models.TextField(default="")
-    price_action=models.CharField(max_length=50, choices=(("above", "above"), ("below", "below")))
-    from_price=models.FloatField()
-    to_price=models.FloatField()
-    from_volume=models.FloatField()
-    to_volume=models.FloatField()    
-    schedules=models.CharField(max_length=50, choices=(("Daily","Daily"),("Weekly", "Weekly"), ("MOnthly", "Monthly")))
-    created_at=models.DateTimeField(auto_now_add=True)
-    communication_channel=models.CharField(max_length=50, choices=(("email", "email"), ("notification", "notification")))
+    alert_type=models.CharField(max_length=30, choices=(("price", "price"), ("volume", "volume")), default='price')
+    action=models.CharField(max_length=50, choices=(("above", "above"), ("below", "below")))
+    to_price=models.FloatField(blank=True, null=True)
+    to_volume=models.FloatField(blank=True, null=True)    
+    frequency=models.CharField(max_length=50, choices=(("Once","Once"),("Everytime", "Everytime")), default='Once')
+    expire = models.DateTimeField(default=datetime.now() +timedelta(weeks=7))
+    created=models.DateTimeField(auto_now_add=True)
+    trigerred = models.BooleanField(default=False)
+
 
 
     def __str__(self) -> str:

@@ -1038,6 +1038,132 @@
         </div>
     </div>
     
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#alerts">13. Alerts (Manual)</h3>
+        <div id="alerts" class="collapse">
+    
+            <h4>13a. Get Alerts</h4>
+            <p>GET /portfolio/alert/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Retrieve alerts for the authenticated user.
+                [
+                    {
+                        "id": 1,
+                        "user": 1,
+                        "stock": 1,
+                        "alert_name": "Price Alert",
+                        "description": "Alert description",
+                        "alert_type": "price",
+                        "action": "above",
+                        "to_price": 150.0,
+                        "to_volume": null,
+                        "frequency": "Once",
+                        "expire": "2023-02-01T12:00:00Z",
+                        "created": "2023-01-01T12:34:56.789Z",
+                        "triggered": false
+                    },
+                    // ... additional alerts
+                ]
+            </pre>
+    
+            <h4>13b. Create Alert</h4>
+            <p>POST /portfolio/alert/</p>
+    
+            <h5>Request:</h5>
+        
+            <pre>
+                {   
+                    "stock": 4,
+                    "alert_name": "Volume Alert",
+                    "description": "Alert description",
+                    "alert_type": "volume",
+                    "action": "above",
+                    "to_price": null,
+                    "to_volume": 100000,
+                    "frequency": "Everytime",
+                    "expire": "2023-03-01T12:00:00Z"
+                }
+            </pre>
+            <p> To get symbols id, send GET /portfolio/symbols/ and display symbols but send id in post request</p>
+
+            <h5>Response:</h5>
+            <pre>
+                Create an alert for the authenticated user. Return the created alert details.
+                {
+                    "id": 2,
+                    "stock": 4,
+                    "alert_name": "Volume Alert",
+                    "description": "Alert description",
+                    "alert_type": "volume",
+                    "action": "above",
+                    "to_price": null,
+                    "to_volume": 100000,
+                    "frequency": "Everytime",
+                    "expire": "2023-03-01T12:00:00Z",
+                    "created": "2023-01-02T12:34:56.789Z",
+                    "triggered": false
+                }
+            </pre>
+    
+            <h6>Notes:</h6>
+            <ul>
+                <li>1. "alert_type" must be either 'price' or 'volume'.</li>
+                <li>2. "action" must be either 'above' or 'below'.</li>
+                <li>3. "frequency" must be either 'Once' or 'Everytime'.</li>
+                <li>4. "expire" is the expiration date for the alert.</li>
+            </ul>
+            
+            <h4>13c. Update Alert</h4>
+        <p>PUT /portfolio/alert/{id}/</p>
+
+        <h5>Request:</h5>
+        <pre>
+            {
+                "alert_name": "Updated Volume Alert",
+                "description": "Updated alert description",
+                "alert_type": "volume",
+                "action": "above",
+                "to_price": null,
+                "to_volume": 120000,
+                "frequency": "Everytime",
+                "expire": "2023-03-15T12:00:00Z"
+            }
+        </pre>
+
+        <h5>Response:</h5>
+        <pre>
+            Update an existing alert for the authenticated user. Return the updated alert details.
+            {
+                "id": 2,
+                "user": 1,
+                "stock": null,
+                "alert_name": "Updated Volume Alert",
+                "description": "Updated alert description",
+                "alert_type": "volume",
+                "action": "above",
+                "to_price": null,
+                "to_volume": 120000,
+                "frequency": "Everytime",
+                "expire": "2023-03-15T12:00:00Z",
+                "created": "2023-01-02T12:34:56.789Z",
+                "triggered": false
+            }
+        </pre>
+
+        <h6>Notes:</h6>
+        <ul>
+            <li>1. "alert_type" must be either 'price' or 'volume'.</li>
+            <li>2. "action" must be either 'above' or 'below'.</li>
+            <li>3. "frequency" must be either 'Once' or 'Everytime'.</li>
+            <li>4. "expire" is the expiration date for the alert.</li>
+        </ul>
+
+        </div>
+    </div>
+    
+
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
