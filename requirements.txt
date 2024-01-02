@@ -36,3 +36,4 @@ qrcode
 django-silk
 django-environ
 django-sms
+websockets
