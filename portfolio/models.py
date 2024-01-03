@@ -249,7 +249,7 @@ class Alert(auto_prefetch.Model):
     to_price=models.FloatField(blank=True, null=True)
     to_volume=models.FloatField(blank=True, null=True)    
     frequency=models.CharField(max_length=50, choices=(("Once","Once"),("Everytime", "Everytime")), default='Once')
-    expire = models.DateTimeField(default=datetime.now() +timedelta(weeks=7))
+    expire = models.DateTimeField(default=timezone.now() +timedelta(weeks=2))
     created=models.DateTimeField(auto_now_add=True)
     trigerred = models.BooleanField(default=False)
 
@@ -257,3 +257,11 @@ class Alert(auto_prefetch.Model):
 
     def __str__(self) -> str:
         return f"{self.stock.symbol} alert"
+    
+class AlertAI(auto_prefetch.Model):
+    user= auto_prefetch.ForeignKey(User,on_delete=models.CASCADE)
+    prompt=models.TextField()
+    created=models.DateTimeField(auto_now_add=True)
+    alert_created = models.BooleanField(default=False)
+    extracted_parameters = models.TextField()
+    

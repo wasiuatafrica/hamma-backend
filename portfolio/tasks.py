@@ -3,13 +3,23 @@ from celery.utils.log import get_task_logger
 from .models import Alert
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from portfolio.utils import get_price
 from notifications.utils import save_and_send_notification
 from django.utils import timezone
 from django.core.management import call_command
+from .utils import get_alert_data
+from typing import Dict
+from django.contrib.auth import get_user_model
+from .models import Alert, AlertAI,Stock
+from django.shortcuts import get_object_or_404
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
+User= get_user_model()
 
 logger = get_task_logger(__name__)
+channel_layer = get_channel_layer()
 
 
 @shared_task
@@ -82,3 +92,55 @@ def check_alert(id):
         task.enabled = False
         task.save()
     print(f'Checking for alert {alert.alert_name} completed')
+    
+@shared_task
+def get_data_prompt(prompt):
+    data = get_alert_data(prompt)
+    print(data)
+    return data
+
+@shared_task
+def process_alert_data(prompt,  user_id, channel_name):
+    print(prompt)
+    loaded_data = get_data_prompt(prompt)
+    user= User.objects.get(id=user_id)
+    extracted_data = json.loads(loaded_data)
+    alertai = AlertAI.objects.create(user=user,prompt=prompt,extracted_parameters=loaded_data)
+    
+    if isinstance(extracted_data, dict):
+        if 'stock' in extracted_data and 'alert_type' in extracted_data and 'action' in extracted_data:
+            stock = get_object_or_404(Stock, symbol=extracted_data['stock'].upper())
+            alert_type = extracted_data['alert_type']
+            action= extracted_data['action']
+            frequency = extracted_data['frequency'] if 'frequency' in extracted_data else 'Once'
+            description = prompt
+            expire = datetime.fromisoformat(extracted_data['expire']) if'expire' in extracted_data else timezone.now() + timedelta(weeks=2)
+            if 'to_price' in extracted_data:
+                to_price = float(extracted_data['to_price'])
+                alert_name = f"Alert for {stock.symbol} {action} {to_price}"
+                
+                alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_price=to_price, frequency=frequency,description=description, expire=expire)
+                async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Alert created for {stock.symbol} when {alert_type} is {action} {to_price}. Frequency: {alert.frequency}"})
+                
+                alertai.alert_created= True
+                alertai.save()
+                print('price alert created')
+                
+            elif 'to_volume' in extracted_data:
+                to_volume = float(extracted_data['to_volume'])
+                alert_name = f"Alert for {stock.symbol} {action} {to_volume}"
+                
+                alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_volume=to_volume, frequency=frequency,description=description, expire=expire)
+            
+                async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': f"Alert created for {stock.symbol} when {alert_type} is {action} {to_volume}. Frequency: {alert.frequency}" })
+                
+                alertai.alert_created= True
+                alertai.save()
+                print('volume alert created')
+                
+        else:
+            async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': "Your prompt does not contain stock symbol or you didn't specify if you are creating price or volume alert, or you didn't state if its above or below target price or volume" })
+    else:
+        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': "Your prompt does not contain stock symbol or you didn't specify if you are creating price or volume alert, or you didn't state if its above or below target price or volume" })
+        
+            

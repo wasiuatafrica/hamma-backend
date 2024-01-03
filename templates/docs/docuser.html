@@ -1163,6 +1163,51 @@
         </div>
     </div>
     
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#ai-alerts">14. AI Alerts</h3>
+        <div id="ai-alerts" class="collapse">
+    
+            <!-- Previous content -->
+    
+            <h4>14a. WebSocket Connection for AI Alerts</h4>
+            <p>WebSocket connection for AI-based trade alerts.</p>
+            <p>WebSocket URL: <p>ws://{base_url}/ws/alerts-ai/?token=${accessToken}</p>
+    
+            <h5>Connection Steps:</h5>
+            <ol>
+                <li>1. The WebSocket connection is initiated when a user connects to the AI alert service.</li>
+                <li>2. The user's access token is used to retrieve their ID and user object for identification.</li>
+                <li>3. The user is added to a WebSocket group based on their user ID for targeted communication.</li>
+                <li>4. The AI fetches the user's alert prompt history and sends it to the user upon connection.</li>
+            </ol>
+    
+            <h4>14b. AI Response Handling</h4>
+            <h5>Handling Steps:</h5>
+            <ol>
+                <li>1. Upon receiving a message from the user, the AI extracts the message content.</li>
+                <li>2. The AI checks for common greetings, farewells, thanks, confirmations, and negations in the message.</li>
+                <li>3. If recognized, the AI responds accordingly with pre-defined responses.</li>
+                <li>4. If not recognized as common phrases, the AI checks for keywords related to trade alerts.</li>
+                <li>5. If keywords are found, the AI initiates the alert creation process and sends a processing message.</li>
+                <li>6. The alert creation process is executed asynchronously in the background.</li>
+            </ol>
+    
+            <h5>Response Format:</h5>
+            <pre>
+                {"message": "create alert for WEMABANK stock when the volume is above 95.20 and should stop january 3 2024 3pm"}
+            </pre>
+    
+            <h4>14c. Alert Creation Instructions</h4>
+            <p>Instructions to create trade alerts via AI interaction.</p>
+            <pre>
+                1. For creating an alert, state the symbol, price, volume actions, conditions, and expiration date and time.
+                2. AI recognizes phrases and keywords to initiate the alert creation process.
+                3. WebSocket communication enables real-time interaction for creating trade alerts.
+            </pre>
+    
+        </div>
+    </div>
+    
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>

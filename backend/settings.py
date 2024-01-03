@@ -305,10 +305,10 @@ if os.environ.get('server') == 'local':
     # Use in-memory for local development
     CELERY_BROKER_URL = 'redis://localhost:6379/0'
     CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-    REDIS_URL = 'memory://localhost/'
+    REDIS_URL = 'redis://localhost:6379/0'
     CHANNEL_LAYERS = {
         'default': {
-            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
         },
     }
 else:

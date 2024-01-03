@@ -1,0 +1,111 @@
+# consumers.py
+import json
+from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.db import database_sync_to_async
+from django.contrib.auth import get_user_model
+from .models import Alert, AlertAI
+from .tasks import get_data_prompt, process_alert_data
+import time
+
+User= get_user_model()
+
+class AlertConsumer(AsyncWebsocketConsumer):
+    
+    @database_sync_to_async
+    def get_user_id_from_token(self, access_token):
+        from rest_framework_simplejwt.tokens import UntypedToken
+        
+        try:
+            untyped_token = UntypedToken(access_token)
+            user_id = untyped_token.payload['user_id']
+            return user_id
+        except Exception as e:
+            return None
+    
+    @database_sync_to_async
+    def get_user(self,id):
+        user =User.objects.get(id=id)
+        return user
+        
+    @database_sync_to_async
+    def get_alert_prompt_history(self,user):
+        alerts_query= AlertAI.objects.filter(user=user, alert_created=True)
+        if alerts_query:
+            alerts =[(alert.prompt, alert.created.isoformat()) for alert in alerts_query]
+            alerts_sorted = sorted(alerts, key=lambda x: x[1], reverse=True)
+            return alerts_sorted
+      
+    async def initialize(self):
+        access_token = self.scope.get('query_string').decode('utf-8').split('=')[1]
+        self.user_id = await self.get_user_id_from_token(access_token)
+        # print('user',self.user_id)
+        self.user = await self.get_user(self.user_id)
+        
+    async def connect(self):
+        await self.accept()
+        await self.initialize()
+        
+        await self.channel_layer.group_add(
+            f'alert_{self.user_id}',
+            self.channel_name
+        )
+        
+        
+        history = await self.get_alert_prompt_history(self.user)
+        if history:
+            await self.send_message({'message': history})
+        
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            f'alert_{self.user_id}',
+            self.channel_name
+        )
+
+    async def receive(self, text_data):
+        message = json.loads(text_data)['message']
+        print(message)
+        keywords = ['stock', 'price', 'above', 'below', 'greater', 'lesser', 'volume', 'symbol', 'expire']
+        common_phrases = {
+            "greetings": ["how are you doing","how are you","hello", "hi", "hey", "howdy", "greetings", "good morning", "good afternoon", "good evening"],
+            "farewells": ["bye", "goodbye", "see you", "take care", "farewell", "have a nice day", "good night"],
+            "thanks": ["thanks", "thank you", "appreciate it", "thank you so much", "thanks a lot"],
+            "confirmations": ["yes", "yeah", "yep", "sure", "absolutely", "indeed"],
+            "negations": ["no", "nope", "nah", "not really", "sorry, no"],
+            }
+
+        responses = {
+            "greetings": "Hello! How can I assist you?",
+            "farewells": "Goodbye! Have a nice day!",
+            "thanks": "You're welcome!",
+            "confirmations": "Great, let's proceed!",
+            "negations": "I understand. Is there anything else I can assist you with?",
+        }
+        response=''
+        
+        for category, phrases in common_phrases.items():
+            if len(message.split(' ')) < 4 and any(phrase in message.lower() for phrase in phrases):
+                
+                response = responses[category]
+                break
+            elif len(message.split(' ')) < 4 and not any(phrase in message.lower() for phrase in phrases):
+                
+                response = "I am trade alert creation AI, please state the symbol, price or volume actions, conditions to be met and expiration date and time to create your alert."
+                break
+        
+        if not response:
+            if not any(keyword in message.lower() for keyword in keywords):
+                response = "I am a trade alert creation AI. Please state the symbol, price or volume actions,conditions to be met and expiration date and time to create your alert."
+            else:
+                response = 'Alert is being created. . . .'
+                process_alert_data.delay(message, self.user_id, self.channel_name)
+                
+        time.sleep(2)
+        await self.send_message({'message': response})
+            
+        
+
+    async def send_message(self, event):
+        message = event['message']
+
+        await self.send(text_data=json.dumps({'message': message}))
