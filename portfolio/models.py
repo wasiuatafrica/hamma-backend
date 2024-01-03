@@ -4,7 +4,6 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.db.models import Sum, Avg, F
 import auto_prefetch
-from random import uniform
 from decimal import Decimal
 from datetime import datetime, timedelta
 

@@ -3,8 +3,8 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
-from .models import Alert, AlertAI
-from .tasks import get_data_prompt, process_alert_data
+from .models import AlertAI
+from .tasks import process_alert_data
 import time
 
 User= get_user_model()
