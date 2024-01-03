@@ -5,7 +5,9 @@ from bson import json_util
 import websockets
 import asyncio
 from openai import OpenAI
-
+from django.contrib.auth import get_user_model
+from .models import AlertAI
+User= get_user_model()
 
 def connect_to_mongodb(db_name):
     client = MongoClient("mongodb+srv://trademql5:trademql5@trademql5.fmlxv.mongodb.net/",tls=True,
@@ -235,3 +237,16 @@ def get_alert_data(prompt):
     # print(response)
     # print(response['choices'][0]['message']['content'])
     return response.choices[0].message.content
+
+
+from channels.db import database_sync_to_async
+
+@database_sync_to_async
+def get_alert_prompt_history(id):
+    user =User.objects.get(id=id)
+    
+    alerts_query= AlertAI.objects.filter(user=user, alert_created=True)
+    if alerts_query:
+        alerts =[(alert.prompt, alert.created.isoformat()) for alert in alerts_query]
+        alerts_sorted = sorted(alerts, key=lambda x: x[1], reverse=True)
+        return alerts_sorted

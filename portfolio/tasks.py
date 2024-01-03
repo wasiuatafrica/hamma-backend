@@ -7,9 +7,7 @@ from datetime import datetime, timedelta
 from portfolio.utils import get_price
 from notifications.utils import save_and_send_notification
 from django.utils import timezone
-from django.core.management import call_command
 from .utils import get_alert_data
-from typing import Dict
 from django.contrib.auth import get_user_model
 from .models import Alert, AlertAI,Stock
 from django.shortcuts import get_object_or_404

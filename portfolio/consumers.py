@@ -3,8 +3,8 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
-from .models import AlertAI
 from .tasks import process_alert_data
+from .utils import get_alert_prompt_history
 import time
 
 User= get_user_model()
@@ -27,13 +27,7 @@ class AlertConsumer(AsyncWebsocketConsumer):
         user =User.objects.get(id=id)
         return user
         
-    @database_sync_to_async
-    def get_alert_prompt_history(self,user):
-        alerts_query= AlertAI.objects.filter(user=user, alert_created=True)
-        if alerts_query:
-            alerts =[(alert.prompt, alert.created.isoformat()) for alert in alerts_query]
-            alerts_sorted = sorted(alerts, key=lambda x: x[1], reverse=True)
-            return alerts_sorted
+    
       
     async def initialize(self):
         access_token = self.scope.get('query_string').decode('utf-8').split('=')[1]
@@ -51,7 +45,7 @@ class AlertConsumer(AsyncWebsocketConsumer):
         )
         
         
-        history = await self.get_alert_prompt_history(self.user)
+        history = await get_alert_prompt_history(self.user_id)
         if history:
             await self.send_message({'message': history})
         
