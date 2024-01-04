@@ -252,7 +252,11 @@ class Alert(auto_prefetch.Model):
     created=models.DateTimeField(auto_now_add=True)
     trigerred = models.BooleanField(default=False)
 
-
+    def save(self, *args, **kwargs):
+        
+        last_day_of_month = timezone.now().replace(day=1, month=(timezone.now().month % 12) + 1, hour=22, minute=59, second=59) - timedelta(days=1)
+        self.expire = last_day_of_month
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"{self.stock.symbol} alert"

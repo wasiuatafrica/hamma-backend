@@ -25,8 +25,8 @@ class SavingsLock(auto_prefetch.Model):
     @property
     def end_date(self):
         # Calculate the end date based on the start date and duration
-        # return self.start_date + timedelta(days=self.duration)
-        return self.start_date + timedelta(hours=self.duration, minutes=3)
+        return self.start_date + timedelta(days=self.duration)
+        # return self.start_date + timedelta(hours=self.duration, minutes=3)
     
 
     @property

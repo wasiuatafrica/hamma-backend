@@ -13,6 +13,10 @@ from .models import Alert, AlertAI,Stock
 from django.shortcuts import get_object_or_404
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.core.mail import send_mail
+
 
 User= get_user_model()
 
@@ -38,8 +42,21 @@ def create_alert_schedule(id):
     save_and_send_notification(alert.user.id, f"You created alert for {alert.stock.symbol}")
     print(f"Alert created for {alert.user} on {alert.stock}")
     
-def send_alert_email(email,description):
-    pass
+def send_alert_email(user,symbol,alert_type,action,to_price):
+    # Send token to users email
+    context={
+        "symbol":symbol,
+        "alert_type":alert_type.title(),
+        'action':action,
+        'to_price':to_price
+    }
+    html_message = render_to_string('portfolio/price_alert.html', context)
+    plain_message = strip_tags(html_message)
+    subject = 'Trade Alert'
+    from_email = "hello@gohamma.com"
+    recipient_list = [user.email]
+    send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+    
     
 @shared_task
 def check_alert(id):
@@ -53,14 +70,14 @@ def check_alert(id):
                 price=data['current_price']
                 if alert.action == 'below':
                     if price < alert.to_price:
-                        send_alert_email(alert.user, alert.description)
+                        send_alert_email(alert.user, alert.stock.symbol,alert.alert_type,alert.action, alert.to_price)
                         save_and_send_notification(alert.user.id, f'{alert.stock} price has gone below {alert.to_price} for the {alert.alert_name}.')
                         if alert.frequency == 'Once':
                             alert.trigerred=True
                             alert.save()
                 elif alert.action == 'above':
                     if price > alert.to_price:
-                        send_alert_email(alert.user, alert.description)
+                        send_alert_email(alert.user, alert.stock.symbol,alert.alert_type,alert.action, alert.to_price)
                         save_and_send_notification(alert.user.id, f'{alert.stock} price has gone above {alert.to_price} for the {alert.alert_name}.')
                         if alert.frequency == 'Once':
                             alert.trigerred=True
@@ -69,14 +86,14 @@ def check_alert(id):
                 price=data['volume']
                 if alert.action == 'below':
                     if price < alert.to_volume:
-                        send_alert_email(alert.user, alert.description)
+                        send_alert_email(alert.user, alert.stock.symbol,alert.alert_type,alert.action, alert.to_volume)
                         save_and_send_notification(alert.user.id, f'{alert.stock} volume has gone below {alert.to_volume} for the {alert.alert_name}.')
                         if alert.frequency == 'Once':
                             alert.trigerred=True
                             alert.save()
                 elif alert.action == 'above':
                     if price > alert.to_volume:
-                        send_alert_email(alert.user, alert.description)
+                        send_alert_email(alert.user, alert.stock.symbol,alert.alert_type,alert.action, alert.to_volume)
                         save_and_send_notification(alert.user.id, f'{alert.stock} volume has gone above {alert.to_volume} for the {alert.alert_name}.')
                         if alert.frequency == 'Once':
                             alert.trigerred=True

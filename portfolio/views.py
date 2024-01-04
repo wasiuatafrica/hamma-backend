@@ -365,6 +365,12 @@ class AlertView(APIView):
     
     def post(self, request):
         action= ['price', 'volume']
+        user_alerts_count = Alert.objects.filter(user=request.user, created__month=timezone.now().month).count()
+
+        if user_alerts_count >= 10:
+            return Response({"detail": "You have reached the maximum limit of 10 alerts for this month."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         serializer=self.serializer_class(data=request.data)
         if serializer.is_valid():
             # ensure below < above for price and volume

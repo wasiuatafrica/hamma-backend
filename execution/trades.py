@@ -38,7 +38,7 @@ def simulate_trades(user):
     for _ in range(20):
         # Simulate Buy
         quantity = random.randint(1, 150)
-        price = round(Decimal(random.uniform(100, 500)),2)
+        price = round(Decimal(random.uniform(0, 100)),2)
         
         stock = random.choice(stocks)
         holding = Holding.objects.get_or_create(portfolio=portfolio, stock=stock)[0]
