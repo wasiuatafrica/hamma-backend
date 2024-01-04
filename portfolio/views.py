@@ -293,8 +293,19 @@ class AlertView(APIView):
 
     def get(self, request):
         alerts=Alert.objects.filter(user=request.user)
-        serializer=AlertSerializer(alerts, many=True).data
-        return Response(serializer)
+        data =   [  {
+            "stock": alert.stock.symbol,
+            "alert_name": alert.alert_name,
+            "description": alert.description,
+            "alert_type": alert.alert_type,
+            "action": alert.action,
+            "to_price": alert.to_price,
+            "to_volume": alert.to_volume,
+            "frequency": alert.frequency,
+            "expire": alert.created,
+            "trigerred": alert.trigerred
+        } for alert in alerts ]
+        return Response(data)
     
     def post(self, request):
         action= ['price', 'volume']

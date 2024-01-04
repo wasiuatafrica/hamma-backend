@@ -145,7 +145,7 @@ class Holding(auto_prefetch.Model):
         from .utils import get_price
         data=get_price(self.stock.symbol)
         price= data['current_price']
-        return price
+        return Decimal(price)
 
     @property
     def cur_val(self):
