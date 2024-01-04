@@ -16,6 +16,7 @@ from asgiref.sync import async_to_sync
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.core.mail import send_mail
+from random import randint
 
 
 User= get_user_model()
@@ -35,7 +36,7 @@ def create_alert_schedule(id):
     
     task = PeriodicTask.objects.create(
             interval=schedule,
-            name=f"Alert Schedule  for {alert.alert_name}",
+            name=f"Alert Schedule  for {alert.alert_name} " + str(randint(23, 456789)),
             task='portfolio.tasks.check_alert',
             args=json.dumps([alert.id])
         )
@@ -129,12 +130,12 @@ def process_alert_data(prompt,  user_id, channel_name):
             action= extracted_data['action']
             frequency = extracted_data['frequency'] if 'frequency' in extracted_data else 'Once'
             description = prompt
-            expire = datetime.fromisoformat(extracted_data['expire']) if'expire' in extracted_data else timezone.now() + timedelta(weeks=2)
+            # expire = datetime.fromisoformat(extracted_data['expire']) if'expire' in extracted_data else timezone.now() + timedelta(weeks=2)
             if 'to_price' in extracted_data:
                 to_price = float(extracted_data['to_price'])
                 alert_name = f"Alert for {stock.symbol} {action} {to_price}"
                 
-                alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_price=to_price, frequency=frequency,description=description, expire=expire)
+                alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_price=to_price, frequency=frequency,description=description)
                 async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Alert created for {stock.symbol} when {alert_type} is {action} {to_price}. Frequency: {alert.frequency}"})
                 
                 alertai.alert_created= True
