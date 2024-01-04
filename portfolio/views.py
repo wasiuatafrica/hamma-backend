@@ -216,26 +216,82 @@ class GetSingleStock(APIView):
 class StockDetail(generics.RetrieveAPIView):
     queryset = Stock.objects.all()
     serializer_class = StockSerializer
-    
-# class HoldingListCreate(generics.ListCreateAPIView):
-#     queryset = Holding.objects.all()
-#     serializer_class = HoldingSerializer
-#     permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset().filter(user=request.user)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+
+def get_holding_detail(holding):
+    from .utils import get_price
+    stock= holding.stock.symbol
+    data=get_price(stock)
+    id = holding.id
+    quantity=holding.quantity
+    created = holding.created
+    updated = holding.updated
+    trades = holding.trades.all()
+    filled = trades.filter(status='completed').aggregate(total_quantity=Sum('quantity'))['total_quantity'] if trades else 0
+    incomplete_ = trades.filter(status='pending')
+    
+    if incomplete_:
+        incomplete = incomplete_.aggregate(total_quantity=Sum('quantity'))['total_quantity']
+    else:
+        incomplete = 0
+        
+    shares= filled + incomplete
+    avg_cost = holding.avg_cost()
+    ltp =  Decimal(data['current_price'])
+    cur_val = ltp * quantity
+    pnl = round((ltp - avg_cost) * filled, 2)
+    change = round(avg_cost - ltp ,2)
+    percent_change = round((change/avg_cost) * 100,2)
+    avg_volume_3_months =60000
+    volume = 9000000
+    return {
+            'id':id,
+            'stock':stock,
+            'quantity':quantity,
+            'created':created,
+            'updated':updated,
+            'filled':filled,
+            'incomplete':incomplete,
+            'shares':shares,
+            'avg_cost':avg_cost,
+            'ltp':ltp,
+            'cur_val':cur_val,
+            'pnl':pnl,
+            'change':change,
+            'percent_change':percent_change,
+            'avg_volume_3_months':avg_volume_3_months,
+            'volume':volume,}
+
+def get_portfolio_data(holdings_data):
+    cur_vals = [holding['cur_val'] for holding in holdings_data]
+    avg_costs = [holding['avg_cost'] * holding['filled'] for holding in holdings_data]
+    pls = [(holding['ltp'] - holding['avg_cost']) * holding['filled'] for holding in holdings_data]
+    
+    portfolio_value = sum(cur_vals)
+    total_invested = sum(avg_costs)
+    profit_loss = sum(pls)
+    return {
+        'portfolio_value':round(portfolio_value,2),
+        'total_invested':round(total_invested,2),
+        'profit_loss': round(profit_loss,2)
+    }
     
 class PortfolioDetail(APIView):
     def get(self, request):
         portfolio= Portfolio.objects.get(user=request.user)
-        serializer1= PortfolioSerializer(portfolio)
-        serializer2=HoldingSerializer(portfolio.holdings.all(), many=True)
+        holdings= portfolio.holdings.all()
+        
+        holdings_data = [get_holding_detail(holding) for holding in holdings if holdings]
+        portfolio_data =  get_portfolio_data(holdings_data)
+        
         data = {
-            'porfolio':serializer1.data,
-            'holdings':serializer2.data
+            'porfolio':portfolio_data,
+            'holdings':holdings_data
         }
         return Response(data)
         
@@ -304,7 +360,7 @@ class AlertView(APIView):
             "frequency": alert.frequency,
             "expire": alert.created,
             "trigerred": alert.trigerred
-        } for alert in alerts ]
+        } for alert in alerts  if alerts]
         return Response(data)
     
     def post(self, request):
