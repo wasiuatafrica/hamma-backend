@@ -46,11 +46,13 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         try:
             data = json.loads(text_data)
             notification_id = data.get('notification_id')
-            notification = notification_id.split('-')
-            if notification:
-                update_notification(notification[1],notification[0])
-                notifications1 =  get_notifications(notification[1])
-                await self.send_notification({'message': notifications1})
+            print(notification_id)
+            for id in notification_id:
+                notification = id.split('-')
+                if notification:
+                    update_notification(notification[1],notification[0])
+            notifications1 =  get_notifications(notification[1])
+            await self.send_notification({'message': notifications1})
         except json.JSONDecodeError:
             pass
 
