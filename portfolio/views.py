@@ -22,6 +22,7 @@ from django.utils.html import strip_tags
 from lock.models import SavingsLock
 from django.db.models import Sum
 from concurrent.futures import ThreadPoolExecutor
+from django.db import close_old_connections
 
 
  
@@ -283,8 +284,12 @@ def get_portfolio_data(holdings_data):
     
 
 def get_holding_details_concurrently(holding):
-    trades = holding.trades.all()
-    return get_holding_detail(holding, trades)
+    try:
+        trades = holding.trades.all()
+        return get_holding_detail(holding, trades)
+    finally:
+        # Close the old database connections to avoid connection exhaustion
+        close_old_connections()
 
 class PortfolioDetail(APIView):
     def get(self, request):
