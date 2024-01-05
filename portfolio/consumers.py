@@ -84,12 +84,12 @@ class AlertConsumer(AsyncWebsocketConsumer):
                 break
             elif len(message.split(' ')) < 4 and not any(phrase in message.lower() for phrase in phrases):
                 
-                response = "I am trade alert creation AI, please state the symbol, price or volume actions, conditions to be met and expiration date and time to create your alert."
+                response = "I am  HammaAlert, alert creation AI, please state the symbol, price or volume actions, conditions to be met to create your alert."
                 break
         
         if not response:
             if not any(keyword in message.lower() for keyword in keywords):
-                response = "I am a trade alert creation AI. Please state the symbol, price or volume actions,conditions to be met and expiration date and time to create your alert."
+                response = "I am HammaAlert, alert creation AI, Please state the symbol, price or volume actions,conditions to be met  to create your alert."
             else:
                 response = 'Alert is being created. . . .'
                 process_alert_data.delay(message, self.user_id, self.channel_name)
