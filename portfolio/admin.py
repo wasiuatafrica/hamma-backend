@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from .models import (
     Stock, PayStackReceipts, Holding, Portfolio, Receipts, WithdrawalOTPRequest, Wallet,WithdrawalRequest,
-    Transaction, Trade, Alert
+    Transaction, Trade, Alert, AlertAI, AlertAITracker
 )
 
 admin.site.register(Stock)
@@ -16,3 +16,5 @@ admin.site.register(WithdrawalRequest)
 admin.site.register(Transaction)
 admin.site.register(Trade)
 admin.site.register(Alert)
+admin.site.register(AlertAI)
+admin.site.register(AlertAITracker)

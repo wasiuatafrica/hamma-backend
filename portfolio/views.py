@@ -4,13 +4,12 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import (Wallet, Stock, Portfolio, Holding, Receipts, PayStackReceipts, WithdrawalRequest, Alert,
-                     Transaction, WithdrawalOTPRequest)
-from .serializers import (WalletSerializer, StockSerializer, PortfolioSerializer, 
-                          HoldingSerializer, ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,AlertSerializer,
-                          TransactionSerializer)
+                     Transaction, WithdrawalOTPRequest, AlertAI, AlertAITracker)
+from .serializers import (StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
+                          AlertSerializer,   TransactionSerializer)
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view
 import random
 from django.core.mail import send_mail
 from django.utils import timezone
@@ -22,7 +21,9 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from lock.models import SavingsLock
 from django.db.models import Sum
-from asgiref.sync import sync_to_async
+from concurrent.futures import ThreadPoolExecutor
+
+
  
 User= get_user_model()
 
@@ -223,7 +224,7 @@ class StockDetail(generics.RetrieveAPIView):
         return Response(serializer.data)
 
 
-def get_holding_detail(holding):
+def get_holding_detail(holding, trades):
     from .utils import get_price
     stock= holding.stock.symbol
     data=get_price(stock)
@@ -231,7 +232,6 @@ def get_holding_detail(holding):
     quantity=holding.quantity
     created = holding.created
     updated = holding.updated
-    trades = holding.trades.all()
     filled = trades.filter(status='completed').aggregate(total_quantity=Sum('quantity'))['total_quantity'] if trades else 0
     incomplete_ = trades.filter(status='pending')
     
@@ -243,7 +243,7 @@ def get_holding_detail(holding):
     shares= filled + incomplete
     avg_cost = holding.avg_cost()
     ltp =  Decimal(data['current_price'])
-    cur_val = ltp * quantity
+    cur_val = round((ltp * quantity),2)
     pnl = round((ltp - avg_cost) * filled, 2)
     change = round(avg_cost - ltp ,2)
     percent_change = round((change/avg_cost) * 100,2)
@@ -281,20 +281,30 @@ def get_portfolio_data(holdings_data):
         'profit_loss': round(profit_loss,2)
     }
     
+
+def get_holding_details_concurrently(holding):
+    trades = holding.trades.all()
+    return get_holding_detail(holding, trades)
+
 class PortfolioDetail(APIView):
     def get(self, request):
-        portfolio= Portfolio.objects.get(user=request.user)
-        holdings= portfolio.holdings.all()
-        
-        holdings_data = [get_holding_detail(holding) for holding in holdings if holdings]
-        portfolio_data =  get_portfolio_data(holdings_data)
-        
+        portfolio = Portfolio.objects.get(user=request.user)
+        holdings = portfolio.holdings.all()
+
+        # Use ThreadPoolExecutor to execute get_holding_detail concurrently.
+        with ThreadPoolExecutor() as executor:
+            # Map the holdings to the executor, it will return a generator.
+            futures = [executor.submit(get_holding_details_concurrently, holding) for holding in holdings]
+            holdings_data = [future.result() for future in futures]
+
+        portfolio_data = get_portfolio_data(holdings_data)
+
         data = {
-            'porfolio':portfolio_data,
-            'holdings':holdings_data
+            'portfolio': portfolio_data,
+            'holdings': holdings_data
         }
         return Response(data)
-        
+  
         
 class ReceiptsView(APIView):
     serializer_class = ReceiptsViewSerializer
@@ -365,9 +375,9 @@ class AlertView(APIView):
     
     def post(self, request):
         action= ['price', 'volume']
-        user_alerts_count = Alert.objects.filter(user=request.user, created__month=timezone.now().month).count()
+        counter = AlertAITracker.objects.get_or_create(user=request.user)[0]
 
-        if user_alerts_count >= 10:
+        if counter.count >= 10:
             return Response({"detail": "You have reached the maximum limit of 10 alerts for this month."},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -379,6 +389,10 @@ class AlertView(APIView):
             
             stock = get_object_or_404(Stock, symbol =serializer.validated_data["stock"])
             serializer.save(user=request.user,stock=stock)
+            
+            counter.count += 1
+            counter.save()
+            
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
     

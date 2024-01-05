@@ -268,3 +268,7 @@ class AlertAI(auto_prefetch.Model):
     alert_created = models.BooleanField(default=False)
     extracted_parameters = models.TextField()
     
+class AlertAITracker(auto_prefetch.Model):
+    user= auto_prefetch.ForeignKey(User,on_delete=models.CASCADE)
+    created=models.DateTimeField(auto_now_add=True)
+    count = models.IntegerField(default=0)

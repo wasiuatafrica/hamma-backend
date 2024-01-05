@@ -9,7 +9,7 @@ from notifications.utils import save_and_send_notification
 from django.utils import timezone
 from .utils import get_alert_data
 from django.contrib.auth import get_user_model
-from .models import Alert, AlertAI,Stock
+from .models import Alert, AlertAI,Stock, AlertAITracker
 from django.shortcuts import get_object_or_404
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -88,14 +88,14 @@ def check_alert(id):
                 if alert.action == 'below':
                     if price < alert.to_volume:
                         send_alert_email(alert.user, alert.stock.symbol,alert.alert_type,alert.action, alert.to_volume)
-                        save_and_send_notification(alert.user.id, f'{alert.stock} volume has gone below {alert.to_volume} for the {alert.alert_name}.')
+                        save_and_send_notification(alert.user.id, f'stock {alert.stock} volume has gone below {alert.to_volume} for the {alert.alert_name}.')
                         if alert.frequency == 'Once':
                             alert.trigerred=True
                             alert.save()
                 elif alert.action == 'above':
                     if price > alert.to_volume:
                         send_alert_email(alert.user, alert.stock.symbol,alert.alert_type,alert.action, alert.to_volume)
-                        save_and_send_notification(alert.user.id, f'{alert.stock} volume has gone above {alert.to_volume} for the {alert.alert_name}.')
+                        save_and_send_notification(alert.user.id, f'stock {alert.stock} volume has gone above {alert.to_volume} for the {alert.alert_name}.')
                         if alert.frequency == 'Once':
                             alert.trigerred=True
                             alert.save()
@@ -121,42 +121,55 @@ def process_alert_data(prompt,  user_id, channel_name):
     loaded_data = get_data_prompt(prompt)
     user= User.objects.get(id=user_id)
     extracted_data = json.loads(loaded_data)
-    alertai = AlertAI.objects.create(user=user,prompt=prompt,extracted_parameters=loaded_data)
     
-    if isinstance(extracted_data, dict):
-        if 'stock' in extracted_data and 'alert_type' in extracted_data and 'action' in extracted_data:
-            stock = get_object_or_404(Stock, symbol=extracted_data['stock'].upper())
-            alert_type = extracted_data['alert_type']
-            action= extracted_data['action']
-            frequency = extracted_data['frequency'] if 'frequency' in extracted_data else 'Once'
-            description = prompt
-            # expire = datetime.fromisoformat(extracted_data['expire']) if'expire' in extracted_data else timezone.now() + timedelta(weeks=2)
-            if 'to_price' in extracted_data:
-                to_price = float(extracted_data['to_price'])
-                alert_name = f"Alert for {stock.symbol} {action} {to_price}"
+    counter = AlertAITracker.objects.get_or_create(user=user)[0]
+
+    if counter.count >= 10:
+        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"You have reached the maximum limit of 10 alerts for this month."})
+    else:
+        
+        alertai = AlertAI.objects.create(user=user,prompt=prompt,extracted_parameters=loaded_data)
+        
+        if isinstance(extracted_data, dict):
+            if 'stock' in extracted_data and 'alert_type' in extracted_data and 'action' in extracted_data:
+                stock = get_object_or_404(Stock, symbol=extracted_data['stock'].upper())
+                alert_type = extracted_data['alert_type']
+                action= extracted_data['action']
+                frequency = extracted_data['frequency'] if 'frequency' in extracted_data else 'Once'
+                description = prompt
+                # expire = datetime.fromisoformat(extracted_data['expire']) if'expire' in extracted_data else timezone.now() + timedelta(weeks=2)
+                if 'to_price' in extracted_data:
+                    to_price = float(extracted_data['to_price'])
+                    alert_name = f"Alert for {stock.symbol} {action} {to_price}"
+                    
+                    alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_price=to_price, frequency=frequency,description=description)
+                    async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Alert created for {stock.symbol} when {alert_type} is {action} {to_price}. Frequency: {alert.frequency}"})
+                    
+                    alertai.alert_created= True
+                    alertai.save()
+                    print('price alert created')
+                    
+                    counter.count += 1
+                    counter.save()
+                    
+                elif 'to_volume' in extracted_data:
+                    to_volume = float(extracted_data['to_volume'])
+                    alert_name = f"Alert for {stock.symbol} {action} {to_volume}"
+                    
+                    alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_volume=to_volume, frequency=frequency,description=description)
                 
-                alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_price=to_price, frequency=frequency,description=description)
-                async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Alert created for {stock.symbol} when {alert_type} is {action} {to_price}. Frequency: {alert.frequency}"})
-                
-                alertai.alert_created= True
-                alertai.save()
-                print('price alert created')
-                
-            elif 'to_volume' in extracted_data:
-                to_volume = float(extracted_data['to_volume'])
-                alert_name = f"Alert for {stock.symbol} {action} {to_volume}"
-                
-                alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_volume=to_volume, frequency=frequency,description=description, expire=expire)
-            
-                async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': f"Alert created for {stock.symbol} when {alert_type} is {action} {to_volume}. Frequency: {alert.frequency}" })
-                
-                alertai.alert_created= True
-                alertai.save()
-                print('volume alert created')
-                
+                    async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': f"Alert created for {stock.symbol} when {alert_type} is {action} {to_volume}. Frequency: {alert.frequency}" })
+                    
+                    alertai.alert_created= True
+                    alertai.save()
+                    print('volume alert created')
+                    
+                    counter.count += 1
+                    counter.save()
+                    
+            else:
+                async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': "Your prompt does not contain stock symbol or you didn't specify if you are creating price or volume alert, or you didn't state if its above or below target price or volume" })
         else:
             async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': "Your prompt does not contain stock symbol or you didn't specify if you are creating price or volume alert, or you didn't state if its above or below target price or volume" })
-    else:
-        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': "Your prompt does not contain stock symbol or you didn't specify if you are creating price or volume alert, or you didn't state if its above or below target price or volume" })
-        
+            
             
