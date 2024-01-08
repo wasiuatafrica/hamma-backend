@@ -99,8 +99,7 @@ def SetTOTP(user):
         device = user.totpdevice_set.create(confirmed=False)
 
     url = device.config_url
-    # print(TOTPDevice.objects.all().delete(), "Heloo")
-
+    
     return url
 
 # Use this to verify/enable a TOTP device
@@ -110,6 +109,9 @@ def verifyTOTP(user,token):
         if not device.confirmed:
             device.confirmed = True
             device.save()
+        # Here 
+        user.twofa_type = "email"
+        user.save()
         return True
     return False
 
