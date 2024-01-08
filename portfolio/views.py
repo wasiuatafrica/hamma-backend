@@ -365,6 +365,7 @@ class AlertView(APIView):
     def get(self, request):
         alerts=Alert.objects.filter(user=request.user)
         data =   [  {
+            "id":alert.id,
             "stock": alert.stock.symbol,
             "alert_name": alert.alert_name,
             "description": alert.description,
