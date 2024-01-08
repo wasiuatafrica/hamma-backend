@@ -431,7 +431,7 @@ class AlertUpdateView(APIView):
                     return Response({"detail": "alert type must be 'price' or 'volume' "}, status=status.HTTP_400_BAD_REQUEST)
                 serializer.save()
                 return Response(serializer.data)
-            return Response('invalid data')
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         
     def delete(self, request, *args, **kwargs):
         id = kwargs.get("id")
