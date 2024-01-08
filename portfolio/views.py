@@ -433,4 +433,12 @@ class AlertUpdateView(APIView):
                 return Response(serializer.data)
             return Response('invalid data')
         
+    def delete(self, request, *args, **kwargs):
+        id = kwargs.get("id")
+        alert = self.get_queryset(id, request.user)
+        if alert is not None:
+            alert.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"detail": "Alert not found"}, status=status.HTTP_404_NOT_FOUND)
+        
 

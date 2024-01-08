@@ -119,8 +119,10 @@ class SetOrOff2FA(APIView):
             user.twofa_type = serializer.validated_data["action"]
             user.save()
             if serializer.validated_data["action"] == "authapps":#user wants to set authapp 2fa
+                user.twofa_type = "email"
+                user.save()
                 authapp=SetTOTP(user)
-                return Response({"detail":"2FA turn on successsfully","qr_url":authapp, "user":serializers.CustomUserSerializer(request.user, many=False).data})
+                return Response({"detail":"2FA turn on successsfully, but you must provide token for your authentication app to activate.","qr_url":authapp, "user":serializers.CustomUserSerializer(request.user, many=False).data})
             return Response({"detail":"2FA turn on successsfully", "user":serializers.CustomUserSerializer(request.user, many=False).data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
