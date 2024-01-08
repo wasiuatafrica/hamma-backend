@@ -1033,6 +1033,12 @@
                     }
                   }
             </pre>
+
+            <h6>Notes:</h6>
+            <ul>
+                <li>1. The authapps 2fa by after setting on, still needs to be activated at first time setup. This has to be done first <br>
+                providing a token from the Authentication app at login attempt. if this is not provided, the 2fa method is set as email.    
+            </ul>
             
     
         </div>
@@ -1159,6 +1165,11 @@
             <li>3. "frequency" must be either 'Once' or 'Everytime'.</li>
             <li>4. "expire" is the expiration date for the alert.</li>
         </ul>
+
+        <h4>13d. Delete Alert</h4>
+        <p>PUT /portfolio/alert/{id}/</p>
+
+        <h5>Response:</h5>
 
         </div>
     </div>
