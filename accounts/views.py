@@ -61,7 +61,7 @@ class VerifyToken(APIView):
         Wallet.objects.create(user=user)
         Portfolio.objects.create(user=user)
         send_welcome_email(user)
-        set_up_user.delay(user_email)
+        # set_up_user.delay(user_email)
         
         return Response({"detail":"Account verifed."})
 
