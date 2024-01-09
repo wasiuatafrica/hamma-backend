@@ -4,7 +4,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import (Wallet, Stock, Portfolio, Holding, Receipts, PayStackReceipts, WithdrawalRequest, Alert,
-                     Transaction, WithdrawalOTPRequest, AlertAI, AlertAITracker)
+                     Transaction, WithdrawalOTPRequest, AlertAI, AlertAITracker, DemoPortfolio)
 from .serializers import (StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
                           AlertSerializer,   TransactionSerializer)
 from rest_framework import serializers
@@ -13,7 +13,7 @@ from rest_framework.decorators import api_view
 import random
 from django.core.mail import send_mail
 from django.utils import timezone
-from .utils import get_symbol_data,get_historical_data, get_mini_data
+from .utils import get_symbol_data,get_historical_data, get_mini_data, get_details3
 from notifications.utils import save_and_send_notification
 from django.shortcuts import get_object_or_404
 from decimal import Decimal
@@ -23,12 +23,10 @@ from lock.models import SavingsLock
 from django.db.models import Sum
 from concurrent.futures import ThreadPoolExecutor
 from django.db import close_old_connections
-
+from random import randint
 
  
 User= get_user_model()
-
-
 
 class WalletBalance(APIView):
     def get(self, request):
@@ -147,7 +145,6 @@ class StockList(generics.ListAPIView):
     permission_classes =[AllowAny,]
     
     def get(self, request, *args, **kwargs):
-        from .utils import get_details3
         
         queryset = self.get_queryset()
         first = queryset.first()
@@ -207,9 +204,12 @@ class GetSingleStock(APIView):
         queryset = get_object_or_404(Stock, symbol=symbol)
         symbol_data = get_symbol_data(symbol)
         historical_data=get_historical_data(symbol)
-        serializer = self.serializer_class(queryset)
+        
+        # serializer = self.serializer_class(queryset)
+        details = get_details3([queryset])
+        
         response_data = {
-            'stock_detail': serializer.data,
+            'stock_detail': details,
             'order_book': symbol_data,
             'historical_data':historical_data
         }
@@ -290,17 +290,38 @@ def get_holding_details_concurrently(holding):
     finally:
         # Close the old database connections to avoid connection exhaustion
         close_old_connections()
-
+        
+def get_demo_holding_details_concurrently(holding):
+    try:
+        trades = holding.demotrades.all()
+        return get_holding_detail(holding, trades)
+    finally:
+        # Close the old database connections to avoid connection exhaustion
+        close_old_connections()
+        
 class PortfolioDetail(APIView):
     def get(self, request):
-        portfolio = Portfolio.objects.get(user=request.user)
-        holdings = portfolio.holdings.all()
+        mode = request.data.get("mode", None)
+        if not mode or mode == "demo":
+            portfolio = DemoPortfolio.objects.get_or_create(user=request.user)[0]
+            holdings = portfolio.holdings.all()
 
-        # Use ThreadPoolExecutor to execute get_holding_detail concurrently.
-        with ThreadPoolExecutor() as executor:
-            # Map the holdings to the executor, it will return a generator.
-            futures = [executor.submit(get_holding_details_concurrently, holding) for holding in holdings]
-            holdings_data = [future.result() for future in futures]
+            # Use ThreadPoolExecutor to execute get_holding_detail concurrently.
+            with ThreadPoolExecutor() as executor:
+                # Map the holdings to the executor, it will return a generator.
+                futures = [executor.submit(get_demo_holding_details_concurrently, holding) for holding in holdings]
+                holdings_data = [future.result() for future in futures]
+
+           
+        if mode == 'live':
+            portfolio = Portfolio.objects.get(user=request.user)
+            holdings = portfolio.holdings.all()
+
+            # Use ThreadPoolExecutor to execute get_holding_detail concurrently.
+            with ThreadPoolExecutor() as executor:
+                # Map the holdings to the executor, it will return a generator.
+                futures = [executor.submit(get_holding_details_concurrently, holding) for holding in holdings]
+                holdings_data = [future.result() for future in futures]
 
         portfolio_data = get_portfolio_data(holdings_data)
 
@@ -367,6 +388,7 @@ class AlertView(APIView):
         data =   [  {
             "id":alert.id,
             "stock": alert.stock.symbol,
+            "stock_id": alert.stock.id,
             "alert_name": alert.alert_name,
             "description": alert.description,
             "alert_type": alert.alert_type,
@@ -394,7 +416,8 @@ class AlertView(APIView):
                 return Response({"detail": "alert type must be 'price' or 'volume' "}, status=status.HTTP_400_BAD_REQUEST)
             
             stock = get_object_or_404(Stock, symbol =serializer.validated_data["stock"])
-            serializer.save(user=request.user,stock=stock)
+            name = serializer.validated_data["alert_name"] + str(randint(23, 456789))
+            serializer.save(user=request.user,stock=stock, alert_name=name)
             
             counter.count += 1
             counter.save()

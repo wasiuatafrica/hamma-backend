@@ -1,3 +1,4 @@
+from time import time
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
@@ -59,6 +60,40 @@ class Stock(auto_prefetch.Model):
     def percent_change(self):
         return round((self.change / self.ltp),2) * 100 if self.ltp != 0 else 0
 
+class DemoPortfolio(auto_prefetch.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='demoportfolio')
+    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.user} - Portfolio"
+    
+    
+    def portfolio_value(self):
+        holdings = self.holdings.all()
+        if not holdings.exists():
+            return Decimal(0)
+        return sum(holding.cur_val for holding in holdings)
+
+    @property
+    def total_invested(self):
+        holdings = self.holdings.all()
+        if not holdings.exists():
+            return Decimal(0)
+        return sum(holding.avg_cost() * holding.filled for holding in holdings)
+
+    @property
+    def profit_loss(self):
+        holdings = self.holdings.all()
+        if not holdings.exists():
+            return Decimal(0)
+        return sum((holding.ltp - holding.avg_cost()) * holding.filled for holding in holdings)
+
+    def get_positions(self):
+        # Get a list of positions (holdings) in the portfolio
+        positions = [{"stock": holding.stock.symbol, "quantity": holding.quantity} for holding in self.holdings.all()]
+        return positions
+
+    
 class Portfolio(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='portfolio')
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -92,6 +127,87 @@ class Portfolio(auto_prefetch.Model):
         # Get a list of positions (holdings) in the portfolio
         positions = [{"stock": holding.stock.symbol, "quantity": holding.quantity} for holding in self.holdings.all()]
         return positions
+
+class DemoHolding(auto_prefetch.Model):
+    portfolio = auto_prefetch.ForeignKey(DemoPortfolio, on_delete=models.CASCADE, related_name='holdings')
+    stock = auto_prefetch.ForeignKey(Stock, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=0)
+    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.portfolio.user} - {self.stock.symbol} - {self.quantity}"
+
+    # @property
+    # def current_value(self):
+    #     return self.quantity * self.ltp
+    
+    @property
+    def filled(self):
+        trades= self.trades.filter(status='completed') 
+        # print(trades)
+        return trades.aggregate(total_quantity=Sum('quantity'))['total_quantity'] 
+
+    @property
+    def incomplete(self):
+        return self.trades.filter(status='pending').aggregate(total_quantity=Sum('quantity'))['total_quantity'] or 0
+
+    @property
+    def shares(self):
+        return self.filled + self.incomplete
+
+    
+    @classmethod
+    def calculate_avg_cost(cls, holding_id):
+        trades = DemoTrade.objects.filter(holding_id=holding_id, status='completed')
+        # print(trades)
+        if not trades.exists():
+            return Decimal(0)
+
+        prices = trades.values_list('price', flat=True)
+        # print(prices)
+        avg_price = sum(prices) / len(prices)
+        # print('avg',avg_price)
+        return round(Decimal(avg_price),2)
+
+    def avg_cost(self):
+        # print(self.stock.symbol)
+        return self.calculate_avg_cost(self.id)
+    
+    
+    @property
+    def ltp(self):
+        from .utils import get_price
+        data=get_price(self.stock.symbol)
+        price= data['current_price']
+        return Decimal(price)
+
+    @property
+    def cur_val(self):
+        return self.ltp * self.quantity
+
+    @property
+    def pnl(self):
+        profit_loss = (self.ltp - self.avg_cost()) * self.filled
+        return f"+{profit_loss:.2f}" if profit_loss >= 0 else f"-{abs(profit_loss):.2f}"
+
+    @property
+    def change(self):
+        return round(self.ltp - self.avg_cost(),2)
+
+    @property
+    def percent_change(self):
+        return round((self.change / self.ltp),2) * 100 if self.ltp != 0 else 0
+
+    @property
+    def avg_volume_3_months(self):
+        return '65M'
+
+    @property
+    def volume(self):
+        return '65M'
+
+
 
 class Holding(auto_prefetch.Model):
     portfolio = auto_prefetch.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='holdings')
@@ -236,6 +352,24 @@ class Trade(models.Model):
     @property
     def amount(self):
         return self.quantity * self.price
+
+class DemoTrade(models.Model):
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)
+    holding = auto_prefetch.ForeignKey(DemoHolding, on_delete=models.CASCADE, related_name='demotrades')
+    quantity = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    # is_buy = models.BooleanField(default=True)
+    status = models.CharField(max_length=20, default='pending')
+    order_type = models.CharField(max_length=20, default='buy')
+    
+    def __str__(self):
+        return f'{self.holding.stock.symbol} - {self.order_type} - {self.quantity}units at {self.price} - {self.status}'
+    
+    @property
+    def amount(self):
+        return self.quantity * self.price
     
 
 class Alert(auto_prefetch.Model):
@@ -248,7 +382,7 @@ class Alert(auto_prefetch.Model):
     to_price=models.FloatField(blank=True, null=True)
     to_volume=models.FloatField(blank=True, null=True)    
     frequency=models.CharField(max_length=50, choices=(("Once","Once"),("Everytime", "Everytime")), default='Once')
-    expire = models.DateTimeField(default=timezone.now() +timedelta(weeks=2))
+    expire = models.DateTimeField(default=timezone.now() + timedelta(weeks=2))
     created=models.DateTimeField(auto_now_add=True)
     trigerred = models.BooleanField(default=False)
 

@@ -36,7 +36,7 @@ def create_alert_schedule(id):
     
     task = PeriodicTask.objects.create(
             interval=schedule,
-            name=f"Alert Schedule  for {alert.alert_name} " + str(randint(23, 456789)),
+            name=f"Alert Schedule  for {alert.alert_name}",
             task='portfolio.tasks.check_alert',
             args=json.dumps([alert.id])
         )
@@ -100,11 +100,11 @@ def check_alert(id):
                             alert.trigerred=True
                             alert.save()
         else:
-            task = PeriodicTask.objects.get(name=f"Alert Schedule  for {alert.alert_name} " + str(randint(23, 456789)))
+            task = PeriodicTask.objects.get(name=f"Alert Schedule  for {alert.alert_name} " )
             task.enabled = False
             task.save()
     else:
-        task = PeriodicTask.objects.get(name=f"Alert Schedule  for {alert.alert_name} " + str(randint(23, 456789)))
+        task = PeriodicTask.objects.get(name=f"Alert Schedule  for {alert.alert_name}")
         task.enabled = False
         task.save()
     print(f'Checking for alert {alert.alert_name} completed')
