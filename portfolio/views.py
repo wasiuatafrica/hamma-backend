@@ -246,7 +246,7 @@ def get_holding_detail(holding, trades):
     ltp =  Decimal(data['current_price'])
     cur_val = round((ltp * quantity),2)
     pnl = round((ltp - avg_cost) * filled, 2)
-    change = round(avg_cost - ltp ,2)
+    change = round(ltp- avg_cost ,2)
     percent_change = round((change/avg_cost) * 100,2)
     avg_volume_3_months =60000
     volume = 9000000
