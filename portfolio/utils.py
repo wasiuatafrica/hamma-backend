@@ -6,7 +6,7 @@ import websockets
 import asyncio
 from openai import OpenAI
 from django.contrib.auth import get_user_model
-from .models import AlertAI
+from .models import AlertAI, Conversation, Message
 User= get_user_model()
 
 def connect_to_mongodb(db_name):
@@ -229,7 +229,7 @@ def get_alert_data(prompt):
         {"role": "system", "content": "You are a helpful django software development assistant helping in creating a trading app alert system."},
         {"role": "user", "content": f'''i want to extract parameters from - {prompt} - to create djano model {model} can you 
             extract the needed parameter in python dictionary  format only as the response, the expected dict keys are stock,alert_type,action,to_price or to_volume and frequency. if there is no element of frequency in  the text, then "frequency":"Once".
-            don't write write any explanation before or after the dictionary,all keys and values must be string and in double quotation marks. only want the dictionary as response'''}
+            don't write write any explanation before or after the dictionary,all keys and values must be string and in double quotation marks. I only want the dictionary as response, nothing else, dont explain anything even if you made assumptions'''}
     ]
     )
 
@@ -250,3 +250,13 @@ def get_alert_prompt_history(id):
         alerts =[(alert.prompt, alert.created.isoformat()) for alert in alerts_query]
         alerts_sorted = sorted(alerts, key=lambda x: x[1], reverse=True)
         return alerts_sorted
+    
+@database_sync_to_async
+def get_conversation(name, user):
+    conversation = Conversation.objects.get_or_create(name=name, user=user)[0]
+    return conversation
+
+@database_sync_to_async
+def get_messages(conversation):
+    messages= Message.objects.filter(room = conversation)
+    return messages

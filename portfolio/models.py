@@ -406,3 +406,19 @@ class AlertAITracker(auto_prefetch.Model):
     user= auto_prefetch.ForeignKey(User,on_delete=models.CASCADE)
     created=models.DateTimeField(auto_now_add=True)
     count = models.IntegerField(default=0)
+
+class Conversation(auto_prefetch.Model):
+    user = auto_prefetch.ForeignKey(to=User, on_delete=models.CASCADE, related_name='conversation')
+    created = models.DateTimeField(auto_now_add=True)
+    name=models.CharField(max_length=10)
+    
+class Message(auto_prefetch.Model):
+    user = auto_prefetch.ForeignKey(to=User, on_delete=models.CASCADE, related_name='messages')
+    room = auto_prefetch.ForeignKey(Conversation, on_delete=models.CASCADE,related_name='messages')
+    sender=models.CharField(max_length=5, default='user')
+    content = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.content
+    

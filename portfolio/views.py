@@ -4,9 +4,9 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import (Wallet, Stock, Portfolio, Holding, Receipts, PayStackReceipts, WithdrawalRequest, Alert,
-                     Transaction, WithdrawalOTPRequest, AlertAI, AlertAITracker, DemoPortfolio)
+                     Transaction, WithdrawalOTPRequest, AlertAI, AlertAITracker, DemoPortfolio, Conversation)
 from .serializers import (StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
-                          AlertSerializer,   TransactionSerializer)
+                          AlertSerializer,   TransactionSerializer, ConversationSerializer)
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view
@@ -385,7 +385,9 @@ class AlertView(APIView):
 
     def get(self, request):
         alerts=Alert.objects.filter(user=request.user)
-        data =   [  {
+        conversation_query =  Conversation.objects.filter(user=request.user)
+        
+        alerts =   [  {
             "id":alert.id,
             "stock": alert.stock.symbol,
             "stock_id": alert.stock.id,
@@ -399,6 +401,15 @@ class AlertView(APIView):
             "expire": alert.created,
             "trigerred": alert.trigerred
         } for alert in alerts  if alerts]
+        
+        conversations = [{
+            'conversation_id': conver.name,
+            'created':conver.created
+        } for conver in conversation_query]
+        data = {
+            'alerts': alerts,
+            'conversations': conversations
+        }
         return Response(data)
     
     def post(self, request):
@@ -465,3 +476,10 @@ class AlertUpdateView(APIView):
         return Response({"detail": "Alert not found"}, status=status.HTTP_404_NOT_FOUND)
         
 
+class ConversationsView(APIView):
+    serializer_class = ConversationSerializer
+    
+    def get(self, request):
+        conversations = Conversation.objects.filter(user= request.user)
+        serializer = AlertSerializer(conversations, many=True)
+        return Response(serializer.data)

@@ -1178,43 +1178,70 @@
         <h3 data-toggle="collapse" data-target="#ai-alerts">14. AI Alerts</h3>
         <div id="ai-alerts" class="collapse">
     
-            <!-- Previous content -->
-    
-            <h4>14a. WebSocket Connection for AI Alerts</h4>
+            <h4>14a. Alerts History</h4>
+            
+            <p> GET /portfolio/alerts/</p>
+                <h5>Response:</h5>
+                <pre>
+                    {
+                        "alerts": [
+                            
+                            {
+                                "id": 23,
+                                "stock": "WEMABANK",
+                                "stock_id": 154,
+                                "alert_name": "Alert for WEMABANK above 33.0",
+                                "description": "can you create alert for me when wemabank goes above 33 naira",
+                                "alert_type": "price",
+                                "action": "",
+                                "to_price": 33.0,
+                                "to_volume": null,
+                                "frequency": "Once",
+                                "expire": "2024-01-10T08:33:18.365468Z",
+                                "trigerred": false
+                            },
+                            {
+                                "id": 24,
+                                "stock": "GOLDINSURE",
+                                "stock_id": 56,
+                                "alert_name": "Alert for GOLDINSURE above 33.0",
+                                "description": "can you create alert for me when GOLDINSURE goes above 33 naira",
+                                "alert_type": "price",
+                                "action": "",
+                                "to_price": 33.0,
+                                "to_volume": null,
+                                "frequency": "Once",
+                                "expire": "2024-01-10T08:37:41.027654Z",
+                                "trigerred": false
+                            }
+                        ],
+                        "conversations": [
+                            {
+                                "conversation_id": "maracana2",
+                                "created": "2024-01-09T19:31:35.894335Z"
+                            }
+                        ]
+                    }
+            <h4>14b. WebSocket Connection for AI Alerts</h4>
             <p>WebSocket connection for AI-based trade alerts.</p>
-            <p>WebSocket URL: <p>ws://{base_url}/ws/alerts-ai/?token=${accessToken}</p>
+            <p>WebSocket URL: <p>wss://{base_url}/ws/alerts-ai/?token=${accessToken}&conversation_id=${conversation_id}</p>
+            <p> Where conversation_id is gotten from step 1 above or you generate it if its a new chat</p>
+           
+            <p>Upon connection, history of that conversation will be returned in format:</p>
+            <pre>
+                {"message": [
+                                {"message": "how far", "sender": "user", "created": "2024-01-09T19:45:05.641250+00:00"}, 
+                                {"message": "I am  HammaAlert, alert creation AI, please state the symbol, price or volume actions, conditions to be met to create your alert.", "sender": "bot", "created": "2024-01-09T19:45:07.060360+00:00"}, 
+                            ]
+                    }
+            </pre>
     
-            <h5>Connection Steps:</h5>
-            <ol>
-                <li>1. The WebSocket connection is initiated when a user connects to the AI alert service.</li>
-                <li>2. The user's access token is used to retrieve their ID and user object for identification.</li>
-                <li>3. The user is added to a WebSocket group based on their user ID for targeted communication.</li>
-                <li>4. The AI fetches the user's alert prompt history and sends it to the user upon connection.</li>
-            </ol>
-    
-            <h4>14b. AI Response Handling</h4>
-            <h5>Handling Steps:</h5>
-            <ol>
-                <li>1. Upon receiving a message from the user, the AI extracts the message content.</li>
-                <li>2. The AI checks for common greetings, farewells, thanks, confirmations, and negations in the message.</li>
-                <li>3. If recognized, the AI responds accordingly with pre-defined responses.</li>
-                <li>4. If not recognized as common phrases, the AI checks for keywords related to trade alerts.</li>
-                <li>5. If keywords are found, the AI initiates the alert creation process and sends a processing message.</li>
-                <li>6. The alert creation process is executed asynchronously in the background.</li>
-            </ol>
-    
-            <h5>Response Format:</h5>
+            <h5>Send Message</h5>
             <pre>
                 {"message": "create alert for WEMABANK stock when the volume is above 95.20 and should stop january 3 2024 3pm"}
             </pre>
-    
-            <h4>14c. Alert Creation Instructions</h4>
-            <p>Instructions to create trade alerts via AI interaction.</p>
-            <pre>
-                1. For creating an alert, state the symbol, price, volume actions, conditions, and expiration date and time.
-                2. AI recognizes phrases and keywords to initiate the alert creation process.
-                3. WebSocket communication enables real-time interaction for creating trade alerts.
-            </pre>
+            
+            <p>there will always be response for each message you send</p>
     
         </div>
     </div>

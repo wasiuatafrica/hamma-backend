@@ -1,6 +1,6 @@
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from .models import Alert
+from .models import Alert, Conversation
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import json
 from datetime import datetime, timedelta
@@ -9,15 +9,13 @@ from notifications.utils import save_and_send_notification
 from django.utils import timezone
 from .utils import get_alert_data
 from django.contrib.auth import get_user_model
-from .models import Alert, AlertAI,Stock, AlertAITracker
+from .models import Alert, AlertAI,Stock, AlertAITracker, Message
 from django.shortcuts import get_object_or_404
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.core.mail import send_mail
-from random import randint
-
 
 User= get_user_model()
 
@@ -116,16 +114,18 @@ def get_data_prompt(prompt):
     return data
 
 @shared_task
-def process_alert_data(prompt,  user_id, channel_name):
+def process_alert_data(prompt, convsersation_id, user_id, channel_name):
     print(prompt)
     loaded_data = get_data_prompt(prompt)
     user= User.objects.get(id=user_id)
+    conversation = Conversation.objects.get(name=convsersation_id)
     extracted_data = json.loads(loaded_data)
     
     counter = AlertAITracker.objects.get_or_create(user=user)[0]
 
     if counter.count >= 10:
         async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"You have reached the maximum limit of 10 alerts for this month."})
+        Message.objects.create(user =user, sender='bot',room=conversation, content=f"You have reached the maximum limit of 10 alerts for this month.")
     else:
         
         alertai = AlertAI.objects.create(user=user,prompt=prompt,extracted_parameters=loaded_data)
@@ -145,6 +145,9 @@ def process_alert_data(prompt,  user_id, channel_name):
                     alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_price=to_price, frequency=frequency,description=description)
                     async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Alert created for {stock.symbol} when {alert_type} is {action} {to_price}. Frequency: {alert.frequency}"})
                     
+                    Message.objects.create(user =user, sender='bot',room=conversation, content=f"Alert created for {stock.symbol} when {alert_type} is {action} {to_price}. Frequency: {alert.frequency}")
+                    
+                    
                     alertai.alert_created= True
                     alertai.save()
                     print('price alert created')
@@ -159,6 +162,8 @@ def process_alert_data(prompt,  user_id, channel_name):
                     alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_volume=to_volume, frequency=frequency,description=description)
                 
                     async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': f"Alert created for {stock.symbol} when {alert_type} is {action} {to_volume}. Frequency: {alert.frequency}" })
+                    Message.objects.create(user =user, sender='bot',room=conversation, content=f"Alert created for {stock.symbol} when {alert_type} is {action} {to_volume}. Frequency: {alert.frequency}")
+                    
                     
                     alertai.alert_created= True
                     alertai.save()
@@ -169,7 +174,10 @@ def process_alert_data(prompt,  user_id, channel_name):
                     
             else:
                 async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': "Your prompt does not contain stock symbol or you didn't specify if you are creating price or volume alert, or you didn't state if its above or below target price or volume" })
+                Message.objects.create(user =user, sender='bot',room=conversation, content="Your prompt does not contain stock symbol or you didn't specify if you are creating price or volume alert, or you didn't state if its above or below target price or volume")
+                
         else:
             async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': "Your prompt does not contain stock symbol or you didn't specify if you are creating price or volume alert, or you didn't state if its above or below target price or volume" })
+            Message.objects.create(user =user, sender='bot',room=conversation, content="Your prompt does not contain stock symbol or you didn't specify if you are creating price or volume alert, or you didn't state if its above or below target price or volume")
             
             

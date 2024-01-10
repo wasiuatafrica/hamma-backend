@@ -19,6 +19,7 @@ urlpatterns = [
     path("paystack-receipt/", views.PayStackReceiptsView),
     path('transactions/', views.TransactionList.as_view(), name='transaction-list'),
     path("alert/", views.AlertView.as_view()),
+    # path("alert/conversations/", views.ConversationsView.as_view()),
     path("alert/<int:id>/", views.AlertUpdateView.as_view()),
 
 

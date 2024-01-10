@@ -329,6 +329,7 @@ else:
 CELERY_TASK_SERIALIZER ='json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = "Africa/Lagos"
+CELERY_BROKER_POOL_LIMIT = 10
 
 CACHES = {
     "default": {

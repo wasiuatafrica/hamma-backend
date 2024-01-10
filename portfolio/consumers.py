@@ -4,8 +4,9 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
 from .tasks import process_alert_data
-from .utils import get_alert_prompt_history
+from .utils import get_alert_prompt_history, get_conversation
 import time
+from .models import Message
 
 User= get_user_model()
 
@@ -26,39 +27,73 @@ class AlertConsumer(AsyncWebsocketConsumer):
     def get_user(self,id):
         user =User.objects.get(id=id)
         return user
-        
+    
+    @database_sync_to_async
+    def get_messages(self, conversation):
+        query= Message.objects.filter(room = conversation)
+        messages = [
+            {
+                'message':message.content,
+                'sender':message.sender,
+                'created':message.created.isoformat()
+                    } for message in query
+        ]
+
+            
+        print(messages)
+        return messages
+    
     
       
     async def initialize(self):
-        access_token = self.scope.get('query_string').decode('utf-8').split('=')[1]
+        query_string = self.scope.get('query_string').decode('utf-8')
+
+        # Split the query string into key-value pairs
+        query_params = dict(param.split('=') for param in query_string.split('&'))
+
+        # Extract the values for 'token' and 'status' parameters
+        access_token = query_params.get('token', None)
+        
+        conversation_id  = query_params.get('conversation_id', None)
+
+        print(access_token, conversation_id)
+        # access_token = self.scope.get('query_string').decode('utf-8').split('=')[1]
         self.user_id = await self.get_user_id_from_token(access_token)
         # print('user',self.user_id)
         self.user = await self.get_user(self.user_id)
+        self.conversation_id = conversation_id
+        self.conversation = await get_conversation(conversation_id,self.user)
         
     async def connect(self):
         await self.accept()
         await self.initialize()
         
         await self.channel_layer.group_add(
-            f'alert_{self.user_id}',
+            f'alert_{self.conversation_id}',
             self.channel_name
         )
         
-        
-        history = await get_alert_prompt_history(self.user_id)
+        history = await self.get_messages(self.conversation)
+        print(history)
+            
+        # # history = await get_alert_prompt_history(self.user_id)
         if history:
             await self.send_message({'message': history})
         
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
-            f'alert_{self.user_id}',
+            f'alert_{self.conversation_id}',
             self.channel_name
         )
 
     async def receive(self, text_data):
         message = json.loads(text_data)['message']
         print(message)
+        def create_message(sender,content):
+            return Message.objects.create(user=self.user, room=self.conversation, sender=sender,content=content)
+        
+        await database_sync_to_async(create_message)('user',message)
         keywords = ['stock', 'price', 'above', 'below', 'greater', 'lesser', 'volume', 'symbol', 'expire']
         common_phrases = {
             "greetings": ["how are you doing","how are you","hello", "hi", "hey", "howdy", "greetings", "good morning", "good afternoon", "good evening"],
@@ -92,11 +127,13 @@ class AlertConsumer(AsyncWebsocketConsumer):
                 response = "I am HammaAlert, alert creation AI, Please state the symbol, price or volume actions,conditions to be met  to create your alert."
             else:
                 response = 'Alert is being created. . . .'
-                process_alert_data.delay(message, self.user_id, self.channel_name)
+                process_alert_data.delay(message,self.conversation_id, self.user_id, self.channel_name)
                 
-        time.sleep(2)
+        time.sleep(1)
+        
+        
         await self.send_message({'message': response})
-            
+        await database_sync_to_async(create_message)('bot',response)
         
 
     async def send_message(self, event):
