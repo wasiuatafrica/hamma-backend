@@ -14,7 +14,7 @@ urlpatterns = [
     path('symbols/', views.Symbols.as_view(), name='symbols'),
     # path('holdings/', views.HoldingListCreate.as_view(), name='holding-list-create'),
     # path('holdings/<int:pk>/', views.HoldingDetail.as_view(), name='holding-detail'),
-    path('portfolio/', views.PortfolioDetail.as_view(), name='portfolio-detail'),
+    path('portfolio/<str:mode>/', views.PortfolioDetail.as_view(), name='portfolio-detail'),
     path("receipts/", views.ReceiptsView.as_view()),
     path("paystack-receipt/", views.PayStackReceiptsView),
     path('transactions/', views.TransactionList.as_view(), name='transaction-list'),

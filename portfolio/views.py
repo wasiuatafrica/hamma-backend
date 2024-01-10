@@ -300,8 +300,8 @@ def get_demo_holding_details_concurrently(holding):
         close_old_connections()
         
 class PortfolioDetail(APIView):
-    def get(self, request):
-        mode = request.data.get("mode", None)
+   def get(self, request, *args, **kwargs):
+        mode = self.kwargs.get('mode')
         if not mode or mode == "demo":
             portfolio = DemoPortfolio.objects.get_or_create(user=request.user)[0]
             holdings = portfolio.holdings.all()

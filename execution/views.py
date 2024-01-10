@@ -104,3 +104,4 @@ class TradeAPIView(APIView):
                 return Response({'message': 'Sell order executed successfully.'}, status=status.HTTP_201_CREATED)
             else:
                 return Response({'error': 'Not enough stocks to sell.'}, status=status.HTTP_400_BAD_REQUEST)
+
