@@ -74,7 +74,7 @@ class AlertConsumer(AsyncWebsocketConsumer):
         )
         
         history = await self.get_messages(self.conversation)
-        print(history)
+        # print(history)
             
         # # history = await get_alert_prompt_history(self.user_id)
         if history:
@@ -89,7 +89,7 @@ class AlertConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         message = json.loads(text_data)['message']
-        print(message)
+        # print(message)
         def create_message(sender,content):
             return Message.objects.create(user=self.user, room=self.conversation, sender=sender,content=content)
         

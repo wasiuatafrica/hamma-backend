@@ -4,7 +4,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import (Wallet, Stock, Portfolio, Holding, Receipts, PayStackReceipts, WithdrawalRequest, Alert,
-                     Transaction, WithdrawalOTPRequest, AlertAI, AlertAITracker, DemoPortfolio, Conversation)
+                     Transaction, WithdrawalOTPRequest, AlertAI, AlertAITracker, DemoPortfolio, Conversation, Message)
 from .serializers import (StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
                           AlertSerializer,   TransactionSerializer, ConversationSerializer)
 from rest_framework import serializers
@@ -24,7 +24,7 @@ from django.db.models import Sum
 from concurrent.futures import ThreadPoolExecutor
 from django.db import close_old_connections
 from random import randint
-
+from django.db.models import Exists, OuterRef
  
 User= get_user_model()
 
@@ -385,8 +385,11 @@ class AlertView(APIView):
 
     def get(self, request):
         alerts=Alert.objects.filter(user=request.user)
-        conversation_query =  Conversation.objects.filter(user=request.user)
-        
+        # conversation_query =  Conversation.objects.filter(user=request.user)
+        conversation_query = Conversation.objects.annotate(
+            has_messages=Exists(Message.objects.filter(room=OuterRef('pk')))
+        ).filter(user=request.user, has_messages=True)
+                
         alerts =   [  {
             "id":alert.id,
             "stock": alert.stock.symbol,

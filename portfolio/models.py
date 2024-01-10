@@ -63,7 +63,14 @@ class Stock(auto_prefetch.Model):
 class DemoPortfolio(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='demoportfolio')
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    
+    equity = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+
+    def update_equity(self):
+        # Calculate and update the portfolio equity based on the current value of holdings
+        total_equity = sum(holding.cur_val for holding in self.demoholdings.all())
+        self.equity = total_equity
+        self.save()
+
     def __str__(self):
         return f"{self.user} - Portfolio"
     
@@ -97,7 +104,13 @@ class DemoPortfolio(auto_prefetch.Model):
 class Portfolio(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='portfolio')
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    
+    equity = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+
+    def update_equity(self):
+        # Calculate and update the portfolio equity based on the current value of holdings
+        total_equity = sum(holding.calculate_value() for holding in self.holdings.all())
+        self.equity = total_equity
+        self.save()
 
     def __str__(self):
         return f"{self.user} - Portfolio"
@@ -129,7 +142,7 @@ class Portfolio(auto_prefetch.Model):
         return positions
 
 class DemoHolding(auto_prefetch.Model):
-    portfolio = auto_prefetch.ForeignKey(DemoPortfolio, on_delete=models.CASCADE, related_name='holdings')
+    portfolio = auto_prefetch.ForeignKey(DemoPortfolio, on_delete=models.CASCADE, related_name='demoholdings')
     stock = auto_prefetch.ForeignKey(Stock, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0)
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -326,6 +339,12 @@ class Transaction(auto_prefetch.Model):
 
     def __str__(self):
         return f"{self.user} - {self.transaction_type} - {self.amount}"
+    
+class DemoTransaction(auto_prefetch.Model):
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='demotransactions')
+    transaction_type = models.CharField(max_length=50, choices=[('deposit', 'Deposit'), ('withdrawal', 'Withdrawal'),('buy', 'Buy'), ('sell', 'Sell')])
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateTimeField(auto_now_add=True)
 
 
 class WithdrawalOTPRequest(auto_prefetch.Model):
@@ -422,3 +441,40 @@ class Message(auto_prefetch.Model):
     def __str__(self):
         return self.content
     
+class Position(auto_prefetch.Model):
+    portfolio = auto_prefetch.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='positions')
+    stock = auto_prefetch.ForeignKey(Stock, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=0)
+    average_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+
+    def update_position(self, trade):
+        # Update the position based on the executed trade
+        if trade.order_type == 'buy':
+            total_value = (self.quantity * self.average_price) + (trade.quantity * trade.price)
+            total_quantity = self.quantity + trade.quantity
+            self.average_price = total_value / total_quantity
+            self.quantity = total_quantity
+        elif trade.order_type == 'sell':
+            self.quantity -= trade.quantity
+
+        self.save()
+        
+    
+class DemoPosition(auto_prefetch.Model):
+    portfolio = auto_prefetch.ForeignKey(DemoPortfolio, on_delete=models.CASCADE, related_name='demopositions')
+    stock = auto_prefetch.ForeignKey(Stock, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=0)
+    average_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+
+    def update_position(self, trade):
+        # Update the position based on the executed trade
+        if trade.order_type == 'buy':
+            total_value = (self.quantity * self.average_price) + (trade.quantity * trade.price)
+            total_quantity = self.quantity + trade.quantity
+            self.average_price = total_value / total_quantity
+            self.quantity = total_quantity
+        elif trade.order_type == 'sell':
+            self.quantity -= trade.quantity
+
+        self.save()
+
