@@ -14,6 +14,7 @@ from django.utils import timezone
 from portfolio.models import Wallet,Portfolio, DemoPortfolio
 from execution.trades import simulate_trades
 from .tasks import set_up_user
+from affilate.models import ReferralWallet
 
 User=get_user_model()
 class Registration(APIView):
@@ -60,6 +61,7 @@ class VerifyToken(APIView):
         
         Wallet.objects.create(user=user)
         Portfolio.objects.create(user=user)
+        ReferralWallet.objects.create(user=user)
         DemoPortfolio.objects.create(user=user)
         send_welcome_email(user)
         set_up_user.delay(user_email)

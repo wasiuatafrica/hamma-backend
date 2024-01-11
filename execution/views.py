@@ -224,7 +224,6 @@ class DemoTradeAPIView(APIView):
                             price=price,
                             order_type='sell',
                             status='pending',  # Set status to pending for background processing
-                            time_in_force=time_in_force,  # Pass time_in_force to the task
                         )
 
                         # Asynchronously process the trade in the background

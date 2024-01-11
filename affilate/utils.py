@@ -29,7 +29,7 @@ def get_rank_details(user, first_day):
     if brokerage_commission:
         min_commission = brokerage_commission.aggregate(total_commission=Sum('commission'))['total_commission']
     else:
-        brokerage_commission = 0
+        min_commission = 0
     reward_activities = RewardActivities.objects.filter(user=user, created__gte=first_day)
     if reward_activities:
         active_referees = reward_activities.values('trader').distinct().count()
@@ -37,7 +37,7 @@ def get_rank_details(user, first_day):
         active_referees = 0
         
     return {
-        'brokerage_commission':brokerage_commission,
+        'brokerage_commission':min_commission,
         'active_referees':active_referees,
         'username':user.fullname,
         'user_id':user.id

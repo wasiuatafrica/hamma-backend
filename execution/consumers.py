@@ -1,11 +1,14 @@
 # consumers.py
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
-from .utils import get_notifications, update_notification
+from django.contrib.auth import get_user_model
 from channels.db import database_sync_to_async
-from portfolio.models import Stock
+from portfolio.models import Stock, DemoHolding, DemoPortfolio, DemoPosition, DemoTrade, DemoTransaction
+from decimal import Decimal
+User= get_user_model()
 
-class MarketsConsumer(AsyncWebsocketConsumer):
+
+class DemoEquityConsumer(AsyncWebsocketConsumer):
     
     @database_sync_to_async
     def get_user_id_from_token(self, access_token):
@@ -27,46 +30,67 @@ class MarketsConsumer(AsyncWebsocketConsumer):
         
         except Exception as e:
             return None
+    
+    @database_sync_to_async
+    def get_user(self,id):
+        user =User.objects.get(id=id)
+        return user
+    
+    @database_sync_to_async
+    def get_equity_data(self, user):
+        portfolio = DemoPortfolio.objects.get(user=user)
         
+        equity = portfolio.equity
+        
+        positions_query = DemoPosition.objects.filter(portfolio=portfolio)
+        
+        def calc_pnl(position):
+            cost = position.average_price * position.quantity
+            current = position.current_price * position.quantity
+            return float(Decimal(current) - cost)
+        
+        positions = [{
+            'date':position.created.isoformat(),
+            'pnl':calc_pnl(position)
+        } for position in positions_query]
+        
+        data =    {"equity":float(equity), "positions":positions}
+        
+        return data
+    
     async def initialize(self):
         access_token = self.scope.get('query_string').decode('utf-8').split('=')[1]
         self.user_id = await self.get_user_id_from_token(access_token)
         self.stocks = await self.get_all_stocks()
+        self.user = await self.get_user(self.user_id)
         
     async def connect(self):
         await self.accept()
         await self.initialize()
         
         await self.channel_layer.group_add(
-            f'{self.stocks[0].symbol}',
+            f'demo-equity-{self.user_id}',
             self.channel_name
         )
         
-        
-        # notifications =  
-        # # print(notifications)
-        # await self.send_first_data({'data': notifications})
+        data = await self.get_equity_data(self.user)
+        await self.send_message({'data': data})
         
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
-            f'user_{self.user_id}',
+            f'demo-equity-{self.user_id}',
             self.channel_name
         )
 
     async def receive(self, text_data):
         try:
             data = json.loads(text_data)
-            notification_id = data.get('notification_id')
-            notification = notification_id.split('-')
-            if notification:
-                update_notification(notification[1],notification[0])
-                notifications1 =  get_notifications(notification[1])
-                await self.send_notification({'message': notifications1})
+            await self.send_message({'data': data})
         except json.JSONDecodeError:
             pass
 
-    async def send_first_data(self, event):
+    async def send_message(self, event):
         data = event['data']
 
         await self.send(text_data=json.dumps({'data': data}))

@@ -10,12 +10,13 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from notifications  import routing  
 from portfolio import routing as alerti
+from execution import routing as trading
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": AuthMiddlewareStack(
         URLRouter(
-            routing.websocket_urlpatterns +  alerti.websocket_urlpatterns
+            routing.websocket_urlpatterns +  alerti.websocket_urlpatterns +  trading.websocket_urlpatterns
         )
     ),
 })

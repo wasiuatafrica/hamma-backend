@@ -113,10 +113,11 @@ class HomeView(APIView):
 class ReferralWithdrawal(APIView):
     
     def post(self, request):
-        amount = Decimal(request.data.get(amount))
+        amount = Decimal(request.data.get('amount'))
         wallet = ReferralWallet.objects.get(user=request.user)
         
-        if amount >= wallet.balance:
+        print(amount, wallet.balance)
+        if amount <= wallet.balance:
             ReferralWithdrawalRequest.objects.create(wallet=wallet, amount=amount)
             save_and_send_notification(request.user.id, f"Your referral commission withdrawal has been submitted.")
             return Response('Success')
