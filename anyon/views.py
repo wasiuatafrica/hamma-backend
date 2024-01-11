@@ -1,7 +1,7 @@
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from accounts.models import Referral as acc_Referral
+from accounts.models import Referral as acc_Referral, UserActivityLog 
 from accounts import models 
 from accounts import serializers as acc_serializers
 from . import serializers
@@ -331,3 +331,118 @@ class AffilateManagement(APIView):
             
         sorted_data = sorted(data_list, key=lambda x: x['brokerage_commission'], reverse=True)
         return Response(sorted_data)
+
+from accounts.models import UserActivityLog
+from portfolio.models import Trade, Holding, Receipts, PayStackReceipts
+from portfolio.serializers import TradeSerializer
+
+class UserActivityLogView(APIView):
+    serializer_class=acc_serializers.UserActivityLogSerializer
+    def get(self,request, *args, **kwargs):
+        id=kwargs.get("id")
+        filter=request.GET.get("filter")
+        if filter:
+            activities=UserActivityLog.objects.filter(user__id=id, action_type=filter)
+        else:
+            activities=UserActivityLog.objects.filter(user__id=id)
+        serializer=self.serializer_class(activities, many=True)
+        return Response(serializer.data)
+    
+class AllUsersActivityLogView(APIView):
+    serializer_class=acc_serializers.UserActivityLogSerializer
+    def get(self,request):
+        filter=request.GET.get("filter")
+        if filter:
+            if filter == "active":
+                activities=UserActivityLog.objects.filter(user__is_active=True)
+            elif filter == "inactive":
+                activities=UserActivityLog.objects.filter(user__is_active=False)
+        else:
+            activities=UserActivityLog.objects.all()
+        serializer=self.serializer_class(activities, many=True)
+        return Response(serializer.data)
+    
+
+class UserTradeActivityLog(APIView):
+    serializer_class=TradeSerializer
+    def get(self, request, *args, **kwargs):
+        id=kwargs.get("id")
+        filter=request.GET.get('filter')
+        if filter:
+            trade_history= Trade.objects.filter(user__id=id,order_type__icontains=filter)
+        else:
+            trade_history= Trade.objects.filter(user__id=id)
+        serializer=self.serializer_class(trade_history,many=True)
+        return Response(serializer.data)
+
+class UserPaymentActivityLog(APIView):
+    def get(self, request, *args, **kwargs):
+        id=kwargs.get("id")
+        filter=request.GET.get('filter')
+        receipts_data = []
+        if filter == "bank_tranfer":
+            for receipt in Receipts.objects.filter(user__id=id, ):
+                receipt_dict = {
+                    'id': receipt.id,
+                    'amount': receipt.amount,
+                    'date': receipt.date,
+                    'receipt_status': receipt.receipt_status,
+                    'payment_method': receipt.payment_method,
+                }
+                receipts_data.append(receipt_dict)
+        elif filter == "paystack":
+            for paystack_receipt in PayStackReceipts.objects.filter(user__id=id):
+                paystack_receipt_dict = {
+                    'id': paystack_receipt.id,
+                    'amount': paystack_receipt.amount,
+                    'date': paystack_receipt.date,
+                    'receipt_status': paystack_receipt.receipt_status,
+                    'payment_method': "paystack",
+
+                }
+                receipts_data.append(paystack_receipt_dict)
+        else:
+            for receipt in Receipts.objects.filter(user__id=id):
+                receipt_dict = {
+                    'id': receipt.id,
+                    'amount': receipt.amount,
+                    'date': receipt.date,
+                    'receipt_status': receipt.receipt_status,
+                    'payment_method': receipt.payment_method,
+                }
+                receipts_data.append(receipt_dict)
+
+            for paystack_receipt in PayStackReceipts.objects.filter(user__id=id):
+                paystack_receipt_dict = {
+                    'id': paystack_receipt.id,
+                    'amount': paystack_receipt.amount,
+                    'date': paystack_receipt.date,
+                    'receipt_status': paystack_receipt.receipt_status,
+                    'payment_method': "paystack",
+
+                }
+                receipts_data.append(paystack_receipt_dict)
+        return Response(receipts_data)
+    
+class UserAssetBreakDown(APIView):
+    def get(self, request, *args, **kwargs):
+        id=kwargs.get("id")
+        holding=Holding.objects.filter(portfolio__user__id=id)
+        holding_data=[]
+        for data in holding:
+            data_dic={
+                "symbol":data.stock.symbol,
+                "company":data.stock.company,
+                "value":"5",
+                "amount":data.quantity,
+                "7days":"47.6"
+            }
+            holding_data.append(data_dic)
+        acc_summary={
+            "flat_acc_balance":"200",
+            "no_of_stocks_owned" : "5",
+            "total_val_of_stocks_owned":"456"
+        }
+        return Response({"acc_summary":acc_summary, "stock_history":holding_data})
+
+    

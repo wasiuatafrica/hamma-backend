@@ -5,7 +5,7 @@ from rest_framework import exceptions, serializers
 UserModel = get_user_model()
 
 from rest_framework import serializers
-from .models import Wallet, Stock, Holding, Portfolio, Receipts, PayStackReceipts,Transaction, Alert, Conversation
+from .models import Wallet, Stock, Holding, Portfolio, Receipts, PayStackReceipts,Transaction, Alert, Conversation,Trade
 
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -90,3 +90,17 @@ class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conversation
         fields = "__all__"
+
+class TradeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trade
+        fields = [
+            "id",
+            "user",
+            "quantity",
+            "price",
+            "timestamp",
+            "status",
+            "order_type",
+            "symbol",
+        ]

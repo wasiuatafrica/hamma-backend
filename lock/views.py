@@ -9,6 +9,7 @@ from portfolio.models import Wallet, Transaction
 from notifications.utils import save_and_send_notification
 from decimal import Decimal
 
+
 class SavingsLockList(APIView):
     permission_classes = [IsAuthenticated]
 

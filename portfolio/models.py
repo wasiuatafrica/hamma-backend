@@ -7,6 +7,7 @@ from django.db.models import Sum, Avg, F
 import auto_prefetch
 from decimal import Decimal
 from datetime import datetime, timedelta
+# from accounts.models import UserLoginActivity
 
 User= get_user_model()
 
@@ -337,6 +338,7 @@ class Transaction(auto_prefetch.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateTimeField(auto_now_add=True)
 
+
     def __str__(self):
         return f"{self.user} - {self.transaction_type} - {self.amount}"
     
@@ -371,6 +373,14 @@ class Trade(models.Model):
     @property
     def amount(self):
         return self.quantity * self.price
+    
+    @property
+    def symbol(self):
+        return self.holding.symbol
+
+    # def save(self, *args, **kwargs):        
+    #     activity=UserLoginActivity.objects.create(user=self.user, action_type=self.order_type,description=f"User {self.order_type}'s {self.holding.stock}.")
+    #     super().save(*args, **kwargs)
 
 class DemoTrade(models.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)
@@ -478,3 +488,13 @@ class DemoPosition(auto_prefetch.Model):
 
         self.save()
 
+
+# class UserTradeActivityLog(models.Model):
+#     user=models.ForeignKey(User, related_name='trade_user', on_delete=models.CASCADE)
+#     trade=models.ForeignKey(Trade, related_name='trade', on_delete=models.CASCADE)
+#     action_type=models.CharField(max_length=20)
+#     timestamp = models.DateTimeField(auto_now_add=True)
+#     description=models.CharField(max_length=100)
+
+#     def __str__(self) -> str:
+#         return self.user
