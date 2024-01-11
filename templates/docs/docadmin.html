@@ -300,6 +300,271 @@
         </ul>
 
     </div>
+
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#user_management">6.Admin User Management</h3>
+        <div id="user_management" class="collapse">
+    
+            <h4>6a. All Users activites</h4>
+            <p>GET /anyon/users-activity-log/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Retrieve a list of all users activites.
+
+                [
+                    {
+                    "id": 1,
+                    "action_type": "login",
+                    "timestamp": "2024-01-11T15:08:05.052297+01:00",
+                    "description": "Hello my name is Glory",
+                    "user": 1
+                    },
+                    {
+                    "id": 2,
+                    "action_type": "change password",
+                    "timestamp": "2024-01-11T15:08:24.655532+01:00",
+                    "description": "werwe",
+                    "user": 1
+                    },
+                    {
+                    "id": 3,
+                    "action_type": "login",
+                    "timestamp": "2024-01-11T15:09:11.692791+01:00",
+                    "description": "User logged into their account",
+                    "user": 1
+                    }
+              ]
+            </pre>
+            <h6>Notes:</h6>
+            <ul>
+                <li>1. For filter, pass in either "filter" as key and "active" or "inactive" as value for the fiter params </li>
+                <li>2. urls should be like /anyon/users-activity-log/?filter=active</li>
+
+            </ul>
+
+            <h4>6b. Single Users activites</h4>
+            <p>GET /anyon/users-activity-log/id/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Retrieve a sinle of user's activites.
+
+                [
+                    {
+                    "id": 1,
+                    "action_type": "login",
+                    "timestamp": "2024-01-11T15:08:05.052297+01:00",
+                    "description": "Hello my name is Glory",
+                    "user": 1
+                    },
+                    {
+                    "id": 2,
+                    "action_type": "change password",
+                    "timestamp": "2024-01-11T15:08:24.655532+01:00",
+                    "description": "werwe",
+                    "user": 1
+                    },
+                    {
+                    "id": 3,
+                    "action_type": "login",
+                    "timestamp": "2024-01-11T15:09:11.692791+01:00",
+                    "description": "User logged into their account",
+                    "user": 1
+                    }
+              ]
+                    
+            </pre>
+    
+            <h6>Notes:</h6>
+            <ul>
+                <li>1. For filter, pass in either "filter" as key and "login" or "change_password" as value for the fiter params </li>
+                <li>2. urls should be like /anyon/users-activity-log/id/?filter=login</li>
+
+            </ul>
+
+            <h4>6c. Single User trade activites</h4>
+            <p>GET /anyon/trade-activity-log/id/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Retrieve a sinle of user's trade activites.
+
+                [
+                    {
+                        "id": 1,
+                        "user": 1,
+                        "quantity": 23,
+                        "price": "23456.00",
+                        "timestamp": "2024-01-11T15:30:32.030186+01:00",
+                        "status": "pending",
+                        "order_type": "buy"
+                    },
+                    {
+                        "id": 2,
+                        "user": 1,
+                        "quantity": 23,
+                        "price": "23.00",
+                        "timestamp": "2024-01-11T15:30:53.752352+01:00",
+                        "status": "pending",
+                        "order_type": "Sell"
+                    }
+                    ]
+                    
+            </pre>
+    
+            <h6>Notes:</h6>
+            <ul>
+                <li>1. For filter, pass in either "filter" as key and "sell" or "buy" as value for the fiter params </li>
+                <li>2. urls should be like /anyon/trade-activity-log/id/?filter=buy</li>
+
+            </ul>
+
+            <h4>6d. Single User payment activites</h4>
+            <p>GET /anyon/user-payment-history/id/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Retrieve a sinle of user's payment activites.
+
+                [
+                {
+                  "id": 1,
+                  "amount": 12,
+                  "date": "2024-01-11",
+                  "receipt_status": "Unprocessed",
+                  "payment_method": "Bank Transfer"
+                },
+                {
+                  "id": 2,
+                  "amount": 123,
+                  "date": "2024-01-11",
+                  "receipt_status": "Unprocessed",
+                  "payment_method": "Bank Transfer"
+                },
+                {
+                  "id": 1,
+                  "amount": 131,
+                  "date": "2024-01-11T14:38:14.012479Z",
+                  "receipt_status": "Unprocessed",
+                  "payment_method": "paystack"
+                },
+                {
+                  "id": 2,
+                  "amount": 12,
+                  "date": "2024-01-11T14:38:26.844713Z",
+                  "receipt_status": "Unprocessed",
+                  "payment_method": "paystack"
+                }
+              ]
+                    
+            </pre>
+    
+            <h6>Notes:</h6>
+            <ul>
+                <li>1. For filter, pass in either "filter" as key and "bank_tranfer" or "paystack" as value for the fiter params </li>
+                <li>2. urls should be like /anyon/user-payment-history/id/?filter=paystack</li>
+
+            </ul>
+            
+            <h4>6e. Single User payment activites</h4>
+            <p>GET /anyon/user-asset-breakdown/id/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Retrieve a sinle of user's asset break down activites.
+
+                {
+                    "acc_summary": {
+                      "flat_acc_balance": "200",
+                      "no_of_stocks_owned": "5",
+                      "total_val_of_stocks_owned": "456"
+                    },
+                    "stock_history": [
+                      {
+                        "symbol": "WER",
+                        "company": "WWWWW",
+                        "value": "5",
+                        "amount": 3,
+                        "7days": "47.6"
+                      }
+                    ]
+                  }
+                    
+            </pre>
+
+            <h4>6f. Single User payment activites</h4>
+            <p>GET /anyon/manage-referrals/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Retrieve all referral  activites.
+
+                [
+                    {
+                        "id": 1,
+                        "user": 1,
+                        "trader": 2,
+                        "username": "wasiu wasiu",
+                        "reward_type": "Purchased an account",
+                        "created": "2024-01-11T16:39:54.091242+01:00",
+                        "amount": 1222.0,
+                        "status": "unprocessed",
+                        "comment": null
+                    },
+                    {
+                        "id": 2,
+                        "user": 1,
+                        "trader": 2,
+                        "username": "wasiu wasiu",
+                        "reward_type": "Brokage Commission",
+                        "created": "2024-01-11T16:40:14.879854+01:00",
+                        "amount": 122.0,
+                        "status": "unprocessed",
+                        "comment": null
+                    }
+                    ]
+                    
+            </pre>
+            
+            
+            <h6>Notes:</h6>
+            <ul>
+                <li>1. For filter, two optional keys are required 1: email_value and 2: query_type. The query_type take values of eiher "email, broker_commission or purhase_account". </li>
+                <li>If the query_type is email, the email_value has to be passed alongside</li>
+                <li>2. urls should be like /anyon/anage-referrals/?email_value=nwafor@gmail.com&query_type=email</li>
+                <li>2. urls should be like /anyon/anage-referrals/?query_type=broker_commission</li>
+
+            </ul>
+
+            h4>6f. Affilate ranking</h4>
+            <p>GET /anyon/manage-referrals/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Retrieve all referral  activites.
+
+                [
+                    {
+                        "brokerage_commission": 0,
+                        "active_referees": 1,
+                        "username": "wwww 12345",
+                        "user_id": 1
+                    },
+                    ]
+                    
+            </pre>
+            
+            
+            <h6>Notes:</h6>
+            <ul>
+                <li>1. For filter, pass in either "filter" as key and "email" as value for the fiter params to filter by the users email</li>
+                <li>2. urls should be like /anyon/manage-referrals/?filter=nwafor@gmail.com</li>
+
+            </ul>
+
+    
+        </div>
 </div>
    
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>

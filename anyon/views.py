@@ -274,7 +274,7 @@ class AdminApproveAndViewRewardActivities(APIView):
             return None
 
     def get(self, request):
-        filter= request.GET.get("filter_params")
+        filter= request.GET.get("email_value")
         query_type= request.GET.get("query_type")
         activities=""
         
