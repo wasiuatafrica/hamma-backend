@@ -3,11 +3,13 @@ from celery.utils.log import get_task_logger
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.core.management import call_command
-from portfolio.models import DemoPosition, DemoTransaction, DemoTrade
+from anyon.views import User
+from portfolio.models import DemoPosition, DemoTransaction, DemoTrade, DemoPortfolio
 from random import uniform
 from django.db import transaction
 from time import sleep
 from decimal import Decimal
+from datetime import datetime, timedelta
 
 logger = get_task_logger(__name__)
 channel_layer = get_channel_layer()
@@ -89,7 +91,8 @@ def handle_trade(trade, time_in_force):
                     matching_order.quantity -= quantity
                     break
                 matching_order.save()
-
+        update_equity(user.id, 'demo')
+        
     except Exception as e:
         print(f"Error processing trade (id={trade.id}): {e}")
         trade.status = 'failed'
@@ -122,13 +125,57 @@ def cancel_pending_opposite_order(trade):
         opposite_order.status = 'canceled'
         opposite_order.save()
 
+def get_equity_data(user):
+        portfolio = DemoPortfolio.objects.get(user=user)
+        
+        equity = portfolio.equity
+        
+        positions_query = DemoPosition.objects.filter(portfolio=portfolio)
+        
+        def calc_pnl(position):
+            cost = position.average_price * position.quantity
+            current = position.current_price * position.quantity
+            return float(Decimal(current) - cost)
+        
+        def market_returns(current_portfolio_value, days=7):
+            volatility_factor = 15  
+
+            market_returns = [round(float(Decimal(uniform(-volatility_factor, volatility_factor)) + current_portfolio_value), 2) for _ in range(days)]
+            portfolio_returns = [round(float(Decimal((1 + market_return)) + current_portfolio_value),2) for market_return in market_returns]
+
+            end_date = datetime.now().date()
+            date_list = [(end_date - timedelta(days=i)).isoformat() for i in range(days)][::-1]
+
+            result_data = [
+                {"date": date, "portfolio_returns": portfolio, "market_returns": market}
+                for date, portfolio, market in zip(date_list, portfolio_returns, market_returns)
+            ]
+
+            return result_data
+        positions = [{
+            'date':position.created.isoformat(),
+            'pnl':calc_pnl(position)
+        } for position in positions_query]
+        
+        print(portfolio.calculate_portfolio_return())
+        overview = market_returns(portfolio.calculate_portfolio_return())
+        
+        data =    {"equity":float(equity), "positions":positions, "overview":overview}
+        
+        return data
+
 @shared_task
-def update_equity(user_id,data):
+def update_equity(user_id,type):
+    user= User.objects.get(id=user_id)
     
-    async_to_sync(channel_layer.group_send)(
-            f'demo-equity-{user_id}',
-            {
-                'type': 'send_message',
-                'data': data,
-            }
-        )
+    if type == 'demo':
+        
+        data =get_equity_data(user)
+        
+        async_to_sync(channel_layer.group_send)(
+                f'demo-equity-{user_id}',
+                {
+                    'type': 'send_message',
+                    'data': data,
+                }
+            )

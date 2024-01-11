@@ -103,14 +103,14 @@ class DemoPortfolio(auto_prefetch.Model):
     
     
     def portfolio_value(self):
-        holdings = self.holdings.all()
+        holdings = self.demoholdings.all()
         if not holdings.exists():
             return Decimal(0)
         return sum(holding.cur_val for holding in holdings)
 
     @property
     def total_invested(self):
-        holdings = self.holdings.all()
+        holdings = self.demoholdings.all()
         if not holdings.exists():
             return Decimal(0)
         return sum(holding.avg_cost() * holding.filled for holding in holdings)
@@ -127,6 +127,15 @@ class DemoPortfolio(auto_prefetch.Model):
         positions = [{"stock": holding.stock.symbol, "quantity": holding.quantity} for holding in self.holdings.all()]
         return positions
 
+    def calculate_portfolio_return(self):
+        total_invested = self.total_invested
+        current_portfolio_value = self.portfolio_value()
+
+        if total_invested == Decimal(0):
+            return Decimal(0)
+
+        return ((current_portfolio_value - total_invested) / total_invested) * Decimal(100)
+    
     
 class Portfolio(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='portfolio')
@@ -168,6 +177,15 @@ class Portfolio(auto_prefetch.Model):
         positions = [{"stock": holding.stock.symbol, "quantity": holding.quantity} for holding in self.holdings.all()]
         return positions
 
+    def calculate_portfolio_return(self):
+        total_invested = self.total_invested
+        current_portfolio_value = self.portfolio_value()
+
+        if total_invested == Decimal(0):
+            return Decimal(0)
+
+        return ((current_portfolio_value - total_invested) / total_invested) * Decimal(100)
+    
 class DemoHolding(auto_prefetch.Model):
     portfolio = auto_prefetch.ForeignKey(DemoPortfolio, on_delete=models.CASCADE, related_name='demoholdings')
     stock = auto_prefetch.ForeignKey(Stock, on_delete=models.CASCADE)
@@ -184,7 +202,7 @@ class DemoHolding(auto_prefetch.Model):
     
     @property
     def filled(self):
-        trades= self.trades.filter(status='completed') 
+        trades= self.demotrades.filter(status='completed') 
         # print(trades)
         return trades.aggregate(total_quantity=Sum('quantity'))['total_quantity'] 
 

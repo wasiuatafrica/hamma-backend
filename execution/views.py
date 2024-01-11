@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from accounts.utils import get_referrer
 from affilate.models import BrokageCommission,RewardActivities, ReferralWallet
 from decimal import Decimal
-from .tasks import process_trade
+from .tasks import process_trade, update_equity
 from portfolio.utils import get_price
 
 # class DemoTradeAPIView(APIView):
@@ -111,7 +111,9 @@ from portfolio.utils import get_price
 class DemoTradeAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
+        mode = self.kwargs.get('mode')
+        
         symbol = request.data.get('symbol')
         quantity = int(request.data.get('quantity'))
         if request.data.get('price'):
@@ -120,153 +122,160 @@ class DemoTradeAPIView(APIView):
         time_in_force = request.data.get('time_in_force', 'GTC')  # Default to Good 'Til Canceled
         is_buy = action == 'buy'
         order_type = request.data.get('order_type')
-
+        
         stock = get_object_or_404(Stock, symbol=symbol)
-        portfolio = get_object_or_404(DemoPortfolio, user=request.user)
+        
+        if mode == 'demo':
+            portfolio = get_object_or_404(DemoPortfolio, user=request.user)
 
 
-        if order_type == 'market':
-            market_price = get_price(symbol)['current_price']
-            holding = DemoHolding.objects.get_or_create(
-                        portfolio=portfolio,
-                        stock=stock,
-                    )[0]
-            
-            trade = DemoTrade.objects.create(
-                user=request.user,
-                holding=holding,
-                quantity=quantity,
-                price=market_price,
-                order_type='buy',
-                status='pending',  
-            )
-            position, created = DemoPosition.objects.get_or_create(
-            portfolio=holding.portfolio,
-            stock=stock,
-            defaults={'quantity': 0, 'average_price': 0.0}
-            )
-
-            # Update position based on order type
-            if order_type == 'buy':
-                position.quantity += quantity
-                position.average_price = ((position.average_price * position.quantity) + (market_price * quantity)) / (position.quantity + quantity)
-            elif order_type == 'sell':
-                position.quantity -= quantity
-
-            # Save the updated position
-            position.save()
-
-            # Update equity in the portfolio
-            # holding.portfolio.update_equity()
-
-
-            # Record the transaction
-            DemoTransaction.objects.create(
-                user=request.user,
-                transaction_type='buy' if order_type == 'buy' else 'sell',
-                amount=quantity * market_price
-            )
-
-            # Set trade status to 'completed'
-            trade.status = 'completed'
-            trade.save()
-            
-            return Response({'message': f'{action.title()} order placed successfully.'}, status=status.HTTP_201_CREATED)
-
-        elif order_type == 'limit':
-           
-            if is_buy:
-                # Check if it's a market order or limit order
-                if time_in_force == 'GTC':
-                    # Good 'Til Canceled order
-                    holding = DemoHolding.objects.get_or_create(
-                        portfolio=portfolio,
-                        stock=stock,
-                    )[0]
-                    trade = DemoTrade.objects.create(
-                        user=request.user,
-                        holding=holding,
-                        quantity=quantity,
-                        price=price,
-                        order_type='buy',
-                        status='pending',  # Set status to pending for background processing
-                    )
-
-                    # Asynchronously process the trade in the background
-                    process_trade.apply_async(args=[trade.id], kwargs={'time_in_force': time_in_force}, countdown=0)
-
-                    return Response({'message': 'Buy order placed successfully.'}, status=status.HTTP_201_CREATED)
-                    # else:
-                    #     return Response({'error': 'Insufficient funds to buy stocks.'}, status=status.HTTP_400_BAD_REQUEST)
-                elif time_in_force == 'IOC':
-                    # Immediate or Cancel order (Not supported for buy orders)
-                    return Response({'error': 'Immediate or Cancel (IOC) not supported for buy orders.'}, status=status.HTTP_400_BAD_REQUEST)
-                elif time_in_force == 'FOK':
-                    # Fill or Kill order (Not supported for buy orders)
-                    return Response({'error': 'Fill or Kill (FOK) not supported for buy orders.'}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    return Response({'error': 'Invalid time in force.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            elif not is_buy:
-                holding = DemoHolding.objects.get(
-                    portfolio=portfolio,
-                    stock=stock,
+            if order_type == 'market':
+                market_price = get_price(symbol)['current_price']
+                holding = DemoHolding.objects.get_or_create(
+                            portfolio=portfolio,
+                            stock=stock,
+                        )[0]
+                
+                trade = DemoTrade.objects.create(
+                    user=request.user,
+                    holding=holding,
+                    quantity=quantity,
+                    price=market_price,
+                    order_type='buy',
+                    status='pending',  
+                )
+                position, created = DemoPosition.objects.get_or_create(
+                portfolio=holding.portfolio,
+                stock=stock,
+                defaults={'quantity': 0, 'average_price': 0.0}
                 )
 
-                # Check if it's a market order or limit order
-                if time_in_force == 'GTC':
-                    # Good 'Til Canceled order
-                    if holding.quantity >= quantity:
+                # Update position based on order type
+                if order_type == 'buy':
+                    position.quantity += quantity
+                    position.average_price = ((position.average_price * position.quantity) + (market_price * quantity)) / (position.quantity + quantity)
+                elif order_type == 'sell':
+                    position.quantity -= quantity
+
+                # Save the updated position
+                position.save()
+
+                # Update equity in the portfolio
+                # holding.portfolio.update_equity()
+
+
+                # Record the transaction
+                DemoTransaction.objects.create(
+                    user=request.user,
+                    transaction_type='buy' if order_type == 'buy' else 'sell',
+                    amount=quantity * market_price
+                )
+
+                # Set trade status to 'completed'
+                trade.status = 'completed'
+                trade.save()
+                
+                update_equity.delay(request.user.id, 'demo')
+                
+                return Response({'message': f'{action.title()} order placed successfully.'}, status=status.HTTP_201_CREATED)
+
+            elif order_type == 'limit':
+            
+                if is_buy:
+                    # Check if it's a market order or limit order
+                    if time_in_force == 'GTC':
+                        # Good 'Til Canceled order
+                        holding = DemoHolding.objects.get_or_create(
+                            portfolio=portfolio,
+                            stock=stock,
+                        )[0]
                         trade = DemoTrade.objects.create(
                             user=request.user,
                             holding=holding,
                             quantity=quantity,
                             price=price,
-                            order_type='sell',
+                            order_type='buy',
                             status='pending',  # Set status to pending for background processing
                         )
 
                         # Asynchronously process the trade in the background
                         process_trade.apply_async(args=[trade.id], kwargs={'time_in_force': time_in_force}, countdown=0)
 
-                        return Response({'message': 'Sell order placed successfully.'}, status=status.HTTP_201_CREATED)
+                        return Response({'message': 'Buy order placed successfully.'}, status=status.HTTP_201_CREATED)
+                        # else:
+                        #     return Response({'error': 'Insufficient funds to buy stocks.'}, status=status.HTTP_400_BAD_REQUEST)
+                    elif time_in_force == 'IOC':
+                        # Immediate or Cancel order (Not supported for buy orders)
+                        return Response({'error': 'Immediate or Cancel (IOC) not supported for buy orders.'}, status=status.HTTP_400_BAD_REQUEST)
+                    elif time_in_force == 'FOK':
+                        # Fill or Kill order (Not supported for buy orders)
+                        return Response({'error': 'Fill or Kill (FOK) not supported for buy orders.'}, status=status.HTTP_400_BAD_REQUEST)
                     else:
-                        return Response({'error': 'Not enough stocks to sell.'}, status=status.HTTP_400_BAD_REQUEST)
-                elif time_in_force == 'IOC':
-                    # Immediate or Cancel order
-                    if holding.quantity >= quantity:
-                        trade = DemoTrade.objects.create(
-                            user=request.user,
-                            holding=holding,
-                            quantity=quantity,
-                            price=price,
-                            order_type='sell',
-                            status='pending',  # Set status to pending for background processing
-                        )
+                        return Response({'error': 'Invalid time in force.'}, status=status.HTTP_400_BAD_REQUEST)
 
-                        # Asynchronously process the trade in the background
-                        process_trade.apply_async(args=[trade.id], kwargs={'time_in_force': time_in_force}, countdown=0)
+                elif not is_buy:
+                    holding = DemoHolding.objects.get(
+                        portfolio=portfolio,
+                        stock=stock,
+                    )
 
-                        return Response({'message': 'Sell order placed successfully.'}, status=status.HTTP_201_CREATED)
+                    # Check if it's a market order or limit order
+                    if time_in_force == 'GTC':
+                        # Good 'Til Canceled order
+                        if holding.quantity >= quantity:
+                            trade = DemoTrade.objects.create(
+                                user=request.user,
+                                holding=holding,
+                                quantity=quantity,
+                                price=price,
+                                order_type='sell',
+                                status='pending',  # Set status to pending for background processing
+                            )
+
+                            # Asynchronously process the trade in the background
+                            process_trade.apply_async(args=[trade.id], kwargs={'time_in_force': time_in_force}, countdown=0)
+
+                            return Response({'message': 'Sell order placed successfully.'}, status=status.HTTP_201_CREATED)
+                        else:
+                            return Response({'error': 'Not enough stocks to sell.'}, status=status.HTTP_400_BAD_REQUEST)
+                    elif time_in_force == 'IOC':
+                        # Immediate or Cancel order
+                        if holding.quantity >= quantity:
+                            trade = DemoTrade.objects.create(
+                                user=request.user,
+                                holding=holding,
+                                quantity=quantity,
+                                price=price,
+                                order_type='sell',
+                                status='pending',  # Set status to pending for background processing
+                            )
+
+                            # Asynchronously process the trade in the background
+                            process_trade.apply_async(args=[trade.id], kwargs={'time_in_force': time_in_force}, countdown=0)
+
+                            return Response({'message': 'Sell order placed successfully.'}, status=status.HTTP_201_CREATED)
+                        else:
+                            return Response({'error': 'Not enough stocks to sell.'}, status=status.HTTP_400_BAD_REQUEST)
+                    elif time_in_force == 'FOK':
+                        # Fill or Kill order
+                        if holding.quantity >= quantity:
+                            trade = DemoTrade.objects.create(
+                                user=request.user,
+                                holding=holding,
+                                quantity=quantity,
+                                price=price,
+                                order_type='sell',
+                                status='pending',  # Set status to pending for background processing
+                            )
+
+                            # Asynchronously process the trade in the background
+                            process_trade.apply_async(args=[trade.id], kwargs={'time_in_force': time_in_force}, countdown=0)
+
+                            return Response({'message': 'Sell order placed successfully.'}, status=status.HTTP_201_CREATED)
+                        
+                        else:
+                            return Response({'error': 'FOK sell order rejected due to insufficient stocks.'}, status=status.HTTP_400_BAD_REQUEST)
                     else:
-                        return Response({'error': 'Not enough stocks to sell.'}, status=status.HTTP_400_BAD_REQUEST)
-                elif time_in_force == 'FOK':
-                    # Fill or Kill order
-                    if holding.quantity >= quantity:
-                        trade = DemoTrade.objects.create(
-                            user=request.user,
-                            holding=holding,
-                            quantity=quantity,
-                            price=price,
-                            order_type='sell',
-                            status='pending',  # Set status to pending for background processing
-                        )
-
-                        # Asynchronously process the trade in the background
-                        process_trade.apply_async(args=[trade.id], kwargs={'time_in_force': time_in_force}, countdown=0)
-
-                        return Response({'message': 'Sell order placed successfully.'}, status=status.HTTP_201_CREATED)
-                    else:
-                        return Response({'error': 'FOK sell order rejected due to insufficient stocks.'}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    return Response({'error': 'Invalid time in force.'}, status=status.HTTP_400_BAD_REQUEST)
+                        return Response({'error': 'Invalid time in force.'}, status=status.HTTP_400_BAD_REQUEST)
+        elif mode == 'live':
+            return Response('Under Construction')
