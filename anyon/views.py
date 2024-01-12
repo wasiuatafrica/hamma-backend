@@ -439,7 +439,7 @@ class UserAssetBreakDown(APIView):
             }
             holding_data.append(data_dic)
         acc_summary={
-            "flat_acc_balance":"200",
+            "fiat_acc_balance":"200",
             "no_of_stocks_owned" : "5",
             "total_val_of_stocks_owned":"456"
         }

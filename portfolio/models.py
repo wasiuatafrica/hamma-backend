@@ -549,7 +549,7 @@ class DemoPosition(auto_prefetch.Model):
 
         self.save()
 
-  @property
+    @property
     def current_price(self):
         return get_price(self.stock.symbol)['current_price']
 

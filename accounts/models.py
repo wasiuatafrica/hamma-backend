@@ -98,7 +98,7 @@ class Referral(auto_prefetch.Model):
     
     @property
     def amount_deposit(self):
-        trnsactions = self.person_referred.transactions.filter(transaction_type='deposit')
+        transactions = self.person_referred.transactions.filter(transaction_type='deposit')
         if transactions:
             amount= transactions.aggregate(total_commission=models.Sum('amount'))['total_commission']
         else:
