@@ -241,6 +241,9 @@ def get_holding_detail(holding, trades):
     filled = trades.filter(status='completed').aggregate(total_quantity=Sum('quantity'))['total_quantity'] if trades else 0
     incomplete_ = trades.filter(status='pending')
     
+    if not filled :
+        filled = 0
+    
     if incomplete_:
         incomplete1 = incomplete_.aggregate(total_quantity=Sum('quantity'))['total_quantity']
         if incomplete1:
