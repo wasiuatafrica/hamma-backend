@@ -333,7 +333,7 @@ class AffilateManagement(APIView):
         return Response(sorted_data)
 
 from accounts.models import UserActivityLog
-from portfolio.models import Trade, Holding, Receipts, PayStackReceipts
+from portfolio.models import Trade, Holding, Receipts, PayStackReceipts, Portfolio, Wallet
 from portfolio.serializers import TradeSerializer
 
 class UserActivityLogView(APIView):
@@ -427,22 +427,26 @@ class UserPaymentActivityLog(APIView):
 class UserAssetBreakDown(APIView):
     def get(self, request, *args, **kwargs):
         id=kwargs.get("id")
-        holding=Holding.objects.filter(portfolio__user__id=id)
-        holding_data=[]
-        for data in holding:
-            data_dic={
+        portfolio = Portfolio.objects.get(user__id=id)
+        holding=portfolio.holdings.all()
+        
+        holding_data=[
+        
+            {
                 "symbol":data.stock.symbol,
                 "company":data.stock.company,
-                "value":"5",
+                "value":round(float(data.cur_val),2),
                 "amount":data.quantity,
                 "7days":"47.6"
-            }
-            holding_data.append(data_dic)
+            } for data in holding]
+        # print(holding_data)
+        wallet = Wallet.objects.get(user__id=id)
         acc_summary={
-            "fiat_acc_balance":"200",
-            "no_of_stocks_owned" : "5",
-            "total_val_of_stocks_owned":"456"
+            "fiat_acc_balance":wallet.balance,
+            "no_of_stocks_owned" : holding.count(),
+            "total_val_of_stocks_owned": portfolio.portfolio_value()
         }
+        print(acc_summary)
         return Response({"acc_summary":acc_summary, "stock_history":holding_data})
 
     
