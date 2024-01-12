@@ -116,7 +116,9 @@ class DemoPortfolio(auto_prefetch.Model):
         holdings = self.demoholdings.all()
         if not holdings.exists():
             return Decimal(0)
-        return sum(holding.avg_cost() * holding.filled for holding in holdings)
+        # return sum(holding.avg_cost() * holding.filled for holding in holdings )
+        return sum(holding.avg_cost() * holding.filled if hasattr(holding, 'filled') and holding.filled else 0 for holding in holdings)
+
 
     @property
     def profit_loss(self):

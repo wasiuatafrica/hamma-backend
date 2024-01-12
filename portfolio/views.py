@@ -242,7 +242,11 @@ def get_holding_detail(holding, trades):
     incomplete_ = trades.filter(status='pending')
     
     if incomplete_:
-        incomplete = incomplete_.aggregate(total_quantity=Sum('quantity'))['total_quantity']
+        incomplete1 = incomplete_.aggregate(total_quantity=Sum('quantity'))['total_quantity']
+        if incomplete1:
+            incomplete = incomplete1
+        else:
+            incomplete = 0
     else:
         incomplete = 0
         
