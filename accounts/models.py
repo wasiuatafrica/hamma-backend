@@ -1,3 +1,4 @@
+from sqlite3 import Timestamp
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -97,7 +98,7 @@ class Referral(auto_prefetch.Model):
     
     @property
     def amount_deposit(self):
-        transactions = self.person_referred.transactions.filter(transaction_type='deposit')
+        trnsactions = self.person_referred.transactions.filter(transaction_type='deposit')
         if transactions:
             amount= transactions.aggregate(total_commission=models.Sum('amount'))['total_commission']
         else:
@@ -129,4 +130,14 @@ class FirstLogin(auto_prefetch.Model):
     
     def __str__(self):
         return f"{self.user.email} - {self.login_time}"
+    
+class UserActivityLog(models.Model):
+    user=models.ForeignKey(CustomUser, related_name='user_activity', on_delete=models.CASCADE)
+    action_type=models.CharField(max_length=20)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    description=models.CharField(max_length=100)
+
+    def __str__(self) -> str:
+        return self.action_type
+
     

@@ -1,12 +1,14 @@
+from urllib import request
+import portfolio
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import (Wallet, Stock, Portfolio, Holding, Receipts, PayStackReceipts, WithdrawalRequest, Alert,
+from .models import (Wallet, Stock, Portfolio, Holding, Receipts, PayStackReceipts, WithdrawalRequest, Alert,Trade,
                      Transaction, WithdrawalOTPRequest, AlertAI, AlertAITracker, DemoPortfolio, Conversation, Message)
 from .serializers import (StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
-                          AlertSerializer,   TransactionSerializer, ConversationSerializer)
+                          AlertSerializer,TradeSerializer,   TransactionSerializer, ConversationSerializer)
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view
@@ -25,6 +27,7 @@ from concurrent.futures import ThreadPoolExecutor
 from django.db import close_old_connections
 from random import randint
 from django.db.models import Exists, OuterRef
+
  
 User= get_user_model()
 
@@ -55,7 +58,7 @@ class WalletWithdraw(APIView):
         wallet = Wallet.objects.get(user=request.user)
 
         if not amount or not stage:
-            return Response("amount and stage must be sent sent")
+            return Response("amount and stage must be sent")
         if int(stage) > 2:
             return Response("stage must be 1 or 2")
         

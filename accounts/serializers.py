@@ -1,3 +1,6 @@
+from pyexpat import model
+
+from attr import field
 from rest_framework import serializers
 from .import models
 
@@ -104,3 +107,8 @@ class ResetForgottenPassword(serializers.Serializer):
 class TokenEmailSeriailizer(serializers.Serializer):
     email=serializers.EmailField()
     token=serializers.CharField(max_length=200)
+
+class UserActivityLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=models.UserActivityLog
+        fields= "__all__"

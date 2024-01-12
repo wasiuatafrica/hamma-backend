@@ -212,6 +212,8 @@ class LoginWith2FA(APIView):
                     'access': str(refresh.access_token),
                     "user": user_data
                 }
+                #Add activity
+                activity=models.UserActivityLog.objects.create(user=user, action_type="login",description="User logged into their account")
                 return Response(token_data, status=status.HTTP_200_OK)
             else:
                 return Response({"detail": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -258,6 +260,7 @@ class ResetForgettenPassword(APIView):
                     if serializer.validated_data["new_password1"] == serializer.validated_data["new_password2"]:
                         user.set_password(serializer.validated_data["new_password1"])
                         user.save()
+                        activity=models.UserActivityLog.objects.create(user=user, action_type="change_password",description="User changed their password")
                         return Response({"detail":"Password updated successfully"}) 
                     return Response({"detail":"new_password1 and new_passowrd2 must match"}, status=status.HTTP_400_BAD_REQUEST)
                 return Response({"detail": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -319,3 +322,4 @@ class ResetForgettenPassword(APIView):
 
 #             return Response(token_data, status=status.HTTP_201_CREATED)
 #         return Response({"detail": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
