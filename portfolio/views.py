@@ -27,6 +27,7 @@ from concurrent.futures import ThreadPoolExecutor
 from django.db import close_old_connections
 from random import randint
 from django.db.models import Exists, OuterRef
+from accounts.models import UserActivityLog
 
  
 User= get_user_model()
@@ -94,6 +95,7 @@ class WalletWithdraw(APIView):
                 otp_request.used = True
                 otp_request.save()
                 save_and_send_notification(request.user.id, 'Your withdrawal is processing.')
+                activity=UserActivityLog.objects.create(user=request.user, action_type="withdrawal_request",description="User requested for a withdrawal")
                 return Response({"detail": "Withdrawal request has been created successfully."},
                                 status=status.HTTP_200_OK)
             else:
@@ -346,6 +348,7 @@ class ReceiptsView(APIView):
             receipt=Receipts.objects.create(user=request.user, image=image)
             # sendreciptsmail(request,receipt)
             # sendreciptsmail(request,image)
+            activity=UserActivityLog.objects.create(user=request.user, action_type="receipt",description="User uploaded a payment receipt.")
             return Response({"message": "File uploaded successfully"})
         return Response(serializers.errors)
     
@@ -364,6 +367,7 @@ def PayStackReceiptsView(request):
     wallet.balance += float(amount)
     wallet.save()
     Transaction.objects.create(user=request.user, amount=float(amount),transaction_type='deposit')
+    activity=UserActivityLog.objects.create(user=request.user, action_type="paystack",description="User made a payment via paystack")
     serializer=PayStackReceiptsSerializer(paystack_recipt, many=False)
     return Response({"detail":serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -438,7 +442,8 @@ class AlertView(APIView):
             
             counter.count += 1
             counter.save()
-            
+            activity=UserActivityLog.objects.create(user=request.user, action_type="alert",description="User created an alert.")
+
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
     

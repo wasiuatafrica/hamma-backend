@@ -65,7 +65,7 @@ class VerifyToken(APIView):
         DemoPortfolio.objects.create(user=user)
         send_welcome_email(user)
         set_up_user.delay(user_email)
-        
+        activity=models.UserActivityLog.objects.create(user=user, action_type="verified_account",description="User verified their account.")
         return Response({"detail":"Account verifed."})
 
 class ProfileView(APIView):
@@ -100,6 +100,7 @@ class ProfileView(APIView):
             else:
                 return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             user=serializers.CustomUserSerializer(request.user, many=False).data
+            activity=models.UserActivityLog.objects.create(user=request.user, action_type="updated_profile",description="User updated their profile")
             return Response({"detail":serializer.data, "user":user})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -142,6 +143,7 @@ class DashBoardUpdatePassword(APIView):
             if user.check_password(serializer.validated_data["current_password"]):
                 user.set_password(serializer.validated_data["new_password1"])
                 user.save()
+                activity=models.UserActivityLog.objects.create(user=user, action_type="change_password",description="User changed their password")
                 return Response({"detail":"Password updated successfully"})
             return Response({"detail":"current_password is wrong"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

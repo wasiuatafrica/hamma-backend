@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from portfolio.models import Wallet, Transaction
 from notifications.utils import save_and_send_notification
 from decimal import Decimal
+from accounts.models import UserActivityLog
 
 
 class SavingsLockList(APIView):
@@ -36,6 +37,7 @@ class SavingsLockList(APIView):
             
             save_and_send_notification(request.user.id, f"You transferred {amount} to Savings Lock")
             Transaction.objects.create(user=request.user, transaction_type = 'Transferred to Savings Lock', amount= Decimal(amount))
+            activity=UserActivityLog.objects.create(user=request.user, action_type="savings_lock",description=f"User transfered .{amount} to their savings lock.")
             
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
