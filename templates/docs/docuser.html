@@ -987,6 +987,24 @@
                 <li>1. "status" in reward activities can be "Pending", "Approved", "Rejected", or other relevant status.</li>
             </ul>
             
+            <h4>12e. Referees</h4>
+            <p>GET /affilate/referees/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                
+                [
+                    {
+                        "username": "dev5 bay",
+                        "stage": "Registered",
+                        "amount_deposit": 2500000.0,
+                        "commission": "0",
+                        "brokage_commission": 58.61,
+                        "status": "Unpaid",
+                        "created": "2024-01-11T13:45:28.198954+01:00"
+                    }
+                ]
+            </pre>
     
         </div>
     </div>
@@ -1246,8 +1264,102 @@
         </div>
     </div>
     
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#trade-execution">15. Demo and Live Trade Execution</h3>
+        <div id="trade-execution" class="collapse">
+    
+            <!-- Previous content -->
+    
+            <h4>15a. API Endpoint for Demo Trade Execution</h4>
+            <p>Trade execution endpoint for placing demo and live trades.</p>
+            
+            <p>Endpoint:POST /execution/trade/demo/</p>
+            <p>Endpoint:POST /execution/trade/live/</p>
+    
+            <h5>Execution Steps:</h5>
+            <ol>
+                <li>Sends a POST request with trade details, including symbol, quantity, price, action, etc.</li>
+                <pre>
+                    for market type
+                    {
+                        "symbol": "AAPL",
+                        "quantity": 10,
+                        "action": "buy",
+                        "order_type": "market" 
+                    }
 
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+                    for limit type:
+                    {
+                        "symbol": "AAPL",
+                        "quantity": 8,
+                        "price": 150.0,
+                        "action": "buy",
+                        "time_in_force": "GTC",
+                        "order_type": "limit"
+                    }
+                    
+                    Response:
+
+                    if success:
+                    
+                    {
+                        "message": "Buy order placed successfully."
+                    }
+                    
+                    else:
+                    {
+                        "error": "Invalid time in force."
+                    }
+                    
+                </pre>                    
+            </ol>
+    
+            
+            <h4>15b. Live Trade Execution (Under Construction)</h4>
+            <p>The live trade execution logic is currently under construction.</p>
+    
+        </div>
+    </div>
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#home1">16. Home</h3>
+        <div id="home1" class="collapse">
+    
+            <h4>WebSocket Connection Home</h4>
+
+            <p>WebSocket URL: <p>wss://{base_url}/ws/demo/equity/?token=${accessToken}</p>
+            <p>WebSocket URL: <p>wss://{base_url}/ws/live/equity/?token=${accessToken}</p>
+           
+            <p>Upon connection this data structure will be sent:</p>
+            <pre>
+                {"data": {
+                    "equity": 173684.09, 
+                    "positions": [
+                        {"date": "2024-01-11T11:20:18.940376+00:00", "pnl": 79326.0}, 
+                        {"date": "2024-01-11T11:32:58.342720+00:00", "pnl": -8244.0}
+                        ], 
+                    "overview": [
+                            {"date": "2024-01-05", "portfolio_returns": 179.36, "market_returns": 89.15}, 
+                            {"date": "2024-01-06", "portfolio_returns": 178.23, "market_returns": 88.02}, 
+                            {"date": "2024-01-07", "portfolio_returns": 173.72, "market_returns": 83.51}, 
+                            {"date": "2024-01-08", "portfolio_returns": 182.19, "market_returns": 91.98}, 
+                            {"date": "2024-01-09", "portfolio_returns": 185.53, "market_returns": 95.32}, 
+                            {"date": "2024-01-10", "portfolio_returns": 176.85, "market_returns": 86.64}, 
+                            {"date": "2024-01-11", "portfolio_returns": 177.45, "market_returns": 87.24}
+                            ]
+                        }
+                    }
+
+                    same structure for live and demo
+
+                    **You should keep the connection open because same data structure is sent whenever trade is placed
+            </pre>
+    
+            <p>for holding data, call the holding page endpoint</p>
+    
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
   </body>
