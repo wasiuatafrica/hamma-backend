@@ -135,6 +135,8 @@ class DemoTradeAPIView(APIView):
                             portfolio=portfolio,
                             stock=stock,
                         )[0]
+                holding.quantity = quantity
+                holding.save()
                 
                 trade = DemoTrade.objects.create(
                     user=request.user,
@@ -142,7 +144,7 @@ class DemoTradeAPIView(APIView):
                     quantity=quantity,
                     price=market_price,
                     order_type='buy',
-                    status='pending',  
+                    status='completed',  
                 )
                 position, created = DemoPosition.objects.get_or_create(
                 portfolio=holding.portfolio,
@@ -189,6 +191,10 @@ class DemoTradeAPIView(APIView):
                             portfolio=portfolio,
                             stock=stock,
                         )[0]
+                        
+                        holding.quantity = quantity
+                        holding.save()
+                
                         trade = DemoTrade.objects.create(
                             user=request.user,
                             holding=holding,

@@ -3,16 +3,13 @@ from rest_framework.response import Response
 from accounts import models as acc_models, utils as acc_utils, serializers as acc_serializers
 from . import serializers as aff_serializers, models as aff_models
 from django.contrib.auth import get_user_model
-from rest_framework import status
 from rest_framework import permissions
-from rest_framework.generics import get_object_or_404
-from portfolio import models
 from notifications.utils import save_and_send_notification
 from .models import BrokageCommission, RewardActivities, ReferralWallet, ReferralWithdrawalRequest
 from django.db.models import Sum
 from .utils import get_quarter_dates,get_rank_details
 from accounts.utils import get_referees
-from datetime import datetime
+from datetime import datetime,timedelta
 from decimal import Decimal
 
 User=get_user_model()
@@ -29,32 +26,109 @@ class InviteFriend(APIView):
         return Response({"detail":'Invitaion sent successfully'})
 
 
+# class RewardActivitiesView(APIView):
+#     serializer_class=aff_serializers.RewardActivitiesSerializer
+
+#     def get(self, request):
+#         balance = ReferralWallet.objects.get_or_create(user=request.user)[0].balance
+#         today = datetime.now()
+#         today_start = today.replace(hour=0,minute=0,second=0,microsecond=0)
+#         income= RewardActivities.objects.filter(user=request.user, reward_type="Deposit Referral Commission").aggregate(total_commission=Sum('amount'))['total_commission']
+#         today_income= RewardActivities.objects.filter(user=request.user, reward_type="Deposit Referral Commission", created__gte=today_start).aggregate(total_commission=Sum('amount'))['total_commission']
+        
+#         filter= request.GET.get("email")
+#         activities=""
+#         if filter:
+#             activities= aff_models.RewardActivities.objects.filter(user=request.user, trader__email=filter)
+#         else:
+#             activities= aff_models.RewardActivities.objects.filter(user=request.user)
+#         serializer=self.serializer_class(activities, many=True).data
+        
+#         data1= {
+#             'wallet_balance':balance,
+#             'total_income':income,
+#             'today_income':today_income,
+#             'reward_activities':serializer
+#         }
+#         return Response(data1)
+
+from django.db.models import Sum
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from datetime import datetime, timedelta
+
 class RewardActivitiesView(APIView):
-    serializer_class=aff_serializers.RewardActivitiesSerializer
+    serializer_class = aff_serializers.RewardActivitiesSerializer
+
+    def calculate_percentage_change(self, old_value, new_value):
+        if old_value is None or new_value is None or old_value == 0:
+            return None, None
+
+        percentage_change = ((new_value - old_value) / abs(old_value)) * 100
+        direction = "increase" if percentage_change > 0 else "decrease"
+
+        return percentage_change, direction
 
     def get(self, request):
-        balance = ReferralWallet.objects.get_or_create(user=request.user)[0].balance
+        # Retrieve existing data
+        wallet_balance = ReferralWallet.objects.get_or_create(user=request.user)[0].balance
         today = datetime.now()
-        today_start = today.replace(hour=0,minute=0,second=0,microsecond=0)
-        income= RewardActivities.objects.filter(user=request.user, reward_type="Deposit Referral Commission").aggregate(total_commission=Sum('amount'))['total_commission']
-        today_income= RewardActivities.objects.filter(user=request.user, reward_type="Deposit Referral Commission", created__gte=today_start).aggregate(total_commission=Sum('amount'))['total_commission']
+        today_start = today.replace(hour=0, minute=0, second=0, microsecond=0)
         
-        filter= request.GET.get("email")
-        activities=""
+        # Get old value for the period 60 to 30 days ago
+        last_30_days_start = today - timedelta(days=30)
+        
+        last_60_to_30_days_start = today - timedelta(days=60)
+        last_60_to_30_days_balance = RewardActivities.objects.filter(
+            user=request.user, created__gte=last_60_to_30_days_start, created__lt=last_30_days_start
+        ).aggregate(total_balance=Sum('amount'))['total_balance']
+
+        # Get new value for the last 30 days
+        last_30_days_balance = RewardActivities.objects.filter(
+            user=request.user, created__gte=last_30_days_start, created__lt=today_start
+        ).aggregate(total_balance=Sum('amount'))['total_balance']
+
+        # Get old value for today's income change
+        last_reward_activity_before_today = RewardActivities.objects.filter(
+            user=request.user, reward_type="Deposit Referral Commission", created__lt=today_start
+        ).order_by('-created').first()
+        old_today_income = 0 if last_reward_activity_before_today is None else last_reward_activity_before_today.amount
+
+        # Get new value for today's income change
+        today_income = RewardActivities.objects.filter(
+            user=request.user, reward_type="Deposit Referral Commission", created__gte=today_start
+        ).aggregate(total_commission=Sum('amount'))['total_commission']
+
+        # Handle None value for today_income
+        today_income = today_income if today_income is not None else 0
+
+        # Calculate percentage changes
+        last_60_to_30_days_balance_change_percentage, last_60_to_30_days_balance_direction = self.calculate_percentage_change(last_60_to_30_days_balance, last_30_days_balance)
+        total_income_change_percentage, total_income_direction = self.calculate_percentage_change(0, last_30_days_balance + today_income)
+        today_income_change_percentage, today_income_direction = self.calculate_percentage_change(old_today_income, today_income)
+
+        # Retrieve filtered activities if specified
+        filter = request.GET.get("email")
         if filter:
-            activities= aff_models.RewardActivities.objects.filter(user=request.user, trader__email=filter)
+            activities = aff_models.RewardActivities.objects.filter(user=request.user, trader__email=filter)
         else:
-            activities= aff_models.RewardActivities.objects.filter(user=request.user)
-        serializer=self.serializer_class(activities, many=True).data
-        
-        data1= {
-            'wallet_balance':balance,
-            'total_income':income,
-            'today_income':today_income,
-            'reward_activities':serializer
+            activities = aff_models.RewardActivities.objects.filter(user=request.user)
+        serializer = self.serializer_class(activities, many=True).data
+
+        # Prepare response data
+        data1 = {
+            'wallet_balance': wallet_balance,
+            'last_60_to_30_days_balance_change_percentage': last_60_to_30_days_balance_change_percentage,
+            'last_60_to_30_days_balance_direction': last_60_to_30_days_balance_direction,
+            'total_income': last_30_days_balance + today_income,
+            'total_income_change_percentage': total_income_change_percentage,
+            'total_income_direction': total_income_direction,
+            'today_income': today_income,
+            'today_income_change_percentage': today_income_change_percentage,
+            'today_income_direction': today_income_direction,
+            'reward_activities': serializer
         }
         return Response(data1)
-    
 
 
 class RankingView(APIView):

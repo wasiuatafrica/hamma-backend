@@ -29,8 +29,8 @@ def get_symbol_data(symbol):
                 {
         "symbol": record['symbol'],
         "datetime":record['datetime'],
-        "bid_price": record['bid_price'],
-        "ask_price": record['ask_price'],
+        "bid_price": round(record['bid_price'],2),
+        "ask_price": round(record['ask_price'],2),
         "bid_quantity": record['bid_quantity'],
         "ask_quantity": record['ask_quantity']
         } 
