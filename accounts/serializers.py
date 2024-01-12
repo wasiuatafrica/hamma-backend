@@ -1,6 +1,3 @@
-from pyexpat import model
-
-from attr import field
 from rest_framework import serializers
 from .import models
 

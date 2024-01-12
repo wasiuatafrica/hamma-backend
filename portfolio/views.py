@@ -307,7 +307,7 @@ class PortfolioDetail(APIView):
         mode = self.kwargs.get('mode')
         if not mode or mode == "demo":
             portfolio = DemoPortfolio.objects.get_or_create(user=request.user)[0]
-            holdings = portfolio.holdings.all()
+            holdings = portfolio.demoholdings.all()
 
             # Use ThreadPoolExecutor to execute get_holding_detail concurrently.
             with ThreadPoolExecutor() as executor:

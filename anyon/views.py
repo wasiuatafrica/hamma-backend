@@ -264,9 +264,7 @@ class AdminTradeView(APIView):
 
 
 class AdminApproveAndViewRewardActivities(APIView):
-    serializer_class=aff_serializers.RewardActivitiesSerializer
-
-
+    
     def get_object(self, id):
         try:
             return aff_models.RewardActivities.objects.get(id=id)
@@ -291,8 +289,18 @@ class AdminApproveAndViewRewardActivities(APIView):
                 activities= aff_models.RewardActivities.objects.filter(reward_type="Brokage Commission")
         else:
             activities= aff_models.RewardActivities.objects.all()
-        serializer=self.serializer_class(activities, many=True).data
-        return Response(serializer)
+        data = [
+            {
+                "id":act.id,
+                "referring_user":act.user.fullname,
+                "referred_user":act.trader.fullname,
+                "reward":act.reward_type,
+                "amount":act.amount,
+                "status":act.status,
+                "date": act.created
+            } for act in activities
+        ]
+        return Response(data)
 
     # def put(self, request):
     #     reward_id=request.GET.get("id")

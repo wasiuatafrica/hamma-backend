@@ -300,6 +300,7 @@
         </ul>
 
     </div>
+</div>
 
     <div class="container mt-5">
         <h3 data-toggle="collapse" data-target="#user_management">6.Admin User Management</h3>
@@ -565,8 +566,66 @@
 
     
         </div>
-</div>
-   
+
+    </div>
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#affiliateSection">7. Affiliate Management</h3>
+        <div id="affiliateSection" class="collapse">
+    
+            <h4>7a. View and Approve Reward Activities</h4>
+            <p>GET /anyon/manage-referrals/</p>
+    
+            <h5>Query Parameters:</h5>
+            <pre>
+                email_value: Filter activities by user email
+                query_type: Filter activities by type (email, purchase_account, broker_commission)
+            </pre>
+    
+            <h5>Response:</h5>
+            <pre>
+                Use this endpoint to retrieve a list of reward activities.
+                [
+                    {
+                        "id": 1,
+                        "referring_user": "John Doe",
+                        "referred_user": "Jane Doe",
+                        "reward": "Purchased an account",
+                        "amount": 50.00,
+                        "status": "Pending",
+                        "date": "2023-12-05T12:34:56.789Z"
+                    },
+                    // Additional reward activities...
+                ]
+            </pre>
+    
+            <h4>7b. View Affiliate Ranks</h4>
+            <p>GET /anyon/affilate-ranks/</p>
+    
+            <h5>Query Parameters:</h5>
+            <pre>
+                email: Filter affiliates by user email
+            </pre>
+    
+            <h5>Response:</h5>
+            <pre>
+                Use this endpoint to retrieve a list of affiliate ranks.
+                [
+                    {
+                        "user": "John Doe",
+                        "rank": "Gold",
+                        "brokerage_commission": 500.00,
+                        // Additional rank details...
+                    },
+                    // Additional affiliate ranks...
+                ]
+
+                data is already ranked.
+                
+            </pre>
+    
+        </div>
+    </div>
+    
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
