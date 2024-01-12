@@ -254,12 +254,12 @@ def get_holding_detail(holding, trades):
         incomplete = 0
         
     shares= filled + incomplete
-    avg_cost = holding.avg_cost()
+    avg_cost = holding.avg_cost() 
     ltp =  Decimal(data['current_price'])
     cur_val = round((ltp * quantity),2)
-    pnl = round((ltp - avg_cost) * filled, 2)
-    change = round(ltp- avg_cost ,2)
-    percent_change = round((change/avg_cost) * 100,2)
+    pnl = round((ltp - avg_cost) * filled, 2) if avg_cost else 0
+    change = round(ltp- avg_cost ,2) if avg_cost else 0
+    percent_change = round((change/avg_cost) * 100,2) if avg_cost else 0
     avg_volume_3_months =60000
     volume = 9000000
     return {
