@@ -279,15 +279,15 @@ class AdminApproveAndViewRewardActivities(APIView):
         activities=""
         
         if filter and query_type:
-            print("fq")
+            # print("fq")
             if query_type == "email":
-                print("email")
+                # print("email")
                 activities= aff_models.RewardActivities.objects.filter(user__email=filter)
             elif query_type == "purhase_account":
-                print("acc")
+                # print("acc")
                 activities= aff_models.RewardActivities.objects.filter(reward_type="Purchased an account")
             elif query_type == "broker_commission":
-                print("broker")
+                # print("broker")
                 activities= aff_models.RewardActivities.objects.filter(reward_type="Brokage Commission")
         else:
             activities= aff_models.RewardActivities.objects.all()
