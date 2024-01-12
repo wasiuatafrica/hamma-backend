@@ -130,7 +130,7 @@ class DemoTradeAPIView(APIView):
 
 
             if order_type == 'market':
-                market_price = get_price(symbol)['current_price']
+                market_price = round(Decimal(get_price(symbol)['current_price']),2)
                 holding = DemoHolding.objects.get_or_create(
                             portfolio=portfolio,
                             stock=stock,
@@ -153,12 +153,17 @@ class DemoTradeAPIView(APIView):
                 )
 
                 # Update position based on order type
-                if order_type == 'buy':
+                if is_buy:
                     position.quantity += quantity
-                    position.average_price = ((position.average_price * position.quantity) + (market_price * quantity)) / (position.quantity + quantity)
-                elif order_type == 'sell':
+                    if created:
+                        position.average_price = market_price  # Set the initial average price for a new position
+                    else:
+                        position.average_price = ((position.average_price * position.quantity) + (market_price * quantity)) / (position.quantity + quantity)
+                else:
                     position.quantity -= quantity
 
+                print(position.quantity)
+                print(position.average_price)
                 # Save the updated position
                 position.save()
 
