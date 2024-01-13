@@ -380,7 +380,7 @@ def PayStackReceiptsView(request):
     save_and_send_notification(wallet.user.id, f"{amount} credited to your wallet.")
             
     
-    refer_object=Referral.objects.get(person_referred=wallet.user)
+    refer_object=Referral.objects.filter(person_referred=wallet.user).first()
     
     if refer_object and refer_object.converted == False:
         sum_user_trans=sum(trans.amount for trans in Transaction.objects.filter(user=wallet.user, transaction_type = 'deposit'))

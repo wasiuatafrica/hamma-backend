@@ -138,7 +138,7 @@ class AdminReceiptsView(APIView):
             
             models.Transaction.objects.create(user=wallet.user, transaction_type='deposit',amount=amount, status='completed')
             
-            refer_object=acc_Referral.objects.get(person_referred=wallet.user)
+            refer_object=acc_Referral.objects.filter(person_referred=wallet.user).first()
             
             if refer_object and refer_object.converted == False:
                 sum_user_trans=sum(trans.amount for trans in models.Transaction.objects.filter(user=wallet.user, transaction_type = 'deposit'))
