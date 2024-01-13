@@ -49,7 +49,7 @@ def handle_trade(trade, time_in_force):
 
         position.save()
 
-        print('position saved')
+        # print('position saved')
         # Simulate market fluctuations
         # price = simulate_price_fluctuation(stock.symbol, price)
 
@@ -58,11 +58,12 @@ def handle_trade(trade, time_in_force):
 
         holding.portfolio.update_equity()
 
-        print('Demo to be created')
+        # print('Demo to be created')
         DemoTransaction.objects.create(
             user=user,
             transaction_type='buy' if order_type == 'buy' else 'sell',
-            amount=quantity * price
+            amount=quantity * price,
+            status='completed'
         )
         trade.status = 'completed'
         trade.save()

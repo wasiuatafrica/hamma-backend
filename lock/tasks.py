@@ -25,7 +25,7 @@ def update_wallet(lock_id):
         main_wallet.save()
 
         save_and_send_notification(lock.user.id, f"{amount_due} has been deposited into your main wallet from lock savings")
-        Transaction.objects.create(user=lock.user, transaction_type='Payment from mature Savings Lock', amount=amount_due)
+        Transaction.objects.create(user=lock.user, transaction_type='Payment from mature Savings Lock', amount=amount_due, status='completed')
         
         lock.status = 'completed'
         lock.save()

@@ -183,8 +183,10 @@ class DemoTradeAPIView(APIView):
                 DemoTransaction.objects.create(
                     user=request.user,
                     transaction_type='buy' if order_type == 'buy' else 'sell',
-                    amount=quantity * market_price
+                    amount=quantity * market_price,
+                    status='completed'
                 )
+                
 
                 # Set trade status to 'completed'
                 trade.status = 'completed'

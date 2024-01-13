@@ -368,10 +368,10 @@ class Receipts(auto_prefetch.Model):
 class PayStackReceipts(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)
     reference=models.CharField(max_length=255, blank=True, null=True)
-    transaction=models.CharField(max_length=255, blank=True, null=True)
+    # transaction=models.CharField(max_length=255, blank=True, null=True)
     amount = models.IntegerField(blank=True,null=True)
     date = models.DateTimeField(auto_now_add=True)
-    receipt_status = models.CharField(max_length=20,default='Unprocessed'  )
+    receipt_status = models.CharField(max_length=20,default='unprocessed'  )
     comment = models.TextField(blank=True, null=True)
     
 class WithdrawalRequest(auto_prefetch.Model):
@@ -386,6 +386,7 @@ class Transaction(auto_prefetch.Model):
     transaction_type = models.CharField(max_length=50, choices=[('deposit', 'Deposit'), ('withdrawal', 'Withdrawal'),('buy', 'Buy'), ('sell', 'Sell')])
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateTimeField(auto_now_add=True)
+    status= models.CharField(max_length=20, default='unprocessed', blank=True,null=True)
 
 
     def __str__(self):
@@ -396,6 +397,7 @@ class DemoTransaction(auto_prefetch.Model):
     transaction_type = models.CharField(max_length=50, choices=[('deposit', 'Deposit'), ('withdrawal', 'Withdrawal'),('buy', 'Buy'), ('sell', 'Sell')])
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateTimeField(auto_now_add=True)
+    status= models.CharField(max_length=20, default='unprocessed', blank=True,null=True)
 
 
 class WithdrawalOTPRequest(auto_prefetch.Model):

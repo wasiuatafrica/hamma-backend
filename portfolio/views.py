@@ -27,7 +27,8 @@ from concurrent.futures import ThreadPoolExecutor
 from django.db import close_old_connections
 from random import randint
 from django.db.models import Exists, OuterRef
-from accounts.models import UserActivityLog
+from accounts.models import UserActivityLog,Referral
+from affilate.models import ReferralWallet,RewardActivities
 
  
 User= get_user_model()
@@ -355,6 +356,7 @@ class ReceiptsView(APIView):
             receipt=Receipts.objects.create(user=request.user, image=image)
             # sendreciptsmail(request,receipt)
             # sendreciptsmail(request,image)
+            save_and_send_notification(request.user.id, "Receipt Upload Successful.")
             activity=UserActivityLog.objects.create(user=request.user, action_type="receipt",description="User uploaded a payment receipt.")
             return Response({"message": "File uploaded successfully"})
         return Response(serializers.errors)
@@ -365,15 +367,36 @@ def PayStackReceiptsView(request):
     paystack_recipt=PayStackReceipts.objects.create(
         user = request.user,
         reference=request.data.get("reference"),
-        transaction=request.data.get("trans"),
+        # transaction=request.data.get("trans"),
         amount=amount,
-        receipt_status = 'Confirmed'
+        receipt_status = 'confirmed'
 
     )
+    
     wallet= Wallet.objects.get(user=request.user)
-    wallet.balance += float(amount)
+    wallet.balance += Decimal(amount)
     wallet.save()
-    Transaction.objects.create(user=request.user, amount=float(amount),transaction_type='deposit')
+    
+    save_and_send_notification(wallet.user.id, f"{amount} credited to your wallet.")
+            
+    
+    refer_object=Referral.objects.get(person_referred=wallet.user)
+    
+    if refer_object and refer_object.converted == False:
+        sum_user_trans=sum(trans.amount for trans in Transaction.objects.filter(user=wallet.user, transaction_type = 'deposit'))
+        if sum_user_trans >= 50000 :
+            referal_wallet = ReferralWallet.objects.get_or_create(user=refer_object.user)[0]
+            referal_wallet.balance += Decimal(5000)
+            referal_wallet.save()
+            
+            refer_object.converted == True
+            refer_object.save()
+            
+            
+            RewardActivities.objects.create(trader=wallet.user, amount=5000, reward_type="Deposit Referral Commission", user=refer_object.user)
+                    
+    
+    Transaction.objects.create(user=request.user, amount=Decimal(amount),transaction_type='deposit', status='completed')
     activity=UserActivityLog.objects.create(user=request.user, action_type="paystack",description="User made a payment via paystack")
     serializer=PayStackReceiptsSerializer(paystack_recipt, many=False)
     return Response({"detail":serializer.data}, status=status.HTTP_201_CREATED)
@@ -386,6 +409,8 @@ class TransactionList(generics.ListAPIView):
     def get_queryset(self):
         # Only retrieve transactions for the logged-in user
         return Transaction.objects.filter(user=self.request.user)
+
+
 
 class Symbols(APIView):
     def get(self, request):

@@ -136,7 +136,7 @@ class AdminReceiptsView(APIView):
             
             save_and_send_notification(wallet.user.id, f"{amount} credited to your wallet.")
             
-            models.Transaction.objects.create(user=wallet.user, transaction_type='deposit',amount=amount)
+            models.Transaction.objects.create(user=wallet.user, transaction_type='deposit',amount=amount, status='completed')
             
             refer_object=acc_Referral.objects.get(person_referred=wallet.user)
             
@@ -216,8 +216,8 @@ class WithdrawalView(APIView):
             withdrawal.status = 'approved'
             withdrawal.save()
             
-            save_and_send_notification(wallet.user.id, f"Your withdrawal of {withdrawal.amount} has been processed.")
-            models.Transaction.objects.create(user=wallet.user, transaction_type='withdrawal',amount=withdrawal.amount)
+            save_and_send_notification(wallet.user.id, f"Your withdrawal of {withdrawal.amount} has been approved.")
+            models.Transaction.objects.create(user=wallet.user, transaction_type='withdrawal',amount=Decimal(withdrawal.amount), status='completed')
             
             data = {
                 'id':withdrawal.id,

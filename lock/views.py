@@ -36,7 +36,7 @@ class SavingsLockList(APIView):
             serializer.save(user=request.user)
             
             save_and_send_notification(request.user.id, f"You transferred {amount} to Savings Lock")
-            Transaction.objects.create(user=request.user, transaction_type = 'Transferred to Savings Lock', amount= Decimal(amount))
+            Transaction.objects.create(user=request.user, transaction_type = 'Transferred to Savings Lock', amount= Decimal(amount), status='completed')
             activity=UserActivityLog.objects.create(user=request.user, action_type="savings_lock",description=f"User transfered .{amount} to their savings lock.")
             
             return Response(serializer.data, status=status.HTTP_201_CREATED)
