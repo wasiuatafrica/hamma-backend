@@ -130,42 +130,50 @@ class DemoTradeAPIView(APIView):
 
 
             if order_type == 'market':
-                market_price = round(Decimal(get_price(symbol)['current_price']),2)
-                holding = DemoHolding.objects.get_or_create(
-                            portfolio=portfolio,
-                            stock=stock,
-                        )[0]
-                holding.quantity = quantity
+                market_price = round(Decimal(get_price(symbol)['current_price']), 2)
+
+                holding, created1 = DemoHolding.objects.get_or_create(
+                    portfolio=portfolio,
+                    stock=stock,
+                )
+
+                position, created = DemoPosition.objects.get_or_create(
+                    portfolio=holding.portfolio,
+                    stock=stock,
+                    state=DemoPosition.OPEN,  # Only consider open positions
+                    defaults={'quantity': 0, 'average_price': 0.0}
+                )
+
+                if is_buy:
+                    holding.quantity += quantity
+                    position.quantity += quantity
+                    if not created:
+                        position.average_price = (
+                            (position.average_price * position.quantity) + (market_price * quantity)
+                        ) / (position.quantity + quantity)
+                    trade_order_type = 'buy'
+                else:
+                    if not created1 and holding.quantity < quantity:
+                        return Response("You don't have enough stocks to sell.")
+
+                    position.quantity -= quantity
+                    trade_order_type = 'sell'
+
+                    # If selling all stocks, close the position
+                    if position.quantity == 0:
+                        position.close_position()
+
                 holding.save()
-                
+                position.save()
+
                 trade = DemoTrade.objects.create(
                     user=request.user,
                     holding=holding,
                     quantity=quantity,
                     price=market_price,
-                    order_type='buy',
-                    status='completed',  
+                    order_type=trade_order_type,
+                    status='completed',
                 )
-                position, created = DemoPosition.objects.get_or_create(
-                portfolio=holding.portfolio,
-                stock=stock,
-                defaults={'quantity': 0, 'average_price': 0.0}
-                )
-
-                # Update position based on order type
-                if is_buy:
-                    position.quantity += quantity
-                    if created:
-                        position.average_price = market_price  # Set the initial average price for a new position
-                    else:
-                        position.average_price = ((position.average_price * position.quantity) + (market_price * quantity)) / (position.quantity + quantity)
-                else:
-                    position.quantity -= quantity
-
-                print(position.quantity)
-                print(position.average_price)
-                # Save the updated position
-                position.save()
 
                 # Update equity in the portfolio
                 # holding.portfolio.update_equity()

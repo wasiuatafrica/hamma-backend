@@ -65,7 +65,7 @@ class DemoEquityConsumer(AsyncWebsocketConsumer):
         portfolio = DemoPortfolio.objects.get(user=user)
         
         equity = portfolio.equity
-        
+        port = portfolio.calculate_portfolio_return()
         positions_query = DemoPosition.objects.filter(portfolio=portfolio)
         
         def calc_pnl(position):
@@ -74,7 +74,7 @@ class DemoEquityConsumer(AsyncWebsocketConsumer):
             return float(Decimal(current) - cost)
         
         def market_returns(current_portfolio_value, days=7):
-            volatility_factor = 15  
+            volatility_factor = 8  
 
             market_returns = [round(float(Decimal(random.uniform(-volatility_factor, volatility_factor)) + current_portfolio_value), 2) for _ in range(days)]
             portfolio_returns = [round(float(Decimal((1 + market_return)) + current_portfolio_value),2) for market_return in market_returns]
@@ -95,8 +95,8 @@ class DemoEquityConsumer(AsyncWebsocketConsumer):
             'pnl':calc_pnl(position)
         } for position in positions_query]
         
-        print(portfolio.calculate_portfolio_return())
-        overview = market_returns(portfolio.calculate_portfolio_return())
+        print()
+        overview = market_returns(port)
         
         data =    {"equity":float(equity), "positions":positions, "overview":overview}
         

@@ -501,10 +501,24 @@ class Message(auto_prefetch.Model):
         return self.content
     
 class Position(auto_prefetch.Model):
+    OPEN = 'open'
+    CLOSED = 'closed'
+    
+    STATE_CHOICES = [
+        (OPEN, 'Open'),
+        (CLOSED, 'Closed'),
+    ]
+    
     portfolio = auto_prefetch.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='positions')
     stock = auto_prefetch.ForeignKey(Stock, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0)
     average_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    state = models.CharField(max_length=10, choices=STATE_CHOICES, default=OPEN)
+    created = models.DateTimeField(auto_now_add=True)
+    
+    def close_position(self):
+        self.state = self.CLOSED
+        self.save()
 
     def update_position(self, trade):
         # Update the position based on the executed trade
@@ -526,12 +540,24 @@ class Position(auto_prefetch.Model):
         return self.profit_loss
     
 class DemoPosition(auto_prefetch.Model):
+    OPEN = 'open'
+    CLOSED = 'closed'
+    
+    STATE_CHOICES = [
+        (OPEN, 'Open'),
+        (CLOSED, 'Closed'),
+    ]
     portfolio = auto_prefetch.ForeignKey(DemoPortfolio, on_delete=models.CASCADE, related_name='demopositions')
     stock = auto_prefetch.ForeignKey(Stock, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0)
     average_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    state = models.CharField(max_length=10, choices=STATE_CHOICES, default=OPEN)
     created = models.DateTimeField(auto_now_add=True)
     
+    def close_position(self):
+        self.state = self.CLOSED
+        self.save()
+        
     def calculate_profit_loss(self):
         # Calculate profit or loss based on the current price
         total_value = self.quantity * get_price(self.stock.symbol)['current_price']
