@@ -368,7 +368,7 @@ class Receipts(auto_prefetch.Model):
 class PayStackReceipts(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)
     reference=models.CharField(max_length=255, blank=True, null=True)
-    # transaction=models.CharField(max_length=255, blank=True, null=True)
+    transaction=models.CharField(max_length=255, blank=True, null=True)
     amount = models.IntegerField(blank=True,null=True)
     date = models.DateTimeField(auto_now_add=True)
     receipt_status = models.CharField(max_length=20,default='unprocessed'  )

@@ -367,7 +367,7 @@ def PayStackReceiptsView(request):
     paystack_recipt=PayStackReceipts.objects.create(
         user = request.user,
         reference=request.data.get("reference"),
-        # transaction=request.data.get("trans"),
+        transaction=request.data.get("transaction"),
         amount=amount,
         receipt_status = 'confirmed'
 
