@@ -16,5 +16,6 @@ urlpatterns = [
    path("trade-activity-log/<str:id>/", views.UserTradeActivityLog.as_view()),
    path("user-payment-history/<str:id>/", views.UserPaymentActivityLog.as_view()),
    path("user-asset-breakdown/<str:id>/", views.UserAssetBreakDown.as_view()),
+   path("analytics/", views.AnalyticsView.as_view())
 
 ]

@@ -2,7 +2,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from accounts.models import Referral as acc_Referral, UserActivityLog 
-from accounts import models 
+# from accounts import models 
 from accounts import serializers as acc_serializers
 from . import serializers
 from rest_framework.views import APIView
@@ -19,6 +19,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from affilate import models as aff_models, serializers as aff_serializers
 from affilate.utils import get_quarter_dates,get_rank_details
+from django.db.models import Sum, F, Count, Q, ExpressionWrapper, DecimalField
+from django.db.models.functions import Coalesce
+from datetime import datetime, timedelta
+
 
 User=get_user_model()
 
@@ -458,3 +462,126 @@ class UserAssetBreakDown(APIView):
         return Response({"acc_summary":acc_summary, "stock_history":holding_data})
 
     
+
+class AnalyticsView(APIView):
+    
+    def get(self, request):
+        def calculate_percentage_change(old_value, new_value):
+            return round(((new_value - old_value) / old_value) * 100,2) if old_value != 0 else 0
+        
+        #users
+        users = User.objects.all()
+        
+        active_users= users.filter(is_active=True).count()
+        
+        current_month = datetime.now().month
+        current_year = datetime.now().year
+
+        # users_this_month = User.objects.filter(is_active=True, date_joined__month=current_month, date_joined__year=current_year).count()
+
+        last_month = datetime(current_year, current_month, 1)
+        # last_month = datetime(current_year, current_month, 1) - timedelta(days=1)
+        
+        # users_last_month = User.objects.filter(is_active=True, date_joined__month=last_month.month, date_joined__year=last_month.year).count()
+        users_last_month = User.objects.filter(is_active=True, date_joined__lt=last_month).count()
+
+        user_percentage_change = calculate_percentage_change(users_last_month, active_users)
+        print(active_users, user_percentage_change)
+        #Assets        
+        portfolios = Portfolio.objects.all()
+        
+        total_portfolio_value = sum(portfolio.portfolio_value() for portfolio in portfolios)
+        
+        portfolio_before= portfolios.filter(created__lt=datetime(current_year, current_month, 1))
+        
+        # total_assets_under_mgmt = portfolios.aggregate(Sum('portfolio_value'))['portfolio_value__sum'] or Decimal(0)
+        portfolios_before_this_month = sum(port.portfolio_value() for port in portfolio_before) if portfolio_before else 0
+        percentage_of_total_assets = round(calculate_percentage_change(portfolios_before_this_month, total_portfolio_value),2)
+
+        print(total_portfolio_value, percentage_of_total_assets)
+        
+        #Transactions
+        transactions = models.Transaction.objects.all()
+        total_transactions = transactions.count()
+        transactions_before = transactions.filter(date__lt=datetime(current_year, current_month, 1)).count()
+        transaction_change = calculate_percentage_change(transactions_before,total_transactions )
+        
+        print('transactions', total_transactions, transaction_change)
+        # Calculate average daily active users
+        users_activity = UserActivityLog.objects.values('user', 'timestamp__date').annotate(daily_activity=Count('id'))
+        total_daily_active_users = users_activity.values('timestamp__date').annotate(total_activity=Count('user')).aggregate(total_users=Sum('total_activity'))['total_users']
+        average_daily_users = total_daily_active_users / users_activity.values('timestamp__date').count() if users_activity.values('timestamp__date').count() != 0 else 0
+        
+        users_activity_before_this_month = UserActivityLog.objects.filter(timestamp__date__lt=datetime(current_year, current_month, 1)).values('user', 'timestamp__date').annotate(daily_activity=Count('id'))
+        total_daily_active_users_before_this_month = users_activity_before_this_month.values('timestamp__date').annotate(total_activity=Count('user')).aggregate(total_users=Sum('total_activity'))['total_users']
+        average_daily_users_before_this_month = total_daily_active_users_before_this_month / users_activity_before_this_month.values('timestamp__date').count() if users_activity_before_this_month.values('timestamp__date').count() != 0 else 0
+
+        percentage_change_average_daily_users = calculate_percentage_change(average_daily_users_before_this_month,average_daily_users)
+
+        print('activities',average_daily_users,percentage_change_average_daily_users)
+        #peforming and top traded_stocks
+        # top_performing_stocks = Holding.objects.values('stock__symbol').annotate(
+        #     total_pnl=Coalesce(Sum((F('ltp') - F('avg_cost')) * F('filled')), 0)
+        # ).order_by('-total_pnl')[:10]
+
+        # # Top 10 most traded stocks based on total quantity traded
+        # top_most_traded_stocks = Holding.objects.values('stock__symbol').annotate(
+        #     total_quantity_traded=Coalesce(Sum('trades__quantity', filter=Q(trades__status='completed')), 0)
+        # ).order_by('-total_quantity_traded')[:10]
+
+        # # Accessing the stock symbols for the top performing and most traded stocks
+        # top_performing_stock_symbols = [item['stock__symbol'] for item in top_performing_stocks]
+        # top_most_traded_stock_symbols = [item['stock__symbol'] for item in top_most_traded_stocks]
+
+        # def calculate_ltp(holding):
+        #     # Replace this with your logic to get the current_price
+        #     data = get_price(holding.stock.symbol)
+        #     return Decimal(data['current_price'])
+
+        # Fetch holdings from the database
+        # holdings = Holding.objects.all()
+        holdings = Holding.objects.annotate(ltp=F('ltp')).all()
+
+        # Calculate total pnl for each holding
+        total_pnl_expression = Sum(ExpressionWrapper(
+            F('ltp') - F('avg_cost') * F('filled'),
+            output_field=DecimalField()
+        ))
+
+        # Calculate total pnl for each holding
+        total_quantity_traded_expression = Sum(
+            'trades__quantity',
+            filter=Q(trades__status='completed')
+        )
+
+        # Calculate top performing stocks
+        top_performing_stocks = holdings.values('stock__symbol').annotate(
+            total_pnl=Coalesce(total_pnl_expression, 0)
+        ).order_by('-total_pnl')[:10]
+
+        # Calculate top most traded stocks
+        top_most_traded_stocks = holdings.values('stock__symbol').annotate(
+            total_quantity_traded=Coalesce(total_quantity_traded_expression, 0)
+        ).order_by('-total_quantity_traded')[:10]
+
+        # Accessing the stock symbols for the top performing and most traded stocks
+        top_performing_stock_symbols = [item['stock__symbol'] for item in top_performing_stocks]
+        top_most_traded_stock_symbols = [item['stock__symbol'] for item in top_most_traded_stocks]
+
+        
+        data = {
+            'total_registered_users': active_users,
+            'percentage_change_registered_users': user_percentage_change,  
+            'total_assets_under_mgmt': total_portfolio_value,
+            'percentage_change_assets_under_mgmt': percentage_of_total_assets,  
+            'total_transactions': total_transactions,
+            'percentage_change_total_transactions': transaction_change,  
+            'average_daily_active_users': average_daily_users,
+            'percentage_change_daily_active_users': percentage_change_average_daily_users, 
+            "top_performing_stock":top_performing_stock_symbols,
+            "most_traded_stock_symbols":top_most_traded_stock_symbols
+             
+            # Add other metrics as needed
+        }
+
+        return Response(data)

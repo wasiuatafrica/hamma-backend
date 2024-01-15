@@ -364,6 +364,8 @@ class Receipts(auto_prefetch.Model):
     approved_date = models.DateTimeField(auto_now=True)
     payment_method= models.CharField(max_length=20,default='Bank Transfer'  )
     
+    def __str__(self) -> str:
+        return f'{self.user}-{self.amount}'
     
 class PayStackReceipts(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)
@@ -371,8 +373,12 @@ class PayStackReceipts(auto_prefetch.Model):
     transaction=models.CharField(max_length=255, blank=True, null=True)
     amount = models.IntegerField(blank=True,null=True)
     date = models.DateTimeField(auto_now_add=True)
-    receipt_status = models.CharField(max_length=20,default='unprocessed'  )
+    receipt_status = models.CharField(max_length=20,default='unprocessed')
     comment = models.TextField(blank=True, null=True)
+    
+    
+    def __str__(self):
+        return f'{self.user}-{self.amount}'
     
 class WithdrawalRequest(auto_prefetch.Model):
     wallet=auto_prefetch.ForeignKey(Wallet, on_delete=models.CASCADE)

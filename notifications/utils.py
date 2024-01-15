@@ -4,11 +4,12 @@ from datetime import datetime
 import shortuuid
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+import os
 
 channel_layer = get_channel_layer()
 
 dynamodb = boto3.resource('dynamodb', region_name='eu-north-1')
-table_name = 'Anyon'  
+table_name = os.environ.get('TABLE')
 table = dynamodb.Table(table_name)
 
 def save_and_send_notification(user_id, message):
