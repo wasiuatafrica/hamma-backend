@@ -7,14 +7,13 @@ from django.db.models import Sum, Avg, F
 import auto_prefetch
 from decimal import Decimal
 from datetime import datetime, timedelta
-
-# from accounts.models import UserLoginActivity
-
 import json
 import websockets
 import asyncio
+from django.db import close_old_connections
+from concurrent.futures import ThreadPoolExecutor
 
-# from portfolio.utils import get_price
+
 
 User= get_user_model()
 
@@ -40,6 +39,72 @@ async def connect_to_websocket(stock_symbol):
 def get_price(stock):
     return asyncio.run(connect_to_websocket(stock))
 
+def get_holding_detail(holding, trades):
+    from .utils import get_price
+    stock= holding.stock.symbol
+    data=get_price(stock)
+    id = holding.id
+    quantity=holding.quantity
+    created = holding.created
+    updated = holding.updated
+    filled = trades.filter(status='completed').aggregate(total_quantity=Sum('quantity'))['total_quantity'] if trades else 0
+    incomplete_ = trades.filter(status='pending')
+    
+    if not filled :
+        filled = 0
+    
+    if incomplete_:
+        incomplete1 = incomplete_.aggregate(total_quantity=Sum('quantity'))['total_quantity']
+        if incomplete1:
+            incomplete = incomplete1
+        else:
+            incomplete = 0
+    else:
+        incomplete = 0
+        
+    shares= filled + incomplete
+    avg_cost = holding.avg_cost() 
+    ltp =  Decimal(data['current_price'])
+    cur_val = round((ltp * quantity),2)
+    pnl = round((ltp - avg_cost) * filled, 2) if avg_cost else 0
+    change = round(ltp- avg_cost ,2) if avg_cost else 0
+    percent_change = round((change/avg_cost) * 100,2) if avg_cost else 0
+    avg_volume_3_months =60000
+    volume = 9000000
+    return {
+            'id':id,
+            'stock':stock,
+            'quantity':quantity,
+            'created':created,
+            'updated':updated,
+            'filled':filled,
+            'incomplete':incomplete,
+            'shares':shares,
+            'avg_cost':avg_cost,
+            'ltp':ltp,
+            'cur_val':cur_val,
+            'pnl':pnl,
+            'change':change,
+            'percent_change':percent_change,
+            'avg_volume_3_months':avg_volume_3_months,
+            'volume':volume,}
+
+def get_holding_details_concurrently(holding):
+    try:
+        trades = holding.trades.all()
+        return get_holding_detail(holding, trades)
+    finally:
+        # Close the old database connections to avoid connection exhaustion
+        close_old_connections()
+
+def get_demo_holding_details_concurrently(holding):
+    try:
+        trades = holding.demotrades.all()
+        return get_holding_detail(holding, trades)
+    finally:
+        # Close the old database connections to avoid connection exhaustion
+        close_old_connections()
+      
 TRADING_STATUS_CHOICES = [
     ('Listed', 'Listed'),
     ('Delisted', 'Delisted')
@@ -104,12 +169,23 @@ class DemoPortfolio(auto_prefetch.Model):
     def __str__(self):
         return f"{self.user} - Portfolio"
     
+    # def portfolio_value(self):
+    #     holdings = self.demoholdings.all()
+    #     if not holdings.exists():
+    #         return Decimal(0)
+    #     return sum(holding.cur_val for holding in holdings)
     
     def portfolio_value(self):
         holdings = self.demoholdings.all()
         if not holdings.exists():
             return Decimal(0)
-        return sum(holding.cur_val for holding in holdings)
+        
+        with ThreadPoolExecutor() as executor:
+                futures = [executor.submit(get_demo_holding_details_concurrently, holding) for holding in holdings]
+                holdings_data = [future.result() for future in futures]
+        cur_vals = [holding['cur_val'] for holding in holdings_data]
+        portfolio_value = sum(cur_vals)
+        return portfolio_value
 
     @property
     def total_invested(self):
@@ -161,7 +237,13 @@ class Portfolio(auto_prefetch.Model):
         holdings = self.holdings.all()
         if not holdings.exists():
             return Decimal(0)
-        return sum(holding.cur_val for holding in holdings)
+        
+        with ThreadPoolExecutor() as executor:
+                futures = [executor.submit(get_holding_details_concurrently, holding) for holding in holdings]
+                holdings_data = [future.result() for future in futures]
+        cur_vals = [holding['cur_val'] for holding in holdings_data]
+        portfolio_value = sum(cur_vals)
+        return portfolio_value
 
     @property
     def total_invested(self):

@@ -1,4 +1,5 @@
 
+from random import uniform
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from accounts.models import Referral as acc_Referral, UserActivityLog 
@@ -22,6 +23,8 @@ from affilate.utils import get_quarter_dates,get_rank_details
 from django.db.models import Sum, F, Count, Q, ExpressionWrapper, DecimalField
 from django.db.models.functions import Coalesce
 from datetime import datetime, timedelta
+from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 
 
 User=get_user_model()
@@ -345,7 +348,7 @@ class AffilateManagement(APIView):
         return Response(sorted_data)
 
 from accounts.models import UserActivityLog
-from portfolio.models import Trade, Holding, Receipts, PayStackReceipts, Portfolio, Wallet
+from portfolio.models import Stock, Trade, Holding, Receipts, PayStackReceipts, Portfolio, Wallet
 from portfolio.serializers import TradeSerializer
 
 class UserActivityLogView(APIView):
@@ -490,7 +493,7 @@ class AnalyticsView(APIView):
         #Assets        
         portfolios = Portfolio.objects.all()
         
-        total_portfolio_value = sum(portfolio.portfolio_value() for portfolio in portfolios)
+        total_portfolio_value = round(sum(portfolio.portfolio_value() for portfolio in portfolios),2)
         
         portfolio_before= portfolios.filter(created__lt=datetime(current_year, current_month, 1))
         
@@ -519,55 +522,58 @@ class AnalyticsView(APIView):
         percentage_change_average_daily_users = calculate_percentage_change(average_daily_users_before_this_month,average_daily_users)
 
         print('activities',average_daily_users,percentage_change_average_daily_users)
-        #peforming and top traded_stocks
-        # top_performing_stocks = Holding.objects.values('stock__symbol').annotate(
-        #     total_pnl=Coalesce(Sum((F('ltp') - F('avg_cost')) * F('filled')), 0)
-        # ).order_by('-total_pnl')[:10]
+        
+        #top traded stocks
+        def symbol_details(symbol):
+            stock= get_object_or_404(Stock, symbol=symbol)
+            return {'symbol':symbol, 'price':stock.ltp, 'change':round(uniform(-4,4),2)}
+        def most_traded_stocks():
+            # Aggregate the total quantity traded for each stock
+            traded_stocks = Trade.objects.filter(status='completed').values('holding__stock__symbol').annotate(total_quantity=Sum('quantity'))
+            # print(traded_stocks)
+            
+            traded_stocks_tuples = [(entry['holding__stock__symbol'], entry['total_quantity']) for entry in traded_stocks]
+            
+            most_traded_stocks = sorted(traded_stocks_tuples, key=lambda x: x[1], reverse=True)[:10]
+            # print(most_traded_stocks)
+            
+            with ThreadPoolExecutor() as executor:
+                futures = [executor.submit(symbol_details, stock_symbol) for stock_symbol, total_quantity in most_traded_stocks]
+                top_10_symbols = [future.result() for future in futures]
+            # top_10_symbols = [symbol_details(stock_symbol) for stock_symbol, total_quantity in most_traded_stocks]
 
-        # # Top 10 most traded stocks based on total quantity traded
-        # top_most_traded_stocks = Holding.objects.values('stock__symbol').annotate(
-        #     total_quantity_traded=Coalesce(Sum('trades__quantity', filter=Q(trades__status='completed')), 0)
-        # ).order_by('-total_quantity_traded')[:10]
+            return top_10_symbols
+        
+        top_most_traded_stock_symbols = most_traded_stocks()
+        # print(top_most_traded_stock_symbols)
+        
+        def top_performing_stocks():
+            # Get all holdings
+            all_holdings = Holding.objects.all()
+            def hold_details(holding):
+                return holding.stock.symbol, holding.pnl, holding.portfolio.user.fullname
+            
+            with ThreadPoolExecutor() as executor:
+                futures = [executor.submit(hold_details, holding) for holding in all_holdings]
+                performance_data = [future.result() for future in futures]
 
-        # # Accessing the stock symbols for the top performing and most traded stocks
-        # top_performing_stock_symbols = [item['stock__symbol'] for item in top_performing_stocks]
-        # top_most_traded_stock_symbols = [item['stock__symbol'] for item in top_most_traded_stocks]
+            # Calculate profit/loss for each holding
+            # performance_data = [(holding.stock.symbol, holding.pnl, holding.portfolio.user.fullname) for holding in all_holdings]
 
-        # def calculate_ltp(holding):
-        #     # Replace this with your logic to get the current_price
-        #     data = get_price(holding.stock.symbol)
-        #     return Decimal(data['current_price'])
+            # Sort holdings based on profit/loss in descending order
+            sorted_performance = sorted(performance_data, key=lambda x: x[1], reverse=True)
 
-        # Fetch holdings from the database
-        # holdings = Holding.objects.all()
-        holdings = Holding.objects.annotate(ltp=F('ltp')).all()
+            # Extract the top-performing stocks
+            top_performing_stocks = [{
+                "symbol": symbol,
+                "pnl": pnl,
+                "user":user
+            }
+                for symbol,pnl,user in sorted_performance[:10]]
 
-        # Calculate total pnl for each holding
-        total_pnl_expression = Sum(ExpressionWrapper(
-            F('ltp') - F('avg_cost') * F('filled'),
-            output_field=DecimalField()
-        ))
-
-        # Calculate total pnl for each holding
-        total_quantity_traded_expression = Sum(
-            'trades__quantity',
-            filter=Q(trades__status='completed')
-        )
-
-        # Calculate top performing stocks
-        top_performing_stocks = holdings.values('stock__symbol').annotate(
-            total_pnl=Coalesce(total_pnl_expression, 0)
-        ).order_by('-total_pnl')[:10]
-
-        # Calculate top most traded stocks
-        top_most_traded_stocks = holdings.values('stock__symbol').annotate(
-            total_quantity_traded=Coalesce(total_quantity_traded_expression, 0)
-        ).order_by('-total_quantity_traded')[:10]
-
-        # Accessing the stock symbols for the top performing and most traded stocks
-        top_performing_stock_symbols = [item['stock__symbol'] for item in top_performing_stocks]
-        top_most_traded_stock_symbols = [item['stock__symbol'] for item in top_most_traded_stocks]
-
+            return top_performing_stocks
+        top_performing_stock=top_performing_stocks()
+        
         
         data = {
             'total_registered_users': active_users,
@@ -578,8 +584,8 @@ class AnalyticsView(APIView):
             'percentage_change_total_transactions': transaction_change,  
             'average_daily_active_users': average_daily_users,
             'percentage_change_daily_active_users': percentage_change_average_daily_users, 
-            "top_performing_stock":top_performing_stock_symbols,
-            "most_traded_stock_symbols":top_most_traded_stock_symbols
+            "top_performing_stock":top_performing_stock,
+            "most_traded_stock":top_most_traded_stock_symbols
              
             # Add other metrics as needed
         }

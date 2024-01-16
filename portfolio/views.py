@@ -157,12 +157,12 @@ class StockList(generics.ListAPIView):
         
         details = get_details3(queryset)
         symbol_data = get_symbol_data(first.symbol)
-        historical_data=get_historical_data(first.symbol)
+        # historical_data=get_historical_data(first.symbol)
         
         response_data = {
             'stock_list': details,
             'first_symbol_order_book': symbol_data,
-            'historical_data':historical_data,
+            # 'historical_data':historical_data,
         }
         return Response(response_data)
 # class StockList(generics.ListAPIView):

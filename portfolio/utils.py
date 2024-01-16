@@ -7,6 +7,8 @@ import asyncio
 from openai import OpenAI
 from django.contrib.auth import get_user_model
 from .models import AlertAI, Conversation, Message
+from concurrent.futures import ThreadPoolExecutor
+
 User= get_user_model()
 
 def connect_to_mongodb(db_name):
@@ -196,8 +198,11 @@ def get_details2(stock, stock_data):
 def get_details3(stocks):
     symbols =[stock.symbol for stock in stocks]
     stockdata= get_stockdata(symbols)
-    return [get_details2(stock,stockdata) for stock in stocks]
-
+    # return [get_details2(stock,stockdata) for stock in stocks]
+    with ThreadPoolExecutor() as executor:
+            futures = [executor.submit(get_details2, stock,stockdata) for stock in stocks]
+            performance_data = [future.result() for future in futures]
+    return performance_data
 
 def get_alert_data(prompt):
     client = OpenAI()
