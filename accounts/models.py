@@ -76,7 +76,7 @@ class TwoFactorToken(models.Model):
 
     @staticmethod
     def generate_random_token():
-        token = ''.join([str(random.randint(0, 9)) for _ in range(8)])
+        token = ''.join([str(random.randint(0, 9)) for _ in range(6)])
         return token
     
 class Referral(auto_prefetch.Model):
