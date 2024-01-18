@@ -700,42 +700,56 @@
         </div>
     </div>
     <div class="container mt-5">
-        <h3 data-toggle="collapse" data-target="#holdings">9. Holdings</h3>
+        <h3 data-toggle="collapse" data-target="#holdings">9. Holdings [UPDATED]</h3>
         <div id="holdings" class="collapse">
     
             <h4>9a. Get Portfolio Details with Holdings</h4>
-            <p>GET /portfolio/portfolio/</p>
+            <p>GET /execution/holding/demo/</p>
+            <p>GET /execution/holding/live/</p>
     
             <h5>Response:</h5>
             <pre>
                 Retrieve the portfolio details along with a list of holdings for the authenticated user.
                 {
-                    "portfolio": {
-                        "portfolio_value": 10000.0,
-                        "total_invested": 8000.0,
-                        "profit_loss": 2000.0
-                    },
+                    "portfolio_value": 682080.0,
+                    "profit_loss": -4230,
+                    "total_invested": 686310.0,
                     "holdings": [
+                        
                         {
                             "id": 1,
-                            "stock": "AAPL",
-                            "quantity": 10,
-                            "created": "2023-12-05T12:34:56.789Z",
-                            "updated": "2023-12-05T12:34:56.789Z",
-                            "filled": 8,
-                            "incomplete": 2,
-                            "shares": 5,
-                            "avg_cost": 150.0,
-                            "ltp": 180.0,
-                            "cur_val": 900.0,
-                            "pnl": 100.0,
-                            "change": 30.0,
-                            "percent_change": 20.0,
-                            "avg_volume_3_months": 500000,
-                            "volume": 100,
-                            // ... other fields
+                            "stock": "JAIZBANK",
+                            "shares": 3000,
+                            "avg_cost": null,
+                            "close_price": 99.49,
+                            "ltp": 84.46,
+                            "open_time": "2024-01-18T09:07:17.379022+00:00",
+                            "close_time": "2024-01-18T10:31:19.520098+00:00",
+                            "change": -7680,
+                            "percent_change": -2.51,
+                            "cur_val": 298470.0,
+                            "avg_volume": "3300",
+                            "volume": "66000",
+                            "status": "close",
+                            "invested": 306150.0
                         },
-                        // ... additional holdings
+                        {
+                            "id": 5,
+                            "stock": "ZENITHBANK",
+                            "shares": 500,
+                            "avg_cost": null,
+                            "close_price": 20.75,
+                            "ltp": 22.95,
+                            "open_time": "2024-01-18T09:19:11.504120+00:00",
+                            "close_time": "2024-01-18T09:19:11.504337+00:00",
+                            "change": 1100.0,
+                            "percent_change": 10.6,
+                            "cur_val": 11475.0,
+                            "avg_volume": "3300",
+                            "volume": "66000",
+                            "status": "open",
+                            "invested": 10375.0
+                        },
                     ]
                 }
             </pre>
@@ -1265,7 +1279,7 @@
     </div>
     
     <div class="container mt-5">
-        <h3 data-toggle="collapse" data-target="#trade-execution">15. Demo and Live Trade Execution</h3>
+        <h3 data-toggle="collapse" data-target="#trade-execution">15. Demo and Live Trade Execution [updated]</h3>
         <div id="trade-execution" class="collapse">
     
             <!-- Previous content -->
@@ -1301,11 +1315,34 @@
                     Response:
 
                     if success:
-                    
-                    {
-                        "message": "Buy order placed successfully."
-                    }
-                    
+                    <pre>
+                        {
+                            "message": "Buy order placed successfully.",
+                            "positions": [
+                                {
+                                    "id": 2,
+                                    "symbol": "JAIZBANK",
+                                    "open_pl": -32700.0,
+                                    "pl_percent": -10.71,
+                                    "created": "2024-01-18T09:10:51.450245Z"
+                                },
+                                {
+                                    "id": 4,
+                                    "symbol": "UBA",
+                                    "open_pl": -101010.0,
+                                    "pl_percent": -26.6,
+                                    "created": "2024-01-18T09:12:53.755619Z"
+                                },
+                                {
+                                    "id": 5,
+                                    "symbol": "ZENITHBANK",
+                                    "open_pl": -1160.0,
+                                    "pl_percent": -11.18,
+                                    "created": "2024-01-18T09:19:11.504120Z"
+                                }
+                            ]
+                        }
+                    </pre>
                     else:
                     {
                         "error": "Invalid time in force."
@@ -1321,59 +1358,98 @@
         </div>
     </div>
     <div class="container mt-5">
-        <h3 data-toggle="collapse" data-target="#home1">16. Home</h3>
-        <div id="home1" class="collapse">
+        <h3 data-toggle="collapse" data-target="#home2">16. HOME [updated]</h3>
+        <div id="home2" class="collapse">
     
-            <h4>WebSocket Connection Home</h4>
-
-            <p>WebSocket URL: <p>wss://{base_url}/ws/demo/equity/?token=${accessToken}</p>
-            <p>WebSocket URL: <p>wss://{base_url}/ws/live/equity/?token=${accessToken}</p>
-           
-            <p>Upon connection this data structure will be sent:</p>
-            <pre>
-                {"data": {
-                    "equity": 173684.09, 
-                    "positions": [
-                        {"date": "2024-01-11T11:20:18.940376+00:00", "pnl": 79326.0}, 
-                        {"date": "2024-01-11T11:32:58.342720+00:00", "pnl": -8244.0}
-                        ], 
-                    "overview": [
-                            {"date": "2024-01-05", "portfolio_returns": 179.36, "market_returns": 89.15}, 
-                            {"date": "2024-01-06", "portfolio_returns": 178.23, "market_returns": 88.02}, 
-                            {"date": "2024-01-07", "portfolio_returns": 173.72, "market_returns": 83.51}, 
-                            {"date": "2024-01-08", "portfolio_returns": 182.19, "market_returns": 91.98}, 
-                            {"date": "2024-01-09", "portfolio_returns": 185.53, "market_returns": 95.32}, 
-                            {"date": "2024-01-10", "portfolio_returns": 176.85, "market_returns": 86.64}, 
-                            {"date": "2024-01-11", "portfolio_returns": 177.45, "market_returns": 87.24}
-                            ]
-                        }
+            <!-- Previous content -->
+    
+            
+            <p>Endpoint:GET /execution/home/demo/</p>
+            <p>Endpoint:GET /execution/trade/live/</p>
+    
+            <ol>
+                <pre>
+                    RESPONSE:
+                    {
+                        "balance": 0.0,
+                        "equity": 13430.0,
+                        "floating_pl": 13430.0,
+                        "positions": [
+                            {
+                                "id": 1,
+                                "symbol": "JAIZBANK",
+                                "open_pl": -3480.0,
+                                "pl_percent": -1.14,
+                                "created": "2024-01-18T09:07:17.379022Z"
+                            },
+                            {
+                                "id": 2,
+                                "symbol": "JAIZBANK",
+                                "open_pl": -1200.0,
+                                "pl_percent": -0.39,
+                                "created": "2024-01-18T09:10:51.450245Z"
+                            },
+                            
+                        ],
+                        "current_value": [
+                            {
+                                "stock": "JAIZBANK",
+                                "current_value": 302670.0
+                            },
+                            {
+                                "stock": "JAIZBANK",
+                                "current_value": 304110.0
+                            },
+                            
+                        ],
+                        "overview": [
+                            {
+                                "date": "2024-01-12",
+                                "portfolio_returns": 2790390.99,
+                                "market_returns": 1395194.99
+                            },
+                            {
+                                "date": "2024-01-13",
+                                "portfolio_returns": 2790390.92,
+                                "market_returns": 1395194.92
+                            },
+                            {
+                                "date": "2024-01-14",
+                                "portfolio_returns": 2790391.09,
+                                "market_returns": 1395195.09
+                            },
+                            {
+                                "date": "2024-01-15",
+                                "portfolio_returns": 2790390.95,
+                                "market_returns": 1395194.95
+                            },
+                            {
+                                "date": "2024-01-16",
+                                "portfolio_returns": 2790391.07,
+                                "market_returns": 1395195.07
+                            },
+                            {
+                                "date": "2024-01-17",
+                                "portfolio_returns": 2790391.01,
+                                "market_returns": 1395195.01
+                            },
+                            {
+                                "date": "2024-01-18",
+                                "portfolio_returns": 2790391.03,
+                                "market_returns": 1395195.03
+                            }
+                        ]
                     }
-
-                    same structure for live and demo
-
-                    **You should keep the connection open because same data structure is sent whenever trade is placed
-            </pre>
+                    
+                </pre>                    
+            </ol>
     
-            <p>for holding data, call the holding page endpoint</p>
-    
-        </div>
+                </div>
     </div>
 
     <div class="container mt-5">
-        <h3 data-toggle="collapse" data-target="#home1">17. Activate authapps 2fa </h3>
-        <div id="home1" class="collapse">
-    
-            <h4>Activate authapps 2fa</h4>
-
-            <p>URL: <p>/activate-authapp/</p>
-           
-            <p>Request body</p>
-            <pre>
-                {
-                    "token":"123567"
-                }
-            </pre>
-    
+        <h3 data-toggle="collapse" data-target="#home4">17. Activate authapps 2fa </h3>
+        <div id="home4" class="collapse">
             <p>Response.</p>
             <pre>
                 {
@@ -1381,6 +1457,7 @@
                 }
             </pre>
             <p>NOTE: The user's 2FA for authapps will enabled. </p>
+
     
         </div> 
     </div>

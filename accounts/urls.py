@@ -13,9 +13,3 @@ urlpatterns=[
     path("update-password-dashboard/", views.DashBoardUpdatePassword.as_view(), name="update-password-dashboard"),
     path("reset-password/", views.ResetForgettenPassword.as_view()),
     path("activate-authapp/", views.ActivteAuthApp2fa.as_view()), 
-    
-
-    # OTP
-    # path('creat_totp/', views.TOTPCreateView.as_view(), name='totp-create'),
-    # path('verify-totp/<token>/', views.TOTPVerifyView.as_view(), name='totp-login'),
-]
