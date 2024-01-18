@@ -1351,8 +1351,26 @@
                 </pre>                    
             </ol>
     
+            <h4>15b. Close Trade</h4>
             
-            <h4>15b. Live Trade Execution (Under Construction)</h4>
+            <p>Endpoint:POST /execution/close/demo/{id}</p>
+
+            <pre>
+                where id =position_id
+
+                response:
+                {
+                    "id": 3,
+                    "stock": "UBA",
+                    "quantity": 3000,
+                    "open_price": null,
+                    "close_price": 127.87,
+                    "open_time": "2024-01-18T09:11:58.721089+00:00",
+                    "close_time": "2024-01-18T10:31:57.989116+00:00",
+                    "profit_loss": 3450.0
+                }
+            </p>
+            <h4>15c. Live Trade Execution (Under Construction)</h4>
             <p>The live trade execution logic is currently under construction.</p>
     
         </div>
@@ -1376,18 +1394,8 @@
                         "floating_pl": 13430.0,
                         "positions": [
                             {
-                                "id": 1,
-                                "symbol": "JAIZBANK",
-                                "open_pl": -3480.0,
-                                "pl_percent": -1.14,
-                                "created": "2024-01-18T09:07:17.379022Z"
-                            },
-                            {
-                                "id": 2,
-                                "symbol": "JAIZBANK",
-                                "open_pl": -1200.0,
-                                "pl_percent": -0.39,
-                                "created": "2024-01-18T09:10:51.450245Z"
+                                "profit_loss": 2320,
+                                "date": "2024-01-18",
                             },
                             
                         ],
@@ -1448,8 +1456,9 @@
     </div>
 
     <div class="container mt-5">
-        <h3 data-toggle="collapse" data-target="#home4">17. Activate authapps 2fa </h3>
+        <h3 data-toggle="collapse" data-target="#home4">17. Activate authapps 2fa [NEW]</h3>
         <div id="home4" class="collapse">
+            <p> POST /accounts/activate-authapp/</p>
             <p>Response.</p>
             <pre>
                 {

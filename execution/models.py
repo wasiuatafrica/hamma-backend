@@ -119,3 +119,8 @@ class MasterWallet(auto_prefetch.Model):
     created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
     trade = auto_prefetch.ForeignKey(Trade, on_delete=models.CASCADE,related_name='master_wallet', null=True, blank=True)
 
+class DemoProfitLoss(auto_prefetch.Model):
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='profitloss')
+    profit_loss = models.IntegerField(default=0)
+    created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
+

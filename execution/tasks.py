@@ -11,7 +11,7 @@ from django.db import transaction
 from time import sleep
 from decimal import Decimal
 from datetime import datetime, timedelta
-from .models import DemoPosition
+from .models import DemoPosition, DemoProfitLoss
 from portfolio.utils import get_price
 from notifications.utils import save_and_send_notification
 from django_celery_beat.models import PeriodicTask
@@ -266,3 +266,15 @@ def process_limit_order(id):
         task = PeriodicTask.objects.get(name=position.alert_name)
         task.enabled = False
         task.save()
+        
+@shared_task
+def get_daily_profit_loss():
+    users = User.objects.all()
+    for user in users:
+        positions = DemoPosition.objects.filter(portfolio__user=user,status='open')
+        total = 0.0
+        for position in positions:
+            pl,value,price = position.calculate_profit_loss() 
+            total += float(pl)
+            
+        DemoProfitLoss.objects.create(user=user, profit_loss=total)
