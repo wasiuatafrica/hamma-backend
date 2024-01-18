@@ -16,6 +16,9 @@ import random
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 from django.db.models import Sum
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
+import shortuuid
+import json
 
 from .models import DemoPosition, DemoPortfolio
 from .serializers import DemoPositionSerializer
@@ -120,187 +123,121 @@ from .serializers import DemoPositionSerializer
 class DemoTradeAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
-        mode = self.kwargs.get('mode')
+    def post(self, request):
         
         symbol = request.data.get('symbol')
         quantity = int(request.data.get('quantity'))
         if request.data.get('price'):
             price = float(request.data.get('price'))
         action = request.data.get('action')
-        time_in_force = request.data.get('time_in_force', 'GTC')  # Default to Good 'Til Canceled
+        time_in_force = request.data.get('time_in_force', 'day')  # Default to Good 'Til Canceled
         is_buy = action == 'buy'
         order_type = request.data.get('order_type')
+        
+        print(order_type)
         
         stock = get_object_or_404(Stock, symbol=symbol)
         portfolio = DemoPortfolio.objects.get_or_create(user=request.user)[0]
          
-        if mode == 'demo':
-
-
-            if order_type == 'market':
-                market_price = round(Decimal(get_price(symbol)['current_price']), 2)
-                amount = quantity * market_price
-                
-                position = DemoPosition.objects.create(
-                    portfolio=portfolio,
-                    stock=stock,
-                    status=DemoPosition.OPEN, 
-                    open_price = market_price,
-                    quantity=quantity,
-                    amount_invested = amount
-                    
-                    
-                )
-
-                if is_buy:
-                    trade_order_type = 'buy'
-                else:
-                    trade_order_type = 'sell'
-                    position.order_type = 'sell'
-                    position.save()
-
-                # trade = DemoTrade.objects.create(
-                #     user=request.user,
-                #     position=position,
-                #     quantity=quantity,
-                #     price=market_price,
-                #     order_type=trade_order_type,
-                #     status='completed',
-                # )
-
-                # Record the transaction
-                DemoTransaction.objects.create(
-                    user=request.user,
-                    transaction_type='open trade',
-                    amount=quantity * market_price,
-                    status='completed'
-                )
-                position_data_list = []
-                
-                positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
-                for position in positions:
-                    pl, cur_val,price = position.calculate_profit_loss()
-                    symbol=position.stock.symbol
-                    
-                    percent = round((pl/position.amount_invested) * 100,2)
-                    data1 = {
-                        'id':position.id,
-                        'symbol':symbol,
-                        'open_pl':pl,
-                        'pl_percent': percent,
-                        'created':position.created
-                    }
-                    position_data_list.append(data1)
-                    
-                
-                return Response({'message': f'{action.title()} order placed successfully.', 'positions':position_data_list}, status=status.HTTP_201_CREATED)
-
-            # elif order_type == 'limit':
+        if order_type == 'market':
+            market_price = round(Decimal(get_price(symbol)['current_price']), 2)
+            amount = quantity * market_price
             
-            #     if is_buy:
-            #         # Check if it's a market order or limit order
-            #         if time_in_force == 'GTC':
-            #             # Good 'Til Canceled order
-            #             holding = DemoHolding.objects.get_or_create(
-            #                 portfolio=portfolio,
-            #                 stock=stock,
-            #             )[0]
-                        
-            #             holding.quantity = quantity
-            #             holding.save()
+            position = DemoPosition.objects.create(
+                portfolio=portfolio,
+                stock=stock,
+                status=DemoPosition.OPEN, 
+                open_price = market_price,
+                quantity=quantity,
+                amount_invested = amount
+            )
+
+            if not is_buy:
+                position.action = 'sell'
+                position.save()
+
+            DemoTransaction.objects.create(
+                user=request.user,
+                transaction_type='open trade',
+                amount=quantity * market_price,
+                status='completed'
+            )
+            position_data_list = []
+            
+            positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
+            for position in positions:
+                pl, cur_val,price = position.calculate_profit_loss()
+                symbol=position.stock.symbol
                 
-            #             trade = DemoTrade.objects.create(
-            #                 user=request.user,
-            #                 holding=holding,
-            #                 quantity=quantity,
-            #                 price=price,
-            #                 order_type='buy',
-            #                 status='pending',  # Set status to pending for background processing
-            #             )
+                percent = round((pl/position.amount_invested) * 100,2)
+                data1 = {
+                    'id':position.id,
+                    'symbol':symbol,
+                    'open_pl':pl,
+                    'pl_percent': percent,
+                    'created':position.created
+                }
+                position_data_list.append(data1)
+                
+            save_and_send_notification(request.user.id,f' DEMO: You opened position {quantity} units of {stock.symbol} at {price} per unit. Total value:{quantity * price}naira ')
+            
+            return Response({'message': f'{action.title()} order placed successfully.', 'positions':position_data_list}, status=status.HTTP_201_CREATED)
 
-            #             # Asynchronously process the trade in the background
-            #             process_trade.apply_async(args=[trade.id], kwargs={'time_in_force': time_in_force}, countdown=0)
+        elif order_type == 'limit':
+            print('here1')    
+            
+            position = DemoPosition.objects.create(
+                portfolio=portfolio,
+                stock=stock,
+                status=DemoPosition.PENDING, 
+                limit_price = price,
+                quantity=quantity,
+                alert_name = shortuuid.uuid(),
+                time_in_force=time_in_force
+                
+                
+            )
+            print('here2')    
+            
+            schedule, created = IntervalSchedule.objects.get_or_create(
+                    every=3,
+                    period=IntervalSchedule.MINUTES,
+                )
+            
+            if not is_buy:
+                position.action = 'sell'
+                position.save()
+                
+            task = PeriodicTask.objects.create(
+                    interval=schedule,
+                    name=position.alert_name,
+                    task='execution.tasks.process_limit_order',
+                    args=json.dumps([position.id])
+                )
+            print('here3')    
+            
+            position_data_list = []
+            
+            positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
+            for position in positions:
+                pl, cur_val,price = position.calculate_profit_loss()
+                symbol=position.stock.symbol
+                
+                percent = round((pl/position.amount_invested) * 100,2)
+                data1 = {
+                    'id':position.id,
+                    'symbol':symbol,
+                    'open_pl':pl,
+                    'pl_percent': percent,
+                    'created':position.created
+                }
+                position_data_list.append(data1)
+                
+            save_and_send_notification(request.user.id,f' DEMO: Your order will be opened when the condition you set met.')
+            
+            return Response({'message': f'{action.title()} order scheduled successfully.', 'positions':position_data_list}, status=status.HTTP_201_CREATED)
 
-            #             return Response({'message': 'Buy order placed successfully.'}, status=status.HTTP_201_CREATED)
-            #             # else:
-            #             #     return Response({'error': 'Insufficient funds to buy stocks.'}, status=status.HTTP_400_BAD_REQUEST)
-            #         elif time_in_force == 'IOC':
-            #             # Immediate or Cancel order (Not supported for buy orders)
-            #             return Response({'error': 'Immediate or Cancel (IOC) not supported for buy orders.'}, status=status.HTTP_400_BAD_REQUEST)
-            #         elif time_in_force == 'FOK':
-            #             # Fill or Kill order (Not supported for buy orders)
-            #             return Response({'error': 'Fill or Kill (FOK) not supported for buy orders.'}, status=status.HTTP_400_BAD_REQUEST)
-            #         else:
-            #             return Response({'error': 'Invalid time in force.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            #     elif not is_buy:
-            #         holding = DemoHolding.objects.get(
-            #             portfolio=portfolio,
-            #             stock=stock,
-            #         )
-
-            #         # Check if it's a market order or limit order
-            #         if time_in_force == 'GTC':
-            #             # Good 'Til Canceled order
-            #             if holding.quantity >= quantity:
-            #                 trade = DemoTrade.objects.create(
-            #                     user=request.user,
-            #                     holding=holding,
-            #                     quantity=quantity,
-            #                     price=price,
-            #                     order_type='sell',
-            #                     status='pending',  # Set status to pending for background processing
-            #                 )
-
-            #                 # Asynchronously process the trade in the background
-            #                 process_trade.apply_async(args=[trade.id], kwargs={'time_in_force': time_in_force}, countdown=0)
-
-            #                 return Response({'message': 'Sell order placed successfully.'}, status=status.HTTP_201_CREATED)
-            #             else:
-            #                 return Response({'error': 'Not enough stocks to sell.'}, status=status.HTTP_400_BAD_REQUEST)
-            #         elif time_in_force == 'IOC':
-            #             # Immediate or Cancel order
-            #             if holding.quantity >= quantity:
-            #                 trade = DemoTrade.objects.create(
-            #                     user=request.user,
-            #                     holding=holding,
-            #                     quantity=quantity,
-            #                     price=price,
-            #                     order_type='sell',
-            #                     status='pending',  # Set status to pending for background processing
-            #                 )
-
-            #                 # Asynchronously process the trade in the background
-            #                 process_trade.apply_async(args=[trade.id], kwargs={'time_in_force': time_in_force}, countdown=0)
-
-            #                 return Response({'message': 'Sell order placed successfully.'}, status=status.HTTP_201_CREATED)
-            #             else:
-            #                 return Response({'error': 'Not enough stocks to sell.'}, status=status.HTTP_400_BAD_REQUEST)
-            #         elif time_in_force == 'FOK':
-            #             # Fill or Kill order
-            #             if holding.quantity >= quantity:
-            #                 trade = DemoTrade.objects.create(
-            #                     user=request.user,
-            #                     holding=holding,
-            #                     quantity=quantity,
-            #                     price=price,
-            #                     order_type='sell',
-            #                     status='pending',  # Set status to pending for background processing
-            #                 )
-
-            #                 # Asynchronously process the trade in the background
-            #                 process_trade.apply_async(args=[trade.id], kwargs={'time_in_force': time_in_force}, countdown=0)
-
-            #                 return Response({'message': 'Sell order placed successfully.'}, status=status.HTTP_201_CREATED)
-                        
-            #             else:
-            #                 return Response({'error': 'FOK sell order rejected due to insufficient stocks.'}, status=status.HTTP_400_BAD_REQUEST)
-            #         else:
-            #             return Response({'error': 'Invalid time in force.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        elif mode == 'live':
-            return Response('Under Construction')
+            
 
 class Home(APIView):
     def get(self, request, *args, **kwargs):

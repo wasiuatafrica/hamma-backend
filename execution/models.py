@@ -45,13 +45,15 @@ class DemoPortfolio(auto_prefetch.Model):
 
 class DemoPosition(auto_prefetch.Model):
     OPEN = 'open'
-    CLOSED = 'closed'
+    CLOSED = 'close'
     PENDING = 'pending'
+    CANCELLED = 'cancelled'
     
     STATE_CHOICES = [
         (OPEN, 'Open'),
         (CLOSED, 'Closed'),
-        (PENDING,'Pending')
+        (PENDING,'Pending'),
+        (CANCELLED, 'Cancel')
     ]
     portfolio = auto_prefetch.ForeignKey(DemoPortfolio, on_delete=models.CASCADE, related_name='demopositions2')
     stock = auto_prefetch.ForeignKey(Stock, on_delete=models.CASCADE, related_name='demopositions2')
@@ -64,6 +66,8 @@ class DemoPosition(auto_prefetch.Model):
     updated = models.DateTimeField(auto_now=True)
     amount_invested = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     action = models.CharField(max_length=20, default='buy')
+    alert_name = models.CharField(max_length=20, blank=True, null=True)
+    time_in_force = models.CharField(max_length=20, default='day')
     order_type = models.CharField(max_length=20, default='market')
     profit_loss = models.IntegerField(default=0)
     

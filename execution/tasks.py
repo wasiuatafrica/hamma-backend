@@ -3,13 +3,21 @@ from celery.utils.log import get_task_logger
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.core.management import call_command
+from django.shortcuts import get_object_or_404
 from anyon.views import User
-from portfolio.models import DemoPosition, DemoTransaction, DemoTrade, DemoPortfolio
+from portfolio.models import  DemoTransaction, DemoTrade, DemoPortfolio
 from random import uniform
 from django.db import transaction
 from time import sleep
 from decimal import Decimal
 from datetime import datetime, timedelta
+from .models import DemoPosition
+from portfolio.utils import get_price
+from notifications.utils import save_and_send_notification
+from django_celery_beat.models import PeriodicTask
+from django.utils import timezone
+from datetime import datetime, time
+import pytz
 
 logger = get_task_logger(__name__)
 channel_layer = get_channel_layer()
@@ -180,3 +188,81 @@ def update_equity(user_id,type):
                     'data': data,
                 }
             )
+        
+@shared_task
+def process_limit_order(id):
+    position = get_object_or_404(DemoPosition, id=id)
+    
+    if position.status == 'open':
+    
+        if position.time_in_force== 'day':
+            lagos_timezone = pytz.timezone('Africa/Lagos')
+            current_time_lagos = timezone.now().astimezone(lagos_timezone).time()
+
+            target_time = time(14, 30)  # 14 is the hour, 30 is the minute
+
+            # Check if the current time is before 2:30 PM
+            if current_time_lagos > target_time:
+                task = PeriodicTask.objects.get(name=position.alert_name)
+                task.enabled = False
+                task.save()
+                
+                position.status= 'cancelled'
+                position.save()
+                
+                save_and_send_notification(user.id,f'DEMO: Your pending order has been cancelled because the position cannot be filled before close of trade session.')
+                
+                
+        elif position.time_in_force== 'week':
+            lagos_timezone = pytz.timezone('Africa/Lagos')
+            current_time_lagos = timezone.now().astimezone(lagos_timezone).time()
+
+            target_time = time(14, 30)  # 14 is the hour, 30 is the minute
+
+            # Check if the current time is before 2:30 PM
+            if timezone.now().astimezone(lagos_timezone).weekday() == 4 and current_time_lagos > target_time:
+                task = PeriodicTask.objects.get(name=position.alert_name)
+                task.enabled = False
+                task.save()
+                
+                position.status= 'cancelled'
+                position.save()
+                
+                save_and_send_notification(user.id,f'DEMO: Your pending order has been cancelled because the position cannot be filled before close of trade session.')
+                
+        else:
+            user = position.portfolio.user
+            data =get_price(position.stock.symbol)
+            price=data['current_price']
+            if position.action == 'buy':
+                if price <= position.limit_price:
+                    position.status= 'open'
+                    position.amount_invested = Decimal(price) * position.quantity
+                    position.save()
+                
+                    DemoTransaction.objects.create(
+                            user=user,
+                            transaction_type='open trade',
+                            amount=position.amount_invested,
+                            status='completed'
+                        )
+                    save_and_send_notification(user.id,f' DEMO: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value:{position.amount_invested}naira ')
+
+            elif position.action == 'sell':
+                if price >= position.limit_price:
+                    position.status= 'open'
+                    position.amount_invested = Decimal(price) * position.quantity
+                    position.save()
+                
+                    DemoTransaction.objects.create(
+                            user=user,
+                            transaction_type='open trade',
+                            amount=position.amount_invested,
+                            status='completed'
+                        )
+                    save_and_send_notification(user.id,f' DEMO: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value:{position.amount_invested}naira ')
+            print(f"limit order {position.alert_name} checked")
+    else:
+        task = PeriodicTask.objects.get(name=position.alert_name)
+        task.enabled = False
+        task.save()
