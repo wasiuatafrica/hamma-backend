@@ -124,6 +124,7 @@ class SetOrOff2FA(APIView):
             user.save()
             if serializer.validated_data["action"] == "authapps":#user wants to set authapp 2fa
                 user.twofa_type = "email"
+                user.is_authapp =True
                 user.save()
                 authapp=SetTOTP(user)
                 return Response({"detail":"2FA turn on successsfully, but you must provide token for your authentication app to activate.","qr_url":authapp, "user":serializers.CustomUserSerializer(request.user, many=False).data})
@@ -223,6 +224,30 @@ class LoginWith2FA(APIView):
             # else:
             #     return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ActivteAuthApp2fa(APIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class=serializers.TokenEmailSeriailizer  
+
+
+    def post(self, request):
+        serializer=self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            try:
+                user = User.objects.get(email=serializer.validated_data["email"], is_active=True)
+            except User.DoesNotExist:
+
+                return Response({"detail": "User not found or user account not active"}, status=status.HTTP_404_NOT_FOUND)
+            
+            v_token= verifyTOTP(user, serializer.validated_data["token"])
+            if v_token:
+                user.twofa_type = "authapps"
+                user.save()
+                return Response({"detail":"Authapp 2fa enabled successfully."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+ 
 
 class ResetForgettenPassword(APIView):
     permission_classes = [permissions.AllowAny]
