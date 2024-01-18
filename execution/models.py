@@ -75,10 +75,12 @@ class DemoPosition(auto_prefetch.Model):
     def calculate_profit_loss(self):
         price = self.current_price
         current_value = self.quantity * price
+        # print(self.status)
         if self.status=='open':
-            if self.order_type == 'buy':
+            if self.action == 'buy':
+                print()
                 profit_loss = Decimal(current_value) - self.amount_invested
-            elif self.order_type == 'sell':
+            elif self.action == 'sell':
                 profit_loss = self.amount_invested - Decimal(current_value)
         elif self.status=='close':
             profit_loss =  self.profit_loss
@@ -86,6 +88,7 @@ class DemoPosition(auto_prefetch.Model):
         else:
             current_value = 0
             profit_loss = 0
+        # print(profit_loss)
         return profit_loss, current_value,price
 
 

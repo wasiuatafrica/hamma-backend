@@ -53,7 +53,7 @@ def get_notifications(user_id):
     notifications.sort(key=lambda x: x['timestamp'], reverse=True)
     
     # notifications={"Glory":1, "Book":3}
-    return notifications
+    return notifications[:30]
 
 
 def update_notification(user_id, notification_id):
