@@ -226,19 +226,12 @@ class LoginWith2FA(APIView):
 
 
 class ActivteAuthApp2fa(APIView):
-    permission_classes = [permissions.AllowAny]
-    serializer_class=serializers.TokenEmailSeriailizer  
-
+    serializer_class=serializers.TokenSeriailizer  
 
     def post(self, request):
         serializer=self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            try:
-                user = User.objects.get(email=serializer.validated_data["email"], is_active=True)
-            except User.DoesNotExist:
-
-                return Response({"detail": "User not found or user account not active"}, status=status.HTTP_404_NOT_FOUND)
-            
+        user=request.user
+        if serializer.is_valid():            
             v_token= verifyTOTP(user, serializer.validated_data["token"])
             if v_token:
                 user.twofa_type = "authapps"
