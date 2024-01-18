@@ -105,9 +105,6 @@ class TokenEmailSeriailizer(serializers.Serializer):
     email=serializers.EmailField()
     token=serializers.CharField(max_length=200)
 
-class TokenSeriailizer(serializers.Serializer):
-    token=serializers.CharField(max_length=200)
-
 class UserActivityLogSerializer(serializers.ModelSerializer):
     class Meta:
         model=models.UserActivityLog
