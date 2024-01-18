@@ -224,6 +224,22 @@ class LoginWith2FA(APIView):
             #     return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class ActivteAuthApp2fa(APIView): 
+    serializer_class=serializers.TokenSeriailizer  
+
+    def post(self, request): 
+        serializer=self.serializer_class(data=request.data)
+        user=request.user
+        if serializer.is_valid():            
+            v_token= verifyTOTP(user, serializer.validated_data["token"])
+            if v_token:
+                user.twofa_type = "authapps" 
+                user.save() 
+                return Response({"detail":"Authapp 2fa enabled successfully."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+ 
+
 class ResetForgettenPassword(APIView):
     permission_classes = [permissions.AllowAny]
     serializer_class=serializers.ResetForgottenPassword
