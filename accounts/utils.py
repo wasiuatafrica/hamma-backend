@@ -109,9 +109,6 @@ def verifyTOTP(user,token):
         if not device.confirmed:
             device.confirmed = True
             device.save()
-        # Here 
-        user.twofa_type = "email"
-        user.save()
         return True
     return False
 
