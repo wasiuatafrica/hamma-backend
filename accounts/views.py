@@ -226,7 +226,7 @@ class LoginWith2FA(APIView):
 
 
 class ActivteAuthApp2fa(APIView): 
-    serializer_class=serializers.TokenSeriailizer  
+    serializer_class=serializers.TokenSerializer  
 
     def post(self, request): 
         serializer=self.serializer_class(data=request.data)

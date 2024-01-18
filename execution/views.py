@@ -1,10 +1,8 @@
-from turtle import position
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-import portfolio
-from portfolio.models import Stock, Wallet,DemoTransaction
+from portfolio.models import Portfolio, Stock, Wallet,DemoTransaction
 from notifications.utils import save_and_send_notification
 from rest_framework.permissions import IsAuthenticated
 from accounts.utils import get_referrer
@@ -20,7 +18,7 @@ from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import shortuuid
 import json
 
-from .models import DemoPosition, DemoPortfolio
+from .models import DemoPosition, DemoPortfolio, DemoProfitLoss
 from .serializers import DemoPositionSerializer
 
 # class DemoTradeAPIView(APIView):
@@ -123,6 +121,29 @@ from .serializers import DemoPositionSerializer
 class DemoTradeAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get(self,request):
+        positions = DemoPosition.objects.filter(portfolio__user=request.user,status='open')
+        
+        def get_position(position):
+                pl, cur_val,price = position.calculate_profit_loss()
+                symbol=position.stock.symbol
+                
+                percent = round((pl/position.amount_invested) * 100,2)
+                data1 = {
+                    'id':position.id,
+                    'symbol':symbol,
+                    'open_pl':round(pl,2),
+                    'pl_percent': percent,
+                    'created':position.created
+                }
+                return data1
+            
+        with ThreadPoolExecutor() as executor:
+            futures = executor.map(get_position, positions)
+            position_data_list = [result for result in futures if result]
+            
+            return Response(position_data_list)
+    
     def post(self, request):
         
         symbol = request.data.get('symbol')
@@ -162,10 +183,10 @@ class DemoTradeAPIView(APIView):
                 amount=quantity * market_price,
                 status='completed'
             )
-            position_data_list = []
             
             positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
-            for position in positions:
+            
+            def get_position(position):
                 pl, cur_val,price = position.calculate_profit_loss()
                 symbol=position.stock.symbol
                 
@@ -177,14 +198,18 @@ class DemoTradeAPIView(APIView):
                     'pl_percent': percent,
                     'created':position.created
                 }
-                position_data_list.append(data1)
+                return data1
+            
+            with ThreadPoolExecutor() as executor:
+                futures = executor.map(get_position, positions)
+                position_data_list = [result for result in futures if result]
+            
                 
-            save_and_send_notification(request.user.id,f' DEMO: You opened position {quantity} units of {stock.symbol} at {price} per unit. Total value:{quantity * price}naira ')
+            save_and_send_notification(request.user.id,f' DEMO: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ')
             
             return Response({'message': f'{action.title()} order placed successfully.', 'positions':position_data_list}, status=status.HTTP_201_CREATED)
 
         elif order_type == 'limit':
-            print('here1')    
             
             position = DemoPosition.objects.create(
                 portfolio=portfolio,
@@ -196,8 +221,7 @@ class DemoTradeAPIView(APIView):
                 time_in_force=time_in_force
                 
                 
-            )
-            print('here2')    
+            )  
             
             schedule, created = IntervalSchedule.objects.get_or_create(
                     every=3,
@@ -214,12 +238,10 @@ class DemoTradeAPIView(APIView):
                     task='execution.tasks.process_limit_order',
                     args=json.dumps([position.id])
                 )
-            print('here3')    
-            
-            position_data_list = []
             
             positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
-            for position in positions:
+            
+            def get_position(position):
                 pl, cur_val,price = position.calculate_profit_loss()
                 symbol=position.stock.symbol
                 
@@ -231,9 +253,13 @@ class DemoTradeAPIView(APIView):
                     'pl_percent': percent,
                     'created':position.created
                 }
-                position_data_list.append(data1)
+                return data1
+            
+            with ThreadPoolExecutor() as executor:
+                futures = executor.map(get_position, positions)
+                position_data_list = [result for result in futures if result]
                 
-            save_and_send_notification(request.user.id,f' DEMO: Your order will be opened when the condition you set met.')
+            save_and_send_notification(request.user.id,f' DEMO: Your limit order will be opened when the condition you set met.')
             
             return Response({'message': f'{action.title()} order scheduled successfully.', 'positions':position_data_list}, status=status.HTTP_201_CREATED)
 
@@ -243,30 +269,21 @@ class Home(APIView):
     def get(self, request, *args, **kwargs):
         mode = self.kwargs.get('mode')
         if mode == 'demo':
-            portfolio = DemoPortfolio.objects.get_or_create(user=request.user)[0]
+            portfolio= DemoPortfolio.objects.get_or_create(user=request.user)[0]
             positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
             
             balance = portfolio.equity
             
             profit_loss_list = []
-            position_data_list = []
             current_value_list = []
             
             if positions:
                 for position in positions:
                     pl, cur_val,price = position.calculate_profit_loss()
                     symbol=position.stock.symbol
-                    profit_loss_list.append(pl)
+                    print(pl)
+                    profit_loss_list.append(pl) 
                     
-                    percent = round((pl/position.amount_invested) * 100,2)
-                    data1 = {
-                        'id':position.id,
-                        'symbol':symbol,
-                        'open_pl':pl,
-                        'pl_percent': percent,
-                        'created':position.created
-                    }
-                    position_data_list.append(data1)
                     
                     data2 =  {
                         'stock':symbol,
@@ -302,10 +319,22 @@ class Home(APIView):
                         total_current_value += data['current_value']
             
             overview = market_returns(total_current_value)
-            
+            daily_profitloss= DemoProfitLoss.objects.filter(user=request.user)
+            if daily_profitloss:
+                position_data_list = [
+                    {
+                        'profit_loss':daily.profit_loss,
+                        'date':daily.created.date()
+                    } for daily in daily_profitloss
+                ]
+            else:
+                position_data_list =[]
+                
+            equity1 = round(balance + profit_loss,2)
+            equity = equity1 if equity1 >= 0 else 0
             data = {
                 'balance':round(balance,2),
-                'equity':round(balance + profit_loss,2),
+                'equity':equity,
                 'floating_pl' : profit_loss,
                 'positions': position_data_list,
                 'current_value':current_value_list,
