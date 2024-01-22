@@ -135,7 +135,8 @@ class DemoTradeAPIView(APIView):
                     'open_pl':round(pl,2),
                     'pl_percent': percent,
                     'created':position.created,
-                    'status':position.status
+                    'status':position.status,
+                    'open_price': position.open_price
                 }
                 return data1
             
@@ -414,7 +415,9 @@ class DemoHolding(APIView):
                     "volume":'66000',
                     'status':position.status,
                     'invested':position.amount_invested,
-                    "profit_loss":position.profit_loss
+                    "profit_loss":position.profit_loss,
+                    "side":position.action,
+                    "order":position.order_type
                     
                     }
                 return data

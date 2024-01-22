@@ -65,7 +65,6 @@ def get_data(symbol):
         
         data2 = last_data_dicts[-1]
         if isinstance(data2, dict):
-            print(data2)
             return data2
         
 def is_market_open():

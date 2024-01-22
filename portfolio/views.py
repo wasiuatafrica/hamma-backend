@@ -29,25 +29,46 @@ from random import randint
 from django.db.models import Exists, OuterRef
 from accounts.models import UserActivityLog,Referral
 from affilate.models import ReferralWallet,RewardActivities
+from execution import models as exec_models
 
  
 User= get_user_model()
 
 class WalletBalance(APIView):
-    def get(self, request):
-        wallet = Wallet.objects.get(user=request.user)
-        savings = SavingsLock.objects.filter(user=request.user, status='ongoing')
-        if savings:
-            savings_amount= savings.aggregate(total_quantity=Sum('amount'))['total_quantity'] 
-        else:
-            savings_amount= Decimal(0)
-        data = {
-                'balance': wallet.balance,
-                'reserved':savings_amount,
-                'total':wallet.balance + savings_amount
-            }
-        return Response(data)
+    # def get(self, request):
+    #     wallet = Wallet.objects.get(user=request.user)
+    #     savings = SavingsLock.objects.filter(user=request.user, status='ongoing')
+    #     if savings:
+    #         savings_amount= savings.aggregate(total_quantity=Sum('amount'))['total_quantity'] 
+    #     else:
+    #         savings_amount= Decimal(0)
+    #     data = {
+    #             'balance': wallet.balance,
+    #             'reserved':savings_amount,
+    #             'total':wallet.balance + savings_amount
+    #         }
+    #     return Response(data)
 
+    def get(self, request):
+        portfolio = exec_models.Portfolio.objects.get_or_create(user=request.user)[0]
+        transactions = Transaction.objects.filter(user=request.user,transaction_type="deposit")
+        positions= portfolio.positions2.all()
+        
+        deposited = sum([trans.amount for trans in transactions])
+        invested= sum([post.amount_invested for post in positions])
+        balance = portfolio.balance
+        uninvested = deposited - invested
+        
+        data = {
+            "deposited":deposited,
+            "invested":invested,
+            "uninvested":uninvested ,
+            "balance":balance,
+            "reserve": uninvested + balance
+            
+        }
+        
+        return Response(data)
 
 class WalletWithdraw(APIView):
     from decimal import Decimal

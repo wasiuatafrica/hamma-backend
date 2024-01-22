@@ -278,3 +278,4 @@ def get_daily_profit_loss():
             total += float(pl)
             
         DemoProfitLoss.objects.create(user=user, profit_loss=total)
+        print(f"{user.email} daily profit/loss calculated")

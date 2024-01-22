@@ -131,6 +131,71 @@ class MasterWallet(auto_prefetch.Model):
     trade = auto_prefetch.ForeignKey(Trade, on_delete=models.CASCADE,related_name='master_wallet', null=True, blank=True)
 
 class DemoProfitLoss(auto_prefetch.Model):
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='demoprofitloss')
+    profit_loss = models.IntegerField(default=0)
+    created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+class Portfolio(auto_prefetch.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='portfolio2')
+    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+
+class Position(auto_prefetch.Model):
+    OPEN = 'open'
+    CLOSED = 'close'
+    PENDING = 'pending'
+    CANCELLED = 'cancelled'
+    
+    STATE_CHOICES = [
+        (OPEN, 'Open'),
+        (CLOSED, 'Closed'),
+        (PENDING,'Pending'),
+        (CANCELLED, 'Cancel')
+    ]
+    portfolio = auto_prefetch.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='positions2')
+    stock = auto_prefetch.ForeignKey(Stock, on_delete=models.CASCADE, related_name='positions2')
+    quantity = models.PositiveIntegerField(default=0)
+    open_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    close_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    limit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    status = models.CharField(max_length=10, choices=STATE_CHOICES, default=OPEN)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    amount_invested = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    action = models.CharField(max_length=20, default='buy')
+    alert_name = models.CharField(max_length=20, blank=True, null=True)
+    time_in_force = models.CharField(max_length=20, default='day')
+    order_type = models.CharField(max_length=20, default='market')
+    profit_loss = models.IntegerField(default=0)
+    
+    
+    def calculate_profit_loss(self):
+        price = self.current_price
+        current_value = self.quantity * price
+        # print(self.status)
+        if self.status=='open':
+            if self.action == 'buy':
+                profit_loss = Decimal(current_value) - self.amount_invested
+            elif self.action == 'sell':
+                profit_loss = self.amount_invested - Decimal(current_value)
+        elif self.status=='close':
+            profit_loss =  self.profit_loss
+            current_value = self.quantity * self.close_price
+        else:
+            current_value = 0
+            profit_loss = 0
+        # print(profit_loss)
+        return profit_loss, current_value,price
+
+
+    @property
+    def current_price(self):
+        return get_price(self.stock.symbol)['current_price']
+
+    
+    
+
+class ProfitLoss(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='profitloss')
     profit_loss = models.IntegerField(default=0)
     created =models.DateTimeField(auto_now_add=True, null=True, blank=True)

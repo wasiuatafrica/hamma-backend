@@ -9,6 +9,7 @@ from portfolio.models import Wallet, Transaction
 from notifications.utils import save_and_send_notification
 from decimal import Decimal
 from accounts.models import UserActivityLog
+from execution.models import Portfolio
 
 
 class SavingsLockList(APIView):
@@ -25,9 +26,10 @@ class SavingsLockList(APIView):
             amount = serializer.validated_data.get('amount')
             
             # Check if the amount is less than the amount in the wallet
-            user_wallet = Wallet.objects.get(user=request.user)
+            # user_wallet = Wallet.objects.get(user=request.user)
+            user_wallet = Portfolio.objects.get_or_create(user=request.user)[0]
             if amount > user_wallet.balance:
-                save_and_send_notification(request.user.id, f"You do not have enough funds in wallet to lock {amount} in savings.")
+                save_and_send_notification(request.user.id, f"You do not have enough funds to lock {amount} in savings.")
                 return Response({'error': 'Insufficient balance in the wallet.'}, status=status.HTTP_400_BAD_REQUEST)
             
             user_wallet.balance -= Decimal(amount)
