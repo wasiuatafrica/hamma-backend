@@ -8,11 +8,13 @@ from openai import OpenAI
 from django.contrib.auth import get_user_model
 from .models import AlertAI, Conversation, Message
 from concurrent.futures import ThreadPoolExecutor
+import os
+import math
 
 User= get_user_model()
 
 def connect_to_mongodb(db_name):
-    client = MongoClient("mongodb+srv://trademql5:trademql5@trademql5.fmlxv.mongodb.net/",tls=True,
+    client = MongoClient(os.environ.get("MONGO_STRING"),tls=True,
                              tlsAllowInvalidCertificates=True)
     # db = client["anyon_orderbook"]
     db = client[db_name]
@@ -92,27 +94,34 @@ def get_mini_data():
 
 
 
-async def connect_to_websocket(stock_symbol):
-    # uri = f"ws://localhost:8765/{stock_symbol}"
-    uri = f"ws://ec2-16-16-77-63.eu-north-1.compute.amazonaws.com:8765/{stock_symbol}"
+# async def connect_to_websocket(stock_symbol):
+#     # uri = f"ws://localhost:8765/{stock_symbol}"
+#     uri = f"ws://ec2-16-16-77-63.eu-north-1.compute.amazonaws.com:8765/{stock_symbol}"
 
-    async with websockets.connect(uri) as websocket:
-        try:
-            # Sending authentication token
-            auth_token = "Ab$455"
-            await websocket.send(auth_token)
+#     async with websockets.connect(uri) as websocket:
+#         try:
+#             # Sending authentication token
+#             auth_token = "Ab$455"
+#             await websocket.send(auth_token)
 
             
-            data = await websocket.recv()
-            stock_data = json.loads(data)
-            print(stock_data)
-            return stock_data
-        except websockets.exceptions.ConnectionClosed as e:
-            if e.code != 1000:
-                print(f"Connection closed unexpectedly: {e}")
+#             data = await websocket.recv()
+#             stock_data = json.loads(data)
+#             print(stock_data)
+#             return stock_data
+#         except websockets.exceptions.ConnectionClosed as e:
+#             if e.code != 1000:
+#                 print(f"Connection closed unexpectedly: {e}")
                 
-def get_price(stock):
-    return asyncio.run(connect_to_websocket(stock))
+# def get_price(stock):
+#     return asyncio.run(connect_to_websocket(stock))
+
+def get_price(symbol):
+    db = connect_to_mongodb("stock_prices")
+    collection = db["price_combined"]
+    last_item = collection.find_one(sort=[('_id', -1)])
+
+    return last_item[symbol]
 
 def get_details(stock):
     data = get_price(stock.symbol)
@@ -183,21 +192,61 @@ async def connect_to_websockets2(symbols):
 def get_stockdata(stocks):
     return asyncio.run(connect_to_websockets2(stocks))
 
+def get_stockdata2():
+    db = connect_to_mongodb("stock_prices")
+    collection = db["price_combined"]
+    last_item = collection.find_one(sort=[('_id', -1)])
+
+    return last_item
+
 # Your get_details now accepts a single data entry
+# def get_details2(stock, stock_data):
+#     # print(stock.symbol)
+#     data = stock_data[stock.symbol]
+#     print(data)
+#     if data:
+#         return {
+#             'company': stock.company,
+#             'symbol': stock.symbol,
+#             'sector': stock.sector,
+#             'current_price': data.get('current_price', 0),
+#             "percent_change": data.get('percentage_change', 0),
+#             # 'change': round(data['current_price'] - data['open_price'],2)
+#             'change': data.get("change", 0)
+#         }
+
 def get_details2(stock, stock_data):
-    data = stock_data[stock.symbol]
-    return {
-        'company': stock.company,
-        'symbol': stock.symbol,
-        'sector': stock.sector,
-        'current_price': data['current_price'],
-        "percent_change": data['percentage_change'],
-        'change': round(data['current_price'] - data['open_price'],2)
-    }
+    data = stock_data.get(stock.symbol, {})
+    print(data)
+    if data:
+        return {
+            'company': stock.company,
+            'symbol': stock.symbol,
+            'sector': stock.sector,
+            'current_price': handle_special_values(data.get('current_price', 0)),
+            "percent_change": handle_special_values(data.get('percentage_change', 0)),
+            'change': handle_special_values(data.get("change", 0)),
+        }
+    else:
+        # Handle the case when data is not available for the symbol
+        return {
+            'company': stock.company,
+            'symbol': stock.symbol,
+            'sector': stock.sector,
+            'current_price': 0,
+            "percent_change": 0,
+            'change': 0,
+        }
+
+def handle_special_values(value):
+    if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+        return 0  # or any default value you prefer
+    return value
+
 
 def get_details3(stocks):
     symbols =[stock.symbol for stock in stocks]
-    stockdata= get_stockdata(symbols)
+    stockdata= get_stockdata2()
     # return [get_details2(stock,stockdata) for stock in stocks]
     with ThreadPoolExecutor() as executor:
             futures = [executor.submit(get_details2, stock,stockdata) for stock in stocks]

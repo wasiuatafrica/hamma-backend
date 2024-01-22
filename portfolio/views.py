@@ -209,7 +209,7 @@ class GetSingleStock(APIView):
         # queryset = Stock.objects.get(symbol=symbol)
         queryset = get_object_or_404(Stock, symbol=symbol)
         symbol_data = get_symbol_data(symbol)
-        historical_data=get_historical_data(symbol)
+        # historical_data=get_historical_data(symbol)
         
         # serializer = self.serializer_class(queryset)
         details = get_details3([queryset])
@@ -217,7 +217,7 @@ class GetSingleStock(APIView):
         response_data = {
             'stock_detail': details,
             'order_book': symbol_data,
-            'historical_data':historical_data
+            # 'historical_data':historical_data
         }
         return Response(response_data)
 

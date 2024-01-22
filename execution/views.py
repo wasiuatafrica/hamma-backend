@@ -155,7 +155,7 @@ class DemoTradeAPIView(APIView):
         is_buy = action == 'buy'
         order_type = request.data.get('order_type')
         
-        print(order_type)
+        # print(order_type)
         
         stock = get_object_or_404(Stock, symbol=symbol)
         portfolio = DemoPortfolio.objects.get_or_create(user=request.user)[0]
@@ -259,7 +259,7 @@ class DemoTradeAPIView(APIView):
                 futures = executor.map(get_position, positions)
                 position_data_list = [result for result in futures if result]
                 
-            save_and_send_notification(request.user.id,f' DEMO: Your limit order will be opened when the condition you set met.')
+            save_and_send_notification(request.user.id,f' DEMO: Your limit order will be opened when the condition you set is met.')
             
             return Response({'message': f'{action.title()} order scheduled successfully.', 'positions':position_data_list}, status=status.HTTP_201_CREATED)
 
@@ -382,8 +382,13 @@ class DemoHolding(APIView):
         if positions:
             
             def get_position(position):
+                
                 pl, value, price= position.calculate_profit_loss()
-                percent_change = round(pl/position.amount_invested *100,2)
+                # print("plv",pl, value, price)
+                if position.amount_invested != 0:
+                    percent_change = round(pl/position.amount_invested *100,2)
+                else:
+                    percent_change = None
                 data = {
                     'id':position.id,
                     'stock':position.stock.symbol,

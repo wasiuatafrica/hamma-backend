@@ -13,6 +13,7 @@ import asyncio
 from django.db import close_old_connections
 from concurrent.futures import ThreadPoolExecutor
 from portfolio.models import  Stock, Trade
+from portfolio.utils import connect_to_mongodb
 
 User=get_user_model()
 
@@ -35,8 +36,16 @@ async def connect_to_websocket(stock_symbol):
             if e.code != 1000:
                 print(f"Connection closed unexpectedly: {e}")
                 
-def get_price(stock):
-    return asyncio.run(connect_to_websocket(stock))
+# def get_price(stock):
+#     return asyncio.run(connect_to_websocket(stock))
+
+def get_price(symbol):
+    from portfolio.utils import connect_to_mongodb
+    db = connect_to_mongodb("stock_prices")
+    collection = db["price_combined"]
+    last_item = collection.find_one(sort=[('_id', -1)])
+
+    return last_item[symbol]
 
 class DemoPortfolio(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='demoportfolio2')
@@ -78,7 +87,6 @@ class DemoPosition(auto_prefetch.Model):
         # print(self.status)
         if self.status=='open':
             if self.action == 'buy':
-                print()
                 profit_loss = Decimal(current_value) - self.amount_invested
             elif self.action == 'sell':
                 profit_loss = self.amount_invested - Decimal(current_value)
