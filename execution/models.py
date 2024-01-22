@@ -50,7 +50,7 @@ def get_price(symbol):
 class DemoPortfolio(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='demoportfolio2')
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    equity = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
 
 class DemoPosition(auto_prefetch.Model):
     OPEN = 'open'

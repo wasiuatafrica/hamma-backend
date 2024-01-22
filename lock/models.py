@@ -31,8 +31,15 @@ class SavingsLock(auto_prefetch.Model):
 
     @property
     def potential_interest(self):
-        # Calculate interest using simple interest formula
-        return round((Decimal(self.amount) * Decimal(self.interest_rate) * Decimal(self.duration)) / (365 * 100),2)
+        # Calculate compound interest with monthly compounding
+        principal = Decimal(self.amount)
+        rate = Decimal(10) / 100
+        time_in_months = Decimal(self.duration) 
+        compounding_frequency = Decimal(1/12)
+
+        compound_interest = principal * (1 + rate / compounding_frequency)**(compounding_frequency * time_in_months) - principal
+
+        return round(compound_interest, 2)
 
     @property
     def total_amount_after_lock(self):

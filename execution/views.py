@@ -134,7 +134,8 @@ class DemoTradeAPIView(APIView):
                     'symbol':symbol,
                     'open_pl':round(pl,2),
                     'pl_percent': percent,
-                    'created':position.created
+                    'created':position.created,
+                    'status':position.status
                 }
                 return data1
             
@@ -272,7 +273,7 @@ class Home(APIView):
             portfolio= DemoPortfolio.objects.get_or_create(user=request.user)[0]
             positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
             
-            balance = portfolio.equity
+            balance = portfolio.balance
             
             profit_loss_list = []
             current_value_list = []
@@ -361,6 +362,10 @@ class DemoCloseTrade(APIView):
                     amount=cur_val,
                     status='completed'
                 )
+            
+            position.portfolio.balance += position.amount_invested + position.profit_loss
+            position.portfolio.save()
+            
             data = {
                 'id':position.id,
                 'stock':position.stock.symbol,
@@ -379,6 +384,8 @@ class DemoHolding(APIView):
     def get(self,request):
         portfolio= DemoPortfolio.objects.get_or_create(user=request.user)[0]
         positions =  DemoPosition.objects.filter(portfolio=portfolio).order_by("-updated")
+        balance =  portfolio.balance
+        
         if positions:
             
             def get_position(position):
@@ -389,6 +396,8 @@ class DemoHolding(APIView):
                     percent_change = round(pl/position.amount_invested *100,2)
                 else:
                     percent_change = None
+                    
+                
                 data = {
                     'id':position.id,
                     'stock':position.stock.symbol,
@@ -404,7 +413,8 @@ class DemoHolding(APIView):
                     "avg_volume":'3300',
                     "volume":'66000',
                     'status':position.status,
-                    'invested':position.amount_invested
+                    'invested':position.amount_invested,
+                    "profit_loss":position.profit_loss
                     
                     }
                 return data
@@ -415,15 +425,21 @@ class DemoHolding(APIView):
                 futures = executor.map(get_position, positions)
                 positions_data = [result for result in futures if result]
 
-            portfolio_value = sum([data['cur_val'] for data in positions_data if data['status']=='close'])
-            total_profit_loss = sum([data['change'] for data in positions_data if data['status']=='close'])
-            total_amount_invested = sum([data['invested'] for data in positions_data if data['status']=='close'])
+            # portfolio_value = sum([data['cur_val'] for data in positions_data if data['status']=='close'])
+            # total_profit_loss = sum([data['change'] for data in positions_data if data['status']=='close'])
+            # total_amount_invested = sum([data['invested'] for data in positions_data if data['status']=='close'])
+            floating_pl = sum([data['change'] for data in positions_data if data['status']=='open'])
+            closed_pl = sum([data['profit_loss'] for data in positions_data if data['status']=='close'])
             
             
             hold_data ={
-                'portfolio_value':portfolio_value,
-                'profit_loss':total_profit_loss,
-                'total_invested':total_amount_invested,
+                # 'portfolio_value':portfolio_value,
+                # 'profit_loss':total_profit_loss,
+                # 'total_invested':total_amount_invested,
+                'balance':balance,
+                'floating_pl':floating_pl,
+                'closed_pl':closed_pl,
+                'equity':balance + floating_pl,
                 'holdings':positions_data
                 
             }
