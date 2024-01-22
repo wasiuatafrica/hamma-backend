@@ -394,7 +394,7 @@ def PayStackReceiptsView(request):
 
     )
     
-    wallet= Wallet.objects.get(user=request.user)
+    wallet= exec_models.Portfolio.objects.get(user=request.user)
     wallet.balance += Decimal(amount)
     wallet.save()
     
