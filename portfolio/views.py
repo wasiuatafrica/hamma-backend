@@ -324,7 +324,18 @@ def get_portfolio_data(holdings_data):
         'total_invested':round(total_invested,2),
         'profit_loss': round(profit_loss,2)
     }
-    
+
+def get_amount_invested(transaction):
+    """_summary_
+
+    THe total amount in depoisted which has occured in the user's trnscations, us sumed and retured
+
+    Args:
+        trasaction (array): the transcation objects related to the users.
+        
+    """
+    total=sum([trans.amount for trans in transaction])
+    return total
 
 def get_holding_details_concurrently(holding):
     try:
@@ -556,3 +567,38 @@ class ConversationsView(APIView):
         conversations = Conversation.objects.filter(user= request.user)
         serializer = AlertSerializer(conversations, many=True)
         return Response(serializer.data)
+
+class GetWalletSummary(APIView):
+    def get(self, request):
+
+        portfolio = Portfolio.objects.get(user=request.user)
+        holdings = portfolio.holdings.all()
+
+        # Use ThreadPoolExecutor to execute get_holding_detail concurrently.
+        with ThreadPoolExecutor() as executor:
+            # Map the holdings to the executor, it will return a generator.
+            futures = [executor.submit(get_holding_details_concurrently, holding) for holding in holdings]
+            holdings_data = [future.result() for future in futures]
+
+        portfolio_data = get_portfolio_data(holdings_data)
+
+        user_trans= Transaction.object.filter(user=request.user, transaction_type="deposit")
+        user_wallet= Wallet.object.filter(user=request.user).first()
+
+        amount_depoisted=get_amount_invested(user_trans)
+        amount_invested= amount_depoisted - user_wallet.balance
+        uninvested=user_wallet.balance
+        balance=portfolio_data.portfolio_value
+        reserved= balance + uninvested
+
+        summary={
+            "amount_depoisted":amount_depoisted,
+            "amount_invested":amount_invested,
+            "uninvested":uninvested,
+            "balance":balance,
+            "reserved":reserved
+        }
+        return Response(summary)
+
+
+
