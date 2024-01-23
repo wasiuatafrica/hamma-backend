@@ -78,8 +78,17 @@ class WalletWithdraw(APIView):
         stage = request.data.get('stage')
         
         amount = request.data.get('amount')
-        wallet = Wallet.objects.get(user=request.user)
+        portfolio = exec_models.Portfolio.objects.get_or_create(user=request.user)[0]
+        transactions = Transaction.objects.filter(user=request.user,transaction_type="deposit")
+        positions= portfolio.positions2.all()
+        
+        deposited = sum([trans.amount for trans in transactions])
+        invested= sum([post.amount_invested for post in positions])
+        balance = portfolio.balance
+        uninvested = deposited - invested
 
+        balance1 = uninvested + balance
+        
         if not amount or not stage:
             return Response("amount and stage must be sent")
         if int(stage) > 2:
@@ -87,7 +96,7 @@ class WalletWithdraw(APIView):
         
         if stage == '1':
             
-            if wallet.balance >= Decimal(amount):
+            if balance1 >= Decimal(amount):
                 # Stage 1: Generate OTP and send to user
                 otp = self.generate_otp()
                 otp_request =WithdrawalOTPRequest.objects.create(user=request.user, otp=otp,
