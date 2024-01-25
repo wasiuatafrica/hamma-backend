@@ -23,7 +23,8 @@ class CustomUserAdmin(UserAdmin):
         "lastname",
         "email",
         "is_staff",
-        "is_active",)
+        "is_active",
+        'twofa_type',)
     
     fieldsets = (
         (
@@ -34,6 +35,7 @@ class CustomUserAdmin(UserAdmin):
                     "lastname",
                     "email",
                     "password",
+                    'twofa_type',
                     # "phone",
                 )
             },

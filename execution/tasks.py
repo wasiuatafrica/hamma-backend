@@ -11,7 +11,7 @@ from django.db import transaction
 from time import sleep
 from decimal import Decimal
 from datetime import datetime, timedelta
-from .models import DemoPosition, DemoProfitLoss
+from .models import DemoPosition, DemoDailyReturns
 from portfolio.utils import get_price
 from notifications.utils import save_and_send_notification
 from django_celery_beat.models import PeriodicTask
@@ -267,15 +267,87 @@ def process_limit_order(id):
         task.enabled = False
         task.save()
         
+# @shared_task
+# def get_daily_profit_loss():
+#     today = datetime.now().weekday()
+#     if today < 5:
+#         users = User.objects.all()
+#         for user in users:
+#             positions = DemoPosition.objects.filter(portfolio__user=user,status='open')
+#             total = 0.0
+#             for position in positions:
+#                 pl,value,price = position.calculate_profit_loss() 
+#                 total += float(pl)
+                
+#             DemoProfitLoss.objects.create(user=user, profit_loss=total)
+#             print(f"{user.email} daily profit/loss calculated")
+#     else:
+#         print("Not running on weekends.")
+
 @shared_task
 def get_daily_profit_loss():
-    users = User.objects.all()
-    for user in users:
-        positions = DemoPosition.objects.filter(portfolio__user=user,status='open')
-        total = 0.0
-        for position in positions:
-            pl,value,price = position.calculate_profit_loss() 
-            total += float(pl)
+    today = datetime.now().weekday()
+    if today < 5:
+        users = User.objects.all()
+        for user in users:
+            positions = DemoPosition.objects.filter(portfolio__user=user,status='open')
+            if positions:
+                total_invested  = sum([post.amount_invested for post in positions])
+                position_shares = []
+                for position in positions:
+                    pl,value,price = position.calculate_profit_loss() 
+                    returned =  (Decimal(value)/position.amount_invested) - 1
+                    weight = (position.amount_invested/total_invested )
+                    
+                    position_shares.append(returned*weight)
+                shares = round(sum(position_shares)*100,2)
+                print('return', shares)
+                # DemoDailyReturns.objects.create(user=user, portfolio_returns=shares)
+                print(f"{user.email} daily profit/loss calculated")
+    else:
+        print("Not running on weekends.")
+
+@shared_task
+def daily_returns():
+    today = datetime.now().weekday()
+    if today < 5:
+        users = User.objects.all()
+        # data = get_price('NGXGROUP')
+        # pr = data['current_price']
+        # print(data)
+        pr = 24.15
+        
+        for user in users:
+            positions = DemoPosition.objects.filter(portfolio__user=user,status='open')
             
-        DemoProfitLoss.objects.create(user=user, profit_loss=total)
-        print(f"{user.email} daily profit/loss calculated")
+            
+            if positions:
+                
+                    
+                total_invested  = sum([post.amount_invested for post in positions])
+                position_shares = []
+                for position in positions:
+                    pl,value,price = position.calculate_profit_loss() 
+                    returned =  (Decimal(value)/position.amount_invested) - 1
+                    weight = (position.amount_invested/total_invested )
+                    
+                    position_shares.append(returned*weight)
+                shares = round(sum(position_shares)*100,2)
+                
+                # last_ngx_query = DemoDailyReturns.objects.filter(user=user).last()
+                # print(last_ngx_query.ngx_price)
+                # if last_ngx_query:
+                #     last_ngx = last_ngx_query.ngx_price
+                    # market_returns = round(((pr - last_ngx)/last_ngx) *100,2)
+                
+                #     print('return', shares)
+                # else:
+                #     market_returns = 0
+                last_ngx = 25.5
+                
+                market_returns = round(((pr - last_ngx)/last_ngx) *100,2)
+                    
+                DemoDailyReturns.objects.create(user=user, portfolio_returns=shares, market_returns =market_returns, ngx_price=pr)
+                print(f"{user.email} daily profit/loss calculated")
+    else:
+        print("Not running on weekends.")

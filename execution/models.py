@@ -135,6 +135,13 @@ class DemoProfitLoss(auto_prefetch.Model):
     profit_loss = models.IntegerField(default=0)
     created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
+class DemoDailyReturns(auto_prefetch.Model):
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='demoreturns')
+    portfolio_returns = models.FloatField(default=0.0)
+    market_returns = models.FloatField(default=0.0)
+    ngx_price = models.FloatField(default=0.0)
+    created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
 class Portfolio(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='portfolio2')
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -193,10 +200,9 @@ class Position(auto_prefetch.Model):
         return get_price(self.stock.symbol)['current_price']
 
     
-    
-
-class ProfitLoss(auto_prefetch.Model):
-    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='profitloss')
-    profit_loss = models.IntegerField(default=0)
+class DailyReturns(auto_prefetch.Model):
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='returns')
+    portfolio_returns = models.FloatField(default=0)
+    market_returns = models.FloatField(default=0)
+    ngx_price = models.FloatField(default=0)
     created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
-

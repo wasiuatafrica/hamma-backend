@@ -18,7 +18,7 @@ from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import shortuuid
 import json
 
-from .models import DemoPosition, DemoPortfolio, DemoProfitLoss
+from .models import DemoPosition, DemoPortfolio, DemoProfitLoss, DemoDailyReturns
 from .serializers import DemoPositionSerializer
 
 # class DemoTradeAPIView(APIView):
@@ -296,44 +296,29 @@ class Home(APIView):
             profit_loss = sum(profit_loss_list) if profit_loss_list else 0
             
             
-            def market_returns(current_portfolio_value, days=7):
-                volatility_factor = 0.1  
-
-                market_returns = [round(float(random.uniform(-volatility_factor, volatility_factor) + current_portfolio_value), 2) for _ in range(days)]
-                portfolio_returns = [round(float((1 + market_return) + current_portfolio_value),2) for market_return in market_returns]
-
-                end_date = datetime.now().date()
-                date_list = [(end_date - timedelta(days=i)).isoformat() for i in range(days)][::-1]
-
-                result_data = [
-                    {"date": date, "portfolio_returns": portfolio, "market_returns": market}
-                    for date, portfolio, market in zip(date_list, portfolio_returns, market_returns)
-                ]
-
-                return result_data
-            
-            total_current_value = 0
-
-            # Iterate through the list of dictionaries
-            if current_value_list:
-                for data in current_value_list:
-                    if 'current_value' in data:
-                        total_current_value += data['current_value']
-            
-            overview = market_returns(total_current_value)
-            daily_profitloss= DemoProfitLoss.objects.filter(user=request.user)
+            daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
             if daily_profitloss:
                 position_data_list = [
                     {
-                        'profit_loss':daily.profit_loss,
+                        'profit_loss':daily.portfolio_returns,
                         'date':daily.created.date()
                     } for daily in daily_profitloss
+                ]
+                
+                overview = [
+                    {
+                        'portfolio_returns':daily.portfolio_returns,
+                        'market_returns':daily.market_returns,
+                        'date':daily.created.date()
+                    } for daily in daily_profitloss if daily.market_returns != 0
                 ]
             else:
                 position_data_list =[]
                 
             equity1 = round(balance + profit_loss,2)
             equity = equity1 if equity1 >= 0 else 0
+            
+            
             data = {
                 'balance':round(balance,2),
                 'equity':equity,
@@ -407,7 +392,7 @@ class DemoHolding(APIView):
                     'close_price':position.close_price,
                     'ltp':price,
                     'open_time':position.created.isoformat(),
-                    'close_time':position.updated.isoformat(),
+                    'close_time':position.updated.isoformat() if position.updated != position.created else '-',
                     'change': pl,
                     "percent_change":percent_change,
                     'cur_val':value,
