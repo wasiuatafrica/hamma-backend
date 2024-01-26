@@ -31,6 +31,7 @@ from accounts.models import UserActivityLog,Referral
 from affilate.models import ReferralWallet,RewardActivities
 from execution import models as exec_models
 
+
  
 User= get_user_model()
 
@@ -51,11 +52,12 @@ class WalletBalance(APIView):
 
     def get(self, request):
         portfolio = exec_models.Portfolio.objects.get_or_create(user=request.user)[0]
-        transactions = Transaction.objects.filter(user=request.user,transaction_type="deposit")
+        transactions = Transaction.objects.filter(user=request.user)
         positions= portfolio.positions2.all()
+        savings = SavingsLock.objects.filter(user=request.user,status='ongoing')
         
-        deposited = sum([trans.amount for trans in transactions])
-        invested= sum([post.amount_invested for post in positions])
+        deposited = sum([trans.amount for trans in transactions if trans.transaction_type == "deposit"]) - sum([trans.amount for trans in transactions if trans.transaction_type == "withdrawal"])
+        invested= sum([post.amount_invested for post in positions]) + sum([lock.amount for lock in savings])
         balance = portfolio.balance
         uninvested = deposited - invested
         
