@@ -459,7 +459,8 @@ class UserAssetBreakDown(APIView):
         acc_summary={
             "fiat_acc_balance":wallet.balance,
             "no_of_stocks_owned" : holding.count(),
-            "total_val_of_stocks_owned": portfolio.portfolio_value()
+            "total_val_of_stocks_owned": portfolio.portfolio_value(),
+            "seven_days":"47.6"
         }
         print(acc_summary)
         return Response({"acc_summary":acc_summary, "stock_history":holding_data})
