@@ -82,12 +82,13 @@ class WalletWithdraw(APIView):
         transactions = Transaction.objects.filter(user=request.user,transaction_type="deposit")
         positions= portfolio.positions2.all()
         
-        deposited = sum([trans.amount for trans in transactions])
-        invested= sum([post.amount_invested for post in positions])
+        # deposited = sum([trans.amount for trans in transactions])
+        # invested= sum([post.amount_invested for post in positions])
         balance = portfolio.balance
-        uninvested = deposited - invested
+        # uninvested = deposited - invested
 
-        balance1 = uninvested + balance
+        # balance1 = uninvested + balance
+        balance1 = balance
         
         if not amount or not stage:
             return Response("amount and stage must be sent")
