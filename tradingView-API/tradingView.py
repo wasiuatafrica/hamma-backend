@@ -124,8 +124,13 @@ def main(pair, market):
 if __name__ == "__main__":
     # pair = "btcusdt"
     # market = "crypto"
-    pair = "ZENITHBANK"
-    market = "stock"
+    # pair = "ZENITHBANK"
+    # market = "stock"
+    # main(pair, market)
+    pair = "ASI"
+    market = "index"
     main(pair, market)
     # data = search('ZENITHBANK', 'stock')
+    # data = search('ASI', 'index')
+    
     # print(data)

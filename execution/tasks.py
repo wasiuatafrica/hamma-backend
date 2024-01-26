@@ -312,10 +312,10 @@ def daily_returns():
     today = datetime.now().weekday()
     if today < 5:
         users = User.objects.all()
-        # data = get_price('NGXGROUP')
-        # pr = data['current_price']
-        # print(data)
-        pr = 24.15
+        data = get_price('NGXGROUP')
+        pr = data['current_price']
+        print(data)
+        # pr = 24.15
         
         for user in users:
             positions = DemoPosition.objects.filter(portfolio__user=user,status='open')
@@ -334,18 +334,18 @@ def daily_returns():
                     position_shares.append(returned*weight)
                 shares = round(sum(position_shares)*100,2)
                 
-                # last_ngx_query = DemoDailyReturns.objects.filter(user=user).last()
+                last_ngx_query = DemoDailyReturns.objects.filter(user=user).last()
                 # print(last_ngx_query.ngx_price)
-                # if last_ngx_query:
-                #     last_ngx = last_ngx_query.ngx_price
-                    # market_returns = round(((pr - last_ngx)/last_ngx) *100,2)
+                if last_ngx_query:
+                    last_ngx = last_ngx_query.ngx_price
+                    market_returns = round(((pr - last_ngx)/last_ngx) *100,2)
                 
-                #     print('return', shares)
-                # else:
-                #     market_returns = 0
-                last_ngx = 25.5
+                    print('return', shares)
+                else:
+                    market_returns = 0
+                # last_ngx = 25.5
                 
-                market_returns = round(((pr - last_ngx)/last_ngx) *100,2)
+                # market_returns = round(((pr - last_ngx)/last_ngx) *100,2)
                     
                 DemoDailyReturns.objects.create(user=user, portfolio_returns=shares, market_returns =market_returns, ngx_price=pr)
                 print(f"{user.email} daily profit/loss calculated")
