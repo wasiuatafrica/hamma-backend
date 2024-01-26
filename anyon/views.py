@@ -60,7 +60,7 @@ class LoginView(APIView):
 
 
 class AdminManageUser(APIView):
-    serializer_class= acc_serializers.CustomUserSerializer
+    serializer_class= acc_serializers.AdminCustomUserSerializer
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
 
     def get_object(self, user_id):
@@ -452,7 +452,7 @@ class UserAssetBreakDown(APIView):
                 "company":data.stock.company,
                 "value":round(float(data.cur_val),2),
                 "amount":data.quantity,
-                "7days":"47.6"
+                "seven_days":"47.6"
             } for data in holding]
         # print(holding_data)
         wallet = Wallet.objects.get(user__id=id)
