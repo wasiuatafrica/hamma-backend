@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from portfolio import models
 from accounts import serializers as acc_serializers
+from execution.models import WithdrawalRequest
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -31,7 +32,7 @@ class WithdrawalSerializer(serializers.ModelSerializer):
     fullname = serializers.SerializerMethodField()
     user_id = serializers.SerializerMethodField()
     class Meta:
-        model = models.WithdrawalRequest
+        model = WithdrawalRequest
         fields = (
             'id',
             'fullname',

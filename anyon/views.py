@@ -145,7 +145,7 @@ class AdminReceiptsView(APIView):
             
             save_and_send_notification(wallet.user.id, f"{amount} credited to your wallet.")
             
-            models.Transaction.objects.create(user=wallet.user, transaction_type='deposit',amount=amount, status='completed')
+            models.Transaction.objects.create(user=wallet.user, transaction_type='deposit',amount=amount, status='completed', channel='Bank Transfer')
             
             refer_object=acc_Referral.objects.filter(person_referred=wallet.user).first()
             

@@ -222,3 +222,10 @@ class DailyReturns(auto_prefetch.Model):
     
     def __str__(self):
         return f"{self.user} - {self.created}"
+    
+class WithdrawalRequest(auto_prefetch.Model):
+    wallet=auto_prefetch.ForeignKey(Portfolio, on_delete=models.CASCADE)
+    amount = models.FloatField(null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True,null=True, blank=True)
+    updated = models.DateTimeField(auto_now=True)
+    status= models.CharField(max_length=20, default='Unprocessed', blank=True,null=True)

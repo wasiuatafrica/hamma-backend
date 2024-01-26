@@ -2,7 +2,7 @@ from pyexpat.errors import messages
 from django.contrib import admin
 
 from .models import (
-    Stock, PayStackReceipts, Holding, Portfolio, Receipts, WithdrawalOTPRequest, Wallet,WithdrawalRequest,
+    Stock, PayStackReceipts, Holding, Portfolio, Receipts, WithdrawalOTPRequest, Wallet,
     Transaction, Trade, Alert, AlertAI, AlertAITracker, DemoHolding, DemoPortfolio, DemoTrade, Conversation, Message,
     DemoPosition,DemoTransaction, Position
 )
@@ -14,7 +14,7 @@ admin.site.register(Portfolio)
 admin.site.register(Receipts)
 admin.site.register(WithdrawalOTPRequest)
 admin.site.register(Wallet)
-admin.site.register(WithdrawalRequest)
+# admin.site.register(WithdrawalRequest)
 admin.site.register(Transaction)
 admin.site.register(Trade)
 admin.site.register(Alert)

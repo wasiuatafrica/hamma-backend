@@ -462,12 +462,7 @@ class PayStackReceipts(auto_prefetch.Model):
     def __str__(self):
         return f'{self.user}-{self.amount}'
     
-class WithdrawalRequest(auto_prefetch.Model):
-    wallet=auto_prefetch.ForeignKey(Wallet, on_delete=models.CASCADE)
-    amount = models.FloatField(null=True, blank=True)
-    created = models.DateTimeField(auto_now_add=True,null=True, blank=True)
-    updated = models.DateTimeField(auto_now=True)
-    status= models.CharField(max_length=20, default='Unprocessed', blank=True,null=True)
+
     
 class Transaction(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
@@ -475,6 +470,8 @@ class Transaction(auto_prefetch.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateTimeField(auto_now_add=True)
     status= models.CharField(max_length=20, default='unprocessed', blank=True,null=True)
+    channel= models.CharField(max_length=20, blank=True,null=True)
+    
 
 
     def __str__(self):

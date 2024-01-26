@@ -5,8 +5,8 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import (Wallet, Stock, Portfolio, Holding, Receipts, PayStackReceipts, WithdrawalRequest, Alert,Trade,
-                     Transaction, WithdrawalOTPRequest, AlertAI, AlertAITracker, DemoPortfolio, Conversation, Message)
+from .models import (Wallet, Stock, Portfolio, Holding, Receipts, PayStackReceipts, Alert,Trade,WithdrawalOTPRequest,
+                     Transaction, AlertAI, AlertAITracker, DemoPortfolio, Conversation, Message)
 from .serializers import (StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
                           AlertSerializer,TradeSerializer,   TransactionSerializer, ConversationSerializer)
 from rest_framework import serializers
@@ -62,9 +62,11 @@ class WalletBalance(APIView):
         data = {
             "deposited":deposited,
             "invested":invested,
-            "uninvested":uninvested ,
+            # "uninvested":uninvested ,
+            "uninvested":balance ,
             "balance":balance,
-            "reserve": uninvested + balance
+            "reserve": balance,
+            # "reserve": uninvested + balance
             
         }
         
@@ -79,7 +81,6 @@ class WalletWithdraw(APIView):
         
         amount = request.data.get('amount')
         portfolio = exec_models.Portfolio.objects.get_or_create(user=request.user)[0]
-        transactions = Transaction.objects.filter(user=request.user,transaction_type="deposit")
         positions= portfolio.positions2.all()
         
         # deposited = sum([trans.amount for trans in transactions])
@@ -123,11 +124,13 @@ class WalletWithdraw(APIView):
 
             if otp_request and self.verify_otp(otp_request, provided_token):
                 # Proceed with withdrawal request creation
-                WithdrawalRequest.objects.create(wallet=wallet, amount=amount)
+                exec_models.WithdrawalRequest.objects.create(wallet=portfolio, amount=amount)
                 otp_request.used = True
                 otp_request.save()
                 save_and_send_notification(request.user.id, 'Your withdrawal is processing.')
                 activity=UserActivityLog.objects.create(user=request.user, action_type="withdrawal_request",description="User requested for a withdrawal")
+                transactions = Transaction.objects.filter(user=request.user,transaction_type="deposit")
+                
                 return Response({"detail": "Withdrawal request has been created successfully."},
                                 status=status.HTTP_200_OK)
             else:
@@ -140,7 +143,7 @@ class WalletWithdraw(APIView):
 
     def generate_otp(self):
         # Generate a 6-digit OTP
-        return ''.join([str(random.randint(0, 9)) for _ in range(8)])
+        return ''.join([str(random.randint(0, 9)) for _ in range(6)])
 
     # def send_otp(self, user, otp):
     #     # Send OTP via email (you can add SMS or other methods here)
@@ -166,7 +169,7 @@ class WalletWithdraw(APIView):
         
     def get_valid_otp_request(self, otp_request_id):
         try:
-            otp_request =WithdrawalOTPRequest.objects.get(id=otp_request_id, user=self.request.user, used=False,
+            otp_request = WithdrawalOTPRequest.objects.get(id=otp_request_id, user=self.request.user, used=False,
                                                  expiration_time__gte=timezone.now())
             return otp_request
         except WithdrawalOTPRequest.DoesNotExist:
@@ -438,7 +441,7 @@ def PayStackReceiptsView(request):
             RewardActivities.objects.create(trader=wallet.user, amount=5000, reward_type="Deposit Referral Commission", user=refer_object.user)
                     
     
-    Transaction.objects.create(user=request.user, amount=Decimal(amount),transaction_type='deposit', status='completed')
+    Transaction.objects.create(user=request.user, amount=Decimal(amount),transaction_type='deposit', status='completed',channel='paystack')
     activity=UserActivityLog.objects.create(user=request.user, action_type="paystack",description="User made a payment via paystack")
     serializer=PayStackReceiptsSerializer(paystack_recipt, many=False)
     return Response({"detail":serializer.data}, status=status.HTTP_201_CREATED)
