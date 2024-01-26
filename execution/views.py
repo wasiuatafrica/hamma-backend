@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from portfolio.models import Portfolio, Stock, Wallet,DemoTransaction
+from portfolio.models import Stock, DemoTransaction
 from notifications.utils import save_and_send_notification
 from rest_framework.permissions import IsAuthenticated
 from accounts.utils import get_referrer
@@ -17,10 +17,9 @@ from django.db.models import Sum
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import shortuuid
 import json
+from django.utils import timezone
 
-from .models import DemoPosition, DemoPortfolio, DemoProfitLoss, DemoDailyReturns
-from .serializers import DemoPositionSerializer
-
+from .models import DemoPosition, DemoPortfolio, DemoDailyReturns
 # class DemoTradeAPIView(APIView):
 #     permission_classes = [IsAuthenticated]
 
@@ -298,20 +297,22 @@ class Home(APIView):
             
             daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
             if daily_profitloss:
+                today = timezone.now()
                 position_data_list = [
                     {
-                        'profit_loss':daily.portfolio_returns,
-                        'date':daily.created.date()
-                    } for daily in daily_profitloss
+                        'profit_loss': daily.portfolio_returns,
+                        'date': daily.created.date()
+                    } for daily in daily_profitloss if daily.market_returns != 0 and daily.created.month == today.month
                 ]
-                
+
                 overview = [
                     {
-                        'portfolio_returns':daily.portfolio_returns,
-                        'market_returns':daily.market_returns,
-                        'date':daily.created.date()
+                        'portfolio_returns': daily.portfolio_returns,
+                        'market_returns': daily.market_returns,
+                        'date': daily.created.date()
                     } for daily in daily_profitloss if daily.market_returns != 0
                 ]
+
             else:
                 position_data_list =[]
                 overview = []

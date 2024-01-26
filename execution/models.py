@@ -145,7 +145,7 @@ class DemoDailyReturns(auto_prefetch.Model):
     portfolio_returns = models.FloatField(default=0.0)
     market_returns = models.FloatField(default=0.0)
     ngx_price = models.FloatField(default=0.0)
-    created =models.DateTimeField(null=True, blank=True)
+    created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
         return f"{self.user} - {self.created}"
