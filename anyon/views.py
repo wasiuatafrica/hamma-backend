@@ -25,6 +25,7 @@ from django.db.models.functions import Coalesce
 from datetime import datetime, timedelta
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
+from execution import models as exec_models
 
 
 User=get_user_model()
@@ -136,7 +137,8 @@ class AdminReceiptsView(APIView):
             receipt.amount=amount
             receipt.save()
             
-            wallet=models.Wallet.objects.get(user=receipt.user)
+            # wallet=models.Wallet.objects.get(user=receipt.user)
+            wallet= exec_models.Portfolio.objects.get(user=request.user)
             amount = Decimal(amount)
             wallet.balance += amount
             wallet.save()
@@ -210,7 +212,8 @@ class WithdrawalView(APIView):
         id = request.data.get('id')
         action = request.data.get('action')
         withdrawal= models.WithdrawalRequest.objects.get(id=id)
-        wallet = withdrawal.wallet
+        # wallet = withdrawal.wallet
+        wallet= exec_models.Portfolio.objects.get(user=request.user)
         allowed = ['approved','rejected']
         
         if action not in allowed:
