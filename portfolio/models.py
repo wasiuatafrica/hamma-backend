@@ -447,7 +447,7 @@ class Receipts(auto_prefetch.Model):
     payment_method= models.CharField(max_length=20,default='Bank Transfer'  )
     
     def __str__(self) -> str:
-        return f'{self.user}-{self.amount}'
+        return f'{self.user}-{self.amount} - {self.receipt_status}'
     
 class PayStackReceipts(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)
