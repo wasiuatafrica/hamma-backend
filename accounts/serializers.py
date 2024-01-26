@@ -112,3 +112,31 @@ class UserActivityLogSerializer(serializers.ModelSerializer):
     class Meta:
         model=models.UserActivityLog
         fields= "__all__"
+
+
+class AdminCustomUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=models.CustomUser
+        fields=[
+            "id",
+            "email",
+            "firstname",
+            "lastname",
+            "has_2fa",
+            "twofa_type",
+            "is_active",
+            # "signup_type",
+            "totp_url",
+            "date_joined",
+            "last_login",
+            "no_of_referred_users",
+            "profile_image", 
+            "profile_phone", 
+            "fullname",
+        ]
+        extra_kwargs={
+            'has_2fa': {'read_only': True},
+            'twofa_type': {'read_only': True},
+            'totp_url': {'read_only': True},
+            # 'signup_type': {'read_only': True},
+        }

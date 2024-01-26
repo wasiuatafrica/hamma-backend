@@ -515,7 +515,7 @@ class Trade(models.Model):
     
     @property
     def symbol(self):
-        return self.holding.symbol
+        return self.holding.stock.symbol
 
     # def save(self, *args, **kwargs):        
     #     activity=UserLoginActivity.objects.create(user=self.user, action_type=self.order_type,description=f"User {self.order_type}'s {self.holding.stock}.")
