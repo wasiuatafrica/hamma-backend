@@ -312,7 +312,7 @@ def daily_returns():
     today = datetime.now().weekday()
     if today < 5:
         users = User.objects.all()
-        data = get_price('NGXGROUP')
+        data = get_price('ASI')
         pr = data['current_price']
         print(data)
         # pr = 24.15

@@ -52,6 +52,9 @@ class DemoPortfolio(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
 
+    def __str__(self):
+        return f"{self.user}"
+    
 class DemoPosition(auto_prefetch.Model):
     OPEN = 'open'
     CLOSED = 'close'
@@ -80,6 +83,8 @@ class DemoPosition(auto_prefetch.Model):
     order_type = models.CharField(max_length=20, default='market')
     profit_loss = models.IntegerField(default=0)
     
+    def __str__(self):
+        return f"{self.portfolio.user} - {self.stock.symbol} - {self.action}"
     
     def calculate_profit_loss(self):
         price = self.current_price
@@ -140,12 +145,18 @@ class DemoDailyReturns(auto_prefetch.Model):
     portfolio_returns = models.FloatField(default=0.0)
     market_returns = models.FloatField(default=0.0)
     ngx_price = models.FloatField(default=0.0)
-    created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    created =models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.created}"
 
 class Portfolio(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='portfolio2')
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    
+    def __str__(self):
+        return f"{self.user}"
 
 class Position(auto_prefetch.Model):
     OPEN = 'open'
@@ -175,6 +186,8 @@ class Position(auto_prefetch.Model):
     order_type = models.CharField(max_length=20, default='market')
     profit_loss = models.IntegerField(default=0)
     
+    def __str__(self):
+        return f"{self.portfolio.user} - {self.stock.symbol} - {self.action}"
     
     def calculate_profit_loss(self):
         price = self.current_price
@@ -206,3 +219,6 @@ class DailyReturns(auto_prefetch.Model):
     market_returns = models.FloatField(default=0)
     ngx_price = models.FloatField(default=0)
     created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.user} - {self.created}"

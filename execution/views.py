@@ -314,6 +314,7 @@ class Home(APIView):
                 ]
             else:
                 position_data_list =[]
+                overview = []
                 
             equity1 = round(balance + profit_loss,2)
             equity = equity1 if equity1 >= 0 else 0
