@@ -34,7 +34,12 @@ class SavingsLock(auto_prefetch.Model):
         # Calculate compound interest with monthly compounding
         principal = Decimal(self.amount)
         rate = Decimal(10) / 100
-        time_in_months = Decimal(self.duration) 
+        durations = {
+            30:1,
+            60:2,
+            90:3
+        }
+        time_in_months = Decimal(durations[self.duration]) 
         compounding_frequency = Decimal(1/12)
 
         compound_interest = principal * (1 + rate / compounding_frequency)**(compounding_frequency * time_in_months) - principal

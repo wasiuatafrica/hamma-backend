@@ -272,6 +272,15 @@ class Home(APIView):
         if mode == 'demo':
             portfolio= DemoPortfolio.objects.get_or_create(user=request.user)[0]
             positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
+            positions2 = DemoPosition.objects.filter(portfolio=portfolio,status='close')
+            
+            today = timezone.now()
+            position_data_list2 = [
+                {
+                    'profit_loss': daily.profit_loss,
+                    'date': daily.created.date()
+                } for daily in positions2 if daily.created.month == today.month
+            ]
             
             balance = portfolio.balance
             
@@ -298,19 +307,19 @@ class Home(APIView):
             daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
             if daily_profitloss:
                 today = timezone.now()
-                position_data_list = [
-                    {
-                        'profit_loss': daily.portfolio_returns,
-                        'date': daily.created.date()
-                    } for daily in daily_profitloss if daily.market_returns != 0 and daily.created.month == today.month
-                ]
+                # position_data_list = [
+                #     {
+                #         'profit_loss': daily.portfolio_returns,
+                #         'date': daily.created.date()
+                #     } for daily in daily_profitloss if daily.market_returns != 0 and daily.created.month == today.month
+                # ]
 
                 overview = [
                     {
                         'portfolio_returns': daily.portfolio_returns,
                         'market_returns': daily.market_returns,
                         'date': daily.created.date()
-                    } for daily in daily_profitloss if daily.market_returns != 0
+                    } for daily in daily_profitloss 
                 ]
 
             else:
@@ -325,7 +334,8 @@ class Home(APIView):
                 'balance':round(balance,2),
                 'equity':equity,
                 'floating_pl' : profit_loss,
-                'positions': position_data_list,
+                'positions': position_data_list2,
+                # 'open_positions': position_data_list,
                 'current_value':current_value_list,
                 "overview":overview
             }
