@@ -203,7 +203,7 @@ class WithdrawalView(APIView):
     
     
     def get(self, request):
-        receipts=models.WithdrawalRequest.objects.all().order_by('-id')
+        receipts=exec_models.WithdrawalRequest.objects.all().order_by('-id')
         serializer = self.serializer_class(data=receipts, many=True)
         serializer.is_valid()
         return Response(serializer.data) 
@@ -211,7 +211,7 @@ class WithdrawalView(APIView):
     def post(self, request):
         id = request.data.get('id')
         action = request.data.get('action')
-        withdrawal= models.WithdrawalRequest.objects.get(id=id)
+        withdrawal= exec_models.WithdrawalRequest.objects.get(id=id)
         # wallet = withdrawal.wallet
         wallet= exec_models.Portfolio.objects.get(user=request.user)
         allowed = ['approved','rejected']
