@@ -275,11 +275,19 @@ class Home(APIView):
             positions2 = DemoPosition.objects.filter(portfolio=portfolio,status='close')
             
             today = timezone.now()
+            position_data_dict = {}
+
+            for daily in positions2:
+                if daily.created.month == today.month:
+                    date_key = daily.updated.date()
+                    if date_key in position_data_dict:
+                        position_data_dict[date_key] += daily.profit_loss
+                    else:
+                        position_data_dict[date_key] = daily.profit_loss
+
             position_data_list2 = [
-                {
-                    'profit_loss': daily.profit_loss,
-                    'date': daily.created.date()
-                } for daily in positions2 if daily.created.month == today.month
+                {'profit_loss': profit_loss, 'date': date} 
+                for date, profit_loss in position_data_dict.items()
             ]
             profit_loss2= sum([pos.profit_loss for pos in positions2])
             
