@@ -281,6 +281,7 @@ class Home(APIView):
                     'date': daily.created.date()
                 } for daily in positions2 if daily.created.month == today.month
             ]
+            profit_loss2= sum([pos.profit_loss for pos in positions2])
             
             balance = portfolio.balance
             
@@ -334,6 +335,7 @@ class Home(APIView):
                 'balance':round(balance,2),
                 'equity':equity,
                 'floating_pl' : profit_loss,
+                'closed_pl' : profit_loss2,
                 'positions': position_data_list2,
                 # 'open_positions': position_data_list,
                 'current_value':current_value_list,

@@ -3,7 +3,7 @@ import requests
 id = 3504898227
 # id = 3504782924
 url = f"https://api.paystack.co/transaction/{id}"
-headers = {"Authorization": "Bearer sk_live_59c15f8ea814ea5dbe33a13b7a400ed9587aa033"}
+headers = {"Authorization": "Bearer "}
 
 response = requests.get(url, headers=headers)
 

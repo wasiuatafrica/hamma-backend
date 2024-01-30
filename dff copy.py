@@ -1,7 +1,7 @@
 import requests 
 
 url = "https://api.paystack.co/terminal/Vt_sq95w9jy/presence"
-headers = {"Authorization": "Bearer sk_live_59c15f8ea814ea5dbe33a13b7a400ed9587aa033"}
+headers = {"Authorization": "Bearer "}
 
 response = requests.get(url, headers=headers)
 

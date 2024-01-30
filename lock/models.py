@@ -52,4 +52,4 @@ class SavingsLock(auto_prefetch.Model):
         return round(self.amount + self.potential_interest,2)
 
     def __str__(self):
-        return f"{self.user.username} - {self.amount} locked for {self.duration} days"
+        return f"{self.user.username} - {self.amount} {self.duration} days - {self.status}"
