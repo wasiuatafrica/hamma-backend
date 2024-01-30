@@ -143,6 +143,14 @@ class Referral(auto_prefetch.Model):
     def status(self):
         return 'Paid' if self.paid else 'Unpaid'
     
+    @property
+    def profile_image(self):
+        profile=Profile.objects.get(user__email=self.person_referred.email)
+        if not profile.profile_img:
+            return ""
+
+        return str(profile.profile_img.url)
+    
         
 class FirstLogin(auto_prefetch.Model):
     user=models.OneToOneField(CustomUser, related_name='first_login', on_delete=models.CASCADE)
