@@ -824,7 +824,7 @@
     
         </div>
     </div>
-    <div class="container mt-5">
+    {% comment %} <div class="container mt-5">
         <h3 data-toggle="collapse" data-target="#savingsLock">11. Savings Lock</h3>
         <div id="savingsLock" class="collapse">
     
@@ -911,13 +911,111 @@
                 }
             </pre>
     
-            {% comment %} <h4>11d. Delete a Savings Lock</h4>
+            <h4>11d. Delete a Savings Lock</h4>
             <p>DELETE /lock/savings/{id}/</p>
     
             <h5>Response:</h5>
             <pre>
                 Delete a specific savings lock for the authenticated user. No content is returned.
-            </pre> {% endcomment %}
+            </pre> 
+    
+        </div>
+    </div> {% endcomment %}
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#savingsLock">11. Savings [NEW] 310-01-2024</h3>
+        <div id="savingsLock" class="collapse">
+    
+            <h4>11a. Get List of Savings</h4>
+            <p>GET /lock/saving/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Retrieve a list of savings  for the authenticated user.
+                [
+                    {
+                        "id": 1,
+                        "title": "Vacation Fund",
+                        "source": "Salary",
+                        "status": "Active",
+                        "amount": 500.0,
+                        "duration": 12,
+                        "interest_rate": 5.0,
+                        "start_date": "2023-12-05",
+                        "potential_interest": 25.0,
+                        "total_amount_after_close": 525.0
+                    },
+                    // ... additional savings
+                ]
+            </pre>
+    
+            <h4>11b. Create a Savings</h4>
+            <p>POST /lock/saving/</p>
+    
+            <h5>Request:</h5>
+            <pre>
+                {
+                    "amount": 500.0,
+                }
+            </pre>
+    
+            <h5>Response:</h5>
+            <pre>
+                Create a new savings  for the authenticated user.
+                {
+                    "id": 2,
+                    "title": "null",
+                    "source": "wallet",
+                    "status": "ongoing",
+                    "amount": 500.0,
+                    "duration": 12,
+                    "interest_rate": 5.0,
+                    "start_date": "2023-12-05",
+                    "potential_interest": 25.0,
+                    "total_amount_after_close": 525.0
+                }
+            </pre>
+    
+            <h6>Notes:</h6>
+    
+            <h4>11c. Get Details of a Savings </h4>
+            <p>GET /lock/saving/{id}/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Retrieve details of a specific savings for the authenticated user.
+                {
+                    "id": 1,
+                    "title": "Vacation Fund",
+                    "source": "wallet",
+                    "status": "ongoing",
+                    "amount": 500.0,
+                    "duration": 12,
+                    "interest_rate": 5.0,
+                    "start_date": "2023-12-05",
+                    "potential_interest": 25.0,
+                    "total_amount_after_close": 525.0
+                }
+            </pre>
+
+            <h4>11d. Close a Saving </h4>
+            <p>GET /lock/saving/close/{id}/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Retrieve details of a specific savings for the authenticated user.
+                {
+                    "id": 1,
+                    "title": "null",
+                    "source": "wallet",
+                    "status": "closed",
+                    "amount": 500.0,
+                    "duration": 12,
+                    "interest_rate": 5.0,
+                    "start_date": "2023-12-05",
+                    "potential_interest": 25.0,
+                    "total_amount_after_close": 525.0
+                }
+            </pre>
     
         </div>
     </div>

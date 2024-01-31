@@ -21,7 +21,7 @@ from django.shortcuts import get_object_or_404
 from decimal import Decimal
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-from lock.models import SavingsLock
+from lock.models import Saving
 from django.db.models import Sum
 from concurrent.futures import ThreadPoolExecutor
 from django.db import close_old_connections
@@ -54,7 +54,7 @@ class WalletBalance(APIView):
         portfolio = exec_models.Portfolio.objects.get_or_create(user=request.user)[0]
         transactions = Transaction.objects.filter(user=request.user)
         positions= portfolio.positions2.all()
-        savings = SavingsLock.objects.filter(user=request.user,status='ongoing')
+        savings = Saving.objects.filter(user=request.user,status='ongoing')
         
         deposited = sum([trans.amount for trans in transactions if trans.transaction_type == "deposit"]) - sum([trans.amount for trans in transactions if trans.transaction_type == "withdrawal"])
         invested= sum([post.amount_invested for post in positions]) + sum([lock.amount for lock in savings])
