@@ -327,7 +327,8 @@ def daily_returns():
                 total_invested  = sum([post.amount_invested for post in positions])
                 position_shares = []
                 for position in positions:
-                    pl,value,price = position.calculate_profit_loss() 
+                    # pl,value,price = position.calculate_profit_loss() 
+                    value = position.amount_invested + position.profit_loss
                     returned =  (Decimal(value)/position.amount_invested) - 1
                     weight = (position.amount_invested/total_invested )
                     
