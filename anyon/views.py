@@ -1,5 +1,8 @@
 
+import keyword
 from random import uniform
+
+from pkg_resources import Requirement
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from accounts.models import Referral as acc_Referral, UserActivityLog 
@@ -307,7 +310,8 @@ class AdminApproveAndViewRewardActivities(APIView):
                 "reward":act.reward_type,
                 "amount":act.amount,
                 "status":act.status,
-                "date": act.created
+                "date": act.created,
+                "tethered_requirements":["10% Brokerayge commission for every trade by the referred user for life", "50,000 deposits from referred user"]
             } for act in activities
         ]
         return Response(data)
@@ -375,6 +379,9 @@ class AllUsersActivityLogView(APIView):
                 activities=UserActivityLog.objects.filter(user__is_active=True)
             elif filter == "inactive":
                 activities=UserActivityLog.objects.filter(user__is_active=False)
+            else:
+                activities=UserActivityLog.objects.filter(action_type=filter)
+
         else:
             activities=UserActivityLog.objects.all()
         serializer=self.serializer_class(activities, many=True)
@@ -595,3 +602,146 @@ class AnalyticsView(APIView):
         }
 
         return Response(data)
+
+class DeactivateAccount(APIView):
+    
+    def post(self, request):
+        user_id=request.data.get("user_id")
+        keyword=request.data.get("keyword")
+        user= User.objects.filter(id=user_id).first()
+        if not user_id and keyword:
+            return Response({"detail":"user_id and keyword is must not be empty"}, status.HTTP_400_BAD_REQUEST)
+        if not user:
+            return Response({"detail":"user not found"}, status.HTTP_404_NOT_FOUND)
+        if keyword == "deactivate":
+            user.is_active=False
+            user.save()
+            return Response({"detail":"user account deactivated successfully"}, status.HTTP_200_OK)
+        elif keyword == "activate":
+            user.is_active=True
+            user.save()
+            return Response({"detail":"user account activated successfully"}, status.HTTP_200_OK)
+        return Response({"detail":"Invalid keyword. Use activate or deactivate"}, status.HTTP_400_BAD_REQUEST)
+
+from affilate.models import RewardActivities,ReferralWallet  
+from  affilate import serializers as aff_serializers  
+class RewardActivitiesView(APIView):
+    serializer_class = aff_serializers.RewardActivitiesSerializer
+
+    def calculate_percentage_change(self, old_value, new_value):
+        if old_value is None or new_value is None or old_value == 0:
+            return None, None
+
+        percentage_change = ((new_value - old_value) / abs(old_value)) * 100
+        direction = "increase" if percentage_change > 0 else "decrease"
+
+        return percentage_change, direction
+
+    def get(self, request, *args, **kwargs):
+        user_id=kwargs.get("user_id")
+        user=User.objects.filter(id=user_id).first()
+        if not user:
+            return Response({"detail":f"user with id {user_id} not found"}, status.HTTP_404_NOT_FOUND)
+        # Retrieve existing data
+        wallet_balance = ReferralWallet.objects.get_or_create(user=user)[0].balance
+        today = datetime.now()
+        today_start = today.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        # Get old value for the period 60 to 30 days ago
+        last_30_days_start = today - timedelta(days=30)
+        last_60_to_30_days_start = today - timedelta(days=60)
+        last_60_to_30_days_balance = RewardActivities.objects.filter(
+            user=user, created__gte=last_60_to_30_days_start, created__lt=last_30_days_start
+        ).aggregate(total_balance=Sum('amount'))['total_balance']
+
+        # Get new value for the last 30 days
+        last_30_days_balance = RewardActivities.objects.filter(
+            user=user, created__gte=last_30_days_start, created__lt=today_start
+        ).aggregate(total_balance=Sum('amount'))['total_balance']
+
+        # If no records for the period 60 to 30 days ago, use records for the last 30 days
+        if last_60_to_30_days_balance is None:
+            last_60_to_30_days_balance = last_30_days_balance
+
+        # Get old value for today's income change
+        last_reward_activity_before_today = RewardActivities.objects.filter(
+            user=user, created__lt=today_start
+        ).order_by('-created').first()
+        old_today_income = 0 if last_reward_activity_before_today is None else last_reward_activity_before_today.amount
+
+        # Get new value for today's income change
+        today_income_records = RewardActivities.objects.filter(
+            user=user, created__gte=today_start
+        )
+        today_income = today_income_records.aggregate(total_commission=Sum('amount'))['total_commission']
+
+        # Handle None value for today_income
+        today_income = today_income if today_income is not None else 0
+
+        # Calculate percentage changes
+        last_60_to_30_days_balance_change_percentage, last_60_to_30_days_balance_direction = self.calculate_percentage_change(last_60_to_30_days_balance, last_30_days_balance)
+        total_income_change_percentage, total_income_direction = self.calculate_percentage_change(0, last_30_days_balance + today_income)
+        today_income_change_percentage, today_income_direction = self.calculate_percentage_change(old_today_income, today_income)
+
+        if today_income_change_percentage == -100:
+            today_income_change_percentage = 0
+        # Retrieve filtered activities if specified
+        filter = request.GET.get("email")
+        if filter:
+            activities = aff_models.RewardActivities.objects.filter(user=user, trader__email=filter)
+        else:
+            activities = aff_models.RewardActivities.objects.filter(user=user)
+        serializer = self.serializer_class(activities, many=True).data
+
+        data1 = {
+            'wallet_balance': wallet_balance,
+            'last_60_to_30_days_balance_change_percentage': last_60_to_30_days_balance_change_percentage,
+            # 'last_60_to_30_days_balance_direction': last_60_to_30_days_balance_direction,
+            'total_income': round(last_30_days_balance + today_income,2),
+            # 'total_income_change_percentage': total_income_change_percentage,
+            # 'total_income_direction': total_income_direction,
+            'today_income': round(today_income,2),
+            'today_income_change_percentage': today_income_change_percentage,
+            # 'today_income_direction': today_income_direction,
+            'reward_activities': serializer
+        }
+        return Response(data1)
+    
+class FlagReciept(APIView):
+    def post(self, request, *args, **kwargs):
+        reciept_id= kwargs.get("reciept_id")
+        keyword =request.data.get("keyword")
+        if not reciept_id and keyword:
+            return Response({"detail":"reciept_id and keyword must not be empty"}, status.HTTP_400_BAD_REQUEST)
+        recipt=Receipts.objects.filter(id=reciept_id).first()
+        if not recipt:
+            return Response({"detail":f"recipt with id {reciept_id} not found"}, status.HTTP_404_NOT_FOUND)
+        if keyword == "unflag":
+            recipt.flag=False
+            recipt.save()
+            return Response({"detail":"recipt unflagged successfully"}, status.HTTP_200_OK)
+        elif keyword == "flag":
+            recipt.flag=True
+            recipt.save()
+            return Response({"detail":"recipt flagged successfully"}, status.HTTP_200_OK)
+        return Response({"detail":"Invalid keyword. Use flagged or unflagged"}, status.HTTP_400_BAD_REQUEST)
+    
+class FlagWithdrawalRequest(APIView):
+    def post(self, request,*args, **kwargs):
+        withdrawal_request_id= kwargs.get("withdrawal_request_id")
+        keyword =request.data.get("keyword")
+        if not withdrawal_request_id and keyword:
+            return Response({"detail":"withdrawal_request_id and keyword must not be empty"}, status.HTTP_400_BAD_REQUEST)
+        withdrawal_request=exec_models.WithdrawalRequest.objects.filter(id=withdrawal_request_id).first()
+        if not withdrawal_request:
+            return Response({"detail":f"withdrawal_request with id {withdrawal_request_id} not found"}, status.HTTP_404_NOT_FOUND)
+        if keyword == "unflag":
+            withdrawal_request.flag=False
+            withdrawal_request.save()
+            return Response({"detail":"withdrawal_request unflagged successfully"}, status.HTTP_200_OK)
+        elif keyword == "flag":
+            withdrawal_request.flag=True
+            withdrawal_request.save()
+            return Response({"detail":"withdrawal_request flagged successfully"}, status.HTTP_200_OK)
+        return Response({"detail":"Invalid keyword. Use flagged or unflagged"}, status.HTTP_400_BAD_REQUEST)
+

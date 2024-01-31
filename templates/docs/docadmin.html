@@ -538,7 +538,7 @@
 
             </ul>
 
-            h4>6f. Affilate ranking</h4>
+            <h4>6f. Affilate ranking</h4>
             <p>GET /anyon/manage-referrals/</p>
     
             <h5>Response:</h5>
@@ -564,8 +564,111 @@
 
             </ul>
 
+            <h4>6g. Activate-Deactivate User Account</h4>
+            <p>POST /anyon/activate-deactivate-account/</p>
+
+            <h5>Request Body:</h5>
+            <pre>
+                {
+                    "user_id":2,
+                    "keyword":"deactivate"
+                  }
+                    
+            </pre>
+    
+            <h5>Response:</h5>
+            <pre>
+                {
+                    "detail": "user account deactivated successfully"
+                  }
+                    
+            </pre>
+            <pre>
+                {
+                    "detail": "user account activated successfully"
+                  }
+                    
+            </pre>
+            
+            
+            <h6>Notes:</h6>
+            <ul>
+                <li>1.Key word has to be either "activate" or "deactivate".</li>
+            </ul>
+
     
         </div>
+
+        <h4>6h.User Reward Activities</h4>
+        <p>GET /affilate/user-reward-activities/user_id/</p>
+
+        <h5>Response:</h5>
+        <pre>
+            Retrieve reward activities for the authenticated user.
+            {
+                "wallet_balance": 500.0,
+                "total_income": 100.0,
+                "today_income": 25.0,
+                "reward_activities": [
+                    {
+                        "id": 1,
+                        "user": 1,
+                        "trader": 2,
+                        "username": "trader_username",
+                        "reward_type": "Deposit Referral Commission",
+                        "created": "2023-12-05T12:34:56.789Z",
+                        "amount": 50.0,
+                        "status": "Pending",
+                        "comment": "Commission for referral"
+                    },
+                    // ... additional reward activities
+                ]
+            }
+        </pre>
+
+        <h4>6i.Flag WIthdrawal Request</h4>
+        <p>POST /flag-withdrawal-request/withdrawal_request_id/</p>
+
+        <h5>REQUEST BODY:</h5>
+        <pre>
+            
+            {
+                "keyword": Enum ["flag", "unflag"],
+            }
+        </pre>
+        <h5>Response:</h5>
+        <pre>
+            {
+                "detail": "withdrawal_request flagged successfully"
+              }
+        </pre>
+        <pre>
+            {
+                "detail": "withdrawal_request unflagged successfully"
+              }
+        </pre>
+
+        <h4>6j.Flag Reciept</h4>
+        <p>POST /flag-reciept/reciept_id/</p>
+
+        <h5>REQUEST BODY:</h5>
+        <pre>
+            
+            {
+                "keyword": Enum ["flag", "unflag"],
+            }
+        </pre>
+        <h5>Response:</h5>
+        <pre>
+            {
+                "detail": "reciept flagged successfully"
+              }
+        </pre>
+        <pre>
+            {
+                "detail": "reciept unflagged successfully"
+              }
+        </pre>
 
     </div>
     <div class="container mt-5">

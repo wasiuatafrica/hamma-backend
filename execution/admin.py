@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import DemoPortfolio, DemoPosition, DemoTrade, DemoProfitLoss, Portfolio, Position, DemoDailyReturns, DailyReturns
+from .models import DemoPortfolio, DemoPosition, DemoTrade, DemoProfitLoss, Portfolio, WithdrawalRequest,Position, DemoDailyReturns, DailyReturns
 
 
 
@@ -11,3 +11,4 @@ admin.site.register(DemoDailyReturns)
 admin.site.register(Position)
 admin.site.register(Portfolio)
 admin.site.register(DailyReturns)
+admin.site.register(WithdrawalRequest)
