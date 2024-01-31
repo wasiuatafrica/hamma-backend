@@ -19,7 +19,7 @@ class SavingsLock(auto_prefetch.Model):
     status=models.CharField(max_length=255, blank=True, null=True, default='ongoing')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     duration = models.IntegerField()
-    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=5.0)
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=10.0)
     start_date = models.DateTimeField(auto_now_add=True)
 
     @property
@@ -39,10 +39,10 @@ class SavingsLock(auto_prefetch.Model):
             60:2,
             90:3
         }
-        time_in_months = Decimal(durations[self.duration]) 
+        time_in_months = Decimal(durations.get(self.duration,1)) 
         compounding_frequency = Decimal(1/12)
 
-        compound_interest = principal * (1 + rate / compounding_frequency)**(compounding_frequency * time_in_months) - principal
+        compound_interest = principal * (1 + rate)**(compounding_frequency * time_in_months) - principal
 
         return round(compound_interest, 2)
 
@@ -52,4 +52,4 @@ class SavingsLock(auto_prefetch.Model):
         return round(self.amount + self.potential_interest,2)
 
     def __str__(self):
-        return f"{self.user.username} - {self.amount} {self.duration} days - {self.status}"
+        return f"{self.user.email} - {self.amount} {self.duration} days - {self.status}"

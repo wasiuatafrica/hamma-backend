@@ -289,26 +289,53 @@ class Home(APIView):
                 {'profit_loss': profit_loss, 'date': date} 
                 for date, profit_loss in position_data_dict.items()
             ]
+            if position_data_list2:
+                start_date = min(item['date'] for item in position_data_list2)
+            else:
+                start_date = today.date()
+
+            # Create a new list with dates from start_date until today
+            final_list = [
+                {'profit_loss': position_data_dict.get(date, 0), 'date': date.strftime('%Y-%m-%d')}
+                for date in (start_date + timedelta(n) for n in range((today.date() - start_date).days + 1))
+            ]
             profit_loss2= sum([pos.profit_loss for pos in positions2])
             
             balance = portfolio.balance
             
-            profit_loss_list = []
-            current_value_list = []
+            # profit_loss_list = []
+            # current_value_list = []
             
-            if positions:
-                for position in positions:
-                    pl, cur_val,price = position.calculate_profit_loss()
-                    symbol=position.stock.symbol
-                    print(pl)
-                    profit_loss_list.append(pl) 
+            # if positions:
+            #     for position in positions:
+            #         pl, cur_val,price = position.calculate_profit_loss()
+            #         symbol=position.stock.symbol
+            #         print(pl)
+            #         profit_loss_list.append(pl) 
                     
                     
-                    data2 =  {
+            #         data2 =  {
+            #             'stock':symbol,
+            #             'current_value':round(cur_val,2)
+            #         }
+            #         current_value_list.append(data2)
+            def pl_cv(position):
+                pl, cur_val,price = position.calculate_profit_loss()
+                symbol=position.stock.symbol
+                print(pl)
+                data2 =  {
                         'stock':symbol,
                         'current_value':round(cur_val,2)
                     }
-                    current_value_list.append(data2)
+                
+                return pl, data2
+            
+            with ThreadPoolExecutor() as executor:
+                futures = executor.map(pl_cv, positions)
+                pl_cv_list = [result for result in futures if result]
+            
+            profit_loss_list = [x[0] for x in pl_cv_list]
+            current_value_list = [x[1] for x in pl_cv_list]
                     
             profit_loss = sum(profit_loss_list) if profit_loss_list else 0
             
@@ -344,7 +371,8 @@ class Home(APIView):
                 'equity':equity,
                 'floating_pl' : profit_loss,
                 'closed_pl' : profit_loss2,
-                'positions': position_data_list2,
+                # 'positions': position_data_list2,
+                'positions': final_list,
                 # 'open_positions': position_data_list,
                 'current_value':current_value_list,
                 "overview":overview

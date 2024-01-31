@@ -318,7 +318,7 @@ def daily_returns():
         # pr = 24.15
         
         for user in users:
-            positions = DemoPosition.objects.filter(portfolio__user=user,status='open')
+            positions = DemoPosition.objects.filter(portfolio__user=user,status='close')
             
             
             if positions:

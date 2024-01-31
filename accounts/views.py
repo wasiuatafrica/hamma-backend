@@ -11,7 +11,8 @@ from .utils import verify_token, resendToken,SetTOTP, verifyTOTP,generate_random
 from rest_framework import viewsets
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone  
-from portfolio.models import Wallet,Portfolio, DemoPortfolio
+# from portfolio.models import Wallet,Portfolio, DemoPortfolio
+from execution.models import Portfolio, DemoPortfolio, DemoDailyReturns, DailyReturns
 from execution.trades import simulate_trades
 from .tasks import set_up_user
 from affilate.models import ReferralWallet
@@ -59,10 +60,13 @@ class VerifyToken(APIView):
         
         user=User.objects.get(email=user_email)
         
-        Wallet.objects.create(user=user)
+        # Wallet.objects.create(user=user)
+        
         Portfolio.objects.create(user=user)
         ReferralWallet.objects.create(user=user)
         DemoPortfolio.objects.create(user=user)
+        DemoDailyReturns.objects.create(user=user)
+        DailyReturns.objects.create(user=user)
         send_welcome_email(user)
         set_up_user.delay(user_email)
         activity=models.UserActivityLog.objects.create(user=user, action_type="verified_account",description="User verified their account.")
