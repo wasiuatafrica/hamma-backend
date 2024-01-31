@@ -19,5 +19,10 @@ urlpatterns = [
    path("analytics/", views.AnalyticsView.as_view()),
    path("activate-deactivate-account/", views.DeactivateAccount.as_view()),
    path("user-reward-activities/<str:user_id>/", views.RewardActivitiesView.as_view()),
+   path("flag-reciept/<str:reciept_id>/", views.FlagReciept.as_view()),
+   path("flag-withdrawal-request/<str:withdrawal_request_id>/", views.FlagWithdrawalRequest.as_view()),
+
+   
+
 
 ]

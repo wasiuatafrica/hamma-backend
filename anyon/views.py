@@ -706,3 +706,42 @@ class RewardActivitiesView(APIView):
             'reward_activities': serializer
         }
         return Response(data1)
+    
+class FlagReciept(APIView):
+    def post(self, request, *args, **kwargs):
+        reciept_id= kwargs.get("reciept_id")
+        keyword =request.data.get("keyword")
+        if not reciept_id and keyword:
+            return Response({"detail":"reciept_id and keyword must not be empty"}, status.HTTP_400_BAD_REQUEST)
+        recipt=Receipts.objects.filter(id=reciept_id).first()
+        if not recipt:
+            return Response({"detail":f"recipt with id {reciept_id} not found"}, status.HTTP_404_NOT_FOUND)
+        if keyword == "unflag":
+            recipt.flag=False
+            recipt.save()
+            return Response({"detail":"recipt unflagged successfully"}, status.HTTP_200_OK)
+        elif keyword == "flag":
+            recipt.flag=True
+            recipt.save()
+            return Response({"detail":"recipt flagged successfully"}, status.HTTP_200_OK)
+        return Response({"detail":"Invalid keyword. Use flagged or unflagged"}, status.HTTP_400_BAD_REQUEST)
+    
+class FlagWithdrawalRequest(APIView):
+    def post(self, request,*args, **kwargs):
+        withdrawal_request_id= kwargs.get("withdrawal_request_id")
+        keyword =request.data.get("keyword")
+        if not withdrawal_request_id and keyword:
+            return Response({"detail":"withdrawal_request_id and keyword must not be empty"}, status.HTTP_400_BAD_REQUEST)
+        withdrawal_request=exec_models.WithdrawalRequest.objects.filter(id=withdrawal_request_id).first()
+        if not withdrawal_request:
+            return Response({"detail":f"withdrawal_request with id {withdrawal_request_id} not found"}, status.HTTP_404_NOT_FOUND)
+        if keyword == "unflag":
+            withdrawal_request.flag=False
+            withdrawal_request.save()
+            return Response({"detail":"withdrawal_request unflagged successfully"}, status.HTTP_200_OK)
+        elif keyword == "flag":
+            withdrawal_request.flag=True
+            withdrawal_request.save()
+            return Response({"detail":"withdrawal_request flagged successfully"}, status.HTTP_200_OK)
+        return Response({"detail":"Invalid keyword. Use flagged or unflagged"}, status.HTTP_400_BAD_REQUEST)
+

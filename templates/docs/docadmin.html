@@ -626,6 +626,50 @@
             }
         </pre>
 
+        <h4>6i.Flag WIthdrawal Request</h4>
+        <p>POST /flag-withdrawal-request/withdrawal_request_id/</p>
+
+        <h5>REQUEST BODY:</h5>
+        <pre>
+            
+            {
+                "keyword": Enum ["flag", "unflag"],
+            }
+        </pre>
+        <h5>Response:</h5>
+        <pre>
+            {
+                "detail": "withdrawal_request flagged successfully"
+              }
+        </pre>
+        <pre>
+            {
+                "detail": "withdrawal_request unflagged successfully"
+              }
+        </pre>
+
+        <h4>6j.Flag Reciept</h4>
+        <p>POST /flag-reciept/reciept_id/</p>
+
+        <h5>REQUEST BODY:</h5>
+        <pre>
+            
+            {
+                "keyword": Enum ["flag", "unflag"],
+            }
+        </pre>
+        <h5>Response:</h5>
+        <pre>
+            {
+                "detail": "reciept flagged successfully"
+              }
+        </pre>
+        <pre>
+            {
+                "detail": "reciept unflagged successfully"
+              }
+        </pre>
+
     </div>
     <div class="container mt-5">
         <h3 data-toggle="collapse" data-target="#affiliateSection">7. Affiliate Management</h3>

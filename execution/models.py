@@ -229,3 +229,4 @@ class WithdrawalRequest(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True,null=True, blank=True)
     updated = models.DateTimeField(auto_now=True)
     status= models.CharField(max_length=20, default='Unprocessed', blank=True,null=True)
+    flag=models.BooleanField(default=False, null=True, blank=True)

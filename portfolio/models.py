@@ -1,4 +1,7 @@
+from email.policy import default
+from pyexpat import model
 from time import time
+from tokenize import blank_re
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
@@ -445,6 +448,7 @@ class Receipts(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     approved_date = models.DateTimeField(auto_now=True)
     payment_method= models.CharField(max_length=20,default='Bank Transfer'  )
+    flag=models.BooleanField(default=False, null=True, blank=True)
     
     def __str__(self) -> str:
         return f'{self.user}-{self.amount} - {self.receipt_status}'
@@ -457,6 +461,7 @@ class PayStackReceipts(auto_prefetch.Model):
     date = models.DateTimeField(auto_now_add=True)
     receipt_status = models.CharField(max_length=20,default='unprocessed')
     comment = models.TextField(blank=True, null=True)
+    flag=models.BooleanField(default=False, null=True, blank=True)
     
     
     def __str__(self):
