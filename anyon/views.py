@@ -501,6 +501,8 @@ class AnalyticsView(APIView):
 
         user_percentage_change = calculate_percentage_change(users_last_month, active_users)
         print(active_users, user_percentage_change)
+        
+        
         #Assets        
         portfolios = Portfolio.objects.all()
         
@@ -513,6 +515,7 @@ class AnalyticsView(APIView):
         percentage_of_total_assets = round(calculate_percentage_change(portfolios_before_this_month, total_portfolio_value),2)
 
         print(total_portfolio_value, percentage_of_total_assets)
+        
         
         #Transactions
         transactions = models.Transaction.objects.all()

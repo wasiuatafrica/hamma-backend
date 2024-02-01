@@ -278,7 +278,7 @@ class Home(APIView):
             position_data_dict = {}
 
             for daily in positions2:
-                if daily.created.month == today.month:
+                if daily.updated.month == today.month:
                     date_key = daily.updated.date()
                     if date_key in position_data_dict:
                         position_data_dict[date_key] += daily.profit_loss
