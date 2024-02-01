@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from portfolio import models
 from accounts import serializers as acc_serializers
-from execution.models import WithdrawalRequest
+from execution.models import WithdrawalRequest, DemoPosition, Position
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -83,3 +83,34 @@ class TradeSerializer(serializers.ModelSerializer):
     
     def get_symbol(self,obj):
         return obj.holding.stock.symbol
+    
+class PositionSerializer(serializers.ModelSerializer):
+    fullname = serializers.SerializerMethodField()
+    user_id = serializers.SerializerMethodField()
+    symbol = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = DemoPosition
+        fields = (
+            'id',
+            'symbol',
+            'action',
+            'quantity',
+            'open_price',
+            'status',
+            'updated',
+            'fullname',
+            'user_id',
+            
+        )
+        
+    def get_fullname(self, obj):
+        user = obj.portfolio.user
+        if user:
+            return f"{user.firstname.title()} {user.lastname.title()}"
+        
+    def get_user_id(self,obj):
+        return obj.portfolio.user.id
+    
+    def get_symbol(self,obj):
+        return obj.stock.symbol

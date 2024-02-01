@@ -262,12 +262,13 @@ class WithdrawalView(APIView):
             return Response("Insufficient fund")
         
 class AdminTradeView(APIView):
-    serializer_class = serializers.TradeSerializer
+    serializer_class = serializers.PositionSerializer
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
     
     
     def get(self, request):
         trades = models.Trade.objects.all().order_by('-id')
+        trades = exec_models.DemoPosition.objects.all().order_by('-updated')
         serializer = self.serializer_class(data=trades, many=True)
         serializer.is_valid()
         return Response(serializer.data)
