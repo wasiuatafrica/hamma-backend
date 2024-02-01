@@ -597,7 +597,7 @@
             </ul>
 
     
-        </div>
+        
 
         <h4>6h.User Reward Activities</h4>
         <p>GET /affilate/user-reward-activities/user_id/</p>
@@ -669,7 +669,7 @@
                 "detail": "reciept unflagged successfully"
               }
         </pre>
-
+    </div>
     </div>
     <div class="container mt-5">
         <h3 data-toggle="collapse" data-target="#affiliateSection">7. Affiliate Management</h3>
@@ -728,7 +728,90 @@
     
         </div>
     </div>
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#analytics">8. Analytics</h3>
+        <div id="analytics" class="collapse">
     
+            <p>GET /anyon/analytics/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                {
+                    "total_registered_users": 3,
+                    "percentage_change_registered_users": 0.0,
+                    "total_assets_under_mgmt": 728575.0,
+                    "percentage_change_assets_under_mgmt": 0.0,
+                    "total_transactions": 38,
+                    "percentage_change_total_transactions": 0.0,
+                    "average_daily_active_users": 1,
+                    "percentage_change_daily_active_users": 0.0,
+                    "top_performing_stock": [
+                        {
+                            "user": "Developer Status",
+                            "profit": 3450,
+                            "symbol": "UBA"
+                        },
+                        {
+                            "user": "Developer Status",
+                            "profit": -7680,
+                            "symbol": "JAIZBANK"
+                        },
+                        {
+                            "user": "Developer Status",
+                            "profit": -295710,
+                            "symbol": "JAIZBANK"
+                        }
+                    ],
+                    "most_traded_stock": [
+                        {
+                            "symbol": "JAIZBANK",
+                            "current_price": 2.57,
+                            "percentage_change": 0.78,
+                            "num_positions": 6,
+                            "num_users": 1
+                        },
+                        {
+                            "symbol": "ZENITHBANK",
+                            "current_price": 37.95,
+                            "percentage_change": -0.13,
+                            "num_positions": 4,
+                            "num_users": 1
+                        },
+                        {
+                            "symbol": "BUACEMENT",
+                            "current_price": 185.0,
+                            "percentage_change": 13.5,
+                            "num_positions": 2,
+                            "num_users": 1
+                        },
+                        {
+                            "symbol": "IKEJAHOTEL",
+                            "current_price": 6.25,
+                            "percentage_change": -7.41,
+                            "num_positions": 2,
+                            "num_users": 1
+                        },
+                        {
+                            "symbol": "UBA",
+                            "current_price": 26.75,
+                            "percentage_change": 0.0,
+                            "num_positions": 2,
+                            "num_users": 1
+                        },
+                        {
+                            "symbol": "UNIONDICON",
+                            "current_price": 8.1,
+                            "percentage_change": -9.5,
+                            "num_positions": 1,
+                            "num_users": 1
+                        }
+                    ]
+                }
+            </pre>
+    
+            
+        </div>
+    </div>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>

@@ -607,24 +607,31 @@ class AnalyticsView(APIView):
         #     return top_performing_stocks
         # top_performing_stock=top_performing_stocks()
         
-        most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2')).order_by('-num_positions')[:10]
-        print(most_traded_stock)
+        most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2')).filter(num_positions__gt=0).order_by('-num_positions')
+        # print(most_traded_stock)
         
         def get_stock(stock):
             data=get_price(stock.symbol)
-            price= data['current_price']
-            change = data['percentage_change']
-            
-            return {
-                'symbol':stock.symbol,
-                'current_price':price,
-                'percentage_change':change
-            }
+            if data:
+                price= data.get('current_price')
+                change = data.get('percentage_change',0)
+                unique_users_count = positions.filter(stock=stock).values('portfolio__user').distinct().count()
+                
+                data = {
+                    'symbol':stock.symbol,
+                    'current_price':price,
+                    'percentage_change':change,
+                    'num_positions': stock.num_positions,
+                    'num_users': unique_users_count
+                }
+                return data
         
         with ThreadPoolExecutor() as executor:
                 futures = executor.map(get_stock, most_traded_stock)
                 traded_stock = [result for result in futures if result]
                 
+        traded_stock = sorted(traded_stock, key=lambda x: x['num_positions'], reverse=True)
+            
         data = {
             'total_registered_users': active_users,
             'percentage_change_registered_users': user_percentage_change,  
