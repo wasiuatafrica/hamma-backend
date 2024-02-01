@@ -275,6 +275,7 @@ class AdminTradeView(APIView):
 
 
 class AdminApproveAndViewRewardActivities(APIView):
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
     
     def get_object(self, id):
         try:
@@ -334,6 +335,7 @@ class AdminApproveAndViewRewardActivities(APIView):
 
 
 class AffilateManagement(APIView):
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
 
     def get(self, request):
         filter= request.GET.get("email")
@@ -358,6 +360,8 @@ from portfolio.serializers import TradeSerializer
 
 class UserActivityLogView(APIView):
     serializer_class=acc_serializers.UserActivityLogSerializer
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+
     def get(self,request, *args, **kwargs):
         id=kwargs.get("id")
         filter=request.GET.get("filter")
@@ -370,6 +374,8 @@ class UserActivityLogView(APIView):
     
 class AllUsersActivityLogView(APIView):
     serializer_class=acc_serializers.UserActivityLogSerializer
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+
     def get(self,request):
         filter=request.GET.get("filter")
         if filter:
@@ -388,6 +394,8 @@ class AllUsersActivityLogView(APIView):
 
 class UserTradeActivityLog(APIView):
     serializer_class=TradeSerializer
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+
     def get(self, request, *args, **kwargs):
         id=kwargs.get("id")
         filter=request.GET.get('filter')
@@ -399,6 +407,8 @@ class UserTradeActivityLog(APIView):
         return Response(serializer.data)
 
 class UserPaymentActivityLog(APIView):
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+
     def get(self, request, *args, **kwargs):
         id=kwargs.get("id")
         filter=request.GET.get('filter')
@@ -448,6 +458,7 @@ class UserPaymentActivityLog(APIView):
         return Response(receipts_data)
     
 class UserAssetBreakDown(APIView):
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
     def get(self, request, *args, **kwargs):
         id=kwargs.get("id")
         portfolio = Portfolio.objects.get(user__id=id)
@@ -476,6 +487,7 @@ class UserAssetBreakDown(APIView):
     
 
 class AnalyticsView(APIView):
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
     
     def get(self, request):
         def calculate_percentage_change(old_value, new_value):
@@ -643,6 +655,7 @@ class AnalyticsView(APIView):
         return Response(data)
 
 class DeactivateAccount(APIView):
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
     
     def post(self, request):
         user_id=request.data.get("user_id")
@@ -666,6 +679,7 @@ from affilate.models import RewardActivities,ReferralWallet
 from  affilate import serializers as aff_serializers  
 class RewardActivitiesView(APIView):
     serializer_class = aff_serializers.RewardActivitiesSerializer
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
 
     def calculate_percentage_change(self, old_value, new_value):
         if old_value is None or new_value is None or old_value == 0:
@@ -747,6 +761,7 @@ class RewardActivitiesView(APIView):
         return Response(data1)
     
 class FlagReciept(APIView):
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
     def post(self, request, *args, **kwargs):
         reciept_id= kwargs.get("reciept_id")
         keyword =request.data.get("keyword")
@@ -766,6 +781,7 @@ class FlagReciept(APIView):
         return Response({"detail":"Invalid keyword. Use flagged or unflagged"}, status.HTTP_400_BAD_REQUEST)
     
 class FlagWithdrawalRequest(APIView):
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
     def post(self, request,*args, **kwargs):
         withdrawal_request_id= kwargs.get("withdrawal_request_id")
         keyword =request.data.get("keyword")
