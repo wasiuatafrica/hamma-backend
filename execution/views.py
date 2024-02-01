@@ -185,7 +185,7 @@ class DemoTradeAPIView(APIView):
                 amount=quantity * market_price,
                 status='completed'
             )
-            activity=UserActivityLog.objects.create(user=request.user, action_type="demo_open_trade",description=f"User opened demo trade with maount {amount} and symbol {symbol}.")
+            activity=UserActivityLog.objects.create(user=request.user, action_type="demo_open_trade",description=f"User opened demo trade with amount {amount} on symbol {symbol}.")
             positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
             
             def get_position(position):

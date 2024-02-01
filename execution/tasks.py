@@ -18,6 +18,8 @@ from django_celery_beat.models import PeriodicTask
 from django.utils import timezone
 from datetime import datetime, time
 import pytz
+from accounts.models import  UserActivityLog 
+
 
 logger = get_task_logger(__name__)
 channel_layer = get_channel_layer()
@@ -246,6 +248,8 @@ def process_limit_order(id):
                             amount=position.amount_invested,
                             status='completed'
                         )
+                    activity=UserActivityLog.objects.create(user=user, action_type="demo_open_trade",description=f"User opened demo trade with amount {position.amount_invested} on symbol {position.stock.symbol}.")
+                    
                     save_and_send_notification(user.id,f' DEMO: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value:{position.amount_invested}naira ')
 
             elif position.action == 'sell':

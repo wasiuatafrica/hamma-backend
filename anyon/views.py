@@ -530,9 +530,9 @@ class AnalyticsView(APIView):
         positions =exec_models.DemoPosition.objects.all()
         
         positions_open = positions.filter(status='open')
-        total_portfolio_value = round(sum([position.amount_invested for position in positions_open]),2)
+        total_portfolio_value = round(sum([position.amount_invested for position in positions]),2)
         
-        portfolio_before = positions_open.filter(created__lt=datetime(current_year, current_month, 1))
+        portfolio_before = positions.filter(created__lt=datetime(current_year, current_month, 1))
         
         portfolios_before_this_month = sum([position.amount_invested for position in portfolio_before]) if portfolio_before else 0
         percentage_of_total_assets = round(calculate_percentage_change(portfolios_before_this_month, total_portfolio_value),2)
@@ -919,12 +919,48 @@ class AnalyticsGraphView(APIView):
             'total_active_users_data': list(total_active_users_data),
         }
 
+        positions =exec_models.DemoPosition.objects.all()
+        
+        # For the last 1 week in daily points
+        last_week_data = positions.filter(created__gte=timezone.now() - timedelta(days=7)).annotate(
+            date=Trunc('created', 'day', output_field=DateField())
+        ).values('date').annotate(count=Count('id')).order_by('date')
+
+        # For the last 1 month in daily points
+        last_month_data = positions.filter(created__gte=timezone.now() - timedelta(days=30)).annotate(
+            date=Trunc('created', 'day', output_field=DateField())
+        ).values('date').annotate(count=Count('id')).order_by('date')
+
+        # For the last 3 months in weekly points
+        last_3_months_data = positions.filter(created__gte=timezone.now() - timedelta(days=90)).annotate(
+            date=Trunc('created', 'week', output_field=DateField())
+        ).values('date').annotate(count=Count('id')).order_by('date')
+
+        # For the last 1 year in monthly points
+        last_year_data = positions.filter(created__gte=timezone.now() - timedelta(days=365)).annotate(
+            date=Trunc('created', 'month', output_field=DateField())
+        ).values('date').annotate(count=Count('id')).order_by('date')
+
+        # Total positions created in monthly points
+        total_positions_data = positions.annotate(
+            date=Trunc('created', 'month', output_field=DateField())
+        ).values('date').annotate(count=Count('id')).order_by('date')
+
+        # Format the data as per your requirement
+        positions_data = {
+            'last_week_data': list(last_week_data),
+            'last_month_data': list(last_month_data),
+            'last_3_months_data': list(last_3_months_data),
+            'last_year_data': list(last_year_data),
+            'total_positions_data': list(total_positions_data),
+        }
 
         
         grouped_data = {
             'registered_users':registered_data,
             'transaction_data':transaction_data,
-            "user_activity_data":user_activity_data
+            "user_activity_data":user_activity_data,
+            "positions_data":positions_data
         }
         
         return Response(grouped_data)
