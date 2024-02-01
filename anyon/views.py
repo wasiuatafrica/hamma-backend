@@ -1,8 +1,4 @@
 
-import keyword
-from random import uniform
-
-from pkg_resources import Requirement
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from accounts.models import Referral as acc_Referral, UserActivityLog 
@@ -29,6 +25,8 @@ from datetime import datetime, timedelta
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from execution import models as exec_models
+from portfolio.utils import get_price
+
 
 
 User=get_user_model()
@@ -504,26 +502,37 @@ class AnalyticsView(APIView):
         
         
         #Assets        
-        portfolios = Portfolio.objects.all()
+        # portfolios = Portfolio.objects.all()
         
-        total_portfolio_value = round(sum(portfolio.portfolio_value() for portfolio in portfolios),2)
+        # total_portfolio_value = round(sum(portfolio.portfolio_value() for portfolio in portfolios),2)
         
-        portfolio_before= portfolios.filter(created__lt=datetime(current_year, current_month, 1))
+        # portfolio_before= portfolios.filter(created__lt=datetime(current_year, current_month, 1))
         
-        # total_assets_under_mgmt = portfolios.aggregate(Sum('portfolio_value'))['portfolio_value__sum'] or Decimal(0)
-        portfolios_before_this_month = sum(port.portfolio_value() for port in portfolio_before) if portfolio_before else 0
-        percentage_of_total_assets = round(calculate_percentage_change(portfolios_before_this_month, total_portfolio_value),2)
+        # # total_assets_under_mgmt = portfolios.aggregate(Sum('portfolio_value'))['portfolio_value__sum'] or Decimal(0)
+        # portfolios_before_this_month = sum(port.portfolio_value() for port in portfolio_before) if portfolio_before else 0
+        # percentage_of_total_assets = round(calculate_percentage_change(portfolios_before_this_month, total_portfolio_value),2)
 
-        print(total_portfolio_value, percentage_of_total_assets)
+        # print(total_portfolio_value, percentage_of_total_assets)
+        
+        positions =exec_models.DemoPosition.objects.all()
+        
+        positions_open = positions.filter(status='open')
+        total_portfolio_value = round(sum([position.amount_invested for position in positions_open]),2)
+        
+        portfolio_before = positions_open.filter(created__lt=datetime(current_year, current_month, 1))
+        
+        portfolios_before_this_month = sum([position.amount_invested for position in portfolio_before]) if portfolio_before else 0
+        percentage_of_total_assets = round(calculate_percentage_change(portfolios_before_this_month, total_portfolio_value),2)
         
         
         #Transactions
-        transactions = models.Transaction.objects.all()
+        transactions = models.DemoTransaction.objects.all()
         total_transactions = transactions.count()
         transactions_before = transactions.filter(date__lt=datetime(current_year, current_month, 1)).count()
         transaction_change = calculate_percentage_change(transactions_before,total_transactions )
         
         print('transactions', total_transactions, transaction_change)
+        
         # Calculate average daily active users
         users_activity = UserActivityLog.objects.values('user', 'timestamp__date').annotate(daily_activity=Count('id'))
         total_daily_active_users = users_activity.values('timestamp__date').annotate(total_activity=Count('user')).aggregate(total_users=Sum('total_activity'))['total_users']
@@ -537,58 +546,85 @@ class AnalyticsView(APIView):
 
         print('activities',average_daily_users,percentage_change_average_daily_users)
         
-        #top traded stocks
-        def symbol_details(symbol):
-            stock= get_object_or_404(Stock, symbol=symbol)
-            return {'symbol':symbol, 'price':stock.ltp, 'change':round(uniform(-4,4),2)}
-        def most_traded_stocks():
-            # Aggregate the total quantity traded for each stock
-            traded_stocks = Trade.objects.filter(status='completed').values('holding__stock__symbol').annotate(total_quantity=Sum('quantity'))
-            # print(traded_stocks)
+        # #top traded stocks
+        # def symbol_details(symbol):
+        #     stock= get_object_or_404(Stock, symbol=symbol)
+        #     return {'symbol':symbol, 'price':stock.ltp, 'change':round(uniform(-4,4),2)}
+        # def most_traded_stocks():
+        #     # Aggregate the total quantity traded for each stock
+        #     traded_stocks = Trade.objects.filter(status='completed').values('holding__stock__symbol').annotate(total_quantity=Sum('quantity'))
+        #     # print(traded_stocks)
             
-            traded_stocks_tuples = [(entry['holding__stock__symbol'], entry['total_quantity']) for entry in traded_stocks]
+        #     traded_stocks_tuples = [(entry['holding__stock__symbol'], entry['total_quantity']) for entry in traded_stocks]
             
-            most_traded_stocks = sorted(traded_stocks_tuples, key=lambda x: x[1], reverse=True)[:10]
-            # print(most_traded_stocks)
+        #     most_traded_stocks = sorted(traded_stocks_tuples, key=lambda x: x[1], reverse=True)[:10]
+        #     # print(most_traded_stocks)
             
-            with ThreadPoolExecutor() as executor:
-                futures = [executor.submit(symbol_details, stock_symbol) for stock_symbol, total_quantity in most_traded_stocks]
-                top_10_symbols = [future.result() for future in futures]
-            # top_10_symbols = [symbol_details(stock_symbol) for stock_symbol, total_quantity in most_traded_stocks]
+        #     with ThreadPoolExecutor() as executor:
+        #         futures = [executor.submit(symbol_details, stock_symbol) for stock_symbol, total_quantity in most_traded_stocks]
+        #         top_10_symbols = [future.result() for future in futures]
+        #     # top_10_symbols = [symbol_details(stock_symbol) for stock_symbol, total_quantity in most_traded_stocks]
 
-            return top_10_symbols
+        #     return top_10_symbols
         
-        top_most_traded_stock_symbols = most_traded_stocks()
-        # print(top_most_traded_stock_symbols)
+        # top_most_traded_stock_symbols = most_traded_stocks()
+        # # print(top_most_traded_stock_symbols)
         
-        def top_performing_stocks():
-            # Get all holdings
-            all_holdings = Holding.objects.all()
-            def hold_details(holding):
-                return holding.stock.symbol, holding.pnl, holding.portfolio.user.fullname
+        positions_closed = positions.filter(status='close')
+        top_10 = positions_closed.order_by("-profit_loss")[:10]
+        top_performing = [
+            {   'user':position.portfolio.user.fullname,
+                'profit':position.profit_loss,
+                'symbol':position.stock.symbol,
+                }
+            for position in top_10
+        ]
+        
+        # def top_performing_stocks():
+        #     # Get all holdings
+        #     all_holdings = Holding.objects.all()
+        #     def hold_details(holding):
+        #         return holding.stock.symbol, holding.pnl, holding.portfolio.user.fullname
             
-            with ThreadPoolExecutor() as executor:
-                futures = [executor.submit(hold_details, holding) for holding in all_holdings]
-                performance_data = [future.result() for future in futures]
+        #     with ThreadPoolExecutor() as executor:
+        #         futures = [executor.submit(hold_details, holding) for holding in all_holdings]
+        #         performance_data = [future.result() for future in futures]
 
-            # Calculate profit/loss for each holding
-            # performance_data = [(holding.stock.symbol, holding.pnl, holding.portfolio.user.fullname) for holding in all_holdings]
+        #     # Calculate profit/loss for each holding
+        #     # performance_data = [(holding.stock.symbol, holding.pnl, holding.portfolio.user.fullname) for holding in all_holdings]
 
-            # Sort holdings based on profit/loss in descending order
-            sorted_performance = sorted(performance_data, key=lambda x: x[1], reverse=True)
+        #     # Sort holdings based on profit/loss in descending order
+        #     sorted_performance = sorted(performance_data, key=lambda x: x[1], reverse=True)
 
-            # Extract the top-performing stocks
-            top_performing_stocks = [{
-                "symbol": symbol,
-                "pnl": pnl,
-                "user":user
+        #     # Extract the top-performing stocks
+        #     top_performing_stocks = [{
+        #         "symbol": symbol,
+        #         "pnl": pnl,
+        #         "user":user
+        #     }
+        #         for symbol,pnl,user in sorted_performance[:10]]
+
+        #     return top_performing_stocks
+        # top_performing_stock=top_performing_stocks()
+        
+        most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2')).order_by('-num_positions')[:10]
+        print(most_traded_stock)
+        
+        def get_stock(stock):
+            data=get_price(stock.symbol)
+            price= data['current_price']
+            change = data['percentage_change']
+            
+            return {
+                'symbol':stock.symbol,
+                'current_price':price,
+                'percentage_change':change
             }
-                for symbol,pnl,user in sorted_performance[:10]]
-
-            return top_performing_stocks
-        top_performing_stock=top_performing_stocks()
         
-        
+        with ThreadPoolExecutor() as executor:
+                futures = executor.map(get_stock, most_traded_stock)
+                traded_stock = [result for result in futures if result]
+                
         data = {
             'total_registered_users': active_users,
             'percentage_change_registered_users': user_percentage_change,  
@@ -596,10 +632,10 @@ class AnalyticsView(APIView):
             'percentage_change_assets_under_mgmt': percentage_of_total_assets,  
             'total_transactions': total_transactions,
             'percentage_change_total_transactions': transaction_change,  
-            'average_daily_active_users': average_daily_users,
+            'average_daily_active_users': int(average_daily_users),
             'percentage_change_daily_active_users': percentage_change_average_daily_users, 
-            "top_performing_stock":top_performing_stock,
-            "most_traded_stock":top_most_traded_stock_symbols
+            "top_performing_stock":top_performing,
+            "most_traded_stock":traded_stock
              
             # Add other metrics as needed
         }
