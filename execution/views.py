@@ -18,6 +18,7 @@ from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import shortuuid
 import json
 from django.utils import timezone
+from accounts.models import  UserActivityLog 
 
 from .models import DemoPosition, DemoPortfolio, DemoDailyReturns
 # class DemoTradeAPIView(APIView):
@@ -184,7 +185,7 @@ class DemoTradeAPIView(APIView):
                 amount=quantity * market_price,
                 status='completed'
             )
-            
+            activity=UserActivityLog.objects.create(user=request.user, action_type="demo_open_trade",description=f"User opened demo trade with maount {amount} and symbol {symbol}.")
             positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
             
             def get_position(position):
@@ -398,7 +399,7 @@ class DemoCloseTrade(APIView):
                     amount=cur_val,
                     status='completed'
                 )
-            
+            activity=UserActivityLog.objects.create(user=request.user, action_type="demo_closed_trade",description=f"User closed demo trade with symbol {position.stock.symbol}.")
             position.portfolio.balance += position.amount_invested + position.profit_loss
             position.portfolio.save()
             
