@@ -976,7 +976,7 @@ class AnalyticsGraphView(APIView):
         for item in all_data:
             formatted_data.append({
                 'date': item['created__date'],
-                'weekday': timezone.datetime.strptime(str(item['weekday']), "%w").strftime("%A"),
+                'weekday': timezone.datetime.strptime(str(item['weekday']), "%u").strftime("%A"),
                 # 'week_number': item['week_number'],
                 'volume': item['volume'],
             })
