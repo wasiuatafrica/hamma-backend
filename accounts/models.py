@@ -168,4 +168,15 @@ class UserActivityLog(models.Model):
     def __str__(self) -> str:
         return self.action_type
 
+
+class AdminUserActivityLog(models.Model):
+    admin=models.ForeignKey(CustomUser, related_name='admin_activity', on_delete=models.CASCADE)
+    user=models.ForeignKey(CustomUser, related_name='user_subject', on_delete=models.CASCADE,null=True, blank=True)
+    action_type=models.CharField(max_length=20)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    description=models.CharField(max_length=100)
+
+    def __str__(self) -> str:
+        return self.action_type
+
     

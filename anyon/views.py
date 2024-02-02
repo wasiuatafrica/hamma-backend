@@ -26,6 +26,7 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from execution import models as exec_models
 from portfolio.utils import get_price
+from accounts.models import  AdminUserActivityLog 
 
 
 
@@ -56,6 +57,7 @@ class LoginView(APIView):
                     'refresh': str(refresh),
                     'access': str(refresh.access_token),
                 }
+            activity=AdminUserActivityLog.objects.create(admin=request.user, user=request.user, action_type="login",description=f"Admin user login into their account.")
             return Response(token_data, status=status.HTTP_200_OK)
         else:
             return Response({'detail': 'Invalid credentials or user is not a staff member'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -97,12 +99,14 @@ class AdminManageUser(APIView):
         serialized_data = self.serializer_class(user, data=request.data, partial=True)
         if serialized_data.is_valid():
             serialized_data.save()
+            activity=AdminUserActivityLog.objects.create(admin=request.user, user=user, action_type="updated_account",description=f"Admin user updated a user's account.")
             return Response(serialized_data.data)
         return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, user_id):
         # Delete a specific user
         user = self.get_object(user_id)
+        activity=AdminUserActivityLog.objects.create(admin=request.user, user=user, action_type="deleted_account",description=f"Admin user deleted a user's account.")
         user.delete()
         return Response({"detail":"User deleted successfully"},status=status.HTTP_204_NO_CONTENT)
 
@@ -137,7 +141,7 @@ class AdminReceiptsView(APIView):
         if receipt_status == 'approved':
             receipt.amount=amount
             receipt.save()
-            
+            activity=AdminUserActivityLog.objects.create(admin=request.user, user=receipt.user, action_type="approved_reciept",description=f"Admin user approved reciept.")
             # wallet=models.Wallet.objects.get(user=receipt.user)
             wallet= exec_models.Portfolio.objects.get(user=request.user)
             amount = Decimal(amount)
@@ -181,7 +185,7 @@ class AdminReceiptsView(APIView):
         elif receipt_status == 'rejected':
             receipt.comment = comment
             receipt.save()
-
+            activity=AdminUserActivityLog.objects.create(admin=request.user, user=receipt.user, action_type="rejected_reciept",description=f"Admin user rejected reciept.")
             receipt_data = {
                 'id': receipt.id,
                 'user': receipt.user.id,
@@ -214,7 +218,7 @@ class WithdrawalView(APIView):
         action = request.data.get('action')
         withdrawal= exec_models.WithdrawalRequest.objects.get(id=id)
         # wallet = withdrawal.wallet
-        wallet= exec_models.Portfolio.objects.get(user=request.user)
+        wallet= exec_models.Portfolio.objects.get(user=withdrawal.wallet.user)
         allowed = ['approved','rejected']
         
         if action not in allowed:
@@ -226,6 +230,7 @@ class WithdrawalView(APIView):
             
             withdrawal.status = 'approved'
             withdrawal.save()
+            activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal.wallet.user, action_type="approved_withrawal",description=f"Admin user approved withrawal.")
             
             save_and_send_notification(wallet.user.id, f"Your withdrawal of {withdrawal.amount} has been approved.")
             models.Transaction.objects.create(user=wallet.user, transaction_type='withdrawal',amount=Decimal(withdrawal.amount), status='completed')
@@ -244,7 +249,7 @@ class WithdrawalView(APIView):
         elif action == 'rejected':
             withdrawal.status = 'rejected'
             withdrawal.save()
-            
+            activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal.wallet.user, action_type="rejected_withrawal",description=f"Admin user rejected withrawal.")
             save_and_send_notification(wallet.user.id, f"Your withdrawal of {withdrawal.amount} has been rejected.")
             
             data = {
@@ -676,10 +681,12 @@ class DeactivateAccount(APIView):
         if keyword == "deactivate":
             user.is_active=False
             user.save()
+            activity=AdminUserActivityLog.objects.create(admin=request.user, user=user, action_type="deactivated_account",description=f"Admin user deactivated user account.")
             return Response({"detail":"user account deactivated successfully"}, status.HTTP_200_OK)
         elif keyword == "activate":
             user.is_active=True
             user.save()
+            activity=AdminUserActivityLog.objects.create(admin=request.user, user=user, action_type="activated_account",description=f"Admin user activated user account.")
             return Response({"detail":"user account activated successfully"}, status.HTTP_200_OK)
         return Response({"detail":"Invalid keyword. Use activate or deactivate"}, status.HTTP_400_BAD_REQUEST)
 
@@ -781,10 +788,12 @@ class FlagReciept(APIView):
         if keyword == "unflag":
             recipt.flag=False
             recipt.save()
+            activity=AdminUserActivityLog.objects.create(admin=request.user, user=recipt.user, action_type="unflagged_reciept",description=f"Admin user unflagged reciept.")
             return Response({"detail":"recipt unflagged successfully"}, status.HTTP_200_OK)
         elif keyword == "flag":
             recipt.flag=True
             recipt.save()
+            activity=AdminUserActivityLog.objects.create(admin=request.user, user=recipt.user, action_type="flagged_reciept",description=f"Admin user flagged reciept.")
             return Response({"detail":"recipt flagged successfully"}, status.HTTP_200_OK)
         return Response({"detail":"Invalid keyword. Use flagged or unflagged"}, status.HTTP_400_BAD_REQUEST)
     
@@ -801,10 +810,12 @@ class FlagWithdrawalRequest(APIView):
         if keyword == "unflag":
             withdrawal_request.flag=False
             withdrawal_request.save()
+            activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal_request.wallet.user, action_type="unflagged_withdrawal_request",description=f"Admin user unflagged withdrawal request.")
             return Response({"detail":"withdrawal_request unflagged successfully"}, status.HTTP_200_OK)
         elif keyword == "flag":
             withdrawal_request.flag=True
             withdrawal_request.save()
+            activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal_request.wallet.user, action_type="flagged_withdrawal_request",description=f"Admin user flagged withdrawal request.")
             return Response({"detail":"withdrawal_request flagged successfully"}, status.HTTP_200_OK)
         return Response({"detail":"Invalid keyword. Use flagged or unflagged"}, status.HTTP_400_BAD_REQUEST)
 
@@ -987,3 +998,16 @@ class AnalyticsGraphView(APIView):
         return Response(grouped_data)
 
 
+class AllAdminUsersActivityLogView(APIView):
+    serializer_class=acc_serializers.AdminUserActivityLogSerializer
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+
+    def get(self,request):
+        filter=request.GET.get("filter")
+        if filter:
+            activities=AdminUserActivityLog.objects.filter(action_type__icontains=filter)
+
+        else:
+            activities=AdminUserActivityLog.objects.all()
+        serializer=self.serializer_class(activities, many=True)
+        return Response(serializer.data)

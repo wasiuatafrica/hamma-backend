@@ -669,6 +669,60 @@
                 "detail": "reciept unflagged successfully"
               }
         </pre>
+
+        <h4>6k. All Admin Users activites</h4>
+            <p>GET /anyon/admin-users-activity-log/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Retrieve a list of all admin users activites.
+
+                [
+                    {
+                    "id": 1,
+                    "action_type": "login",
+                    "timestamp": "2024-01-11T15:08:05.052297+01:00",
+                    "description": "Hello my name is Glory",
+                    "user": 1,
+                    "admin": 1
+                    },
+                    {
+                    "id": 2,
+                    "action_type": "flagged_withdrawal_request",
+                    "timestamp": "2024-01-11T15:08:24.655532+01:00",
+                    "description": "werwe",
+                    "user": 1,
+                    "admin": 1
+                    },
+                    {
+                    "id": 3,
+                    "action_type": "login",
+                    "timestamp": "2024-01-11T15:09:11.692791+01:00",
+                    "description": "User logged into their account",
+                    "user": 1,
+                    "admin": 1
+                    
+                    }
+              ]
+            </pre>
+            <h6>Notes:Filter params include</h6>
+            <ul>
+                <li>login</li>
+                <li>deleted_account</li>
+                <li>approved_reciept</li>
+                <li>rejected_reciept</li>
+                <li>approved_withrawal</li>
+                <li>rejected_withrawal</li>
+                <li>deactivated_account</li>
+                <li>activated_account</li>
+                <li>unflagged_reciept</li>
+                <li>flagged_reciept</li>
+                <li>unflagged_withdrawal_request</li>
+                <li>flagged_withdrawal_request</li>
+
+                <li>2. urls should be like /anyon/users-activity-log/?filter=login</li>
+
+            </ul>
     </div>
     </div>
     <div class="container mt-5">
