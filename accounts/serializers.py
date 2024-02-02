@@ -113,6 +113,10 @@ class UserActivityLogSerializer(serializers.ModelSerializer):
         model=models.UserActivityLog
         fields= "__all__"
 
+class AdminUserActivityLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=models.AdminUserActivityLog
+        fields= "__all__"
 
 class AdminCustomUserSerializer(serializers.ModelSerializer):
     class Meta:
