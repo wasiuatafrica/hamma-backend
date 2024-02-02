@@ -810,7 +810,7 @@ class FlagWithdrawalRequest(APIView):
 
 from django.utils import timezone
 from django.db.models import Count, DateTimeField, DateField
-from django.db.models.functions import Trunc
+from django.db.models.functions import Trunc,ExtractWeekDay,ExtractWeek
 
 class AnalyticsGraphView(APIView):
     def get(self, request):
@@ -955,13 +955,34 @@ class AnalyticsGraphView(APIView):
             'total_positions_data': list(total_positions_data),
         }
 
+        all_data =exec_models.DemoPosition.objects.annotate(
+            weekday=ExtractWeekDay('created'),
+        ).values('created__date', 'weekday').annotate(volume=Sum('quantity')).order_by('created__date')
+
+
+        # Format the data as per your requirement
+        formatted_data = []
+        for item in all_data:
+            formatted_data.append({
+                'date': item['created__date'],
+                'weekday': timezone.datetime.strptime(str(item['weekday']), "%w").strftime("%A"),
+                # 'week_number': item['week_number'],
+                'volume': item['volume'],
+            })
+        volume_data = {
+            'all_data': formatted_data,
+        }
         
         grouped_data = {
             'registered_users':registered_data,
             'transaction_data':transaction_data,
             "user_activity_data":user_activity_data,
-            "positions_data":positions_data
+            "positions_data":positions_data,
+            "volume_data":volume_data
         }
+        
+        
+        
         
         return Response(grouped_data)
 
