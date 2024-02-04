@@ -298,7 +298,7 @@ class Home(APIView):
             # Create a new list with dates from start_date until today
             final_list = [
                 {'profit_loss': position_data_dict.get(date, 0), 'date': date.strftime('%Y-%m-%d')}
-                for date in (start_date + timedelta(n) for n in range((today.date() - start_date).days + 1))
+                for date in (start_date + timedelta(n) for n in range((today.date() - start_date).days + 1) if (start_date + timedelta(n)).weekday() < 5) 
             ]
             profit_loss2= sum([pos.profit_loss for pos in positions2])
             
