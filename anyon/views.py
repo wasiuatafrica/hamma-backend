@@ -57,7 +57,7 @@ class LoginView(APIView):
                     'refresh': str(refresh),
                     'access': str(refresh.access_token),
                 }
-            # activity=AdminUserActivityLog.objects.create(admin=request.user, user=request.user, action_type="login",description=f"Admin user login into their account.")
+            activity=AdminUserActivityLog.objects.create(admin=user, user=user, action_type="login",description=f"Admin user login into their account.")
             return Response(token_data, status=status.HTTP_200_OK)
         else:
             return Response({'detail': 'Invalid credentials or user is not a staff member'}, status=status.HTTP_401_UNAUTHORIZED)
