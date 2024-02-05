@@ -44,8 +44,8 @@ class LoginView(APIView):
         
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
-        print(email)
-        print(password)
+        # print(email)
+        # print(password)
         
         # Authenticate user
         user = authenticate(request, email=email, password=password)
@@ -122,7 +122,6 @@ class AdminReceiptsView(APIView):
         # serializer = self.serializer_class(data=receipts, many=True)
         # serializer.is_valid()
         # return Response(serializer.data) 
-
         email=request.GET.get("email")
         filter=request.GET.get('filter')
         receipts_data = []
@@ -195,6 +194,7 @@ class AdminReceiptsView(APIView):
                 receipts_data.append(paystack_receipt_dict)
         receipts_data.sort(key=lambda x: x['created'], reverse=True)
         return Response(receipts_data)
+
     
     def post(self, request):
         
