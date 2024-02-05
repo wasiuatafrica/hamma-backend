@@ -901,146 +901,146 @@ class AnalyticsGraphView(APIView):
     def get(self, request):
         users = User.objects.all()
         # For the last 1 week in daily points
-        last_week_data = users.filter(date_joined__gte=timezone.now() - timedelta(days=7)).annotate(
+        last_week_data1 = users.filter(date_joined__gte=timezone.now() - timedelta(days=7)).annotate(
             date=Trunc('date_joined', 'day', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # For the last 1 month in daily points
-        last_month_data = users.filter(date_joined__gte=timezone.now() - timedelta(days=30)).annotate(
+        last_month_data1 = users.filter(date_joined__gte=timezone.now() - timedelta(days=30)).annotate(
             date=Trunc('date_joined', 'day', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # For the last 3 months in weekly points
-        last_3_months_data = users.filter(date_joined__gte=timezone.now() - timedelta(days=90)).annotate(
+        last_3_months_data1 = users.filter(date_joined__gte=timezone.now() - timedelta(days=90)).annotate(
             date=Trunc('date_joined', 'week', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # For the last 1 year in monthly points
-        last_year_data = users.filter(date_joined__gte=timezone.now() - timedelta(days=365)).annotate(
+        last_year_data1 = users.filter(date_joined__gte=timezone.now() - timedelta(days=365)).annotate(
             date=Trunc('date_joined', 'month', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # Total registered users in monthly points
-        total_users_data = users.annotate(
+        total_users_data1 = users.annotate(
             date=Trunc('date_joined', 'month', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # Format the data as per your requirement
-        registered_data = {
-            'last_week_data': list(last_week_data),
-            'last_month_data': list(last_month_data),
-            'last_3_months_data': list(last_3_months_data),
-            'last_year_data': list(last_year_data),
-            'total_users_data': list(total_users_data),
-        }
+        # registered_data = {
+        #     'last_week_data': list(last_week_data1),
+        #     'last_month_data': list(last_month_data1),
+        #     'last_3_months_data': list(last_3_months_data1),
+        #     'last_year_data': list(last_year_data1),
+        #     'total_users_data': list(total_users_data1),
+        # }
         
         # For the last 1 week in daily points
         transactions = models.DemoTransaction.objects.all()
-        last_week_data = transactions.filter(date__gte=timezone.now() - timedelta(days=7)).annotate(
+        last_week_data2 = transactions.filter(date__gte=timezone.now() - timedelta(days=7)).annotate(
             transaction_date=Trunc('date', 'day', output_field=DateField())
         ).values('transaction_date').annotate(count=Count('id')).order_by('transaction_date')
 
         # For the last 1 month in daily points
-        last_month_data = transactions.filter(date__gte=timezone.now() - timedelta(days=30)).annotate(
+        last_month_data2 = transactions.filter(date__gte=timezone.now() - timedelta(days=30)).annotate(
             transaction_date=Trunc('date', 'day', output_field=DateField())
         ).values('transaction_date').annotate(count=Count('id')).order_by('transaction_date')
 
         # For the last 3 months in weekly points
-        last_3_months_data = transactions.filter(date__gte=timezone.now() - timedelta(days=90)).annotate(
+        last_3_months_data2 = transactions.filter(date__gte=timezone.now() - timedelta(days=90)).annotate(
             transaction_date=Trunc('date', 'week', output_field=DateField())
         ).values('transaction_date').annotate(count=Count('id')).order_by('transaction_date')
 
         # For the last 1 year in monthly points
-        last_year_data = transactions.filter(date__gte=timezone.now() - timedelta(days=365)).annotate(
+        last_year_data2 = transactions.filter(date__gte=timezone.now() - timedelta(days=365)).annotate(
             transaction_date=Trunc('date', 'month', output_field=DateField())
         ).values('transaction_date').annotate(count=Count('id')).order_by('transaction_date')
 
         # Total transactions in monthly points
-        total_transactions_data = transactions.annotate(
+        total_transactions_data2 = transactions.annotate(
             transaction_date=Trunc('date', 'month', output_field=DateField())
         ).values('transaction_date').annotate(count=Count('id')).order_by('transaction_date')
 
         # Format the data as per your requirement
-        transaction_data = {
-            'last_week_data': list(last_week_data),
-            'last_month_data': list(last_month_data),
-            'last_3_months_data': list(last_3_months_data),
-            'last_year_data': list(last_year_data),
-            'total_transactions_data': list(total_transactions_data),
-        }
+        # transaction_data = {
+        #     'last_week_data': list(last_week_data2),
+        #     'last_month_data': list(last_month_data),
+        #     'last_3_months_data': list(last_3_months_data),
+        #     'last_year_data': list(last_year_data),
+        #     'total_transactions_data': list(total_transactions_data),
+        # }
 
         # For the last 1 week in daily points
         useractivity = UserActivityLog.objects.all()
-        last_week_data = useractivity.filter(timestamp__gte=timezone.now() - timedelta(days=7)).annotate(
+        last_week_data3 = useractivity.filter(timestamp__gte=timezone.now() - timedelta(days=7)).annotate(
             date=Trunc('timestamp', 'day', output_field=DateField())
         ).values('date').annotate(count=Count('user', distinct=True)).order_by('date')
 
         # For the last 1 month in daily points
-        last_month_data = useractivity.filter(timestamp__gte=timezone.now() - timedelta(days=30)).annotate(
+        last_month_data3 = useractivity.filter(timestamp__gte=timezone.now() - timedelta(days=30)).annotate(
             date=Trunc('timestamp', 'day', output_field=DateField())
         ).values('date').annotate(count=Count('user', distinct=True)).order_by('date')
 
         # For the last 3 months in weekly points
-        last_3_months_data =useractivity.filter(timestamp__gte=timezone.now() - timedelta(days=90)).annotate(
+        last_3_months_data3 =useractivity.filter(timestamp__gte=timezone.now() - timedelta(days=90)).annotate(
             date=Trunc('timestamp', 'week', output_field=DateField())
         ).values('date').annotate(count=Count('user', distinct=True)).order_by('date')
 
         # For the last 1 year in monthly points
-        last_year_data = useractivity.filter(timestamp__gte=timezone.now() - timedelta(days=365)).annotate(
+        last_year_data3 = useractivity.filter(timestamp__gte=timezone.now() - timedelta(days=365)).annotate(
             date=Trunc('timestamp', 'month', output_field=DateField())
         ).values('date').annotate(count=Count('user', distinct=True)).order_by('date')
 
         # Total active users in monthly points
-        total_active_users_data = useractivity.annotate(
+        total_active_users_data3 = useractivity.annotate(
             date=Trunc('timestamp', 'month', output_field=DateField())
         ).values('date').annotate(count=Count('user', distinct=True)).order_by('date')
 
         # Format the data as per your requirement
-        user_activity_data = {
-            'last_week_data': list(last_week_data),
-            'last_month_data': list(last_month_data),
-            'last_3_months_data': list(last_3_months_data),
-            'last_year_data': list(last_year_data),
-            'total_active_users_data': list(total_active_users_data),
-        }
+        # user_activity_data = {
+        #     'last_week_data': list(last_week_data),
+        #     'last_month_data': list(last_month_data),
+        #     'last_3_months_data': list(last_3_months_data),
+        #     'last_year_data': list(last_year_data),
+        #     'total_active_users_data': list(total_active_users_data),
+        # }
 
         positions =exec_models.DemoPosition.objects.all()
         
         # For the last 1 week in daily points
-        last_week_data = positions.filter(created__gte=timezone.now() - timedelta(days=7)).annotate(
+        last_week_data4 = positions.filter(created__gte=timezone.now() - timedelta(days=7)).annotate(
             date=Trunc('created', 'day', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # For the last 1 month in daily points
-        last_month_data = positions.filter(created__gte=timezone.now() - timedelta(days=30)).annotate(
+        last_month_data4 = positions.filter(created__gte=timezone.now() - timedelta(days=30)).annotate(
             date=Trunc('created', 'day', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # For the last 3 months in weekly points
-        last_3_months_data = positions.filter(created__gte=timezone.now() - timedelta(days=90)).annotate(
+        last_3_months_data4 = positions.filter(created__gte=timezone.now() - timedelta(days=90)).annotate(
             date=Trunc('created', 'week', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # For the last 1 year in monthly points
-        last_year_data = positions.filter(created__gte=timezone.now() - timedelta(days=365)).annotate(
+        last_year_data4 = positions.filter(created__gte=timezone.now() - timedelta(days=365)).annotate(
             date=Trunc('created', 'month', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # Total positions created in monthly points
-        total_positions_data = positions.annotate(
+        total_positions_data4 = positions.annotate(
             date=Trunc('created', 'month', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # Format the data as per your requirement
-        positions_data = {
-            'last_week_data': list(last_week_data),
-            'last_month_data': list(last_month_data),
-            'last_3_months_data': list(last_3_months_data),
-            'last_year_data': list(last_year_data),
-            'total_positions_data': list(total_positions_data),
-        }
+        # positions_data = {
+        #     'last_week_data': list(last_week_data),
+        #     'last_month_data': list(last_month_data),
+        #     'last_3_months_data': list(last_3_months_data),
+        #     'last_year_data': list(last_year_data),
+        #     'total_positions_data': list(total_positions_data),
+        # }
 
-        positions = exec_models.DemoPosition.objects.all()
+        # positions = exec_models.DemoPosition.objects.all()
 
         result = (
             positions.annotate(
@@ -1084,18 +1084,98 @@ class AnalyticsGraphView(APIView):
             volume_data[stock_symbol].append(data)
 
         
+        # grouped_data = {
+        #     'registered_users':registered_data,
+        #     'transaction_data':transaction_data,
+        #     "user_activity_data":user_activity_data,
+        #     "positions_data":positions_data,
+        #     "volume_data":volume_data
+        # }
+        
         grouped_data = {
-            'registered_users':registered_data,
-            'transaction_data':transaction_data,
-            "user_activity_data":user_activity_data,
-            "positions_data":positions_data,
+            'last_week_data': self.organize_data(list(last_week_data1),list(last_week_data2),list(last_week_data3),list(last_week_data4)),
+            'last_month_data': self.organize_data(list(last_month_data1),list(last_month_data2),list(last_month_data3),list(last_month_data4)),
+            'last_3_months_data': self.organize_data(list(last_3_months_data1),list(last_3_months_data2),list(last_3_months_data3),list(last_3_months_data4)),
+            'last_year_data': self.organize_data(list(last_year_data1),list(last_year_data2),list(last_year_data3),list(last_year_data4)),
+            'total_users_data': self.organize_data(list(total_users_data1),list(total_transactions_data2), list(total_active_users_data3), list(total_positions_data4)),
             "volume_data":volume_data
         }
-        
-        
-        
-        
+
         return Response(grouped_data)
+
+    def organize_data(self, data_list1,data_list2,data_list3,data_list4):
+        # Create a dictionary to store data organized by date
+        organized_data = {}
+
+        # Iterate over the data list and organize by date
+        for data_point in data_list1:
+            date = data_point['date']
+            
+            # If the date is not present in the organized_data, add it with default values
+            if date not in organized_data:
+                organized_data[date] = {
+                    'date': date,
+                    'registered_users': 0,
+                    'transaction_data': 0,
+                    'user_activity_data': 0,
+                    'positions_data': 0,
+                }
+
+            # Update the corresponding values based on the data type
+            organized_data[date]['registered_users'] = data_point.get('count', 0)
+            # Update other data types similarly
+        for data_point2 in data_list2:
+            date = data_point2['transaction_date']
+            
+            # If the date is not present in the organized_data, add it with default values
+            if date not in organized_data:
+                organized_data[date] = {
+                    'date': date,
+                    'registered_users': 0,
+                    'transaction_data': 0,
+                    'user_activity_data': 0,
+                    'positions_data': 0,
+                }
+
+            # Update the corresponding values based on the data type
+            organized_data[date]['transaction_data'] = data_point2.get('count', 0)
+        for data_point3 in data_list3:
+            date = data_point3['date']
+            
+            # If the date is not present in the organized_data, add it with default values
+            if date not in organized_data:
+                organized_data[date] = {
+                    'date': date,
+                    'registered_users': 0,
+                    'transaction_data': 0,
+                    'user_activity_data': 0,
+                    'positions_data': 0,
+                }
+
+            # Update the corresponding values based on the data type
+            organized_data[date]['user_activity_data'] = data_point3.get('count', 0)
+        for data_point4 in data_list4:
+            date = data_point4['date']
+            
+            # If the date is not present in the organized_data, add it with default values
+            if date not in organized_data:
+                organized_data[date] = {
+                    'date': date,
+                    'registered_users': 0,
+                    'transaction_data': 0,
+                    'user_activity_data': 0,
+                    'positions_data': 0,
+                }
+
+            # Update the corresponding values based on the data type
+            organized_data[date]['positions_data'] = data_point4.get('count', 0)
+        # Convert the organized data into a list of dictionaries
+        result = list(organized_data.values())
+        
+        # Sort the result by date
+        result = sorted(result, key=lambda x: x['date'])
+
+        return result
 
 
 class AllAdminUsersActivityLogView(APIView):
