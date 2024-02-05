@@ -126,7 +126,7 @@ class AdminReceiptsView(APIView):
         filter=request.GET.get('filter')
         receipts_data = []
         if filter == "bank_tranfer":
-            for receipt in Receipts.objects.filter(user__email=email):
+            for receipt in Receipts.objects.filter(user__email=email).order_by("-date"):
                 receipt_dict = {
                     'id': receipt.id,
                     'amount': receipt.amount,
@@ -136,7 +136,7 @@ class AdminReceiptsView(APIView):
                 }
                 receipts_data.append(receipt_dict)
         elif filter == "paystack":
-            for paystack_receipt in PayStackReceipts.objects.filter(user__email=email):
+            for paystack_receipt in PayStackReceipts.objects.filter(user__email=email).order_by("-date"):
                 paystack_receipt_dict = {
                     'id': paystack_receipt.id,
                     'amount': paystack_receipt.amount,
@@ -147,7 +147,7 @@ class AdminReceiptsView(APIView):
                 }
                 receipts_data.append(paystack_receipt_dict)
         else:
-            for receipt in Receipts.objects.all():
+            for receipt in Receipts.objects.all().order_by("-date"):
                 receipt_dict = {
                     'id': receipt.id,
                     'amount': receipt.amount,
@@ -157,7 +157,7 @@ class AdminReceiptsView(APIView):
                 }
                 receipts_data.append(receipt_dict)
 
-            for paystack_receipt in PayStackReceipts.objects.all():
+            for paystack_receipt in PayStackReceipts.objects.all().order_by("-date"):
                 paystack_receipt_dict = {
                     'id': paystack_receipt.id,
                     'amount': paystack_receipt.amount,
