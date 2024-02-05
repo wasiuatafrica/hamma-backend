@@ -662,15 +662,15 @@ class AnalyticsView(APIView):
         # top_most_traded_stock_symbols = most_traded_stocks()
         # # print(top_most_traded_stock_symbols)
         
-        positions_closed = positions.filter(status='close')
-        top_10 = positions_closed.order_by("-profit_loss")[:10]
-        top_performing = [
-            {   'user':position.portfolio.user.fullname,
-                'profit':position.profit_loss,
-                'symbol':position.stock.symbol,
-                }
-            for position in top_10
-        ]
+        # positions_closed = positions.filter(status='close')
+        # top_10 = positions_closed.order_by("-profit_loss")[:10]
+        # top_performing = [
+        #     {   'user':position.portfolio.user.fullname,
+        #         'profit':position.profit_loss,
+        #         'symbol':position.stock.symbol,
+        #         }
+        #     for position in top_10
+        # ]
         
         # def top_performing_stocks():
         #     # Get all holdings
@@ -722,7 +722,7 @@ class AnalyticsView(APIView):
                 futures = executor.map(get_stock, most_traded_stock)
                 traded_stock = [result for result in futures if result]
                 
-        traded_stock = sorted(traded_stock, key=lambda x: x['num_positions'], reverse=True)
+        traded_stock = sorted(traded_stock, key=lambda x: x['num_users'], reverse=True)
             
         data = {
             'total_registered_users': active_users,
@@ -733,7 +733,7 @@ class AnalyticsView(APIView):
             'percentage_change_total_transactions': transaction_change,  
             'average_daily_active_users': int(average_daily_users),
             'percentage_change_daily_active_users': percentage_change_average_daily_users, 
-            "top_performing_stock":top_performing,
+            # "top_performing_stock":top_performing,
             "most_traded_stock":traded_stock
              
             # Add other metrics as needed
