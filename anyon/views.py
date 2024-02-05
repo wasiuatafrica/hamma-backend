@@ -44,20 +44,20 @@ class LoginView(APIView):
         
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
-        # print(email)
-        # print(password)
+        print(email)
+        print(password)
         
         # Authenticate user
         user = authenticate(request, email=email, password=password)
         
         if user is not None and user.is_staff:
             refresh = RefreshToken.for_user(user)
-            
+            print(user)
             token_data = {
                     'refresh': str(refresh),
                     'access': str(refresh.access_token),
                 }
-            activity=AdminUserActivityLog.objects.create(admin=request.user, user=request.user, action_type="login",description=f"Admin user login into their account.")
+            # activity=AdminUserActivityLog.objects.create(admin=request.user, user=request.user, action_type="login",description=f"Admin user login into their account.")
             return Response(token_data, status=status.HTTP_200_OK)
         else:
             return Response({'detail': 'Invalid credentials or user is not a staff member'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -820,8 +820,8 @@ class FlagWithdrawalRequest(APIView):
         return Response({"detail":"Invalid keyword. Use flagged or unflagged"}, status.HTTP_400_BAD_REQUEST)
 
 from django.utils import timezone
-from django.db.models import Count, DateTimeField, DateField
-from django.db.models.functions import Trunc,ExtractWeekDay,ExtractWeek
+from django.db.models import Count, DateTimeField, DateField, CharField
+from django.db.models.functions import Trunc,ExtractWeekDay,ExtractWeek, TruncDate
 
 class AnalyticsGraphView(APIView):
     def get(self, request):
@@ -966,23 +966,40 @@ class AnalyticsGraphView(APIView):
             'total_positions_data': list(total_positions_data),
         }
 
-        all_data =exec_models.DemoPosition.objects.annotate(
-            weekday=ExtractWeekDay('created'),
-        ).values('created__date', 'weekday').annotate(volume=Sum('quantity')).order_by('created__date')
+        positions = exec_models.DemoPosition.objects.all()
 
+        result = (
+            positions.annotate(truncated_created=TruncDate('created'))
+            .values('truncated_created')
+            .annotate(total_quantity=Sum('quantity'))
+            .order_by('truncated_created')
+        )
 
-        # Format the data as per your requirement
-        formatted_data = []
-        for item in all_data:
-            formatted_data.append({
-                'date': item['created__date'],
-                'weekday': timezone.datetime.strptime(str(item['weekday']), "%u").strftime("%A"),
-                # 'week_number': item['week_number'],
-                'volume': item['volume'],
-            })
-        volume_data = {
-            'all_data': formatted_data,
+        weekday_mapping = {
+            0: 'Monday',
+            1: 'Tuesday',
+            2: 'Wednesday',
+            3: 'Thursday',
+            4: 'Friday',
+            5: 'Saturday',
+            6: 'Sunday',
         }
+        
+        volume_data = []
+        # Extract weekday for each date
+        for entry in result:
+            truncated_created = entry['truncated_created']
+            weekday_digit = truncated_created.weekday()
+            weekday = weekday_mapping.get(weekday_digit, 'Unknown')
+            volume = entry['total_quantity']
+            
+            data = {
+                'date':truncated_created,
+                'weekday':weekday,
+                'volume':volume
+            }
+
+            volume_data.append(data)
         
         grouped_data = {
             'registered_users':registered_data,
