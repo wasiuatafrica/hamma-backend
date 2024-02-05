@@ -117,59 +117,84 @@ class AdminReceiptsView(APIView):
     
     
     def get(self, request):
-        receipts=models.Receipts.objects.all().order_by('-id')
-        # print(receipts)
-        serializer = self.serializer_class(data=receipts, many=True)
-        serializer.is_valid()
-        return Response(serializer.data) 
+        # receipts=models.Receipts.objects.all().order_by('-id')
+        # # print(receipts)
+        # serializer = self.serializer_class(data=receipts, many=True)
+        # serializer.is_valid()
+        # return Response(serializer.data) 
+        email=request.GET.get("email")
+        filter=request.GET.get('filter')
+        receipts_data = []
+        if filter == "bank_tranfer":
+            for receipt in Receipts.objects.filter(user__email=email).order_by("-created"):
+                receipt_dict = {
+                    'id': receipt.id,
+                    'amount': receipt.amount,
+                    'created': receipt.created,
+                    'receipt_status': receipt.receipt_status,
+                    'payment_method': receipt.payment_method,
+                    "fullname":receipt.user.fullname,
+                    "comment":receipt.comment,
+                    "approved_date":receipt.approved_date,
+                    "image_url":str(receipt.image),
+                    "user":receipt.user.id,
+                    "flag":receipt.flag
+                    
+                }
+                receipts_data.append(receipt_dict)
+        elif filter == "paystack":
+            for paystack_receipt in PayStackReceipts.objects.filter(user__email=email).order_by("-date"):
+                paystack_receipt_dict = {
+                    'id': paystack_receipt.id,
+                    'amount': paystack_receipt.amount,
+                    'created': paystack_receipt.date,
+                    'receipt_status': paystack_receipt.receipt_status,
+                    'payment_method': "paystack",
+                    "user":paystack_receipt.user.id,
+                    "image_url":"",
+                    "approved_date":"",
+                    "comment":paystack_receipt.comment,
+                    "fullname":paystack_receipt.user.fullname,
+                    "flag":paystack_receipt.flag
 
-        # email=request.GET.get("email")
-        # filter=request.GET.get('filter')
-        # receipts_data = []
-        # if filter == "bank_tranfer":
-        #     for receipt in Receipts.objects.filter(user__email=email).order_by("-date"):
-        #         receipt_dict = {
-        #             'id': receipt.id,
-        #             'amount': receipt.amount,
-        #             'date': receipt.created,
-        #             'receipt_status': receipt.receipt_status,
-        #             'payment_method': receipt.payment_method,
-        #         }
-        #         receipts_data.append(receipt_dict)
-        # elif filter == "paystack":
-        #     for paystack_receipt in PayStackReceipts.objects.filter(user__email=email).order_by("-date"):
-        #         paystack_receipt_dict = {
-        #             'id': paystack_receipt.id,
-        #             'amount': paystack_receipt.amount,
-        #             'date': paystack_receipt.date,
-        #             'receipt_status': paystack_receipt.receipt_status,
-        #             'payment_method': "paystack",
+                }
+                receipts_data.append(paystack_receipt_dict)
+        else:
+            for receipt in Receipts.objects.all().order_by("-created"):
+                receipt_dict = {
+                    'id': receipt.id,
+                    'amount': receipt.amount,
+                    'created': receipt.created,
+                    'receipt_status': receipt.receipt_status,
+                    'payment_method': receipt.payment_method,
+                    "fullname":receipt.user.fullname,
+                    "comment":receipt.comment,
+                    "approved_date":receipt.approved_date,
+                    "image_url":str(receipt.image),
+                    "user":receipt.user.id,
+                    "flag":receipt.flag
+                }
+                receipts_data.append(receipt_dict)
 
-        #         }
-        #         receipts_data.append(paystack_receipt_dict)
-        # else:
-        #     for receipt in Receipts.objects.all().order_by("-date"):
-        #         receipt_dict = {
-        #             'id': receipt.id,
-        #             'amount': receipt.amount,
-        #             'date': receipt.created,
-        #             'receipt_status': receipt.receipt_status,
-        #             'payment_method': receipt.payment_method,
-        #         }
-        #         receipts_data.append(receipt_dict)
+            for paystack_receipt in PayStackReceipts.objects.all().order_by("-date"):
+                paystack_receipt_dict = {
+                    'id': paystack_receipt.id,
+                    'amount': paystack_receipt.amount,
+                    'created': paystack_receipt.date,
+                    'receipt_status': paystack_receipt.receipt_status,
+                    'payment_method': "paystack",
+                    "user":paystack_receipt.user.id,
+                    "image_url":"",
+                    "approved_date":"",
+                    "comment":paystack_receipt.comment,
+                    "fullname":paystack_receipt.user.fullname,
+                    "flag":paystack_receipt.flag
 
-        #     for paystack_receipt in PayStackReceipts.objects.all().order_by("-date"):
-        #         paystack_receipt_dict = {
-        #             'id': paystack_receipt.id,
-        #             'amount': paystack_receipt.amount,
-        #             'date': paystack_receipt.date,
-        #             'receipt_status': paystack_receipt.receipt_status,
-        #             'payment_method': "paystack",
+                }
+                receipts_data.append(paystack_receipt_dict)
+        receipts_data.sort(key=lambda x: x['created'], reverse=True)
+        return Response(receipts_data)
 
-        #         }
-        #         receipts_data.append(paystack_receipt_dict)
-        # receipts_data.sort(key=lambda x: x['date'], reverse=True)
-        # return Response(receipts_data)
     
     def post(self, request):
         
