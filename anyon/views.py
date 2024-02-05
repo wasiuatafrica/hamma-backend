@@ -110,6 +110,7 @@ class AdminManageUser(APIView):
         user.delete()
         return Response({"detail":"User deleted successfully"},status=status.HTTP_204_NO_CONTENT)
 
+from itertools import zip_longest
 class AdminReceiptsView(APIView):
     serializer_class = serializers.AdminReceiptsViewSerializer
     permission_classes=[permissions.IsAuthenticated]  
@@ -130,7 +131,7 @@ class AdminReceiptsView(APIView):
                 receipt_dict = {
                     'id': receipt.id,
                     'amount': receipt.amount,
-                    'date': receipt.date,
+                    'date': receipt.created,
                     'receipt_status': receipt.receipt_status,
                     'payment_method': receipt.payment_method,
                 }
@@ -151,7 +152,7 @@ class AdminReceiptsView(APIView):
                 receipt_dict = {
                     'id': receipt.id,
                     'amount': receipt.amount,
-                    'date': receipt.date,
+                    'date': receipt.created,
                     'receipt_status': receipt.receipt_status,
                     'payment_method': receipt.payment_method,
                 }
@@ -167,6 +168,7 @@ class AdminReceiptsView(APIView):
 
                 }
                 receipts_data.append(paystack_receipt_dict)
+        receipts_data.sort(key=lambda x: x['date'], reverse=True)
         return Response(receipts_data)
     
     def post(self, request):
