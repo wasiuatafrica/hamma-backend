@@ -1043,10 +1043,13 @@ class AnalyticsGraphView(APIView):
         positions = exec_models.DemoPosition.objects.all()
 
         result = (
-            positions.annotate(truncated_created=TruncDate('created'))
-            .values('truncated_created')
+            positions.annotate(
+                truncated_created=TruncDate('created'),
+                stock_symbol=F('stock__symbol')  # Replace 'symbol' with the actual field name in Stock model
+            )
+            .values('truncated_created', 'stock_symbol')
             .annotate(total_quantity=Sum('quantity'))
-            .order_by('truncated_created')
+            .order_by('truncated_created', 'stock_symbol')
         )
 
         weekday_mapping = {
@@ -1058,22 +1061,28 @@ class AnalyticsGraphView(APIView):
             5: 'Saturday',
             6: 'Sunday',
         }
-        
-        volume_data = []
+
+        volume_data = {}
+
         # Extract weekday for each date
         for entry in result:
             truncated_created = entry['truncated_created']
             weekday_digit = truncated_created.weekday()
             weekday = weekday_mapping.get(weekday_digit, 'Unknown')
+            stock_symbol = entry['stock_symbol']
             volume = entry['total_quantity']
-            
+
+            if stock_symbol not in volume_data:
+                volume_data[stock_symbol] = []
+
             data = {
-                'date':truncated_created,
-                'weekday':weekday,
-                'volume':volume
+                'date': truncated_created,
+                'weekday': weekday,
+                'volume': volume
             }
 
-            volume_data.append(data)
+            volume_data[stock_symbol].append(data)
+
         
         grouped_data = {
             'registered_users':registered_data,
