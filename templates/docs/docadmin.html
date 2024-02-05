@@ -724,6 +724,52 @@
 
             </ul>
     </div>
+    <h4>6d. All admin User activites</h4>
+            <p>GET /anyon/admin-users-activity-log/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Retrieve a sinle of user's activites.
+
+                [
+                {
+                  "id": 1,
+                  "amount": 12,
+                  "date": "2024-01-11",
+                  "receipt_status": "Unprocessed",
+                  "payment_method": "Bank Transfer"
+                },
+                {
+                  "id": 2,
+                  "amount": 123,
+                  "date": "2024-01-11",
+                  "receipt_status": "Unprocessed",
+                  "payment_method": "Bank Transfer"
+                },
+                {
+                  "id": 1,
+                  "amount": 131,
+                  "date": "2024-01-11T14:38:14.012479Z",
+                  "receipt_status": "Unprocessed",
+                  "payment_method": "paystack"
+                },
+                {
+                  "id": 2,
+                  "amount": 12,
+                  "date": "2024-01-11T14:38:26.844713Z",
+                  "receipt_status": "Unprocessed",
+                  "payment_method": "paystack"
+                }
+              ]
+                    
+            </pre>
+    
+            <h6>Notes:</h6>
+            <ul>
+                <li>1. For filter, pass in either "filter" as key and "bank_tranfer" or "paystack" as value for the fiter params. </li>
+                <li>1. Reciept can also be filtered using user's email. using keyword as "email", user's email as value. The reciept to be filter from eith paystack or bank_tranfer can also be passed. </li>
+
+            </ul>
     </div>
     <div class="container mt-5">
         <h3 data-toggle="collapse" data-target="#affiliateSection">7. Affiliate Management</h3>

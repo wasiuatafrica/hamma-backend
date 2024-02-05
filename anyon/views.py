@@ -57,7 +57,7 @@ class LoginView(APIView):
                     'refresh': str(refresh),
                     'access': str(refresh.access_token),
                 }
-            # activity=AdminUserActivityLog.objects.create(admin=request.user, user=request.user, action_type="login",description=f"Admin user login into their account.")
+            activity=AdminUserActivityLog.objects.create(admin=user, user=user, action_type="login",description=f"Admin user login into their account.")
             return Response(token_data, status=status.HTTP_200_OK)
         else:
             return Response({'detail': 'Invalid credentials or user is not a staff member'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -110,17 +110,66 @@ class AdminManageUser(APIView):
         user.delete()
         return Response({"detail":"User deleted successfully"},status=status.HTTP_204_NO_CONTENT)
 
+from itertools import zip_longest
 class AdminReceiptsView(APIView):
     serializer_class = serializers.AdminReceiptsViewSerializer
-    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+    permission_classes=[permissions.IsAuthenticated]  
     
     
     def get(self, request):
-        receipts=models.Receipts.objects.all().order_by('-id')
-        # print(receipts)
-        serializer = self.serializer_class(data=receipts, many=True)
-        serializer.is_valid()
-        return Response(serializer.data) 
+        # receipts=models.Receipts.objects.all().order_by('-id')
+        # # print(receipts)
+        # serializer = self.serializer_class(data=receipts, many=True)
+        # serializer.is_valid()
+        # return Response(serializer.data) 
+
+        email=request.GET.get("email")
+        filter=request.GET.get('filter')
+        receipts_data = []
+        if filter == "bank_tranfer":
+            for receipt in Receipts.objects.filter(user__email=email).order_by("-date"):
+                receipt_dict = {
+                    'id': receipt.id,
+                    'amount': receipt.amount,
+                    'date': receipt.created,
+                    'receipt_status': receipt.receipt_status,
+                    'payment_method': receipt.payment_method,
+                }
+                receipts_data.append(receipt_dict)
+        elif filter == "paystack":
+            for paystack_receipt in PayStackReceipts.objects.filter(user__email=email).order_by("-date"):
+                paystack_receipt_dict = {
+                    'id': paystack_receipt.id,
+                    'amount': paystack_receipt.amount,
+                    'date': paystack_receipt.date,
+                    'receipt_status': paystack_receipt.receipt_status,
+                    'payment_method': "paystack",
+
+                }
+                receipts_data.append(paystack_receipt_dict)
+        else:
+            for receipt in Receipts.objects.all().order_by("-date"):
+                receipt_dict = {
+                    'id': receipt.id,
+                    'amount': receipt.amount,
+                    'date': receipt.created,
+                    'receipt_status': receipt.receipt_status,
+                    'payment_method': receipt.payment_method,
+                }
+                receipts_data.append(receipt_dict)
+
+            for paystack_receipt in PayStackReceipts.objects.all().order_by("-date"):
+                paystack_receipt_dict = {
+                    'id': paystack_receipt.id,
+                    'amount': paystack_receipt.amount,
+                    'date': paystack_receipt.date,
+                    'receipt_status': paystack_receipt.receipt_status,
+                    'payment_method': "paystack",
+
+                }
+                receipts_data.append(paystack_receipt_dict)
+        receipts_data.sort(key=lambda x: x['date'], reverse=True)
+        return Response(receipts_data)
     
     def post(self, request):
         
