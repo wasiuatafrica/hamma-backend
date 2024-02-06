@@ -28,3 +28,4 @@ def docuser(request):
 
 def docadmin(request):
     return render(request, 'docs/docadmin.html')
+
