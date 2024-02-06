@@ -87,7 +87,7 @@ class AdminManageUser(APIView):
             return Response(serialized_data)
         else:
             # Return a list of all users
-            users = User.objects.all()
+            users = User.objects.all().order_by("-date_joined")
             serialized_data = self.serializer_class(users, many=True).data
             return Response(serialized_data)
         
@@ -110,7 +110,7 @@ class AdminManageUser(APIView):
         user.delete()
         return Response({"detail":"User deleted successfully"},status=status.HTTP_204_NO_CONTENT)
 
-from itertools import zip_longest
+
 class AdminReceiptsView(APIView):
     serializer_class = serializers.AdminReceiptsViewSerializer
     permission_classes=[permissions.IsAuthenticated]  
@@ -581,12 +581,8 @@ class AnalyticsView(APIView):
         current_month = datetime.now().month
         current_year = datetime.now().year
 
-        # users_this_month = User.objects.filter(is_active=True, date_joined__month=current_month, date_joined__year=current_year).count()
 
         last_month = datetime(current_year, current_month, 1)
-        # last_month = datetime(current_year, current_month, 1) - timedelta(days=1)
-        
-        # users_last_month = User.objects.filter(is_active=True, date_joined__month=last_month.month, date_joined__year=last_month.year).count()
         users_last_month = User.objects.filter(is_active=True, date_joined__lt=last_month).count()
 
         user_percentage_change = calculate_percentage_change(users_last_month, active_users)
@@ -598,9 +594,10 @@ class AnalyticsView(APIView):
         positions =exec_models.DemoPosition.objects.all()
         
         positions_open = positions.filter(status='open')
-        total_portfolio_value = round(sum([position.amount_invested for position in positions]),2)
+        positions_close = positions.filter(status='close')
+        total_portfolio_value = round(sum([position.amount_invested for position in positions_close]),2)
         
-        portfolio_before = positions.filter(created__lt=datetime(current_year, current_month, 1))
+        portfolio_before = positions_close.filter(created__lt=datetime(current_year, current_month, 1))
         
         portfolios_before_this_month = sum([position.amount_invested for position in portfolio_before]) if portfolio_before else 0
         percentage_of_total_assets = round(calculate_percentage_change(portfolios_before_this_month, total_portfolio_value),2)
@@ -627,29 +624,7 @@ class AnalyticsView(APIView):
 
         print('activities',average_daily_users,percentage_change_average_daily_users)
         
-        # #top traded stocks
-        # def symbol_details(symbol):
-        #     stock= get_object_or_404(Stock, symbol=symbol)
-        #     return {'symbol':symbol, 'price':stock.ltp, 'change':round(uniform(-4,4),2)}
-        # def most_traded_stocks():
-        #     # Aggregate the total quantity traded for each stock
-        #     traded_stocks = Trade.objects.filter(status='completed').values('holding__stock__symbol').annotate(total_quantity=Sum('quantity'))
-        #     # print(traded_stocks)
-            
-        #     traded_stocks_tuples = [(entry['holding__stock__symbol'], entry['total_quantity']) for entry in traded_stocks]
-            
-        #     most_traded_stocks = sorted(traded_stocks_tuples, key=lambda x: x[1], reverse=True)[:10]
-        #     # print(most_traded_stocks)
-            
-        #     with ThreadPoolExecutor() as executor:
-        #         futures = [executor.submit(symbol_details, stock_symbol) for stock_symbol, total_quantity in most_traded_stocks]
-        #         top_10_symbols = [future.result() for future in futures]
-        #     # top_10_symbols = [symbol_details(stock_symbol) for stock_symbol, total_quantity in most_traded_stocks]
-
-        #     return top_10_symbols
-        
-        # top_most_traded_stock_symbols = most_traded_stocks()
-        # # print(top_most_traded_stock_symbols)
+       
         
         positions_closed = positions.filter(status='close')
         top_10 = positions_closed.order_by("-profit_loss")[:10]
@@ -661,32 +636,6 @@ class AnalyticsView(APIView):
             for position in top_10
         ]
         
-        # def top_performing_stocks():
-        #     # Get all holdings
-        #     all_holdings = Holding.objects.all()
-        #     def hold_details(holding):
-        #         return holding.stock.symbol, holding.pnl, holding.portfolio.user.fullname
-            
-        #     with ThreadPoolExecutor() as executor:
-        #         futures = [executor.submit(hold_details, holding) for holding in all_holdings]
-        #         performance_data = [future.result() for future in futures]
-
-        #     # Calculate profit/loss for each holding
-        #     # performance_data = [(holding.stock.symbol, holding.pnl, holding.portfolio.user.fullname) for holding in all_holdings]
-
-        #     # Sort holdings based on profit/loss in descending order
-        #     sorted_performance = sorted(performance_data, key=lambda x: x[1], reverse=True)
-
-        #     # Extract the top-performing stocks
-        #     top_performing_stocks = [{
-        #         "symbol": symbol,
-        #         "pnl": pnl,
-        #         "user":user
-        #     }
-        #         for symbol,pnl,user in sorted_performance[:10]]
-
-        #     return top_performing_stocks
-        # top_performing_stock=top_performing_stocks()
         
         # most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2')).filter(num_positions__gt=0).order_by('-num_positions')
         most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2', filter=Q(demopositions2__status='open'))).filter(num_positions__gt=0).order_by('-num_positions')
@@ -916,15 +865,6 @@ class AnalyticsGraphView(APIView):
             date=Trunc('date_joined', 'month', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
-        # Format the data as per your requirement
-        # registered_data = {
-        #     'last_week_data': list(last_week_data1),
-        #     'last_month_data': list(last_month_data1),
-        #     'last_3_months_data': list(last_3_months_data1),
-        #     'last_year_data': list(last_year_data1),
-        #     'total_users_data': list(total_users_data1),
-        # }
-        
         # For the last 1 week in daily points
         transactions = models.DemoTransaction.objects.all()
         last_week_data2 = transactions.filter(date__gte=timezone.now() - timedelta(days=7)).annotate(
@@ -995,7 +935,7 @@ class AnalyticsGraphView(APIView):
         #     'total_active_users_data': list(total_active_users_data),
         # }
 
-        positions =exec_models.DemoPosition.objects.all()
+        positions =exec_models.DemoPosition.objects.filter(status='close')
         
         # For the last 1 week in daily points
         last_week_data4 = positions.filter(created__gte=timezone.now() - timedelta(days=7)).annotate(

@@ -31,7 +31,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     @property
     def profile_phone(self):
         profile=Profile.objects.get(user__email=self.email)
-        print(profile, "jbabah")
+        # print(profile, "jbabah")
         return profile.phone
         
     @property
