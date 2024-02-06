@@ -138,7 +138,8 @@ class AdminReceiptsView(APIView):
                     "approved_date":receipt.approved_date,
                     "image_url":str(receipt.image),
                     "user":receipt.user.id,
-                    "flag":receipt.flag
+                    "flag":receipt.flag,
+                    "timestamp":receipt.created.timestamp(),
                     
                 }
                 receipts_data.append(receipt_dict)
@@ -155,7 +156,8 @@ class AdminReceiptsView(APIView):
                     "approved_date":"",
                     "comment":paystack_receipt.comment,
                     "fullname":paystack_receipt.user.fullname,
-                    "flag":paystack_receipt.flag
+                    "flag":paystack_receipt.flag,
+                    "timestamp":paystack_receipt.date.timestamp(),
 
                 }
                 receipts_data.append(paystack_receipt_dict)
@@ -172,7 +174,8 @@ class AdminReceiptsView(APIView):
                     "approved_date":receipt.approved_date,
                     "image_url":str(receipt.image),
                     "user":receipt.user.id,
-                    "flag":receipt.flag
+                    "flag":receipt.flag,
+                    "timestamp":receipt.created.timestamp(),
                 }
                 receipts_data.append(receipt_dict)
 
@@ -188,11 +191,12 @@ class AdminReceiptsView(APIView):
                     "approved_date":"",
                     "comment":paystack_receipt.comment,
                     "fullname":paystack_receipt.user.fullname,
-                    "flag":paystack_receipt.flag
+                    "flag":paystack_receipt.flag,
+                    "timestamp":paystack_receipt.date.timestamp(),
 
                 }
                 receipts_data.append(paystack_receipt_dict)
-        receipts_data.sort(key=lambda x: x['created'], reverse=True)
+        receipts_data.sort(key=lambda x: x['timestamp'], reverse=True)
         return Response(receipts_data)
 
     
