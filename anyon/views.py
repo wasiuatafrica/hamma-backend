@@ -196,8 +196,8 @@ class AdminReceiptsView(APIView):
 
                 }
                 receipts_data.append(paystack_receipt_dict)
-        receipts_data.sort(key=lambda x: x['timestamp'], reverse=True)
-        return Response(receipts_data)
+        receipts_data2 = sorted(receipts_data, key=lambda x: x['timestamp'], reverse=True)
+        return Response(receipts_data2)
 
     
     def post(self, request):
