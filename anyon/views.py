@@ -346,7 +346,7 @@ class AdminTradeView(APIView):
     
     
     def get(self, request):
-        trades = models.Trade.objects.all().order_by('-id')
+        # trades = models.Trade.objects.all().order_by('-id')
         trades = exec_models.DemoPosition.objects.all().order_by('-updated')
         serializer = self.serializer_class(data=trades, many=True)
         serializer.is_valid()
@@ -460,14 +460,14 @@ class AllUsersActivityLogView(APIView):
         filter=request.GET.get("filter")
         if filter:
             if filter == "active":
-                activities=UserActivityLog.objects.filter(user__is_active=True)
+                activities=UserActivityLog.objects.filter(user__is_active=True).order_by("-timestamp")
             elif filter == "inactive":
-                activities=UserActivityLog.objects.filter(user__is_active=False)
+                activities=UserActivityLog.objects.filter(user__is_active=False).order_by("-timestamp")
             else:
-                activities=UserActivityLog.objects.filter(action_type=filter)
+                activities=UserActivityLog.objects.filter(action_type=filter).order_by("-timestamp")
 
         else:
-            activities=UserActivityLog.objects.all()
+            activities=UserActivityLog.objects.all().order_by("-timestamp")
         serializer=self.serializer_class(activities, many=True)
         return Response(serializer.data)
     
@@ -480,9 +480,9 @@ class UserTradeActivityLog(APIView):
         id=kwargs.get("id")
         filter=request.GET.get('filter')
         if filter:
-            trade_history= Trade.objects.filter(user__id=id,order_type__icontains=filter)
+            trade_history= exec_models.DemoPosition.objects.filter(user__id=id,order_type__icontains=filter)
         else:
-            trade_history= Trade.objects.filter(user__id=id)
+            trade_history= exec_models.DemoPosition.objects.filter(user__id=id)
         serializer=self.serializer_class(trade_history,many=True)
         return Response(serializer.data)
 
@@ -594,17 +594,6 @@ class AnalyticsView(APIView):
         
         
         #Assets        
-        # portfolios = Portfolio.objects.all()
-        
-        # total_portfolio_value = round(sum(portfolio.portfolio_value() for portfolio in portfolios),2)
-        
-        # portfolio_before= portfolios.filter(created__lt=datetime(current_year, current_month, 1))
-        
-        # # total_assets_under_mgmt = portfolios.aggregate(Sum('portfolio_value'))['portfolio_value__sum'] or Decimal(0)
-        # portfolios_before_this_month = sum(port.portfolio_value() for port in portfolio_before) if portfolio_before else 0
-        # percentage_of_total_assets = round(calculate_percentage_change(portfolios_before_this_month, total_portfolio_value),2)
-
-        # print(total_portfolio_value, percentage_of_total_assets)
         
         positions =exec_models.DemoPosition.objects.all()
         
@@ -699,7 +688,9 @@ class AnalyticsView(APIView):
         #     return top_performing_stocks
         # top_performing_stock=top_performing_stocks()
         
-        most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2')).filter(num_positions__gt=0).order_by('-num_positions')
+        # most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2')).filter(num_positions__gt=0).order_by('-num_positions')
+        most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2', filter=Q(demopositions2__status='open'))).filter(num_positions__gt=0).order_by('-num_positions')
+
         # print(most_traded_stock)
         
         def get_stock(stock):
@@ -707,7 +698,7 @@ class AnalyticsView(APIView):
             if data:
                 price= data.get('current_price')
                 change = data.get('percentage_change',0)
-                unique_users_count = positions.filter(stock=stock).values('portfolio__user').distinct().count()
+                unique_users_count = positions_open.filter(stock=stock).values('portfolio__user').distinct().count()
                 
                 data = {
                     'symbol':stock.symbol,
