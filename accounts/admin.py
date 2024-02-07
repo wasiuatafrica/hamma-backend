@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .forms import CustomUserCreationForm, CustomUserChangeForm
-from .models import CustomUser, Profile, Referral, FirstLogin, UserActivityLog
+from .models import CustomUser, Profile, Referral, FirstLogin, UserActivityLog, AdminUserActivityLog
 
 class ProfileAdmin(admin.ModelAdmin):
     search_fields = ['user__email','referral_code']
@@ -13,6 +13,7 @@ class ReferralAdmin(admin.ModelAdmin):
 admin.site.register(Referral, ReferralAdmin)
 admin.site.register(FirstLogin)
 admin.site.register(UserActivityLog)
+admin.site.register(AdminUserActivityLog)
 
 class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm

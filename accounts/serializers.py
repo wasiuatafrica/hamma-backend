@@ -116,7 +116,16 @@ class UserActivityLogSerializer(serializers.ModelSerializer):
 class AdminUserActivityLogSerializer(serializers.ModelSerializer):
     class Meta:
         model=models.AdminUserActivityLog
-        fields= "__all__"
+        fields= [
+            "id",
+            "admin",
+            "user",
+            "action_type",
+            "timestamp",
+            "description",
+            "adminfullname",
+            "userfullname",
+        ]
 
 class AdminCustomUserSerializer(serializers.ModelSerializer):
     class Meta:

@@ -176,7 +176,17 @@ class AdminUserActivityLog(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     description=models.CharField(max_length=100)
 
+
+    @property
+    def adminfullname(self):
+        return f"{self.admin.firstname} {self.admin.lastname}"   
+    
+    @property
+    def userfullname(self):
+        return f"{self.user.firstname} {self.user.lastname}" 
+
     def __str__(self) -> str:
         return self.action_type
+    
 
     
