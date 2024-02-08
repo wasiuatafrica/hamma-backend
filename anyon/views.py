@@ -426,8 +426,10 @@ class AffilateManagement(APIView):
         filter= request.GET.get("email")
         
         first_day, last_day = get_quarter_dates()
+        
         data_list=[]
         # users = User.objects.all()
+        
         if filter:
             users = acc_Referral.objects.filter(user__email=filter)
         else:            
@@ -967,17 +969,6 @@ class AnalyticsGraphView(APIView):
             date=Trunc('created', 'month', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
-        # Format the data as per your requirement
-        # positions_data = {
-        #     'last_week_data': list(last_week_data),
-        #     'last_month_data': list(last_month_data),
-        #     'last_3_months_data': list(last_3_months_data),
-        #     'last_year_data': list(last_year_data),
-        #     'total_positions_data': list(total_positions_data),
-        # }
-
-        # positions = exec_models.DemoPosition.objects.all()
-
         result = (
             positions.annotate(
                 truncated_created=TruncDate('created'),
@@ -1019,14 +1010,6 @@ class AnalyticsGraphView(APIView):
 
             volume_data[stock_symbol].append(data)
 
-        
-        # grouped_data = {
-        #     'registered_users':registered_data,
-        #     'transaction_data':transaction_data,
-        #     "user_activity_data":user_activity_data,
-        #     "positions_data":positions_data,
-        #     "volume_data":volume_data
-        # }
         
         grouped_data = {
             'last_week_data': self.organize_data(list(last_week_data1),list(last_week_data2),list(last_week_data3),list(last_week_data4)),

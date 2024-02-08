@@ -24,6 +24,17 @@ def get_quarter_dates():
 
     return (first_day_of_quarter, last_day_of_quarter_end)
 
+def get_quarter(date_str):
+    try:
+        date_object =date_str
+        # date_object = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S")
+        quarter = (date_object.month - 1) // 3 + 1
+        
+        return quarter
+    except ValueError:
+        return "Invalid date format"
+            
+
 def get_rank_details(user, first_day):
     brokerage_commission = BrokageCommission.objects.filter(user=user,created__gte=first_day)
     if brokerage_commission:
@@ -35,11 +46,18 @@ def get_rank_details(user, first_day):
         active_referees = reward_activities.values('trader').distinct().count()
     else:
         active_referees = 0
-        
+    
+    if user.profile.first().profile_img:
+        url = user.profile.first().profile_img.url
+    else:
+        url = ""
+    
     return {
         'brokerage_commission':min_commission,
         'active_referees':active_referees,
         'username':user.fullname,
-        'user_id':user.id
+        'user_id':user.id,
+        'image_url':url,
+        'quarter':get_quarter(first_day)
     }
     
