@@ -31,6 +31,8 @@ class AdminReceiptsViewSerializer(serializers.ModelSerializer):
 class WithdrawalSerializer(serializers.ModelSerializer):
     fullname = serializers.SerializerMethodField()
     user_id = serializers.SerializerMethodField()
+    type = serializers.SerializerMethodField()
+    
     class Meta:
         model = WithdrawalRequest
         fields = (
@@ -40,7 +42,8 @@ class WithdrawalSerializer(serializers.ModelSerializer):
             'amount',
             'status',
             'created',
-            "flag"
+            "flag",
+            "type"
         )
         
     
@@ -53,6 +56,9 @@ class WithdrawalSerializer(serializers.ModelSerializer):
         user = obj.wallet.user
         if user:
             return user.id
+        
+    def get_type(self,obj):
+        return "main"
         
 class TradeSerializer(serializers.ModelSerializer):
     fullname = serializers.SerializerMethodField()
