@@ -1,3 +1,4 @@
+from email.policy import default
 from django.db import models
 from django.contrib.auth import get_user_model
 import auto_prefetch
@@ -16,6 +17,7 @@ class RewardActivities(auto_prefetch.Model):
     amount=models.FloatField()
     status=models.CharField(max_length=50, default="unprocessed", null=True, blank=True)
     comment=models.CharField(max_length=50,null=True, blank=True)
+    flag=models.BooleanField(default=False, null=True, blank=True)
 
 
     def __str__(self):
