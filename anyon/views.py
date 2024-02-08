@@ -377,9 +377,9 @@ class AdminApproveAndViewRewardActivities(APIView):
             if query_type == "email":
                 # print("email")
                 activities= aff_models.RewardActivities.objects.filter(user__email=filter)
-            elif query_type == "purhase_account":
+            elif query_type == "referral_commission":
                 # print("acc")
-                activities= aff_models.RewardActivities.objects.filter(reward_type="Purchased an account")
+                activities= aff_models.RewardActivities.objects.filter(reward_type="referral_commission")
             elif query_type == "broker_commission":
                 # print("broker")
                 activities= aff_models.RewardActivities.objects.filter(reward_type="Brokage Commission")
@@ -395,6 +395,7 @@ class AdminApproveAndViewRewardActivities(APIView):
                 "status":act.status,
                 "date": act.created,
                 "user_id":act.trader.id,
+                "flag":act.flag,
                 "tethered_requirements":["10% Brokerayge commission for every trade by the referred user for life", "50,000 deposits from referred user"]
             } for act in activities
         ]
@@ -816,6 +817,28 @@ class FlagReciept(APIView):
             recipt.save()
             activity=AdminUserActivityLog.objects.create(admin=request.user, user=recipt.user, action_type="flagged_reciept",description=f"Admin user flagged reciept.")
             return Response({"detail":"recipt flagged successfully"}, status.HTTP_200_OK)
+        return Response({"detail":"Invalid keyword. Use flagged or unflagged"}, status.HTTP_400_BAD_REQUEST)
+    
+class FlagRewardActivities(APIView):
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+    def post(self, request, *args, **kwargs):
+        reward_activity_id= kwargs.get("reward_activity_id")
+        keyword =request.data.get("keyword")
+        if not reward_activity_id and keyword:
+            return Response({"detail":"reward_activity_id and keyword must not be empty"}, status.HTTP_400_BAD_REQUEST)
+        reward_activity=RewardActivities.objects.filter(id=reward_activity_id).first()
+        if not reward_activity:
+            return Response({"detail":f"reward_activity with id {reward_activity_id} not found"}, status.HTTP_404_NOT_FOUND)
+        if keyword == "unflag":
+            reward_activity.flag=False
+            reward_activity.save()
+            activity=AdminUserActivityLog.objects.create(admin=request.user, user=reward_activity.user, action_type="unflagged_reward_activity",description=f"Admin user unflagged reward_activity.")
+            return Response({"detail":"reward_activity unflagged successfully"}, status.HTTP_200_OK)
+        elif keyword == "flag":
+            reward_activity.flag=True
+            reward_activity.save()
+            activity=AdminUserActivityLog.objects.create(admin=request.user, user=reward_activity.user, action_type="flagged_reward_activity",description=f"Admin user flagged reward_activity.")
+            return Response({"detail":"reward_activity flagged successfully"}, status.HTTP_200_OK)
         return Response({"detail":"Invalid keyword. Use flagged or unflagged"}, status.HTTP_400_BAD_REQUEST)
     
 class FlagWithdrawalRequest(APIView):
