@@ -917,23 +917,49 @@ class FlagWithdrawalRequest(APIView):
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
     def post(self, request,*args, **kwargs):
         withdrawal_request_id= kwargs.get("withdrawal_request_id")
-        keyword =request.data.get("keyword")
-        if not withdrawal_request_id and keyword:
-            return Response({"detail":"withdrawal_request_id and keyword must not be empty"}, status.HTTP_400_BAD_REQUEST)
-        withdrawal_request=exec_models.WithdrawalRequest.objects.filter(id=withdrawal_request_id).first()
-        if not withdrawal_request:
-            return Response({"detail":f"withdrawal_request with id {withdrawal_request_id} not found"}, status.HTTP_404_NOT_FOUND)
-        if keyword == "unflag":
-            withdrawal_request.flag=False
-            withdrawal_request.save()
-            activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal_request.wallet.user, action_type="unflagged_withdrawal_request",description=f"Admin user unflagged withdrawal request.")
-            return Response({"detail":"withdrawal_request unflagged successfully"}, status.HTTP_200_OK)
-        elif keyword == "flag":
-            withdrawal_request.flag=True
-            withdrawal_request.save()
-            activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal_request.wallet.user, action_type="flagged_withdrawal_request",description=f"Admin user flagged withdrawal request.")
-            return Response({"detail":"withdrawal_request flagged successfully"}, status.HTTP_200_OK)
-        return Response({"detail":"Invalid keyword. Use flagged or unflagged"}, status.HTTP_400_BAD_REQUEST)
+        type =  request.data.get('type', None)
+        
+        if not type or type not in ['main', 'referral']:
+            return Response('type key must be present and it be either main or referral', status=status.HTTP_400_BAD_REQUEST)
+        if type == 'main':
+            keyword =request.data.get("keyword")
+            if not withdrawal_request_id and keyword:
+                return Response({"detail":"withdrawal_request_id and keyword must not be empty"}, status.HTTP_400_BAD_REQUEST)
+            withdrawal_request=exec_models.WithdrawalRequest.objects.filter(id=withdrawal_request_id).first()
+            if not withdrawal_request:
+                return Response({"detail":f"withdrawal_request with id {withdrawal_request_id} not found"}, status.HTTP_404_NOT_FOUND)
+            if keyword == "unflag":
+                withdrawal_request.flag=False
+                withdrawal_request.save()
+                activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal_request.wallet.user, action_type="unflagged_withdrawal_request",description=f"Admin user unflagged withdrawal request.")
+                return Response({"detail":"withdrawal_request unflagged successfully"}, status.HTTP_200_OK)
+            elif keyword == "flag":
+                withdrawal_request.flag=True
+                withdrawal_request.save()
+                activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal_request.wallet.user, action_type="flagged_withdrawal_request",description=f"Admin user flagged withdrawal request.")
+                return Response({"detail":"withdrawal_request flagged successfully"}, status.HTTP_200_OK)
+            return Response({"detail":"Invalid keyword. Use flagged or unflagged"}, status.HTTP_400_BAD_REQUEST)
+        elif type == 'referral':
+            keyword =request.data.get("keyword")
+            if not withdrawal_request_id and keyword:
+                return Response({"detail":"withdrawal_request_id and keyword must not be empty"}, status.HTTP_400_BAD_REQUEST)
+            
+            withdrawal_request=aff_models.ReferralWithdrawalRequest.objects.filter(id=withdrawal_request_id).first()
+            
+            if not withdrawal_request:
+                return Response({"detail":f"referral withdrawal_request with id {withdrawal_request_id} not found"}, status.HTTP_404_NOT_FOUND)
+            if keyword == "unflag":
+                withdrawal_request.flag=False
+                withdrawal_request.save()
+                activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal_request.wallet.user, action_type="unflagged_referral_withdrawal_request",description=f"Admin user unflagged referral withdrawal request.")
+                return Response({"detail":"referral withdrawal_request unflagged successfully"}, status.HTTP_200_OK)
+            elif keyword == "flag":
+                withdrawal_request.flag=True
+                withdrawal_request.save()
+                activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal_request.wallet.user, action_type="flagged_referral_withdrawal_request",description=f"Admin user flagged referral withdrawal request.")
+                return Response({"detail":"referral withdrawal_request flagged successfully"}, status.HTTP_200_OK)
+            return Response({"detail":"Invalid keyword. Use flagged or unflagged"}, status.HTTP_400_BAD_REQUEST)
+
 
 from django.utils import timezone
 from django.db.models import Count, DateTimeField, DateField, CharField
