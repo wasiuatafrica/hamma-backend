@@ -394,6 +394,7 @@ class AdminApproveAndViewRewardActivities(APIView):
                 "amount":act.amount,
                 "status":act.status,
                 "date": act.created,
+                "user_id":act.trader.id,
                 "tethered_requirements":["10% Brokerayge commission for every trade by the referred user for life", "50,000 deposits from referred user"]
             } for act in activities
         ]
@@ -1120,9 +1121,9 @@ class AllAdminUsersActivityLogView(APIView):
     def get(self,request):
         filter=request.GET.get("filter")
         if filter:
-            activities=AdminUserActivityLog.objects.filter(action_type__icontains=filter)
+            activities=AdminUserActivityLog.objects.filter(action_type__icontains=filter).order_by("-timestamp")
 
         else:
-            activities=AdminUserActivityLog.objects.all()
+            activities=AdminUserActivityLog.objects.all().order_by("-timestamp")
         serializer=self.serializer_class(activities, many=True)
         return Response(serializer.data)

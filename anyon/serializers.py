@@ -39,7 +39,8 @@ class WithdrawalSerializer(serializers.ModelSerializer):
             'user_id',
             'amount',
             'status',
-            'created'
+            'created',
+            "flag"
         )
         
     
