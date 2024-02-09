@@ -81,7 +81,9 @@ class DemoPosition(auto_prefetch.Model):
     alert_name = models.CharField(max_length=30, blank=True, null=True)
     time_in_force = models.CharField(max_length=20, default='day')
     order_type = models.CharField(max_length=20, default='market')
+    order_id = models.CharField(max_length=40,  blank=True, null=True)
     profit_loss = models.IntegerField(default=0)
+    
     
     def __str__(self):
         return f"{self.portfolio.user} - {self.stock.symbol} - {self.action}"

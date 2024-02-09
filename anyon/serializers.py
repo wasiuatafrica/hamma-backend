@@ -108,6 +108,7 @@ class PositionSerializer(serializers.ModelSerializer):
             'updated',
             'fullname',
             'user_id',
+            'order_id'
             
         )
         

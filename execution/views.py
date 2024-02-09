@@ -136,7 +136,8 @@ class DemoTradeAPIView(APIView):
                     'pl_percent': percent,
                     'created':position.created,
                     'status':position.status,
-                    'open_price': position.open_price
+                    'open_price': position.open_price,
+                    'order_id':position.order_id,
                 }
                 return data1
             
@@ -149,6 +150,7 @@ class DemoTradeAPIView(APIView):
     def post(self, request):
         
         symbol = request.data.get('symbol')
+        order_id = request.data.get('order_id')
         quantity = int(request.data.get('quantity'))
         if request.data.get('price'):
             price = float(request.data.get('price'))
@@ -172,7 +174,8 @@ class DemoTradeAPIView(APIView):
                 status=DemoPosition.OPEN, 
                 open_price = market_price,
                 quantity=quantity,
-                amount_invested = amount
+                amount_invested = amount,
+                order_id=order_id
             )
 
             if not is_buy:
@@ -220,7 +223,8 @@ class DemoTradeAPIView(APIView):
                 limit_price = price,
                 quantity=quantity,
                 alert_name = shortuuid.uuid(),
-                time_in_force=time_in_force
+                time_in_force=time_in_force,
+                order_id=order_id
                 
                 
             )  
@@ -253,7 +257,9 @@ class DemoTradeAPIView(APIView):
                     'symbol':symbol,
                     'open_pl':pl,
                     'pl_percent': percent,
-                    'created':position.created
+                    'created':position.created,
+                    'order_id':position.order_id,
+                    
                 }
                 return data1
             
@@ -412,6 +418,7 @@ class DemoCloseTrade(APIView):
                 'open_time':position.created.isoformat(),
                 'close_time':position.updated.isoformat(),
                 'profit_loss': position.profit_loss,
+                'order_id':position.order_id
             }
             return Response(data)
         else:
@@ -453,7 +460,8 @@ class DemoHolding(APIView):
                     'invested':position.amount_invested,
                     "profit_loss":position.profit_loss,
                     "side":position.action,
-                    "order":position.order_type
+                    "order":position.order_type,
+                    'order_id':position.order_id
                     
                     }
                 return data

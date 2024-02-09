@@ -62,3 +62,28 @@ class ReferralWithdrawalRequest(auto_prefetch.Model):
     status= models.CharField(max_length=20, default='Unprocessed', blank=True,null=True)
     flag=models.BooleanField(default=False, null=True, blank=True)
     
+    
+class QuarterCampaign(auto_prefetch.Model):
+    start_date=models.DateTimeField(blank=True)
+    end_date=models.DateTimeField(blank=True)
+    # title=models.CharField(max_length=200, unique=True,blank=True,db_index=True)
+    created=models.DateTimeField(auto_now_add=True)
+    updated=models.DateTimeField(auto_now=True)
+    status=models.CharField(max_length=200,default='current', choices=(('current','current'),('closed','closed')),blank=True)
+    first_prize=models.CharField(max_length=200,null=True, blank=True)
+    second_prize=models.CharField(max_length=200,null=True, blank=True)
+    third_prize=models.CharField(max_length=200,null=True, blank=True)
+    message=models.TextField(null=True, blank=True)
+
+    
+    def __str__(self):
+        return f'{self.start_date} | {self.status}'
+    
+class CampaignSummary(auto_prefetch.Model):
+    campaign=auto_prefetch.ForeignKey(QuarterCampaign, on_delete=models.CASCADE)
+    user=auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='affiliate_campaign_summary')
+    earnings=models.FloatField(default=0.0)
+    referrals=models.IntegerField()
+    created=models.DateTimeField(auto_now_add=True)
+    updated=models.DateTimeField(auto_now=True)
+    position=models.PositiveIntegerField()
