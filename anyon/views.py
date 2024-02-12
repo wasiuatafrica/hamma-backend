@@ -560,9 +560,9 @@ class UserTradeActivityLog(APIView):
         id=kwargs.get("id")
         filter=request.GET.get('filter')
         if filter:
-            trade_history= exec_models.DemoPosition.objects.filter(user__id=id,order_type__icontains=filter)
+            trade_history= exec_models.DemoPosition.objects.filter(portfolio__user__id=id,order_type__icontains=filter)
         else:
-            trade_history= exec_models.DemoPosition.objects.filter(user__id=id)
+            trade_history= exec_models.DemoPosition.objects.filter(portfolio__user__id=id)
         serializer=self.serializer_class(trade_history,many=True)
         return Response(serializer.data)
 

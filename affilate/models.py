@@ -2,12 +2,43 @@ from email.policy import default
 from django.db import models
 from django.contrib.auth import get_user_model
 import auto_prefetch
-from datetime import datetime
-from portfolio.models import Trade
+from datetime import datetime, timedelta
+from execution.models import Position
 # Create your models here.
 
 User=get_user_model()
 
+def get_quarter_dates():
+    today = datetime.now()
+    quarter_start_month = (today.month - 1) // 3 * 3 + 1
+    first_day_of_quarter = datetime(today.year, quarter_start_month, 1)
+
+    last_day_of_quarter = first_day_of_quarter + timedelta(days=89)  
+    year, month = last_day_of_quarter.year, last_day_of_quarter.month
+
+    if month == 2:
+        if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
+            last_day = 29  
+        else:
+            last_day = 28  
+    elif month in (4, 6, 9, 11):
+        last_day = 30
+    else:
+        last_day = 31
+
+    last_day_of_quarter_end = datetime(year, month, last_day, 23, 59, 59)
+
+    return (first_day_of_quarter, last_day_of_quarter_end)
+
+def get_quarter(date_str):
+    try:
+        date_object =date_str
+        # date_object = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S")
+        quarter = (date_object.month - 1) // 3 + 1
+        
+        return quarter
+    except ValueError:
+        return "Invalid date format"
 
 class RewardActivities(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE,related_name='reward_activities', null=True, blank=True)
@@ -44,16 +75,47 @@ class BrokageCommission(auto_prefetch.Model):
     person_refferred = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE,related_name='brokage_commsissions', null=True, blank=True)
     commission = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    trade = auto_prefetch.ForeignKey(Trade, on_delete=models.CASCADE,related_name='brokage_commsissions', null=True, blank=True)
+    trade = auto_prefetch.ForeignKey(Position, on_delete=models.CASCADE,related_name='brokage_commsissions', null=True, blank=True)
     
     
 class CampaignQuarter(auto_prefetch.Model):
-    title = models.CharField(max_length=100)
-    first_prize = models.CharField(max_length=30)
-    second_prize = models.CharField(max_length=30)
-    third_prize = models.CharField(max_length=30)
-    created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    start_date=models.DateTimeField(blank=True)
+    end_date=models.DateTimeField(blank=True)
+    quarter=models.IntegerField()
+    year=models.IntegerField()
+    created=models.DateTimeField(auto_now_add=True)
+    updated=models.DateTimeField(auto_now=True)
+    status=models.CharField(max_length=200,default='ongoing', choices=(('ongoing','ongoing'),('closed','closed')),blank=True)
+    first_prize=models.CharField(max_length=200,null=True, blank=True)
+    second_prize=models.CharField(max_length=200,null=True, blank=True)
+    third_prize=models.CharField(max_length=200,null=True, blank=True)
+    message=models.TextField(null=True, blank=True)
 
+    def __str__(self):
+        return f'{self.start_date} | {self.status}'
+    
+    def save(self, *args, **kwargs):
+        if not self.start_date or not self.end_date or not self.quarter or not self.year:
+            start_date, end_date = get_quarter_dates()
+            self.start_date = start_date
+            self.end_date = end_date
+            self.quarter = get_quarter(start_date)
+            self.year = start_date.year
+        super().save(*args, **kwargs)
+
+
+class CampaignSummary(auto_prefetch.Model):
+    campaign=auto_prefetch.ForeignKey(CampaignQuarter, on_delete=models.CASCADE)
+    user=auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='affiliate_campaign_summary')
+    earnings=models.FloatField(default=0.0)
+    referrals=models.IntegerField()
+    created=models.DateTimeField(auto_now_add=True)
+    updated=models.DateTimeField(auto_now=True)
+    rank=models.PositiveIntegerField()
+    awarded = models.BooleanField(default=False) 
+
+    
+        
 class ReferralWithdrawalRequest(auto_prefetch.Model):
     wallet=auto_prefetch.ForeignKey(ReferralWallet, on_delete=models.CASCADE)
     amount = models.DecimalField(null=True, blank=True,max_digits=10, decimal_places=2)
@@ -62,28 +124,3 @@ class ReferralWithdrawalRequest(auto_prefetch.Model):
     status= models.CharField(max_length=20, default='Unprocessed', blank=True,null=True)
     flag=models.BooleanField(default=False, null=True, blank=True)
     
-    
-class QuarterCampaign(auto_prefetch.Model):
-    start_date=models.DateTimeField(blank=True)
-    end_date=models.DateTimeField(blank=True)
-    # title=models.CharField(max_length=200, unique=True,blank=True,db_index=True)
-    created=models.DateTimeField(auto_now_add=True)
-    updated=models.DateTimeField(auto_now=True)
-    status=models.CharField(max_length=200,default='current', choices=(('current','current'),('closed','closed')),blank=True)
-    first_prize=models.CharField(max_length=200,null=True, blank=True)
-    second_prize=models.CharField(max_length=200,null=True, blank=True)
-    third_prize=models.CharField(max_length=200,null=True, blank=True)
-    message=models.TextField(null=True, blank=True)
-
-    
-    def __str__(self):
-        return f'{self.start_date} | {self.status}'
-    
-class CampaignSummary(auto_prefetch.Model):
-    campaign=auto_prefetch.ForeignKey(QuarterCampaign, on_delete=models.CASCADE)
-    user=auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='affiliate_campaign_summary')
-    earnings=models.FloatField(default=0.0)
-    referrals=models.IntegerField()
-    created=models.DateTimeField(auto_now_add=True)
-    updated=models.DateTimeField(auto_now=True)
-    position=models.PositiveIntegerField()

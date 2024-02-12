@@ -9,7 +9,10 @@ urlpatterns=[
     path("ranking/", views.RankingView.as_view(), name='ranking'),
     path("home/", views.HomeView.as_view(), name='home'),
     path('withdraw/', views.ReferralWithdrawal.as_view()),
-    path('referees/', views.Referrees.as_view())
+    path('referees/', views.Referrees.as_view()),
+    path('campaign/', views.CampaignQuarterView.as_view()),
+    path('campaign-summary/<str:id>/', views.CampaignSummaryView.as_view()),
+    path('approve-award/<str:id>/', views.ApproveAffiliateReward.as_view()),
     
 
 ]

@@ -5,12 +5,13 @@ from . import serializers as aff_serializers, models as aff_models
 from django.contrib.auth import get_user_model
 from rest_framework import permissions
 from notifications.utils import save_and_send_notification
-from .models import BrokageCommission, RewardActivities, ReferralWallet, ReferralWithdrawalRequest
+from .models import BrokageCommission, RewardActivities, ReferralWallet, ReferralWithdrawalRequest, CampaignQuarter, CampaignSummary
 from django.db.models import Sum
 from .utils import get_quarter_dates,get_rank_details
 from accounts.utils import get_referees
 from datetime import datetime,timedelta
 from decimal import Decimal
+from rest_framework import generics, status
 
 User=get_user_model()
 
@@ -284,3 +285,57 @@ class Referrees(APIView):
         serializer = self.serializer_class(referees, many=True)
         return Response(serializer.data)
         
+class CampaignQuarterView(APIView):
+    serializer_class = aff_serializers.CampaignQuarterSerializer
+    
+    def get(self,request):
+        campaigns = CampaignQuarter.objects.all()
+        data  = self.serializer_class(campaigns, many=True).data
+        return Response(data)
+    
+    def post(self, request):
+        first_prize =  request.data.get('first_prize')
+        second_prize =  request.data.get('second_prize')
+        third_prize =  request.data.get('third_prize')
+        
+        ongoing_campaign = CampaignQuarter.objects.filter(status='ongoing').first()
+        if ongoing_campaign:
+            ongoing_campaign.status='closed'
+            ongoing_campaign.save()
+            
+        campaign = CampaignQuarter.objects.create(first_prize=first_prize, second_prize=second_prize, third_prize=third_prize)
+        
+        data = self.serializer_class(campaign).data
+        return Response(data)
+    
+class CampaignSummaryView(APIView):
+    serializer_class = aff_serializers.CampaignSummarySerializer
+    
+    def get(self,request, *args, **kwargs):
+        id = self.kwargs.get('id')
+        campaigns = CampaignSummary.objects.filter(campaign__id=id)
+        data  = self.serializer_class(campaigns, many=True).data
+        return Response(data)
+    
+class ApproveAffiliateReward(APIView):
+    
+    def post(self,request, *args, **kwargs):
+        id = self.kwargs.get('id')
+        entry = CampaignSummary.objects.filter(id=id).first()
+        if entry:
+            prizes = {
+                '1':entry.campaign.first_prize,
+                '2':entry.campaign.second_prize,
+                '3':entry.campaign.third_prize,
+            }
+            referral_wallet= ReferralWallet.objects.get(user=entry.user)
+            referral_wallet.balance += Decimal((prizes[str(entry.rank)]))
+            referral_wallet.save()
+            
+            entry.awarded=True
+            entry.save
+            
+            save_and_send_notification(entry.user.id, "Your  affilaite prize has been deposited into your wallet.")
+
+            return Response('approved', status=status.HTTP_200_OK)
+        return Response('Invalid id', status=status.HTTP_400_BAD_REQUEST)

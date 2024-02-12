@@ -1075,6 +1075,136 @@
             
         </div>
     </div>
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#affiliateAdminSection">10. Affiliate [NEW][12-02-2024]</h3>
+        <div id="affiliateAdminSection" class="collapse">
+    
+            <h4>1. View Campaign Quarters</h4>
+            <p>GET /affilate/campaign/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Use this endpoint to retrieve a list of campaign quarters.
+                [
+                    {
+                        "id": 1,
+                        "start_date": "2024-01-01T00:00:00+01:00",
+                        "end_date": "2024-03-31T23:59:59+01:00",
+                        "quarter": 1,
+                        "year": 2024,
+                        "created": "2024-02-12T11:48:15.429233+01:00",
+                        "updated": "2024-02-12T11:48:15.429244+01:00",
+                        "status": "ongoing",
+                        "first_prize": "3000",
+                        "second_prize": "6788",
+                        "third_prize": "3444",
+                        "message": null
+                    },
+                    {
+                        "id": 2,
+                        "start_date": "2024-01-01T00:00:00+01:00",
+                        "end_date": "2024-03-31T23:59:59+01:00",
+                        "quarter": 1,
+                        "year": 2024,
+                        "created": "2024-02-12T11:57:17.490173+01:00",
+                        "updated": "2024-02-12T13:04:36.410968+01:00",
+                        "status": "closed",
+                        "first_prize": "3000",
+                        "second_prize": "6788",
+                        "third_prize": "3444",
+                        "message": null
+                    }
+                ]
+            </pre>
+
+            <h4>2. Create Campaign Quarters</h4>
+            <p>POST /affilate/campaign/</p>
+            <pre>
+                {
+                    "first_prize": "3000",
+                    "second_prize": "6788",
+                    "third_prize": "3444",
+                }
+            </pre>
+            <h5>Response:</h5>
+            <pre>
+                {
+                    "id": 2,
+                    "start_date": "2024-01-01T00:00:00+01:00",
+                    "end_date": "2024-03-31T23:59:59+01:00",
+                    "quarter": 1,
+                    "year": 2024,
+                    "created": "2024-02-12T11:57:17.490173+01:00",
+                    "updated": "2024-02-12T11:57:17.490186+01:00",
+                    "status": "ongoing",
+                    "first_prize": "3000",
+                    "second_prize": "6788",
+                    "third_prize": "3444",
+                    "message": null
+                }
+            </pre>
+    
+    
+            <h4>3. View Campaign Summary</h4>
+            <p>if camapign status is closed</p>
+            <p>GET /affilate/campaign-summary/<campaign_id>/</p>
+    
+            <h5>Path Parameter:</h5>
+            <pre>
+                id: Campaign ID
+            </pre>
+    
+            <h5>Response:</h5>
+            <pre>
+                Use this endpoint to retrieve a summary of a specific campaign.
+                [
+                    {
+                        "id": 1,
+                        "campaign": 2,
+                        "username": "Developer Status",
+                        "user": 2,
+                        "earnings": 0.0,
+                        "referrals": 1,
+                        "rank": 1,
+                        "awarded": false,
+                        "created": "2024-02-12T13:04:36.403813+01:00",
+                        "image_url": ""
+                    }
+                ]
+            </pre>
+            <p>if campaign status is ongoing</p>
+            <p>GET /affilate/ranking/</p>
+    
+            <h5>Response:</h5>
+            <pre>
+                Retrieve rankings based on brokerage commission for all users.
+                [
+                    {"brokerage_commission": 0,
+                    "active_referees": 1,
+                    "username": "Developer Status",
+                    "user_id": 2,
+                    "image_url": "",
+                    "quarter": 1
+            }
+                ]
+            </pre>
+            <h4>4. Approve Affiliate Reward</h4>
+            <p>POST /affilate/approve-award/<campaign_summary_id>/</p>
+    
+            <h5>Path Parameter:</h5>
+            <pre>
+                id: Campaign Summary ID
+            </pre>
+    
+            <h5>Response:</h5>
+            <pre>
+                Use this endpoint to approve an affiliate reward and update the referral wallet.
+                Response: 'approved' (200 OK)
+            </pre>
+    
+        </div>
+    </div>
+    
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>

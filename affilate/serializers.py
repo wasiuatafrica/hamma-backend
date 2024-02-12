@@ -18,6 +18,38 @@ class RewardActivitiesSerializer(serializers.ModelSerializer):
             "comment"
         ]
 
+class CampaignQuarterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=models.CampaignQuarter
+        fields='__all__'
+
+class CampaignSummarySerializer(serializers.ModelSerializer):
+    username= serializers.SerializerMethodField()
+    image_url= serializers.SerializerMethodField()
+    
+    class Meta:
+        model=models.CampaignSummary
+        fields=[
+            'id',
+            'campaign',
+            'username',
+            'user',
+            'earnings',
+            'referrals',
+            'rank',
+            'awarded',
+            'created',
+            'image_url'
+        ]
+    def get_username(self, obj):
+        return obj.user.fullname
+    
+    def get_image_url(self,obj):
+        if obj.user.profile.first().profile_img:
+            return obj.user.profile.profile_img.url
+        else:
+            return ""
+        
 class RefereeListSerializer(serializers.ModelSerializer):
     username= serializers.SerializerMethodField()
     class Meta:
