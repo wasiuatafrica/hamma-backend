@@ -46,7 +46,7 @@ class CampaignSummarySerializer(serializers.ModelSerializer):
     
     def get_image_url(self,obj):
         if obj.user.profile.first().profile_img:
-            return obj.user.profile.profile_img.url
+            return obj.user.profile.first().profile_img.url
         else:
             return ""
         

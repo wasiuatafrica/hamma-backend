@@ -289,7 +289,7 @@ class CampaignQuarterView(APIView):
     serializer_class = aff_serializers.CampaignQuarterSerializer
     
     def get(self,request):
-        campaigns = CampaignQuarter.objects.all()
+        campaigns = CampaignQuarter.objects.all().order_by("-id")
         data  = self.serializer_class(campaigns, many=True).data
         return Response(data)
     
