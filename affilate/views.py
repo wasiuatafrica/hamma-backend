@@ -333,7 +333,7 @@ class ApproveAffiliateReward(APIView):
             referral_wallet.save()
             
             entry.awarded=True
-            entry.save
+            entry.save()
             
             save_and_send_notification(entry.user.id, "Your  affilaite prize has been deposited into your wallet.")
 
