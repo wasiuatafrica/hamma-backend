@@ -322,7 +322,7 @@ class ApproveAffiliateReward(APIView):
     def post(self,request, *args, **kwargs):
         id = self.kwargs.get('id')
         entry = CampaignSummary.objects.filter(id=id).first()
-        if entry:
+        if entry or not entry.awarded:
             prizes = {
                 '1':entry.campaign.first_prize,
                 '2':entry.campaign.second_prize,
@@ -338,4 +338,4 @@ class ApproveAffiliateReward(APIView):
             save_and_send_notification(entry.user.id, "Your  affilaite prize has been deposited into your wallet.")
 
             return Response('approved', status=status.HTTP_200_OK)
-        return Response('Invalid id', status=status.HTTP_400_BAD_REQUEST)
+        return Response('Invalid id or award already approved', status=status.HTTP_400_BAD_REQUEST)

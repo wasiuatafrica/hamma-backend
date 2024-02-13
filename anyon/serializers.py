@@ -97,6 +97,40 @@ class PositionSerializer(serializers.ModelSerializer):
     symbol = serializers.SerializerMethodField()
     
     class Meta:
+        model = Position
+        fields = (
+            'id',
+            'symbol',
+            'action',
+            'quantity',
+            'open_price',
+            'status',
+            'updated',
+            'fullname',
+            'user_id',
+            'order_id',
+            'order_type',
+            'created'
+            
+        )
+        
+    def get_fullname(self, obj):
+        user = obj.portfolio.user
+        if user:
+            return f"{user.firstname.title()} {user.lastname.title()}"
+        
+    def get_user_id(self,obj):
+        return obj.portfolio.user.id
+    
+    def get_symbol(self,obj):
+        return obj.stock.symbol
+    
+class DemoPositionSerializer(serializers.ModelSerializer):
+    fullname = serializers.SerializerMethodField()
+    user_id = serializers.SerializerMethodField()
+    symbol = serializers.SerializerMethodField()
+    
+    class Meta:
         model = DemoPosition
         fields = (
             'id',
@@ -108,7 +142,9 @@ class PositionSerializer(serializers.ModelSerializer):
             'updated',
             'fullname',
             'user_id',
-            'order_id'
+            'order_id',
+            'order_type',
+            'created'
             
         )
         

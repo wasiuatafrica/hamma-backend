@@ -417,7 +417,7 @@ class WithdrawalView(APIView):
                 return Response("Insufficient fund")
         
 class AdminTradeView(APIView):
-    serializer_class = serializers.PositionSerializer
+    serializer_class = serializers.DemoPositionSerializer
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
     
     
@@ -553,7 +553,7 @@ class AllUsersActivityLogView(APIView):
     
 
 class UserTradeActivityLog(APIView):
-    serializer_class=TradeSerializer
+    serializer_class=serializers.DemoPositionSerializer
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
 
     def get(self, request, *args, **kwargs):
