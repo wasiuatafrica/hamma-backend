@@ -161,6 +161,9 @@ class RewardActivitiesView(APIView):
             user=request.user, created__gte=last_30_days_start, created__lt=today_start
         ).aggregate(total_balance=Sum('amount'))['total_balance']
 
+        if last_30_days_balance == None:
+            last_30_days_balance = 0
+        
         # If no records for the period 60 to 30 days ago, use records for the last 30 days
         if last_60_to_30_days_balance is None:
             last_60_to_30_days_balance = last_30_days_balance

@@ -526,9 +526,9 @@ class UserActivityLogView(APIView):
         id=kwargs.get("id")
         filter=request.GET.get("filter")
         if filter:
-            activities=UserActivityLog.objects.filter(user__id=id, action_type=filter)
+            activities=UserActivityLog.objects.filter(user__id=id, action_type=filter).order_by("-id")
         else:
-            activities=UserActivityLog.objects.filter(user__id=id)
+            activities=UserActivityLog.objects.filter(user__id=id).order_by("-id")
         serializer=self.serializer_class(activities, many=True)
         return Response(serializer.data)
     
@@ -560,9 +560,9 @@ class UserTradeActivityLog(APIView):
         id=kwargs.get("id")
         filter=request.GET.get('filter')
         if filter:
-            trade_history= exec_models.DemoPosition.objects.filter(portfolio__user__id=id,order_type__icontains=filter)
+            trade_history= exec_models.DemoPosition.objects.filter(portfolio__user__id=id,order_type__icontains=filter).order_by("-id")
         else:
-            trade_history= exec_models.DemoPosition.objects.filter(portfolio__user__id=id)
+            trade_history= exec_models.DemoPosition.objects.filter(portfolio__user__id=id).order_by("-id")
         serializer=self.serializer_class(trade_history,many=True)
         return Response(serializer.data)
 
@@ -574,7 +574,7 @@ class UserPaymentActivityLog(APIView):
         filter=request.GET.get('filter')
         receipts_data = []
         if filter == "bank_tranfer":
-            for receipt in Receipts.objects.filter(user__id=id, ):
+            for receipt in Receipts.objects.filter(user__id=id, ).order_by("-id"):
                 receipt_dict = {
                     'id': receipt.id,
                     'amount': receipt.amount,
@@ -584,7 +584,7 @@ class UserPaymentActivityLog(APIView):
                 }
                 receipts_data.append(receipt_dict)
         elif filter == "paystack":
-            for paystack_receipt in PayStackReceipts.objects.filter(user__id=id):
+            for paystack_receipt in PayStackReceipts.objects.filter(user__id=id).order_by("-id"):
                 paystack_receipt_dict = {
                     'id': paystack_receipt.id,
                     'amount': paystack_receipt.amount,
