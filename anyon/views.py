@@ -276,7 +276,7 @@ class AdminReceiptsView(APIView):
                 'approved_date': receipt.approved_date,
                 'image_url': receipt.image.url if receipt.image else None,
             }
-            save_and_send_notification(receipt.user.id, f"Yoour payment receipt has been rejected. Reason: {receipt.comment}.")
+            save_and_send_notification(receipt.user.id, f"Your payment receipt has been rejected. Reason: {receipt.comment}.")
             
             return Response(receipt_data)
         

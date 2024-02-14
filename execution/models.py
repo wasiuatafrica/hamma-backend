@@ -90,7 +90,7 @@ class DemoPosition(auto_prefetch.Model):
     
     def calculate_profit_loss(self):
         price = self.current_price
-        current_value = self.quantity * price
+        current_value = round(self.quantity * price,2)
         # print(self.status)
         if self.status=='open':
             if self.action == 'buy':

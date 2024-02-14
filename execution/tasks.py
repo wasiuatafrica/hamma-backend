@@ -195,7 +195,7 @@ def update_equity(user_id,type):
 def process_limit_order(id):
     position = get_object_or_404(DemoPosition, id=id)
     
-    if position.status == 'open':
+    if position.status == 'pending':
     
         if position.time_in_force== 'day':
             lagos_timezone = pytz.timezone('Africa/Lagos')
