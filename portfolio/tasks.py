@@ -51,7 +51,7 @@ def send_alert_email(user,symbol,alert_type,action,to_price):
         'to_price':to_price
     }
     html_message = render_to_string('portfolio/price_alert.html', context)
-    plain_message = strip_tags(html_message)
+    plain_message = ""
     subject = 'Trade Alert'
     from_email = "hello@gohamma.com"
     recipient_list = [user.email]
