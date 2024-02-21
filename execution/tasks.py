@@ -247,6 +247,7 @@ def process_limit_order(id):
             if position.action == 'buy':
                 if price <= position.limit_price:
                     position.status= 'open'
+                    position.open_price = Decimal(price)
                     position.amount_invested = Decimal(price) * position.quantity
                     position.save()
                 
@@ -263,6 +264,7 @@ def process_limit_order(id):
             elif position.action == 'sell':
                 if price >= position.limit_price:
                     position.status= 'open'
+                    position.open_price = Decimal(price)
                     position.amount_invested = Decimal(price) * position.quantity
                     position.save()
                 
