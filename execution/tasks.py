@@ -472,6 +472,7 @@ def process_market_data(prompt, convsersation_id, user_id, channel_name):
                     open_price=open_price,
                     action=action, 
                     alert_name=shortuuid.uuid() + f" {user.email}",
+                    amount_invested=quantity * Decimal(open_price),
                 )
                 
                 timer.sleep(1)
