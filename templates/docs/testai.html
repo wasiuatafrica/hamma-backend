@@ -53,7 +53,11 @@
     const conversation_id = uuidv4();
 
     // WebSocket connection URL using window.location.host
-    const socketUrl = `ws://${window.location.host}/ws/markets-ai/?email=${email}&conversation_id=${conversation_id}`;
+    const protocol = window.location.hostname.includes("herokuapp") ? "wss" : "ws";
+
+    // WebSocket connection URL
+    const socketUrl = `${protocol}://${window.location.host}/ws/markets-ai/?email=${email}&conversation_id=${conversation_id}`;
+
 
     // Create WebSocket connection
     const socket = new WebSocket(socketUrl);
