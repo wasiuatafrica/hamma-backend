@@ -46,3 +46,7 @@ def testai(request):
 
     #     return render(request, 'docs/testai.html', context)
     return render(request, 'docs/testai.html')
+
+def alertai(request):
+    
+    return render(request, 'docs/alertai.html')

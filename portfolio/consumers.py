@@ -24,6 +24,16 @@ class AlertConsumer(AsyncWebsocketConsumer):
             return None
     
     @database_sync_to_async
+    def get_user_id_from_email(self, email):
+        
+        
+        try:
+            user=User.objects.get(email=email)
+            return user.id
+        except Exception as e:
+            return None
+    
+    @database_sync_to_async
     def get_user(self,id):
         user =User.objects.get(id=id)
         return user
@@ -40,7 +50,7 @@ class AlertConsumer(AsyncWebsocketConsumer):
         ]
 
             
-        print(messages)
+        # print(messages)
         return messages
     
     
@@ -53,12 +63,18 @@ class AlertConsumer(AsyncWebsocketConsumer):
 
         # Extract the values for 'token' and 'status' parameters
         access_token = query_params.get('token', None)
-        
+        email = query_params.get('email', None)
+        print(email)
         conversation_id  = query_params.get('conversation_id', None)
 
         print(access_token, conversation_id)
         # access_token = self.scope.get('query_string').decode('utf-8').split('=')[1]
-        self.user_id = await self.get_user_id_from_token(access_token)
+        if access_token:
+            self.user_id = await self.get_user_id_from_token(access_token)
+        elif email:
+            self.user_id = await self.get_user_id_from_email(email)
+            
+        # self.user_id = await self.get_user_id_from_token(access_token)
         # print('user',self.user_id)
         self.user = await self.get_user(self.user_id)
         self.conversation_id = conversation_id
