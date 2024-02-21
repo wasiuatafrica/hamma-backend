@@ -2,8 +2,10 @@ from django.shortcuts import render
 from rest_framework.response import Response,SimpleTemplateResponse
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
+from portfolio.models import Conversation
+from django.contrib.auth import get_user_model
 
-
+User=get_user_model()
 
 class Home(APIView):
     permission_classes = [AllowAny]
@@ -29,3 +31,18 @@ def docuser(request):
 def docadmin(request):
     return render(request, 'docs/docadmin.html')
 
+def testai(request):
+    # Get the user based on the provided email
+    # email = request.GET.get('email')
+    # if email:
+    #     user = User.objects.get(email=email)
+
+    #     # Fetch conversations for the user
+    #     conversations = Conversation.objects.filter(user=user).order_by('-created')
+
+    #     context = {
+    #         'conversations': conversations,
+    #     }
+
+    #     return render(request, 'docs/testai.html', context)
+    return render(request, 'docs/testai.html')

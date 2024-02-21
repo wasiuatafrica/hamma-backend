@@ -5,7 +5,8 @@ from asgiref.sync import async_to_sync
 from django.core.management import call_command
 from django.shortcuts import get_object_or_404
 from anyon.views import User
-from portfolio.models import  DemoTransaction, DemoTrade, DemoPortfolio
+from portfolio.models import Message, Conversation, Stock, MarketAI,DemoTransaction, DemoTrade
+from .models import   DemoPortfolio
 from random import uniform
 from django.db import transaction
 from time import sleep
@@ -19,6 +20,10 @@ from django.utils import timezone
 from datetime import datetime, time
 import pytz
 from accounts.models import  UserActivityLog 
+import json
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
+import shortuuid
+import time as timer
 
 
 logger = get_task_logger(__name__)
@@ -194,14 +199,18 @@ def update_equity(user_id,type):
 @shared_task
 def process_limit_order(id):
     position = get_object_or_404(DemoPosition, id=id)
+    user = position.portfolio.user
     
+    expired = False
+    
+    lagos_timezone = pytz.timezone('Africa/Lagos')
+    current_time_lagos = timezone.now().astimezone(lagos_timezone).time()
+
+    target_time = time(14, 30)  # 14 is the hour, 30 is the minute
     if position.status == 'pending':
     
         if position.time_in_force== 'day':
-            lagos_timezone = pytz.timezone('Africa/Lagos')
-            current_time_lagos = timezone.now().astimezone(lagos_timezone).time()
-
-            target_time = time(14, 30)  # 14 is the hour, 30 is the minute
+            
 
             # Check if the current time is before 2:30 PM
             if current_time_lagos > target_time:
@@ -212,14 +221,11 @@ def process_limit_order(id):
                 position.status= 'cancelled'
                 position.save()
                 
-                save_and_send_notification(user.id,f'DEMO: Your pending order has been cancelled because the position cannot be filled before close of trade session.')
+                expired =True
+                save_and_send_notification(user.id,f'DEMO: Your pending order has been cancelled because the position cannot be filled before close of trade session today.')
                 
                 
         elif position.time_in_force== 'week':
-            lagos_timezone = pytz.timezone('Africa/Lagos')
-            current_time_lagos = timezone.now().astimezone(lagos_timezone).time()
-
-            target_time = time(14, 30)  # 14 is the hour, 30 is the minute
 
             # Check if the current time is before 2:30 PM
             if timezone.now().astimezone(lagos_timezone).weekday() == 4 and current_time_lagos > target_time:
@@ -230,10 +236,12 @@ def process_limit_order(id):
                 position.status= 'cancelled'
                 position.save()
                 
+                expired =True
+                
                 save_and_send_notification(user.id,f'DEMO: Your pending order has been cancelled because the position cannot be filled before close of trade session.')
                 
-        else:
-            user = position.portfolio.user
+        if not expired and current_time_lagos < target_time:
+            
             data =get_price(position.stock.symbol)
             price=data['current_price']
             if position.action == 'buy':
@@ -248,7 +256,7 @@ def process_limit_order(id):
                             amount=position.amount_invested,
                             status='completed'
                         )
-                    activity=UserActivityLog.objects.create(user=user, action_type="demo_open_trade",description=f"User opened demo trade with amount {position.amount_invested} on symbol {position.stock.symbol}.")
+                    activity=UserActivityLog.objects.create(user=user, action_type="demo_open_trade",description=f"User opened demo trade with  {position.amount_invested}naira on {position.stock.symbol}.")
                     
                     save_and_send_notification(user.id,f' DEMO: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value:{position.amount_invested}naira ')
 
@@ -356,3 +364,155 @@ def daily_returns():
                 print(f"{user.email} daily profit/loss calculated")
     else:
         print("Not running on weekends.")
+        
+from openai import OpenAI
+from .symbol_pair import pairs
+def get_alert_data(prompt):
+    client = OpenAI()
+
+    model = '''
+    class DemoPosition(auto_prefetch.Model):
+    OPEN = 'open'
+    CLOSED = 'close'
+    PENDING = 'pending'
+    CANCELLED = 'cancelled'
+    
+    STATE_CHOICES = [
+        (OPEN, 'Open'),
+        (CLOSED, 'Closed'),
+        (PENDING,'Pending'),
+        (CANCELLED, 'Cancel')
+    ]
+    stock = auto_prefetch.ForeignKey(Stock, on_delete=models.CASCADE, related_name='demopositions2')
+    quantity = models.PositiveIntegerField(default=0)
+    limit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    action = models.CharField(max_length=20, default='buy')
+    time_in_force = models.CharField(max_length=20, default='day')
+        
+    '''
+    # prompt = '''
+    # notify me for ZENITHBANK stock everytime the volume goes below 9320 before 7 january 2024 3pm
+    # '''
+    # prompt = '''
+    # alert me everytime WEMABANK price goes below 93.20 before 7 january 2024 3pm
+    # '''
+
+    response = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": "You are a helpful django software development assistant helping in creating auto trading system."},
+        {"role": "user", "content": f''' i have company name and symbol pairing {pairs}. i want to extract parameters from - {prompt} - to create django model {model}. can you 
+            extract the needed parameter in python dictionary  format only as the response, the expected dict keys are model field names.
+            don't write write any explanation before or after the dictionary,all keys and values must be string and in double quotation marks. 
+            I only want the dictionary as response, nothing else, dont explain anything even if you made assumptions.
+            '''}
+    ]
+    )
+
+
+    # print(response)
+    # print(response['choices'][0]['message']['content'])
+    return response.choices[0].message.content
+
+
+
+@shared_task
+def get_data_prompt(prompt):
+    data = get_alert_data(prompt)
+    print(data)
+    return data
+   
+@shared_task
+def process_market_data(prompt, convsersation_id, user_id, channel_name):
+    print(prompt)
+    loaded_data = get_data_prompt(prompt)
+    user= User.objects.get(id=user_id)
+    conversation = Conversation.objects.get(name=convsersation_id)
+    extracted_data = json.loads(loaded_data)
+    
+    print(extracted_data)
+        
+    marketai = MarketAI.objects.create(user=user,prompt=prompt,extracted_parameters=loaded_data)
+        
+    if isinstance(extracted_data, dict):
+        if 'stock' in extracted_data and 'quantity' in extracted_data and 'action' in extracted_data and 'limit_price' in extracted_data:
+            if int(extracted_data['quantity']) <= 0 or extracted_data['quantity'] is None :
+                message = f"You must provide quantity to be traded and must be greater than 100."
+                async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': message})
+                return
+            
+            if float(extracted_data['limit_price']) <= 0 or extracted_data['limit_price'] is None :
+                message = f"Limit price must be provided and must be greater than 0."
+                async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': message})
+                return
+            
+            portfolio =get_object_or_404(DemoPortfolio, user=user)
+            stock = get_object_or_404(Stock, symbol=extracted_data['stock'].upper())
+            quantity = extracted_data['quantity'] 
+            limit_price = extracted_data['limit_price'] 
+            status= "pending"
+            action= extracted_data['action']
+            
+            balance =portfolio.balance
+            
+            async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Checking your balance..."})
+            
+            timer.sleep(2)
+            
+            async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Sufficient balance."})
+            
+            timer.sleep(1)
+            
+            async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Creating order..."})
+            
+            position = DemoPosition.objects.create(
+                portfolio=portfolio,
+                stock=stock,
+                quantity=quantity,
+                limit_price=limit_price,
+                status=status,
+                action=action, 
+                alert_name=shortuuid.uuid() + f" {user.email}",
+                time_in_force='week',
+                order_type='limit'
+            )
+            
+            timer.sleep(1)
+            
+            if position.action == 'buy':
+                message = f"Order to buy {position.stock.symbol} created and position will be opened when price is below or equal to {position.limit_price} naira."
+                async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': message})
+            elif position.action == 'sell':
+                message = f"Order to sell {position.stock.symbol} created and position will be opened when price is above or equal to {position.limit_price} naira."
+                async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': message})
+            
+            Message.objects.create(user =user, sender='bot',room=conversation, content=message)
+            
+            
+            marketai.position_created= True
+            marketai.save()
+            
+            schedule, created = IntervalSchedule.objects.get_or_create(
+                    every=3,
+                    period=IntervalSchedule.MINUTES,
+                )
+            
+            task = PeriodicTask.objects.create(
+                    interval=schedule,
+                    name=position.alert_name,
+                    task='execution.tasks.process_limit_order',
+                    args=json.dumps([position.id])
+                )
+            print('demo position created')
+                
+            
+                
+        else:
+            async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': "Your prompt does not contain stock symbol, limit price, either to buy or sell,  or you didn't specify quantity." })
+            Message.objects.create(user =user, sender='bot',room=conversation, content="Your prompt does not contain stock symbol, limit price, either to buy or sell,  or you didn't specify quantity.")
+            
+    else:
+        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': "Your prompt does not contain stock symbol, limit price, either to buy or sell,  or you didn't specify quantity." })
+        Message.objects.create(user =user, sender='bot',room=conversation, content="Your prompt does not contain stock symbol, limit price, either to buy or sell,  or you didn't specify quantity.")
+        
+        

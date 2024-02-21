@@ -63,6 +63,16 @@ def check_alert(id):
     
     alert=Alert.objects.get(id=id)
     print(f"{alert.id} object gotten")
+    print(alert.created.month )
+    
+    current_month = datetime.now().month
+    if alert.created.month != current_month:
+        print(f"Alert {alert.alert_name} was not created in the current month. Disabling the periodic task.")
+        task = PeriodicTask.objects.get(name=alert.alert_name)
+        task.enabled = False
+        task.save()
+        return
+    
     if timezone.now() < alert.expire:
         if not alert.trigerred:
             data =get_price(alert.stock.symbol)

@@ -17,6 +17,7 @@ urlpatterns =  (   [
         path("home/", views.Home.as_view(), name="home"),
         path("", views.docuser,),
         path("docadmin/", views.docadmin,),
+        path("marketsai/", views.testai,),
         path("", include("django.contrib.auth.urls")),
         path('drf/', include('rest_framework.urls')),
         path("auth/", include("accounts.urls")),

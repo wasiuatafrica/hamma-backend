@@ -571,7 +571,14 @@ class AlertAI(auto_prefetch.Model):
     created=models.DateTimeField(auto_now_add=True)
     alert_created = models.BooleanField(default=False)
     extracted_parameters = models.TextField()
-    
+
+class MarketAI(auto_prefetch.Model):
+    user= auto_prefetch.ForeignKey(User,on_delete=models.CASCADE)
+    prompt=models.TextField()
+    created=models.DateTimeField(auto_now_add=True)
+    position_created = models.BooleanField(default=False)
+    extracted_parameters = models.TextField()
+ 
 class AlertAITracker(auto_prefetch.Model):
     user= auto_prefetch.ForeignKey(User,on_delete=models.CASCADE)
     created=models.DateTimeField(auto_now_add=True)
