@@ -10,6 +10,7 @@ from .models import AlertAI, Conversation, Message
 from concurrent.futures import ThreadPoolExecutor
 import os
 import math
+from execution.symbol_pair import pairs
 
 User= get_user_model()
 
@@ -281,7 +282,8 @@ def get_alert_data(prompt):
     model="gpt-3.5-turbo",
     messages=[
         {"role": "system", "content": "You are a helpful django software development assistant helping in creating a trading app alert system."},
-        {"role": "user", "content": f'''i want to extract parameters from - {prompt} - to create djano model {model} can you 
+        {"role": "user", "content": f'''i have company name and symbol pairing {pairs} useful for getting appropriate symbol that will be value of "stocks".
+         i want to extract parameters from - {prompt} - to create djano model {model} can you 
             extract the needed parameter in python dictionary  format only as the response, the expected dict keys are stock,alert_type,action,to_price or to_volume and frequency. if there is no element of frequency in  the text, then "frequency":"Once".
             don't write write any explanation before or after the dictionary,all keys and values must be string and in double quotation marks. I only want the dictionary as response, nothing else, dont explain anything even if you made assumptions'''}
     ]
