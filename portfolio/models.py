@@ -587,7 +587,7 @@ class AlertAITracker(auto_prefetch.Model):
 class Conversation(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(to=User, on_delete=models.CASCADE, related_name='conversation')
     created = models.DateTimeField(auto_now_add=True)
-    name=models.CharField(max_length=30)
+    name=models.CharField(max_length=50)
     
 class Message(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(to=User, on_delete=models.CASCADE, related_name='messages')
