@@ -78,7 +78,7 @@ class DemoPosition(auto_prefetch.Model):
     updated = models.DateTimeField(auto_now=True)
     amount_invested = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     action = models.CharField(max_length=20, default='buy')
-    alert_name = models.CharField(max_length=30, blank=True, null=True)
+    alert_name = models.CharField(max_length=50, blank=True, null=True)
     time_in_force = models.CharField(max_length=20, default='day')
     order_type = models.CharField(max_length=20, default='market')
     order_id = models.CharField(max_length=40,  blank=True, null=True)
