@@ -309,7 +309,12 @@ def get_alert_prompt_history(id):
     
 @database_sync_to_async
 def get_conversation(name, user):
-    conversation = Conversation.objects.get_or_create(name=name, user=user)[0]
+    conversation,created = Conversation.objects.get_or_create(name=name, user=user)
+    if created:
+        client = OpenAI()
+        thread = client.beta.threads.create()
+        conversation.thread_id = thread.id
+        conversation.save()
     return conversation
 
 @database_sync_to_async

@@ -190,5 +190,113 @@ def process_alert_data(prompt, convsersation_id, user_id, channel_name):
         else:
             async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': "Your prompt does not contain stock symbol or you didn't specify if you are creating price or volume alert, or you didn't state if its above or below target price or volume" })
             Message.objects.create(user =user, sender='bot',room=conversation, content="Your prompt does not contain stock symbol or you didn't specify if you are creating price or volume alert, or you didn't state if its above or below target price or volume")
-            
-            
+  
+from execution.symbol_pair import pairs, alert_model
+from openai import OpenAI
+import time
+
+client = OpenAI()
+
+def conversation_response(thread_id, prompt):
+    assistant_id = "asst_4VILqMpHdsPOzs5HMQm9EwrN"
+    
+    message = client.beta.threads.messages.create(
+        thread_id=thread_id,
+        role="user",
+        content=prompt
+    )
+
+    run = client.beta.threads.runs.create(
+        thread_id=thread_id,
+        assistant_id=assistant_id,
+    )
+    
+    completed = False
+    while not completed:
+        run2 = client.beta.threads.runs.retrieve(
+            thread_id=thread_id,
+            run_id=run.id
+        )
+        print(run2.completed_at)
+        if run2.completed_at is not None:
+            completed = True
+            break
+        else:
+            time.sleep(1)
+    
+    messages = client.beta.threads.messages.list(thread_id=thread_id)
+    
+    return messages.data[0].content[0].text.value
+
+        
+@shared_task
+def process_alert_data2(prompt, convsersation_id, user_id, channel_name):
+    print(prompt)
+    
+    conversation = Conversation.objects.get(name=convsersation_id)
+    # loaded_data = conversation_response(conversation.thread_id, prompt)
+    user= User.objects.get(id=user_id)
+    
+    
+    counter = AlertAITracker.objects.get_or_create(user=user)[0]
+
+    if counter.count >= 10:
+        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"You have reached the maximum limit of 10 alerts for this month."})
+        Message.objects.create(user =user, sender='bot',room=conversation, content=f"You have reached the maximum limit of 10 alerts for this month.")
+    else:
+        loaded_data = conversation_response(conversation.thread_id, prompt)
+        print(loaded_data)
+        print(type(loaded_data))
+        response_dict = json.loads(loaded_data)
+        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': response_dict['main_response']})
+        Message.objects.create(user =user, sender='bot',room=conversation, content=response_dict['main_response'])
+        
+        if response_dict['extracted_data']:
+            for extracted_data in response_dict['extracted_data']:
+            # extracted_data = response_dict['extracted_data']
+                alertai = AlertAI.objects.create(user=user,prompt=prompt,extracted_parameters=loaded_data)
+                timestamp = datetime.now().timestamp()
+                if isinstance(extracted_data, dict):
+                    if 'stock' in extracted_data and 'alert_type' in extracted_data and 'action' in extracted_data:
+                        stock = get_object_or_404(Stock, symbol=extracted_data['stock'].upper())
+                        alert_type = extracted_data['alert_type']
+                        action= extracted_data['action']
+                        frequency = extracted_data['frequency'] if 'frequency' in extracted_data else 'Once'
+                        description = prompt
+                        # expire = datetime.fromisoformat(extracted_data['expire']) if'expire' in extracted_data else timezone.now() + timedelta(weeks=2)
+                        if 'to_price' in extracted_data:
+                            to_price = float(extracted_data['to_price'])
+                            alert_name = f"{stock.symbol} {action} {to_price}" + str(timestamp)
+                            
+                            alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_price=to_price, frequency=frequency,description=description)
+                            async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': "Done"})
+                            
+                            
+                            
+                            
+                            alertai.alert_created= True
+                            alertai.save()
+                            print('price alert created')
+                            
+                            counter.count += 1
+                            counter.save()
+                            
+                        elif 'to_volume' in extracted_data:
+                            to_volume = float(extracted_data['to_volume'])
+                            alert_name = f"{stock.symbol} {action} {to_volume}" + str(timestamp)
+                            
+                            alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_volume=to_volume, frequency=frequency,description=description)
+                        
+                            # async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': f"Alert created for {stock.symbol} when {alert_type} is {action} {to_volume}. Frequency: {alert.frequency}" })
+                            # Message.objects.create(user =user, sender='bot',room=conversation, content=f"Alert created for {stock.symbol} when {alert_type} is {action} {to_volume}. Frequency: {alert.frequency}")
+                            async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': "Done"})
+                            
+                            alertai.alert_created= True
+                            alertai.save()
+                            print('volume alert created')
+                            
+                            counter.count += 1
+                            counter.save()
+                            
+               
+                    

@@ -1,5 +1,5 @@
 from openai import OpenAI
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="")
 
 model = '''
 class Alert(auto_prefetch.Model):

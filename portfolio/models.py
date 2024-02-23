@@ -588,6 +588,7 @@ class Conversation(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(to=User, on_delete=models.CASCADE, related_name='conversation')
     created = models.DateTimeField(auto_now_add=True)
     name=models.CharField(max_length=50)
+    thread_id = models.CharField(max_length=50, null=True, blank=True)
     
 class Message(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(to=User, on_delete=models.CASCADE, related_name='messages')

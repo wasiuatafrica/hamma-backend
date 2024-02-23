@@ -1,3 +1,31 @@
+position_model = '''
+    class DemoPosition(auto_prefetch.Model):
+    OPEN = 'open'
+    CLOSED = 'close'
+    PENDING = 'pending'
+    CANCELLED = 'cancelled'
+    
+    STATE_CHOICES = [
+        (OPEN, 'Open'),
+        (CLOSED, 'Closed'),
+        (PENDING,'Pending'),
+        (CANCELLED, 'Cancel')
+    ]
+    stock = auto_prefetch.ForeignKey(Stock, on_delete=models.CASCADE, related_name='demopositions2')
+    quantity = models.PositiveIntegerField(default=0)
+    limit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    action = models.CharField(max_length=20, default='buy')
+    '''
+alert_model = '''
+    class Alert(auto_prefetch.Model):
+        stock= auto_prefetch.ForeignKey(Stock,on_delete=models.CASCADE)
+        alert_type=models.CharField(max_length=30, choices=(("price", "price"), ("volume", "volume")), default='price')
+        action=models.CharField(max_length=50, choices=(("above", "above"), ("below", "below")))
+        to_price=models.FloatField(blank=True, null=True)
+        to_volume=models.FloatField(blank=True, null=True)    
+        frequency=models.CharField(max_length=50, choices=(("Once","Once"),("Everytime", "Everytime")))
+        
+    '''
 pairs = {
   "ABBEY MORTGAGE BANK PLC [BLS]": "ABBEYBDS",
   "ACADEMY PRESS PLC.": "ACADEMY",
