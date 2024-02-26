@@ -3,7 +3,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
-from .tasks import process_market_data
+from .tasks import process_market_data, process_market_data2
 from portfolio.utils import get_alert_prompt_history, get_conversation
 import time
 from portfolio.models import Message
@@ -234,7 +234,7 @@ class MarketConsumer2(AsyncWebsocketConsumer):
         await self.initialize()
         
         await self.channel_layer.group_add(
-            f'alert_{self.conversation_id}',
+            f'market_{self.conversation_id}',
             self.channel_name
         )
         
@@ -251,7 +251,7 @@ class MarketConsumer2(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
-            f'alert_{self.conversation_id}',
+            f'market_{self.conversation_id}',
             self.channel_name
         )
 
@@ -262,7 +262,7 @@ class MarketConsumer2(AsyncWebsocketConsumer):
             return Message.objects.create(user=self.user, room=self.conversation, sender=sender,content=content)
         
         await database_sync_to_async(create_message)('user',message)
-        process_market_data.delay(message,self.conversation_id, self.user_id, self.channel_name)
+        process_market_data2.delay(message,self.conversation_id, self.user_id, self.channel_name)
         
 
     async def send_message(self, event):

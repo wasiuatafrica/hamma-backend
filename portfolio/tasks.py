@@ -191,7 +191,6 @@ def process_alert_data(prompt, convsersation_id, user_id, channel_name):
             async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': "Your prompt does not contain stock symbol or you didn't specify if you are creating price or volume alert, or you didn't state if its above or below target price or volume" })
             Message.objects.create(user =user, sender='bot',room=conversation, content="Your prompt does not contain stock symbol or you didn't specify if you are creating price or volume alert, or you didn't state if its above or below target price or volume")
   
-from execution.symbol_pair import pairs, alert_model
 from openai import OpenAI
 import time
 

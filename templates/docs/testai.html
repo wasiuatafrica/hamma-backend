@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markets AI Demo</title>
+    <title>Trading Bot Demo</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         .message.sent {
@@ -24,6 +24,25 @@
             max-height: 500px; /* Set a max height for the chat area */
             overflow-y: auto; /* Enable vertical scrolling */
         }
+
+        #loading {
+            display: none;
+            {% comment %} text-align: left; {% endcomment %}
+            animation: flash 2s infinite;
+            {% comment %} background-color: #c4e3ff; {% endcomment %}
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+        }
+
+        @keyframes flash {
+            0%, 50%, 100% {
+                opacity: 0;
+            }
+            25%, 75% {
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -32,9 +51,12 @@
     <div class="row">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header">Trade Execution</div>
+                <div class="card-header">Trading AI</div>
                 <div class="card-body" id="chatArea">
                     <!-- Chat messages will be displayed here -->
+                </div>
+                <div class="card-body" >
+                    <div class="message received" id="loading">. . . . . . </div>
                 </div>
                 <div class="card-footer">
                     <input type="text" id="messageInput" class="form-control" placeholder="Type your message...">
@@ -58,13 +80,13 @@
     // WebSocket connection URL
     const socketUrl = `${protocol}://${window.location.host}/ws/markets-ai/?email=${email}&conversation_id=${conversation_id}`;
 
-
     // Create WebSocket connection
     const socket = new WebSocket(socketUrl);
 
     // Handle messages received from the server
     socket.addEventListener('message', function (event) {
         const message = JSON.parse(event.data);
+        hideLoading(); // Hide loading when a message is received
         displayMessage(message.message, 'received');
     });
 
@@ -74,6 +96,8 @@
         const message = messageInput.value;
 
         if (message.trim() !== '') {
+            showLoading(); // Show loading animation
+
             // Send the message to the server
             socket.send(JSON.stringify({ message }));
 
@@ -85,11 +109,16 @@
         }
     }
 
-    // Function to handle key press events
-    function handleKeyPress(event) {
-        if (event.key === 'Enter') {
-            sendMessage();
-        }
+    // Function to show loading animation
+    function showLoading() {
+        document.getElementById('loading').style.display = 'block';
+        // Start flashing animation
+    }
+
+    // Function to hide loading animation
+    function hideLoading() {
+        document.getElementById('loading').style.display = 'none';
+        // Stop flashing animation
     }
 
     // Function to display messages in the chat area
@@ -113,7 +142,11 @@
     }
 
     // Attach key press event listener to the message input
-    document.getElementById('messageInput').addEventListener('keypress', handleKeyPress);
+    document.getElementById('messageInput').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    });
 </script>
 
 </body>

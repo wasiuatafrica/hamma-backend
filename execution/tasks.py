@@ -561,5 +561,164 @@ def process_market_data(prompt, convsersation_id, user_id, channel_name):
     else:
         async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': "Your prompt does not contain stock symbol, limit price, either to buy or sell,  or you didn't specify quantity." })
         Message.objects.create(user =user, sender='bot',room=conversation, content="Your prompt does not contain stock symbol, limit price, either to buy or sell,  or you didn't specify quantity.")
+
+from openai import OpenAI
+import time
+
+client = OpenAI()
+
+def conversation_response(thread_id, prompt):
+    assistant_id = "asst_5dMX8Zzdmf0NTNoMqV6pNsPH"
+    
+    message = client.beta.threads.messages.create(
+        thread_id=thread_id,
+        role="user",
+        content=prompt
+    )
+
+    run = client.beta.threads.runs.create(
+        thread_id=thread_id,
+        assistant_id=assistant_id,
+    )
+    
+    completed = False
+    while not completed:
+        run2 = client.beta.threads.runs.retrieve(
+            thread_id=thread_id,
+            run_id=run.id
+        )
+        print(run2.completed_at)
+        if run2.completed_at is not None:
+            completed = True
+            break
+        else:
+            time.sleep(1)
+    
+    messages = client.beta.threads.messages.list(thread_id=thread_id)
+    
+    return messages.data[0].content[0].text.value
+
+
+
+@shared_task
+def process_market_data2(prompt, convsersation_id, user_id, channel_name):
+    print(prompt)
+    # loaded_data = get_data_prompt(prompt)
+    user= User.objects.get(id=user_id)
+    
+    portfolio =get_object_or_404(DemoPortfolio, user=user)
+    conversation = Conversation.objects.get(name=convsersation_id)
+    loaded_data = conversation_response(conversation.thread_id, prompt)
+    response_dict = json.loads(loaded_data)
+    print(response_dict)
+    async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': response_dict['main_response']})
+    Message.objects.create(user =user, sender='bot',room=conversation, content=response_dict['main_response'])
+    
         
+    if response_dict['extracted_data']:
+        marketai = MarketAI.objects.create(user=user,prompt=prompt,extracted_parameters=loaded_data)
+        for extracted_data in response_dict['extracted_data']:
         
+ 
+            if 'stock' in extracted_data and 'quantity' in extracted_data and 'action' in extracted_data:
+                if not extracted_data['quantity'] or int(extracted_data['quantity']) <= 0 :
+                    message = f"You must provide quantity to be traded and must be greater than 100."
+                    async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': message})
+                    return
+                
+                if extracted_data['action'] not in ['buy', 'sell']:
+                    message = f"You must provide action to be traded and must be buy or sell."
+                    async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': message})
+                    return
+                
+                if 'limit_price' in extracted_data and  extracted_data['limit_price'] and float(extracted_data['limit_price']) >= 0 :
+                    
+                    stock = get_object_or_404(Stock, symbol=extracted_data['stock'].upper())
+                    quantity = int(extracted_data['quantity'])
+                    limit_price = extracted_data['limit_price'] 
+                    status= "pending"
+                    action= extracted_data['action']
+                    
+                    balance =portfolio.balance
+                    
+                    async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Checking your balance..."})
+                    
+                    timer.sleep(2)
+                    
+                    async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Sufficient balance."})
+                    
+                    timer.sleep(1)
+                    
+                    async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Creating order..."})
+                    
+                    position = DemoPosition.objects.create(
+                        portfolio=portfolio,
+                        stock=stock,
+                        quantity=quantity,
+                        limit_price=limit_price,
+                        status=status,
+                        action=action, 
+                        alert_name=shortuuid.uuid() + f" {user.email}",
+                        time_in_force='week',
+                        order_type='limit'
+                    )
+                    
+                    async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"{position.quantity} unit of {position.stock.symbol} has been scheduled to open when the price gets to {position.limit_price}."})
+                                        
+                    marketai.position_created= True
+                    marketai.save()
+                    
+                    schedule, created = IntervalSchedule.objects.get_or_create(
+                            every=3,
+                            period=IntervalSchedule.MINUTES,
+                        )
+                    
+                    task = PeriodicTask.objects.create(
+                            interval=schedule,
+                            name=position.alert_name,
+                            task='execution.tasks.process_limit_order',
+                            args=json.dumps([position.id])
+                        )
+                    print('demo position created')
+                else:
+                    if 'limit_price' not in extracted_data:
+                        stock = get_object_or_404(Stock, symbol=extracted_data['stock'].upper())
+                        quantity = int(extracted_data['quantity'])
+                        open_price = get_price(stock.symbol)['current_price']
+                        action= extracted_data['action']
+                        
+                        balance =portfolio.balance
+                        
+                        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Checking your balance..."})
+                        
+                        timer.sleep(2)
+                        
+                        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Sufficient balance."})
+                        
+                        timer.sleep(1)
+                        
+                        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Creating order..."})
+                        
+                        position = DemoPosition.objects.create(
+                            portfolio=portfolio,
+                            stock=stock,
+                            quantity=quantity,
+                            open_price=open_price,
+                            action=action, 
+                            alert_name=shortuuid.uuid() + f" {user.email}",
+                            amount_invested=quantity * Decimal(open_price),
+                        )
+                        
+               
+                        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Position opened. {position.quantity} unit of {position.stock.symbol} has been opened at {position.open_price}."})
+                        UserActivityLog.objects.create(user=user, action_type="demo_open_trade",description=f"User opened demo trade with amount {position.amount_invested} on symbol {position.stock.symbol}.")
+                    
+                        # Message.objects.create(user =user, sender='bot',room=conversation, content=message)
+                        save_and_send_notification(user.id,f' DEMO: You opened position {position.quantity} units of {position.stock.symbol} at {position.open_price} per unit. Total value:{position.quantity * position.open_price} naira ')
+                        
+                        marketai.position_created= True
+                        marketai.save()
+                        return
+                    
+                
+                    
