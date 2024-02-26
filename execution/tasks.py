@@ -718,7 +718,7 @@ def process_market_data2(prompt, convsersation_id, user_id, channel_name):
                         
                         marketai.position_created= True
                         marketai.save()
-                        return
+                        
                     
                 
                     
