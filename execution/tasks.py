@@ -564,6 +564,7 @@ def process_market_data(prompt, convsersation_id, user_id, channel_name):
 
 from openai import OpenAI
 import time
+import concurrent.futures
 
 client = OpenAI()
 
@@ -582,21 +583,60 @@ def conversation_response(thread_id, prompt):
     )
     
     completed = False
+    start_time = time.time()
+    
     while not completed:
-        run2 = client.beta.threads.runs.retrieve(
+        run = client.beta.threads.runs.retrieve(
             thread_id=thread_id,
             run_id=run.id
         )
-        print(run2.completed_at)
-        if run2.completed_at is not None:
+        print(run.status)
+        print(run.required_action)
+        if run.status == 'completed':
             completed = True
             break
+        elif run.status == 'requires_action':
+            def process_tool_call(tool_call):
+                name = tool_call.function.name
+                arguments = json.loads(tool_call.function.arguments)
+                symbol = arguments['symbol']
+                price = get_price(symbol)
+                
+                return {
+                    "tool_call_id": tool_call.id,
+                    "output": json.dumps([str(price)]),
+                }
+            tool_calls = run.required_action.submit_tool_outputs.tool_calls
+            tool_outputs= []
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = [executor.submit(process_tool_call, tool_call) for tool_call in tool_calls]
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        result = future.result()
+                        tool_outputs.append(result)
+                    except Exception as e:
+                        print(f"Exception: {e}")
+
+            run = client.beta.threads.runs.submit_tool_outputs(
+                thread_id=thread_id,
+                run_id=run.id,
+                tool_outputs=tool_outputs,
+                )
+            
         else:
-            time.sleep(1)
-    
-    messages = client.beta.threads.messages.list(thread_id=thread_id)
-    
-    return messages.data[0].content[0].text.value
+            time.sleep(0.5)
+            
+        elapsed_time = time.time() - start_time
+        
+        if elapsed_time >= 30:
+            break
+    # print(completed)  
+    if completed:
+        messages = client.beta.threads.messages.list(thread_id=thread_id,order="asc", after=message.id)
+        
+        return messages.data[0].content[0].text.value
+    else:
+        return '{"main_response": "Error occured, please start new conversation", "extracted_data": []}'
 
 
 
@@ -639,15 +679,15 @@ def process_market_data2(prompt, convsersation_id, user_id, channel_name):
                     status= "pending"
                     action= extracted_data['action']
                     
-                    balance =portfolio.balance
+                    # balance =portfolio.balance
                     
-                    async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Checking your balance..."})
+                    # async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Checking your balance..."})
+                    
+                    # timer.sleep(2)
+                    
+                    # async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Sufficient balance."})
                     
                     timer.sleep(2)
-                    
-                    async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Sufficient balance."})
-                    
-                    timer.sleep(1)
                     
                     async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Creating order..."})
                     
@@ -663,7 +703,7 @@ def process_market_data2(prompt, convsersation_id, user_id, channel_name):
                         order_type='limit'
                     )
                     
-                    async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"{position.quantity} unit of {position.stock.symbol} has been scheduled to open when the price gets to {position.limit_price}."})
+                    async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"{position.quantity} units of {position.stock.symbol} has been scheduled to open when the price gets to {position.limit_price}."})
                                         
                     marketai.position_created= True
                     marketai.save()
@@ -681,21 +721,21 @@ def process_market_data2(prompt, convsersation_id, user_id, channel_name):
                         )
                     print('demo position created')
                 else:
-                    if 'limit_price' not in extracted_data:
+                    if 'limit_price' not in extracted_data or not extracted_data['limit_price']:
                         stock = get_object_or_404(Stock, symbol=extracted_data['stock'].upper())
                         quantity = int(extracted_data['quantity'])
                         open_price = get_price(stock.symbol)['current_price']
                         action= extracted_data['action']
                         
-                        balance =portfolio.balance
+                        # balance =portfolio.balance
                         
-                        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Checking your balance..."})
+                        # async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Checking your balance..."})
+                        
+                        # timer.sleep(2)
+                        
+                        # async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Sufficient balance."})
                         
                         timer.sleep(2)
-                        
-                        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Sufficient balance."})
-                        
-                        timer.sleep(1)
                         
                         async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Creating order..."})
                         
@@ -714,7 +754,7 @@ def process_market_data2(prompt, convsersation_id, user_id, channel_name):
                         UserActivityLog.objects.create(user=user, action_type="demo_open_trade",description=f"User opened demo trade with amount {position.amount_invested} on symbol {position.stock.symbol}.")
                     
                         # Message.objects.create(user =user, sender='bot',room=conversation, content=message)
-                        save_and_send_notification(user.id,f' DEMO: You opened position {position.quantity} units of {position.stock.symbol} at {position.open_price} per unit. Total value:{position.quantity * position.open_price} naira ')
+                        save_and_send_notification(user.id,f' DEMO: You opened position on {position.quantity} units of {position.stock.symbol} at {position.open_price} per unit. Total value:{position.quantity * position.open_price} naira ')
                         
                         marketai.position_created= True
                         marketai.save()

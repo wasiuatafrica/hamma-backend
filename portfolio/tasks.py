@@ -193,6 +193,7 @@ def process_alert_data(prompt, convsersation_id, user_id, channel_name):
   
 from openai import OpenAI
 import time
+import concurrent.futures
 
 client = OpenAI()
 
@@ -211,21 +212,60 @@ def conversation_response(thread_id, prompt):
     )
     
     completed = False
+    start_time = time.time()
+    
     while not completed:
-        run2 = client.beta.threads.runs.retrieve(
+        run = client.beta.threads.runs.retrieve(
             thread_id=thread_id,
             run_id=run.id
         )
-        print(run2.completed_at)
-        if run2.completed_at is not None:
+        print(run.status)
+        print(run.required_action)
+        if run.status == 'completed':
             completed = True
             break
+        elif run.status == 'requires_action':
+            def process_tool_call(tool_call):
+                name = tool_call.function.name
+                arguments = json.loads(tool_call.function.arguments)
+                symbol = arguments['symbol']
+                price = get_price(symbol)
+                
+                return {
+                    "tool_call_id": tool_call.id,
+                    "output": json.dumps([str(price)]),
+                }
+            tool_calls = run.required_action.submit_tool_outputs.tool_calls
+            tool_outputs= []
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = [executor.submit(process_tool_call, tool_call) for tool_call in tool_calls]
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        result = future.result()
+                        tool_outputs.append(result)
+                    except Exception as e:
+                        print(f"Exception: {e}")
+
+            run = client.beta.threads.runs.submit_tool_outputs(
+                thread_id=thread_id,
+                run_id=run.id,
+                tool_outputs=tool_outputs,
+                )
+            
         else:
-            time.sleep(1)
-    
-    messages = client.beta.threads.messages.list(thread_id=thread_id)
-    
-    return messages.data[0].content[0].text.value
+            time.sleep(0.5)
+            
+        elapsed_time = time.time() - start_time
+        
+        if elapsed_time >= 30:
+            break
+    # print(completed)  
+    if completed:
+        messages = client.beta.threads.messages.list(thread_id=thread_id,order="asc", after=message.id)
+        
+        return messages.data[0].content[0].text.value
+    else:
+        return '{"main_response": "Error occured, please start new conversation", "extracted_data": []}'
 
         
 @shared_task
@@ -247,7 +287,8 @@ def process_alert_data2(prompt, convsersation_id, user_id, channel_name):
         print(loaded_data)
         print(type(loaded_data))
         response_dict = json.loads(loaded_data)
-        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': response_dict['main_response']})
+        print(response_dict.keys())
+        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': response_dict["main_response"]})
         Message.objects.create(user =user, sender='bot',room=conversation, content=response_dict['main_response'])
         
         if response_dict['extracted_data']:
@@ -267,8 +308,9 @@ def process_alert_data2(prompt, convsersation_id, user_id, channel_name):
                             to_price = float(extracted_data['to_price'])
                             alert_name = f"{stock.symbol} {action} {to_price}" + str(timestamp)
                             
-                            alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_price=to_price, frequency=frequency,description=description)
-                            async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': "Done"})
+                            alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_price=to_price, frequency=frequency,description=description, action=action)
+                            done = f"Price alert for {alert.stock.symbol} has been created when price goes {alert.action} {alert.to_price}"
+                            async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': done})
                             
                             
                             
@@ -284,11 +326,10 @@ def process_alert_data2(prompt, convsersation_id, user_id, channel_name):
                             to_volume = float(extracted_data['to_volume'])
                             alert_name = f"{stock.symbol} {action} {to_volume}" + str(timestamp)
                             
-                            alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_volume=to_volume, frequency=frequency,description=description)
+                            alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_volume=to_volume, frequency=frequency,description=description, action=action)
                         
-                            # async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': f"Alert created for {stock.symbol} when {alert_type} is {action} {to_volume}. Frequency: {alert.frequency}" })
-                            # Message.objects.create(user =user, sender='bot',room=conversation, content=f"Alert created for {stock.symbol} when {alert_type} is {action} {to_volume}. Frequency: {alert.frequency}")
-                            async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': "Done"})
+                            done = f"Volume alert for {alert.stock.symbol} has been created when volume goes {alert.action} {alert.to_volume}"
+                            async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': done})
                             
                             alertai.alert_created= True
                             alertai.save()
