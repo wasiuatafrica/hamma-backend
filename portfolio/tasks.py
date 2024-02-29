@@ -296,9 +296,15 @@ def process_alert_data2(prompt, convsersation_id, user_id, channel_name):
     else:
         loaded_data = conversation_response(conversation.thread_id, prompt, user)
         print(loaded_data)
-        print(type(loaded_data))
-        response_dict = json.loads(loaded_data)
-        print(response_dict.keys())
+        try:
+            response_dict = json.loads(loaded_data)
+        except json.decoder.JSONDecodeError:
+            response_dict = loaded_data
+            
+        # response_dict = json.loads(loaded_data)
+        print(response_dict)
+        if isinstance(response_dict, str):
+            response_dict = {"main_response": response_dict, "extracted_data": []}
         async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': response_dict["main_response"]})
         Message.objects.create(user =user, sender='bot',room=conversation, content=response_dict['main_response'])
         
