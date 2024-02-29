@@ -703,7 +703,7 @@ def process_market_data2(prompt, convsersation_id, user_id, channel_name):
                         order_type='limit'
                     )
                     
-                    async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"{position.quantity} units of {position.stock.symbol} has been scheduled to open when the price gets to {position.limit_price}."})
+                    async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"DEMO: {position.quantity} units of {position.stock.symbol} has been scheduled to open when the price gets to {position.limit_price}."})
                                         
                     marketai.position_created= True
                     marketai.save()
@@ -750,7 +750,7 @@ def process_market_data2(prompt, convsersation_id, user_id, channel_name):
                         )
                         
                
-                        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Position opened. {position.quantity} unit of {position.stock.symbol} has been opened at {position.open_price}."})
+                        async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"Demo Position opened. {position.quantity} unit of {position.stock.symbol} has been opened at {position.open_price}."})
                         UserActivityLog.objects.create(user=user, action_type="demo_open_trade",description=f"User opened demo trade with amount {position.amount_invested} on symbol {position.stock.symbol}.")
                     
                         # Message.objects.create(user =user, sender='bot',room=conversation, content=message)

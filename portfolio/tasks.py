@@ -305,8 +305,8 @@ def process_alert_data2(prompt, convsersation_id, user_id, channel_name):
                         description = prompt
                         # expire = datetime.fromisoformat(extracted_data['expire']) if'expire' in extracted_data else timezone.now() + timedelta(weeks=2)
                         if 'to_price' in extracted_data:
-                            to_price = float(extracted_data['to_price'])
-                            alert_name = f"{stock.symbol} {action} {to_price}" + str(timestamp)
+                            to_price = round(float(extracted_data['to_price']),2)
+                            alert_name = f"{stock.symbol} {action} {to_price} " + str(int(timestamp))
                             
                             alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_price=to_price, frequency=frequency,description=description, action=action)
                             done = f"Price alert for {alert.stock.symbol} has been created when price goes {alert.action} {alert.to_price}"
@@ -323,8 +323,8 @@ def process_alert_data2(prompt, convsersation_id, user_id, channel_name):
                             counter.save()
                             
                         elif 'to_volume' in extracted_data:
-                            to_volume = float(extracted_data['to_volume'])
-                            alert_name = f"{stock.symbol} {action} {to_volume}" + str(timestamp)
+                            to_volume = round(float(extracted_data['to_volume']),2)
+                            alert_name = f"{stock.symbol} {action} {to_volume} " + str(int(timestamp))
                             
                             alert = Alert.objects.create(user=user, stock=stock, alert_type=alert_type, alert_name=alert_name, to_volume=to_volume, frequency=frequency,description=description, action=action)
                         
