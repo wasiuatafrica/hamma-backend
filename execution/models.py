@@ -86,7 +86,7 @@ class DemoPosition(auto_prefetch.Model):
     
     
     def __str__(self):
-        return f"{self.portfolio.user} - {self.stock.symbol} - {self.action}"
+        return f"{self.portfolio.user} - {self.stock.symbol} - {self.action} - {self.status}"
     
     def calculate_profit_loss(self):
         price = self.current_price

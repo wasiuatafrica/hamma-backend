@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from portfolio.utils import get_price
 from notifications.utils import save_and_send_notification
 from django.utils import timezone
-from .utils import get_alert_data
+from .utils import get_alert_data, get_alerts
 from django.contrib.auth import get_user_model
 from .models import Alert, AlertAI,Stock, AlertAITracker, Message
 from django.shortcuts import get_object_or_404
@@ -197,7 +197,7 @@ import concurrent.futures
 
 client = OpenAI()
 
-def conversation_response(thread_id, prompt):
+def conversation_response(thread_id, prompt,user):
     assistant_id = "asst_4VILqMpHdsPOzs5HMQm9EwrN"
     
     message = client.beta.threads.messages.create(
@@ -227,14 +227,24 @@ def conversation_response(thread_id, prompt):
         elif run.status == 'requires_action':
             def process_tool_call(tool_call):
                 name = tool_call.function.name
-                arguments = json.loads(tool_call.function.arguments)
-                symbol = arguments['symbol']
-                price = get_price(symbol)
                 
-                return {
-                    "tool_call_id": tool_call.id,
-                    "output": json.dumps([str(price)]),
-                }
+                if name == 'get_current_stock_price':
+                    arguments = json.loads(tool_call.function.arguments)
+                    symbol = arguments['symbol']
+                    price = get_price(symbol)
+                    
+                    return {
+                        "tool_call_id": tool_call.id,
+                        "output": json.dumps([str(price)]),
+                    }
+                elif name == 'get_alerts':
+                    alerts = get_alerts(user)
+                    
+                    return {
+                        "tool_call_id": tool_call.id,
+                        "output": json.dumps([alerts]),
+                    }
+            
             tool_calls = run.required_action.submit_tool_outputs.tool_calls
             tool_outputs= []
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -245,13 +255,14 @@ def conversation_response(thread_id, prompt):
                         tool_outputs.append(result)
                     except Exception as e:
                         print(f"Exception: {e}")
-
+            # print('alerts:',tool_outputs)
             run = client.beta.threads.runs.submit_tool_outputs(
                 thread_id=thread_id,
                 run_id=run.id,
                 tool_outputs=tool_outputs,
                 )
-            
+        elif run.status in  ["cancelling", "cancelled", "failed", "expired"]:
+            return '{"main_response": "Error occured, please start new conversation", "extracted_data": []}'   
         else:
             time.sleep(0.5)
             
@@ -283,7 +294,7 @@ def process_alert_data2(prompt, convsersation_id, user_id, channel_name):
         async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': f"You have reached the maximum limit of 10 alerts for this month."})
         Message.objects.create(user =user, sender='bot',room=conversation, content=f"You have reached the maximum limit of 10 alerts for this month.")
     else:
-        loaded_data = conversation_response(conversation.thread_id, prompt)
+        loaded_data = conversation_response(conversation.thread_id, prompt, user)
         print(loaded_data)
         print(type(loaded_data))
         response_dict = json.loads(loaded_data)

@@ -4,6 +4,9 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.core.management import call_command
 from django.shortcuts import get_object_or_404
+
+from execution.utils import get_positions
+from .serializers import DemoPositionSerializer
 from anyon.views import User
 from portfolio.models import Message, Conversation, Stock, MarketAI,DemoTransaction, DemoTrade
 from .models import   DemoPortfolio
@@ -568,13 +571,14 @@ import concurrent.futures
 
 client = OpenAI()
 
-def conversation_response(thread_id, prompt):
+def conversation_response(thread_id, prompt,user):
     assistant_id = "asst_5dMX8Zzdmf0NTNoMqV6pNsPH"
     
+        
     message = client.beta.threads.messages.create(
         thread_id=thread_id,
         role="user",
-        content=prompt
+        content= prompt
     )
 
     run = client.beta.threads.runs.create(
@@ -599,13 +603,23 @@ def conversation_response(thread_id, prompt):
             def process_tool_call(tool_call):
                 name = tool_call.function.name
                 arguments = json.loads(tool_call.function.arguments)
-                symbol = arguments['symbol']
-                price = get_price(symbol)
-                
-                return {
-                    "tool_call_id": tool_call.id,
-                    "output": json.dumps([str(price)]),
-                }
+                if name == 'get_current_stock_price':
+                    
+                    symbol = arguments['symbol']
+                    price = get_price(symbol)
+                    
+                    return {
+                        "tool_call_id": tool_call.id,
+                        "output": json.dumps([str(price)]),
+                    }
+                elif name == 'get_trade_positions':
+                    status = arguments['status']
+                    positions = get_positions(user, status  )
+                    
+                    return {
+                        "tool_call_id": tool_call.id,
+                        "output": json.dumps([positions]),
+                    }
             tool_calls = run.required_action.submit_tool_outputs.tool_calls
             tool_outputs= []
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -622,7 +636,8 @@ def conversation_response(thread_id, prompt):
                 run_id=run.id,
                 tool_outputs=tool_outputs,
                 )
-            
+        elif run.status in  ["cancelling", "cancelled", "failed", "expired"]:
+            return '{"main_response": "Error occured, please start new conversation", "extracted_data": []}'
         else:
             time.sleep(0.5)
             
@@ -647,10 +662,21 @@ def process_market_data2(prompt, convsersation_id, user_id, channel_name):
     user= User.objects.get(id=user_id)
     
     portfolio =get_object_or_404(DemoPortfolio, user=user)
+    # positions_query = DemoPosition.objects.filter(portfolio=portfolio)
+    # positions = DemoPositionSerializer (positions_query, many=True).data 
+    
     conversation = Conversation.objects.get(name=convsersation_id)
-    loaded_data = conversation_response(conversation.thread_id, prompt)
-    response_dict = json.loads(loaded_data)
+    loaded_data = conversation_response(conversation.thread_id, prompt, user)
+    
+    try:
+        response_dict = json.loads(loaded_data)
+    except json.decoder.JSONDecodeError:
+        response_dict = loaded_data
+        
+    # response_dict = json.loads(loaded_data)
     print(response_dict)
+    if isinstance(response_dict, str):
+        response_dict = {"main_response": response_dict, "extracted_data": []}
     async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message', 'message': response_dict['main_response']})
     Message.objects.create(user =user, sender='bot',room=conversation, content=response_dict['main_response'])
     

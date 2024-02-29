@@ -470,8 +470,12 @@ class AlertView(APIView):
 
 
     def get(self, request):
-        alerts=Alert.objects.filter(user=request.user)
-        # conversation_query =  Conversation.objects.filter(user=request.user)
+        current_month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        current_month_end = current_month_start.replace(month=current_month_start.month + 1) - timezone.timedelta(second=1)
+
+        alerts_query = Alert.objects.filter(
+            created__range=(current_month_start, current_month_end), user=request.user
+        )
         conversation_query = Conversation.objects.annotate(
             has_messages=Exists(Message.objects.filter(room=OuterRef('pk')))
         ).filter(user=request.user, has_messages=True)
@@ -489,7 +493,7 @@ class AlertView(APIView):
             "frequency": alert.frequency,
             "expire": alert.created,
             "trigerred": alert.trigerred
-        } for alert in alerts  if alerts]
+        } for alert in alerts  if alerts_query]
         
         conversations = [{
             'conversation_id': conver.name,
@@ -503,7 +507,20 @@ class AlertView(APIView):
     
     def post(self, request):
         action= ['price', 'volume']
-        counter = AlertAITracker.objects.get_or_create(user=request.user)[0]
+        # counter = AlertAITracker.objects.get_or_create(user=request.user)[0]
+        current_date = timezone.now()
+        start_of_month = current_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        # Filter condition for the current month
+        filter_condition = {
+            'user': request.user,
+            'created__month': start_of_month.month,
+            'created__year': start_of_month.year,
+        }
+
+        # Get or create AlertAITracker instance
+        counter, created = AlertAITracker.objects.get_or_create(**filter_condition, defaults={'count': 0})
+
 
         if counter.count >= 10:
             return Response({"detail": "You have reached the maximum limit of 10 alerts for this month."},

@@ -2,11 +2,12 @@ from django.core.mail import send_mail
 from pymongo import MongoClient
 import json
 from bson import json_util
+from portfolio.serializers import AlertSerializer
 import websockets
 import asyncio
 from openai import OpenAI
 from django.contrib.auth import get_user_model
-from .models import AlertAI, Conversation, Message
+from .models import Alert, AlertAI, Conversation, Message
 from concurrent.futures import ThreadPoolExecutor
 import os
 import math
@@ -321,3 +322,18 @@ def get_conversation(name, user):
 def get_messages(conversation):
     messages= Message.objects.filter(room = conversation)
     return messages
+
+from django.utils import timezone
+
+def get_alerts(user):
+    
+    current_month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    current_month_end = current_month_start.replace(month=current_month_start.month + 1) - timezone.timedelta(seconds=1)
+
+    alerts_query = Alert.objects.filter(
+        created__range=(current_month_start, current_month_end), user=user
+    )
+    alerts = AlertSerializer(alerts_query, many=True).data
+    print('serialize',alerts)
+    return alerts
+    
