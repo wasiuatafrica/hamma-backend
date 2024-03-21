@@ -470,7 +470,7 @@ class AlertView(APIView):
 
     def get(self, request):
         current_month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        current_month_end = current_month_start.replace(month=current_month_start.month + 1) - timezone.timedelta(second=1)
+        current_month_end = current_month_start.replace(month=current_month_start.month + 1) - timezone.timedelta(seconds=1)
 
         alerts_query = Alert.objects.filter(
             created__range=(current_month_start, current_month_end), user=request.user
