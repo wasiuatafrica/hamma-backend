@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'reporting',
     'anyon',
     'lock',
+    'competition',
     'notifications',
     'django_otp',
     'django_otp.plugins.otp_totp',

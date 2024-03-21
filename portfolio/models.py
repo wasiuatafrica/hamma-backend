@@ -552,15 +552,15 @@ class Alert(auto_prefetch.Model):
     to_price=models.FloatField(blank=True, null=True)
     to_volume=models.FloatField(blank=True, null=True)    
     frequency=models.CharField(max_length=50, choices=(("Once","Once"),("Everytime", "Everytime")), default='Once')
-    expire = models.DateTimeField(default=timezone.now() + timedelta(weeks=2))
+    expire = models.DateTimeField(blank=True, null=True)
     created=models.DateTimeField(auto_now_add=True)
     trigerred = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        
-        last_day_of_month = timezone.now().replace(day=1, month=(timezone.now().month % 12) + 1, hour=22, minute=59, second=59) - timedelta(days=1)
-        self.expire = last_day_of_month
-        super().save(*args, **kwargs)
+        if not self.expire:
+            last_day_of_month = timezone.now().replace(day=1, month=(timezone.now().month % 12) + 1, hour=22, minute=59, second=59) - timedelta(days=1)
+            self.expire = last_day_of_month
+            super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"{self.stock.symbol} alert"
