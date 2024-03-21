@@ -492,7 +492,7 @@ class AlertView(APIView):
             "frequency": alert.frequency,
             "expire": alert.created,
             "trigerred": alert.trigerred
-        } for alert in alerts  if alerts_query]
+        } for alert in alerts_query]
         
         conversations = [{
             'conversation_id': conver.name,
