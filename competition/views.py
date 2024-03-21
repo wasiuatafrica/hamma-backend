@@ -7,6 +7,7 @@ from datetime import timedelta, datetime
 from django.db.models import Sum
 
 import competition
+from notifications.utils import save_and_send_notification
 
 from .models import Competition, CompetitionPortfolio, CompetitionPosition, CompetitionTransaction
 import pytz
@@ -66,6 +67,7 @@ class JoinLeaveCompetetion(APIView):
                     return Response({"detail": "You have  already exited this competition"}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 portfolio = CompetitionPortfolio.objects.create(competition=competition, user=request.user, balance=1000000)
+                save_and_send_notification(portfolio.user.id, "You have joined ongoing competition and been given 1,000,000 naira to compete. Goodluck!")
                 return Response({"detail": "You have successfully joined this competition"}, status=status.HTTP_200_OK)
             
         elif action == "leave":
