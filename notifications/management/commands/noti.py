@@ -9,4 +9,4 @@ class Command(BaseCommand):
     help = 'Delete old notifications in DynamoDB'
 
     def handle(self, *args, **options):
-        save_and_send_notification(2, 'hello')
+        save_and_send_notification(100, 'wonderful again')
