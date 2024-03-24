@@ -1,0 +1,86 @@
+{%extends 'leaderboard/base.html'%}
+{%block content%}
+            <!-- Here is the main page body starts here -->
+            <div class="clan-stat m-4 mb-0 p-3">
+                <div class="clan-detail-top mb-2">
+                    <div style="padding: 10px;  background: white; border-radius: 20px; border: 0.50px rgba(128, 128, 128, 0.50) solid">
+                        <div class="name_and_logo text-center mb-2">
+                           {%if clan.clan_logo%} <div><img src="{{clan.clan_logo.url}}" style="border-radius: 50%; width: 50px; height: 50px;padding: 5px;" alt="{{clan.clan_name}}"></div>{%else%}<div><img src="" style="border-radius: 50%; width: 50px; height: 50px;padding: 5px;" alt="{{clan.clan_name}}"></div>{%endif%}
+                            <h4>{{clan.clan_name.title}} Clan</h4>
+                        </div>
+                        <div class="viewmore text-center">
+                            <p>Lorem ipsum dolor sit amet consectetur.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 col-sm-12" style="padding: 20px; background: white; border-radius: 20px; border: 0.50px #808080 solid; margin:10px;">
+                        <div class="name_and_logo text-center mb-2">
+                            <p>Members</p>
+                        </div>
+                        <div class="viewmore text-center">
+                            <h4>{{count}}</h4>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 col-sm-12" style="padding: 20px; background: white; border-radius: 20px; border: 0.50px #808080 solid; margin:10px;">
+                        <div class="name_and_logo text-center mb-2">
+                            <p style="color: #00C500;">Total profits</p>
+                        </div>
+                        <div class="viewmore text-center">
+                            <h4>$1000</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-12 mb-2">
+
+                    </div>
+                    <div class="col-md-3 col-sm-12 mb-2">
+
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white m-4 mb-0 p-3 title">
+                {% comment %} <div class="left-bold-title">
+                  <h3>Deboiz</h3>
+                </div> {% endcomment %}
+                <form>
+                  <div class="right-title">
+                    <div class="right-search mt-2">
+                      <input type="email" name="filter" class="form-control" placeholder="search by email">
+                    </div>
+                    <div class="right-search mt-2">
+                      <input type="submit" class="form-control" value="Submit">
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div class="bg-white m-4 mt-0 p-3 main-table table-responsive">
+                <table class="table table-hover table-bordered">
+                  <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Account Size</th>
+                        <th scope="col">Models</th>
+                        <th scope="col" style="color: #00C500">Total profits</th>
+                        <th scope="col">Country</th>
+                        <th scope="col" class="text-warning">Clan</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {%for acc in accounts%}
+                      <tr>
+                        <th scope="row">{{forloop.counter}}</th>
+                        <td><span>{%if acc.user_account.profile.profile_img%}<img src="{{acc.user_account.profile.profile_img.url}}" style="border-radius: 50%; width: 20px;" alt="">{%else%}<img src="" style="border-radius: 50%; width: 20px;" alt="">{%endif%}</span>{{acc.user.email}}</td>
+                        <td>$1000</td>
+                        <td>{{acc.user_account.acc.typeofaccount}}</td>
+                        <td style="color: #00C500">$100</td>
+                        <td>{{acc.user_account.profile.country}}</td>
+                        <td class="text-warning">{{clan.clan_name}}</td>
+                      </tr>
+                      {%endfor%}
+                  </tbody>
+                </table>
+              </div>
+              <!-- Mainpage ends here -->
+{%endblock%}

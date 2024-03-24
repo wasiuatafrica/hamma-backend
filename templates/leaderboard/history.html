@@ -1,0 +1,48 @@
+{%extends 'leaderboard/base.html'%}
+{%block content%}
+            <!-- Here is the main page body starts here -->
+            <div class="main-body">
+              <div class="bg-white m-4 p-3 title">
+                <div class="left-bold-title">
+                  <h6>Completed</h6>
+                  <!-- <p>TradersLeaderboard</p> -->
+                </div>
+                <div class="right-title">
+                  <div class="right-filter mt-2">
+                    <select class="form-select" id="validationCustom04" required>
+                      <option selected disabled value="">Filter</option>
+                      <option>...</option>
+                    </select>
+                  </div>
+                  <div class="right-search mt-2">
+                    <input type="text" class="form-control" placeholder="search">
+                    <!-- <p>Filter</p> -->
+                  </div>
+                </div>
+              </div>
+              <div class="bg-white m-4 p-3 main-table table-responsive">
+                <table class="table table-hover table-bordered">
+                  <thead>
+                    <tr>
+                        <th scope="col">Transition Id</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Bank/Paypal</th>
+                        <th scope="col">Account No</th>
+                        <th scope="col" style="color: #00C500">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row">1</th>
+                        <td><span><img src="https://images.unsplash.com/photo-1623230590824-f39e31a0a608?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW5kaWFuJTIwYm95fGVufDB8fDB8fHww&w=1000&q=80" style="border-radius: 50%; width: 20px;" alt=""></span>Glory Nwafor</td>
+                        <td>FCMB</td>
+                        <td>123456789</td>
+                        <td style="color: #00C500">$100</td>
+                        
+                      </tr>
+
+                  </tbody>
+                </table>
+              </div>
+              <!-- Mainpage ends here -->
+{%endblock%}

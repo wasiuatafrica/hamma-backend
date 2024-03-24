@@ -4,7 +4,7 @@ from celery.utils.log import get_task_logger
 from django.core.management import call_command
 from django.contrib.auth import get_user_model
 from notifications.utils import save_and_send_notification
-from .utils import Create_competiton_summary, rank_traders
+from .views import Create_competiton_summary, rank_traders, rank_clans
 from .models import Competition
 import boto3
 import json
@@ -41,6 +41,7 @@ def end_competition(id):
     if competition.status=='closed':
         Create_competiton_summary(competition)
         rank_traders(competition)
+        rank_clans(competition)
     
     
     

@@ -1,0 +1,60 @@
+{%extends 'leaderboard/base.html'%}
+{%block content%}
+            <!-- Here is the main page body starts here -->
+            <div class="main-body">
+              <div class="bg-white m-4 p-3 title">
+                <div class="left-bold-title">
+                  <h3>Clan Payouts List</h3>
+                  <!-- <p>TradersLeaderboard</p> -->
+                </div>
+                <form>
+                  <div class="right-title">
+                    <div class="right-filter mt-2">
+                      <select class="form-select" name="filter" id="validationCustom04" required>
+                        <option selected disabled value="">Filter</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Declined">Declined</option>
+                        <option value="Approved">Approved</option>
+                      </select>
+                    </div>
+                    <div class="right-search mt-2">
+                      <input type="submit" class="form-control" value="Submit">
+                      <!-- <p>Filter</p> -->
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div class="bg-white m-4 p-3 main-table table-responsive">
+                <table class="table table-hover table-bordered">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col" class="text-warning">Clan</th>
+                      <th scope="col">Competition</th>
+                      <th scope="col">Position</th>
+                      <th scope="col" style="color: #00C500">Total Profit</th>
+                      <th scope="col">Prize Amount</th>
+                      <th scope="col">Status</th>
+                      <th scope="col"></th>
+                      
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {%for payout in payouts%}
+                    <tr>
+                      <td scope="row">{{forloop.counter}}</td>
+                      <td class="text-warning">{{payout.clan}}</td>
+                      <td >{{payout.competition.title.title}}</td>
+                      <td >{{payout.position}}</td>
+                      <td style="color: #00C500">{{payout.profit}}%</td>
+                      <td>{{payout.amount}}</td>
+                      <td>{{payout.status}}</td>
+                      <td><a href="{% url 'clan-payout-detail' payout.id  %}" class='btn text-white' style="background: #00C500; border-radius: 10px">Detail</a></td>
+                      
+                    </tr>
+                    {%endfor%}
+                  </tbody>
+                </table>
+              </div>
+              <!-- Mainpage ends here -->
+{%endblock%}

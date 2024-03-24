@@ -1,0 +1,103 @@
+{%extends 'leaderboard/base.html'%}
+{%block content%}
+            <!-- Here is the main page body starts here -->
+            <div class="main-body">
+              <div class="bg-white m-4 p-3 title">
+                <div class="left-bold-title">
+                  <h4>Clan Creation Requests List</h4>
+                  <!-- <p>TradersLeaderboard</p> -->
+                </div>
+                <form>
+                  <div class="right-title">
+                    <!-- <div class="right-filter mt-2">
+                      <select class="form-select" id="validationCustom04" required>
+                        <option selected disabled value="">Filter</option>
+                        <option>...</option>
+                      </select>
+                    </div> -->
+                    <div class="right-search mt-2">
+                      <input type="email" name="filter" class="form-control" placeholder="search by email">
+                      <!-- <p>Filter</p> -->
+                    </div>
+                    <div class="right-search mt-2">
+                      <input type="submit" class="form-control" value="Submit">
+                      <!-- <p>Filter</p> -->
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div class="bg-white m-4 p-3 main-table table-responsive">
+                <table class="table table-hover table-bordered">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Name</th>
+                      <th scope="col">Admin Status</th>
+                      <th scope="col">Community Link</th>
+                      <th scope="col">Date</th>
+                      <th scope="col">Created By</th>
+                      <th scope="col"></th>
+                      <th scope="col">Action</th>
+
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {%for clan in clans%}
+                    <tr>
+                      <th scope="row">{{forloop.counter}}</th>
+                      <td><span><img {% if clan.clan_logo %} src="{{clan.clan_logo.url}}" {%else%} src="" {%endif%} style="border-radius: 50%; width: 50px; height: 50px;padding: 5px;" alt="{{clan.clan_name}}">{{clan.clan_name.title}}</span></td>
+                      <td>{{clan.approved}}</td>
+                      <td><a href="{{clan.community_link}}"></a>{{clan.community_link}}</td>
+                      <td>{{clan.date_request}}</td>
+                      <td>{{clan.clan_admin}}</td>
+                      <td>
+                        {% comment %} <a href="" class="btn" style=" width: 100%; height: 100%;background: #00C500; border-radius: 5px; color:#ffffff">Accept</a></td> {% endcomment %}
+                        <form  method="post">
+                          {% csrf_token %}
+                          <input type="hidden" name="id" value="{{ clan.id }}">
+                          <input type="hidden" name="action" value="approved">
+                          <button type="submit" class="btn " style=" width: 100%; height: 100%;background: #00C500; border-radius: 5px; color:#ffffff">Approve</button>
+                        </form>
+                      </td> 
+                      <td>
+                        {% comment %} <a href="" class="btn" style="width: 100%; height: 100%; background: #FF2626; border-radius: 5px;color:#ffffff">Reject</a> {% endcomment %}
+        
+                        <button type="submit" class="btn btn-danger" style="width: 100%; height: 100%; background: #FF2626; border-radius: 5px;" data-bs-toggle="modal" data-bs-target="#exampleModal{{ clan.id }}">Reject</button>
+                        <!-- Modal -->
+                        <div class="modal fade" id="exampleModal{{ clan.id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body">
+                                <form method="post">
+                                  {% csrf_token %}
+                                  <input type="hidden" name="id" value="{{ clan.id }}">
+                                  <input type="hidden" name="action" value="rejected">
+                                  <div class="mb-3">
+                                    <label for="recipient-name" class="col-form-label">Reason:</label>
+                                    <input type="text" class="form-control" id="recipient-name" name="reason">
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                  </div>
+                                </form>
+                              </div>
+
+                            </div>
+                          </div>
+                        </div>
+                        
+            
+                      </td>
+                    </tr>
+                    {%endfor%}
+
+                  </tbody>
+                </table>
+              </div>
+              <!-- Mainpage ends here -->
+{%endblock%}

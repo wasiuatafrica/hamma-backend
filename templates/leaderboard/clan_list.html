@@ -1,0 +1,76 @@
+{%extends 'leaderboard/base.html'%}
+{%block content %}
+            <!-- Here is the main page body starts here -->
+            <div class="main-body">
+              <div class="bg-white m-4 p-3 title">
+                <div class="left-bold-title">
+                  <h3>Clans List</h3>
+                </div>
+                <form>
+                    <div class="right-title">
+                        <div class="right-search mt-2">
+                          <input type="text" name="filter" class="form-control" placeholder="Search by clan name">
+                        </div>
+                        <div class="right-search mt-2">
+                          <input type="submit" class="form-control" value="submit">
+                        </div>
+                      </div>
+                </form>
+              </div>
+              <div class="bg-white_ m-3 p-3 main-table">
+                {% comment %} <div class="row">
+                    <div class="col-md-4 col-sm-12 mb-4" style="padding: 20px; background: white; border-radius: 20px; border: 0.50px #808080 solid; margin: 10px;">
+                        <div class="name_and_logo text-center mb-2">
+                            <span><img src="https://images.unsplash.com/photo-1623230590824-f39e31a0a608?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW5kaWFuJTIwYm95fGVufDB8fDB8fHww&w=1000&q=80" style="border-radius: 50%; width: 20px;" alt="">DEbox</span>
+                        </div>
+                        <br>
+                        <div class="viewmore text-center">
+                            <a href="" class="btn  text-light" style="background: #00C500; border-radius: 5px; border: 0.50px #808080 solid">View</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-12 mb-4" style="padding: 20px; background: white; border-radius: 20px; border: 0.50px #808080 solid; margin: 10px;">
+                        <div class="name_and_logo text-center mb-2">
+                            <span><img src="https://images.unsplash.com/photo-1623230590824-f39e31a0a608?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW5kaWFuJTIwYm95fGVufDB8fDB8fHww&w=1000&q=80" style="border-radius: 50%; width: 20px;" alt="">DEbox</span>
+                        </div>
+                        <br>
+                        <div class="viewmore text-center">
+                            <a href="" class="btn  text-light" style="background: #00C500; border-radius: 5px; border: 0.50px #808080 solid">View</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-12 mb-4" style="padding: 20px; background: white; border-radius: 20px; border: 0.50px #808080 solid; margin: 10px;">
+                        <div class="name_and_logo text-center mb-2">
+                            <span><img src="https://images.unsplash.com/photo-1623230590824-f39e31a0a608?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW5kaWFuJTIwYm95fGVufDB8fDB8fHww&w=1000&q=80" style="border-radius: 50%; width: 20px;" alt="">DEbox</span>
+                        </div>
+                        <br>
+                        <div class="viewmore text-center">
+                            <a href="" class="btn  text-light" style="background: #00C500; border-radius: 5px; border: 0.50px #808080 solid">View</a>
+                        </div>
+                    </div>
+                    
+                </div> {% endcomment %}
+                <div class="container">
+                  <div class="row">
+                    {%for clan in clans%}
+                      <div class="col-md-4 col-sm-12 mb-4">
+                          <div class="card" style="border-radius: 20px;">
+                              <div class="card-body text-center">
+                                  <div class="name_and_logo mb-2 bold">
+                                      <span><img {% if clan.clan_logo %} src="{{clan.clan_logo.url}}" {%else%} src="" {%endif%} style="border-radius: 50%; width: 50px; height: 50px;padding: 5px;" alt="{{clan.clan_name}}">{{clan.clan_name}}</span>
+                                  </div>
+                                  <br>
+                                  <div class="viewmore">
+                                      <a href="{% url 'clan-details' clan.id %}" class="btn  text-light" style="background: #00C500; border-radius: 5px; border: 0.50px #808080 solid">View</a>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                    {%endfor%}
+              
+                      
+                  </div>
+              </div>
+              
+              </div>
+              <!-- Mainpage ends here -->
+
+{%endblock%}

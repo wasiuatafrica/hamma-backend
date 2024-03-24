@@ -1,8 +1,36 @@
 from django.contrib import admin
-from .models import Competition, CompetitionPortfolio, CompetitionPosition,CompetitionSummary, CompetitionTrade
-
+from .models import (
+    Clan,
+JoinClanRequest,
+TopClanPayout,
+TopTraderPayout,
+Notification,
+Competition,
+CompetitionPortfolio,
+CompetitionSummary,
+CreateClanRequest,
+ClanCompetitionSummary,
+TopClanMembersPayout,
+TopClanMembersPayoutImg,
+TopClanPayoutButtonShows,
+TopTraderPayoutButtonShows,
+CompetitionPosition,
+CompetitionTransaction
+)
+# Register your models here.
 admin.site.register(Competition)
 admin.site.register(CompetitionPortfolio)
-admin.site.register(CompetitionPosition)
+admin.site.register(Clan)
+admin.site.register(JoinClanRequest)
+admin.site.register(TopClanPayout)
+admin.site.register(TopTraderPayout)
+admin.site.register(Notification)
 admin.site.register(CompetitionSummary)
-admin.site.register(CompetitionTrade)
+admin.site.register(ClanCompetitionSummary)
+admin.site.register(CreateClanRequest)
+admin.site.register(TopClanMembersPayout)
+admin.site.register(TopClanMembersPayoutImg)
+admin.site.register(TopClanPayoutButtonShows)
+admin.site.register(TopTraderPayoutButtonShows)
+admin.site.register(CompetitionPosition)
+admin.site.register(CompetitionTransaction)

@@ -1,0 +1,171 @@
+{%extends 'leaderboard/base.html'%}
+
+{%block content%}
+    <div class="main-body">
+      <div class="bg-white m-4 p-3 title">
+        <div class="left-bold-title">
+          <h4>Leaderboard</h4>
+          <!-- <p>TradersLeaderboard</p> -->
+        </div>
+        <form>
+        <div class="right-title">
+            <!-- <div class="right-filter mt-2">
+              <select class="form-select" id="validationCustom04" required>
+                <option selected disabled value="">Filter</option>
+                <option>...</option>
+              </select>
+            </div> -->
+            {% comment %} <div class="right-search mt-2">
+              <input type="text" class="form-control" name="country" placeholder="search by country">
+              <!-- <p>Filter</p> -->
+            </div> {% endcomment %}
+            {% comment %} <div class="right-search mt-2">
+              <select class="form-control" name="filter">
+                <option value="filter">Filter Competition</option>
+                {% for option in names %}
+                  <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+              </select>
+            </div> {% endcomment %}
+            
+            <div class="right-search mt-2">
+              <input type="text" class="form-control" name="email" placeholder="Email search">
+              <!-- <p>Filter</p> -->
+            </div>
+            {% comment %} <div class="right-search mt-2">
+              <input type="text" class="form-control" name="number" placeholder="Account Search">
+              <!-- <p>Filter</p> -->
+            </div> {% endcomment %}
+            {% comment %} <div class="right-search mt-2">
+              <input type="text" class="form-control" name="acc_size" placeholder="search by account-size">
+              <!-- <p>Filter</p> -->
+            </div> {% endcomment %}
+            <div class="right-search mt-2">
+              <input type="text" class="form-control" name="clan_name" placeholder="Clan Search">
+              <!-- <p>Filter</p> -->
+            </div>
+            <div class="right-search mt-2">
+              <input type="submit" class="form-control" value="Submit">
+              <!-- <p>Filter</p> -->
+            </div>
+          </div>
+        </form>
+        </div>
+        <div class="bg-white m-4 p-3 title">
+          <div class="left-bold-title">
+            <h4>Past Leaderboard</h4>
+            <!-- <p>TradersLeaderboard</p> -->
+          </div>
+          <form>
+          <div class="right-title">
+              <!-- <div class="right-filter mt-2">
+                <select class="form-select" id="validationCustom04" required>
+                  <option selected disabled value="">Filter</option>
+                  <option>...</option>
+                </select>
+              </div> -->
+              
+              <div class="right-search mt-2">
+                <select class="form-control" name="filter" required>
+                  <option selected disabled value="filter">Filter by Competition</option>
+                  {% for competition in competitions %}
+                    <option value="{{ competition.id }}">{{ competition.title }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              
+                           
+              <div class="right-search mt-2">
+                <input type="submit" class="form-control" value="Submit">
+                <!-- <p>Filter</p> -->
+              </div>
+            </div>
+          </form>
+          </div>
+              <div class="bg-white m-4 p-3 main-table table-responsive newtable" {% if leaderboard == "hide" %} style="display: none;" {%endif%}>
+                <table class="table table-hover table-bordered">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Email</th>
+                      {% comment %} <th scope="col">Account Size</th> {% endcomment %}
+                      {% comment %} <th scope="col">Account Number</th> {% endcomment %}
+                      {% comment %} <th scope="col">Models</th> {% endcomment %}
+                      {% comment %} <th scope="col" style="color: #00C500">Total profits</th> {% endcomment %}
+                      <th scope="col" >Total profits</th>
+                      {% comment %} <th scope="col">24 hrs</th> {% endcomment %}
+                      {% comment %} <th scope="col">1 week</th> {% endcomment %}
+                      <th scope="col">Country</th>
+                      <th scope="col" class="text-warning">Clan</th>
+                    </tr>
+                  </thead>
+            <tbody>
+              {%for account in data%}
+            <tr>
+                <th scope="row">{{forloop.counter}}</th>
+                <td><span>{{account.name}}</td>
+                {% comment %} <td>${{account.acc_size}}</td> {% endcomment %}
+                {% comment %} <td>{{account.acc_number}}</td> {% endcomment %}
+                {% comment %} <td>{{account.typeofaccount.title}}</td> {% endcomment %}
+                {% comment %} <td style="color: #00C500">{{account.profit}}%</td> {% endcomment %}
+                <td>{{account.profit}}%</td>
+                {% comment %} <td>{{account.percent_24hrs}}%</td> {% endcomment %}
+                {% comment %} <td>{{account.percent_week}}%</td> {% endcomment %}
+                <td>{{account.country}}</td>
+                <td class="text-warning">{{account.clan.clan_name.title}}</td>
+            </tr>
+            {%empty%}
+            <tr>
+              <div class="alert alert-info" role="alert">
+                
+              </div>
+            </tr>
+            {%endfor%}
+            </tbody>
+        </table>
+    </div>
+    <!-- Past competiton table -->
+    <div class="bg-white m-4 p-3 main-table table-responsive newtable" {% if pastLeaderboard == "hide" %} style="display: none;" {%endif%}>
+      <table class="table table-hover table-bordered">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Competiton Title</th>
+            <th scope="col">Email</th>
+            {% comment %} <th scope="col">Account Size</th> {% endcomment %}
+            {% comment %} <th scope="col">Account Number</th> {% endcomment %}
+            {% comment %} <th scope="col">Models</th> {% endcomment %}
+            {% comment %} <th scope="col" style="color: #00C500">Total profits</th> {% endcomment %}
+            <th scope="col" >Total profits</th>
+            <th scope="col">Position</th> 
+            <th scope="col">Country</th>
+            <th scope="col" class="text-warning">Clan</th>
+          </tr>
+        </thead>
+  <tbody>
+    {%for account in past_data%}
+  <tr>
+      <th scope="row">{{forloop.counter}}</th>
+      <td><span>{{account.competition.title}}</td>
+      <td><span>{{account.user.email}}</td>
+      {% comment %} <td>${{account.user_account.acc.acc_size}}</td> {% endcomment %}
+      {% comment %} <td>{{account.user_account.acc.number}}</td> {% endcomment %}
+      {% comment %} <td>{{account.user_account.acc.typeofaccount.title}}</td> {% endcomment %}
+      {% comment %} <td style="color: #00C500">{{account.profit}}%</td> {% endcomment %}
+      <td>{{account.profit}}%</td>
+      <td>{{account.position}}</td>
+      <td>{{account.country}}</td>
+      <td class="text-warning">{{account.clan.clan_name.title}}</td>
+  </tr>
+  {%empty%}
+  <tr>
+    <div class="alert alert-info" role="alert">
+      No user yet.
+    </div>
+  </tr>
+  {%endfor%}
+  </tbody>
+</table>
+</div>
+{%endblock%}
+ 

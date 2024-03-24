@@ -1,0 +1,57 @@
+{%extends 'leaderboard/base.html'%}
+{% load humanize %}
+{%block content%}
+            <!-- Here is the main page body starts here -->
+            <div class="main-body">
+              <div class="bg-white m-4 p-3 title">
+                <div class="left-bold-title">
+                  <h4>Competitions List</h4>
+                  <!-- <p>TradersLeaderboard</p> -->
+                </div>
+                <div class="right-title">
+                  <div class="right-filter mt-2">
+                    <select class="form-select" id="validationCustom04" required>
+                      <option selected disabled value="">Filter</option>
+                      <option>...</option>
+                    </select>
+                  </div>
+                  <div class="right-search mt-2">
+                    <input type="text" class="form-control" placeholder="search">
+                    <!-- <p>Filter</p> -->
+                  </div>
+                </div>
+              </div>
+              <div class="bg-white m-4 p-3 main-table table-responsive">
+                <table class="table table-hover table-bordered">
+                  <thead>
+                    <tr>
+                        <th scope="col">Competition</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Start date</th>
+                        <th scope="col">End date</th>
+                        <th scope="col">First Prize</th>
+                        <th scope="col">Second Prize</th>
+                        <th scope="col">Third Prize</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for item in competitions%}
+
+                      <tr>
+                        <td>{{item.title}}</td>
+                        <td>{{item.status.title}}</td>
+                        <td>{{item.start_date}}</td>
+                        <td>{{item.end_date}}</td>
+                        <td>&#x20A6;{{item.first_prize|intcomma}}</td>
+                        <td>&#x20A6;{{item.second_prize|intcomma}}</td>
+                        <td>&#x20A6;{{item.third_prize|intcomma}}</td>
+                        <td><a href="{%url 'toptrader' item.id %}" class='btn text-white' style="background: #00C500; border-radius: 10px">Payouts</a></td>
+                        
+                      </tr>
+                      {%endfor%}
+
+                  </tbody>
+                </table>
+              </div>
+              <!-- Mainpage ends here -->
+{%endblock%}

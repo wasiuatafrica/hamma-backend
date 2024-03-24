@@ -6,7 +6,6 @@ import json
 from django.utils import timezone
 from datetime import datetime
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
-from notifications.utils import save_and_send_notification
 from .tasks import create_competition 
 
 @receiver(post_save, sender=Competition)
