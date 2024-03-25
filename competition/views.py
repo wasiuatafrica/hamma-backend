@@ -270,8 +270,8 @@ class CanJoin(APIView):
         three_days_ago = timezone.now() - timezone.timedelta(days=3)
 
         pending_join = JoinClanRequest.objects.filter(user=request.user, approved='pending').first()
-        is_admin = Clan.objects.filter(clan_admin=request.user).exists()
-        is_member = Clan.objects.filter(member=request.user).exists()
+        is_admin = Clan.objects.filter(clan_admin=request.user)
+        is_member = Clan.objects.filter(member=request.user)
         
         if pending_join:
             if pending_join.date_request < three_days_ago:
@@ -285,19 +285,24 @@ class CanJoin(APIView):
             serializerr2= serializers.CreateClanSerializer(pending_create)
             return Response({'status':False, 
                              'reason':'has a pending clan creation request',
-                             'request_info':serializerr2.data})
+                             'request_info':serializerr2.data,
+                              'clan_id':""
+                              }),
+                            
         elif pending_join1:
             serializerr= serializers.ClanSerializer(pending_join1.clan)
             return Response({'status':False, 
                              'reason':'has a pending clan join request',
                              'join_id':pending_join1.id,
-                             'request_info':serializerr.data
+                             'request_info':serializerr.data,
+                             'clan_id':""
                              })
         elif is_admin or is_member:
             return Response({'status':False, 
                              'reason':'is an admin or member of a clan already',
                              'join_id':"",
-                             'request_info':{}
+                             'request_info':{},
+                             'clan_id':is_admin.first().id if is_admin else is_member.first().id
                              })
         else:
             return Response({'status':True, 'reason':'no request'})
