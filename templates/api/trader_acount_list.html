@@ -1,0 +1,35 @@
+{% extends 'api/base.html' %}
+{%block text%} Traders List {%endblock%}
+{% block content %}
+    <div class="table-responsive">
+        <table class="table table-striped mt-4 table-bordered table-hover">
+            <thead>
+                <tr>
+       <th>Trader</th>
+                    <th>Number</th>
+                    {% comment %} <th>Password</th> {% endcomment %}
+                    <th>Platform</th>
+                    <th>Account Type</th>
+                    <th>Broker</th>
+                    <th>Account Size</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trader in traders %}
+                <tr>
+                    <td>{{ trader.trader.email }}</td>
+                    <td>{{ trader.number }}</td>
+                    {% comment %} <td>{{ trader.password }}</td> {% endcomment %}
+                    <td>{{ trader.platform }}</td>
+                    <td>{{ trader.typeofaccount.title }}</td>
+                    <td>{{ trader.broker }}</td>
+                    <td>{{ trader.acc_size }}</td>
+                    <td>{{ trader.created }}</td>
+                    <td><a href="{%url 'trade_account_detail' trader.pk %}" class="btn btn-success btn-sm">View</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endblock content %}

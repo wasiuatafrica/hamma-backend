@@ -1,3 +1,4 @@
+{%load static%}
 <!doctype html>
 <html lang="en">
   <head>
@@ -130,7 +131,7 @@
       <div class="row">
         <div class="col-md-2 col-sm-12 bar p-4 side-bar">
           <div class="sidebarlogo">
-            <div class="logo"><a href="/"><img src="https://ft9jahero.com/assets/logo-7ef4c480.svg" alt="" ></a></div>
+            <div class="logo"><a href="/"><img src="{%static 'images/Hamma1.png%' }" alt="" ></a></div>
             <div class="open-close-icon">
               <span><i class="bi bi-list open"></i></span>
               <span><i class="bi bi-x-lg close"></i></span>
@@ -172,7 +173,7 @@
                     <li><a href="{% url 'trader-payout'%}">Trader Payouts</a></li>
                   </ul>
                 </li>
-                {% comment %} <li><a href="">History</a></li> {% endcomment %}
+              <li><a href="{%url 'logout'%}">Logout</a></li>
               </ul>
             </div>
           </div>

@@ -1,0 +1,54 @@
+{% extends 'api/base.html' %}
+{% block text %} Correlations for {{account}} (Equity Only) {% endblock %}
+{% block content %}
+
+    <div class="table-responsive" >
+        <h4>Correlated</h4>
+        <table class="table table-striped mt-4 table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Account</th>
+                    <th>Correlation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if top_correlated_equity %}
+                {% for data in top_correlated_equity %}
+                <tr> 
+                    <td>{{ data.0 }}</td>
+                    <td>{{ data.1 }}</td>
+                </tr>
+                {%endfor%}  
+                {%endif %}
+            </tbody>
+        </table>
+    
+    </div>
+
+    <br>
+    <div class="table-responsive" >
+        <h4>Anti-Correlated</h4>
+        <table class="table table-striped mt-4 table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Account</th>
+                    <th>Correlation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if top_anticorrelated_equity %}
+                {% for data in top_anticorrelated_equity %}
+                <tr> 
+                    <td>{{ data.0 }}</td>
+                    <td>{{ data.1 }}</td>
+                </tr>
+                {%endfor%}
+                {%endif %}
+
+            </tbody>
+        </table>
+    
+    </div>
+
+    
+{% endblock %}

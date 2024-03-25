@@ -1,0 +1,250 @@
+{% extends 'api/base.html' %}
+{%block text%} Account List for {{user.email}} - {{country}} {%endblock%}
+{% block content %}
+    <div class="table-responsive">
+        <table class="table table-striped mt-4 table-bordered table-hover">
+            <thead>
+                <tr>
+                    {% comment %} <th>Email</th> {% endcomment %}
+                    {% comment %} <th>Trader</th> {% endcomment %}
+                    <th>Number</th>
+                    <th>Password</th>
+                    <th>Investor Pass</th>
+                    <th>Server</th>
+                    <th>Account Type</th>
+                    <th>Has Aso</th>
+                    <th>Platform</th>
+                    <th>Account Size</th>
+                    <th>Payout</th>
+                    <th>Blown</th>
+                    <th>Created</th>
+                    <th>Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for acc in accounts %}
+                <tr>
+                    {% comment %} <td>{{ trader.trader.email }}</td> {% endcomment %}
+                    <td id="acc_num{{acc.id}}">{{ acc.acc.number }}</td>
+                    <td id="acc_password{{acc.id}}">{{ acc.acc.password }}</td>
+                    <td id="acc_investor_password{{acc.id}}">{{ acc.acc.investor_password }}</td>
+                    <td id="acc_broker{{acc.id}}">{{ acc.acc.broker }}</td>
+                    <td id="acc_type{{acc.id}}">{{ acc.acc.typeofaccount.title }}</td>
+                    <td id="acc_aso{{acc.id}}">{{ acc.acc.has_aso }}</td>
+                    <td id="acc_platform{{acc.id}}">{{ acc.acc.platform }} </td>
+                    <td id="acc_size{{acc.id}}">{{ acc.acc.acc_size }}</td>
+                    <td id="acc_payout{{acc.id}}">{{ acc.payout }}</td>
+                    <td id="blown{{acc.id}}">{{ acc.blown }}</td>
+                    <td >{{ acc.acc.created }}</td>
+                    <td >{{ acc.acc.updated }}</td>
+                    {%if acc.blown == False %}
+                    <td ><a href="{%url 'updateBlownStaus' acc.id acc.user.id %}" class="btn btn-danger">Blown</a></td>
+                    {%else%}
+                    <td><button disabled class="btn btn-danger">Blown</button></td>
+                    {%endif%}
+                    <td><a href="{%url 'trade_account_detail' acc.acc.pk %}" class="btn btn-success btn-sm">View</a></td>
+                    <td><button data-id="{{acc.id}}" id="update_btn" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal">Update</button></td>
+                </tr>
+                {% endfor %}
+                {% for acc in scas %}
+                <tr>
+                    {% comment %} <td>{{ trader.trader.email }}</td> {% endcomment %}
+                    <td id="acc_num{{acc.id}}">{{ acc.number }}</td>
+                    <td id="acc_password{{acc.id}}">{{ acc.password }}</td>
+                    <td id="acc_investor_password{{acc.id}}">{{ acc.investor_password }}</td>
+                    <td id="acc_broker{{acc.id}}">{{ acc.broker }}</td>
+                    <td id="acc_type{{acc.id}}">{{ acc.typeofaccount.title }}</td>
+                    <td id="acc_aso{{acc.id}}">{{ acc.has_aso }}</td>
+                    <td id="acc_platform{{acc.id}}">{{ acc.platform }} </td>
+                    <td id="acc_size{{acc.id}}">{{ acc.acc_size }}</td>
+                    <td id="acc_blown{{acc.id}}">{{ acc.payout }}</td>
+                    <td id="acc_blown{{acc.id}}">{{ acc.blown }}</td>
+                    <td >{{ acc.created }}</td>
+                    <td >{{ acc.updated }}</td>
+                    {%if acc.blown == False %}
+                    <td ><a href="{%url 'updateBlownStausForSCAs' acc.id acc.trader.trader_id %}" class="btn btn-danger">Blown</a></td>
+                    {%else%}
+                    <td><button disabled class="btn btn-danger">Blown</button></td>
+                    {%endif%}
+                    {% comment %} <td><a href="{%url 'trade_account_detail' acc.acc.pk %}" class="btn btn-success btn-sm">View</a></td> {% endcomment %}
+                    {% comment %} <td><button data-id="{{acc.id}}" id="update_btn" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal">Update</button></td> {% endcomment %}
+                    
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            $("#typeofaccount").change(()=>{
+                $(".err").html("")
+            })
+            $("#number").keydown((e)=>{
+                var invalidChars = [
+                "-",
+                "+",
+                "e",
+                ];
+                if (invalidChars.includes(e.key)) {
+                e.preventDefault();
+            }
+            })
+        let dataId;
+        const buttons = document.querySelectorAll('#update_btn');
+        function handleClick(event) {
+            dataId = event.target.dataset.id;
+            console.log('data-id value:', dataId);
+            // Send get request
+            $.ajax({
+              type:"get",
+              url:`get/${dataId}`,
+              success:function(resp){
+                console.log(resp)
+                $("#number").val(`${resp.detail.acc.number}`)
+                $("#password").val(`${resp.password}`)
+                $("#investor_password").val(`${resp.investor_password}`)
+
+
+                $("#broker").val(`${resp.broker}`)
+                // $("#_server").html(`
+                // <option selected value="${resp.platform}">${resp.platform}</option>
+                // <option value="Deriv-Demo">Deriv-Demo</option>
+                // <option value="ICMarketsSC-Demo">ICMarketsSC-Demo</option>
+                // <option value="MetaQuotes-Demo">MetaQuotes-Demo</option>
+                
+                // `)
+                $("#typeofaccount").html(`
+                <option selected value="${resp.acc_type}">${resp.acc_type}</option>
+                <option value="Zuma">Zuma</option>
+                <option value="Aso">Aso</option>
+                <option value="Challenge">Challenge</option>
+                <option value="Verification">Verification</option>
+                
+                `)
+                $("#acc_size").val(`${resp.acc_size}`)
+
+                $("#platform").html(`
+                <option selected value=""></option>
+                <option value="MT4">MT4</option>
+                <option value="MT5">MT5</option>
+                `)
+              },
+              error:function(err){
+                console.log(err)
+              }
+            })
+
+            //Send post request for update
+            $("#form").on("submit", (e)=>{
+                e.preventDefault();
+            $(".modal-footer").html(`<button type="submit" class="btn btn-success" disable>Loading..</button>`)
+            $.ajax({
+                type:"POST",
+                url:`get/${dataId}`,
+                data:{
+                    "csrfmiddlewaretoken": $('input[name="csrfmiddlewaretoken"]').val(), 
+                    "number":$("#number").val(),
+                    "broker":$("#broker").val(),
+                    "acc_size":$("#acc_size").val(),
+                    "platform":$("#platform").val(),
+                    "investor_password":$("#investor_password").val(),
+                    "password":$("#password").val(),
+                    "typeofaccount":$("#typeofaccount").val(),
+                    "id":`${dataId}`
+                },
+                success:function(resp){
+                    console.log(resp)
+                    $(`#acc_num${dataId}`).text(`${resp.detail.number}`)
+                    $(`#acc_password${dataId}`).text(`${resp.detail.password}`)
+                    $(`#acc_investor_password${dataId}`).text(`${resp.detail.investor_password}`)
+                    $(`#acc_platform${dataId}`).text(`${resp.detail.platform}`)
+                    $(`#acc_type${dataId}`).text(`${resp.detail.typeofaccount}`)
+                    $(`#acc_broker${dataId}`).text(`${resp.detail.broker}`)
+                    $(`#acc_size${dataId}`).text(`${resp.detail.acc_size}`)
+                    document.querySelector("#form").reset()
+                    $(".modal-footer").html(`<button type="submit" class="btn btn-success">Save changes</button>`)
+                
+                    $("#exampleModal").modal("hide");
+                },
+                error:function(err){
+                    console.log(err)
+                    $(".modal-footer").html(`<button type="submit" class="btn btn-success">Save changes</button>`)
+                }
+            })
+        })
+        
+        }
+           
+             // Add click event listener to each button
+        buttons.forEach((button) => {
+            button.addEventListener('click', handleClick);
+        });
+        });
+    </script>
+
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Account Update</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="form">
+                {%csrf_token%}
+                <div class="mb-3">
+                    <label for="exampleInputFullName" class="form-label">Account</label>
+                    <input type="number" class="form-control" id="number" name="number" step="1" required >
+    
+                </div>
+                <div class="mb-3">
+                    <label for="exampleInputFullName" class="form-label">Password</label>
+                    <input type="text" class="form-control" id="password" name="password"  required >
+    
+                </div>
+                <div class="mb-3">
+                    <label for="investor_password" class="form-label">Investor Password</label>
+                    <input type="text" class="form-control" id="investor_password" name="investor_password"  required >
+    
+                </div>
+                <div class="mb-3">
+                    <label for="server" class="form-label">Server</label>
+                    <input type="text" class="form-control" name ="broker" id="broker" required >
+                    <!-- <select class="form-select" name ="server" id="server" required >
+
+                        Add more options as needed
+                    </select> -->
+                </div>
+                <div class="mb-3">
+                    <label for="exampleInputFullName" class="form-label">Account Type</label>
+                    <select class="form-select" name="typeofaccount" id="typeofaccount" required>
+                        <!-- <option value="" selected disabled>Select Server</option> -->
+
+                        <!-- Add more options as needed -->
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="broker" class="form-label">Platform</label>
+                    <select class="form-select" name ="platform" id="platform" required >
+                        {% comment %} <option value="MT4">MT4</option> {% endcomment %}
+                        {% comment %} <option value="MT5">MT5</option> {% endcomment %}
+
+                        <!-- Add more options as needed -->
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="accountSize" class="form-label">Account Size</label>
+                    <input type="text" name="acc_size" class="form-control" id="acc_size" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Save changes</button>
+                </div>
+              </form>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+  {%endblock%}

@@ -1,0 +1,79 @@
+{% extends 'api/base.html' %}
+{% load static crispy_forms_tags %}
+<!-- your_template.html -->
+{%block text%} SCA List {%endblock%}
+{% block content %}
+{% if search_query %}
+<div class="alert alert-info mt-3" role="alert">
+    {% if users.count > 0 %}
+    Found {{ users.count }} user(s) with email matching "{{ search_query }}":
+    {% endif %}
+</div>
+{% endif %}
+<div class="my-4">
+    <form method="get" class="form-inline">
+        <div class="form-group mx-sm-3 mb-2">
+            {% comment %} <label for="search_query" class="sr-only">Search Email</label> {% endcomment %}
+            <input type="text" class="form-control" id="search_query" name="search_query" value="{{ search_query }}" placeholder="Enter full email to search">
+        </div>
+        <button type="submit" class="btn btn-primary mb-2">Search</button>
+    </form>
+</div>
+<div class="table-responsive">
+        <table class="table table-striped mt-4 table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>User</th>
+                    <th>Number</th>
+                    <th>Platform</th>
+                    <th>Account Typr</th>
+                    <th>Broker</th>
+                    <th>Acc_size</th>
+                    <th>Blown</th>
+                    <th>Paid</th>
+                    <th>Payout</th>
+                    <th>Has_aso</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                {% for sca_accounts in sca_accounts %}
+                <tr>
+                    <td>{{ forloop.counter }}</td> 
+                    <td>{{ sca_accounts.trader.trader.email }}</td>
+                    <td>{{ sca_accounts.number}}</td>
+                    <td>{{ sca_accounts.platform }}</td>
+                    <td>{{ sca_accounts.typeofaccount }}</td>
+                    <td>{{ sca_accounts.broker}}</td>
+                    <td>{{ sca_accounts.acc_size }}</td>
+                    <td>{{ sca_accounts.blown }}</td>
+                    <td>{{ sca_accounts.paid}}</td>
+                    <td>{{ sca_accounts.payout }}</td>
+                    <td>{{ sca_accounts.has_aso }}</td>
+
+                    <td><a href="{%url 'scas_single' sca_accounts.pk %}" class="btn btn-success">Edit</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+<!-- Pagination links -->
+<div class="pagination justify-content-center mt-4">
+    <span class="step-links">
+        {% if sca_accounts.has_previous %}
+            <a href="?page=1">&laquo; First</a>
+            <a href="?page={{ sca_accounts.previous_page_number }}">Previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ sca_accounts.number }} of {{ sca_accounts.paginator.num_pages }}.
+        </span>
+
+        {% if sca_accounts.has_next %}
+            <a href="?page={{ sca_accounts.next_page_number }}">Next</a>
+            <a href="?page={{ sca_accounts.paginator.num_pages }}">Last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endblock %}

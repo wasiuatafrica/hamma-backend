@@ -1,0 +1,107 @@
+{% extends 'api/base.html' %}
+{% load static crispy_forms_tags %}
+<!-- your_template.html -->
+{%block text%} Users List {%endblock%}
+{% block content %}
+{% if search_query %}
+<div class="alert alert-info mt-3" role="alert">
+    {% if users.count > 0 %}
+    Found {{ users.count }} user(s) with email matching "{{ search_query }}":
+    {% endif %}
+</div>
+{% endif %}
+<div class="my-4">
+    <form method="get" class="form-inline">
+        <div class="form-group mx-sm-3 mb-2">
+            {% comment %} <label for="search_query" class="sr-only">Search Email</label> {% endcomment %}
+            <input type="text" class="form-control" id="search_query" name="search_query" value="{{ search_query }}" placeholder="Enter full email to search">
+        </div>
+        <button type="submit" class="btn btn-primary mb-2">Search</button>
+    </form>
+</div>
+<div class="table-responsive">
+        <table class="table table-striped mt-4 table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Email</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Referred By</th>
+                    <th>Referees</th>
+                    <th>Suspected Other Accounts</th>
+                    <th>Country</th>
+                    <th>ID</th>
+                    <th>Has ID</th>
+                    <th>Phone</th>
+                    <th>Bank Name</th>
+                    <th>Account Number</th>
+                    <th>Paypal Address</th>
+                    {% comment %} <th>Is Staff</th> {% endcomment %}
+                    {% comment %} <th>Is Active</th> {% endcomment %}
+                    <th>Date Joined</th>
+                    <th>Number of Accounts</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                {% for user in users_page %}
+                <tr>
+                    <td>{{ users_page.start_index|add:forloop.counter0 }}</td> 
+                    <td>{{ user.user.email }}</td>
+                    <td>{{ user.user.firstname }}</td>
+                    <td>{{ user.user.lastname }}</td>
+                    <td>{{ user.referrer.email }}</td>
+                    <td><a target="_blank" href="https://dashboard.ft9ja.com/login?email=owenyakubu533@gmail.com&password=EHpDFzL5hKnMqq8&trader_email={{user.user.email}}">View</a></td>
+                    <td>{{ user.user.has_second_email }}</td>
+                    <td>{{ user.country }}</td>
+                        {%if user.profile_img %}
+                        {% comment %} {%if user.profile_img.name|slice:"-3:" == "pdf" %} {% endcomment %}
+                            <td><a target="_blank" href="{{user.profile_img.url}}">View</a></td>
+                        {% comment %} {%else%} {% endcomment %}
+                            {% comment %} <td><img class="img-fluid" src="{{ user.profile_img.url}}" alt=""></td> {% endcomment %}
+                        {% comment %} {%endif%} {% endcomment %}
+                    {%else%}
+                        <td>No ID</td>
+                    {%endif%}
+                    <td>{{ user.has_profile_img}}</td>
+                    <td>{{ user.user.phone }}</td>
+                    <td>{{ user.bank_name }}</td>
+                    <td>{{ user.account_number }}</td>
+                    <td>{{ user.paypal_address }}</td>
+                    {% comment %} <td>{{ user.user.is_staff }}</td> {% endcomment %}
+                    {% comment %} <td>{{ user.user.is_active }}</td> {% endcomment %}
+                    <td>{{ user.user.date_joined }}</td>
+                    <td>
+                        {% if user.user.accounts.all.count > 0 %}
+                            <a href="{% url 'single-user-list' user.user.pk %}">{{ user.user.accounts.all.count }}</a>
+                        {% else %}
+                            {{ user.user.accounts.all.count }}
+                        {% endif %}
+                    </td>
+                    <td><a href="{%url 'AdminUpdateUser' user.pk %}" class="btn btn-success">Edit</a></td>
+                    <td><a href="{%url 'clear_profile' user.pk %}" class="btn btn-danger">Clear Profile</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+<!-- Pagination links -->
+<div class="pagination justify-content-center mt-4">
+    <span class="step-links">
+        {% if users_page.has_previous %}
+            <a href="?page=1">&laquo; First</a>
+            <a href="?page={{ users_page.previous_page_number }}">Previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ users_page.number }} of {{ users_page.paginator.num_pages }}.
+        </span>
+
+        {% if users_page.has_next %}
+            <a href="?page={{ users_page.next_page_number }}">Next</a>
+            <a href="?page={{ users_page.paginator.num_pages }}">Last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endblock %}

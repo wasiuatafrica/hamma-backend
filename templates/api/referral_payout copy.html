@@ -1,0 +1,149 @@
+{% extends 'api/base.html' %}
+{% load static crispy_forms_tags %}
+
+{% block text %} Referral Payout Request List {% endblock %}
+
+{% block content %}
+<div class="table-responsive">
+    <table class="table table-striped mt-4 table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Amount</th>
+                <th>Admin Status</th>
+                <th>Date</th>
+                <th>Comment</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for request in payout_list %}
+            <tr>
+                <td>{{ request.user }}</td>
+                <td>{{ request.amount }}</td>
+                <td>{{ request.status }}</td>
+                <td>{{ request.created }}</td>
+                <td>{{ request.comment }}</td>
+                <td>
+                    <form action="" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="receipt_id" value="{{ request.id }}">
+                        <div class="input-group">
+                            <select class="form-select" name="status">
+                                <option value="Duplicate">Duplicate</option>
+                                <option value="Paid">Paid</option>
+                                <option value="Unpaid">Unpaid</option>
+                            </select>
+                            <input type="text" class="form-control" name="comment" placeholder="Comment">
+                            <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                            
+                        </div>
+                    </form>
+                    
+                </td>
+                <td><button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#payModal"
+                    data-request-id="{{ request.id }}">Pay</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <div class="alert alert-danger mt-5" role="alert">
+                    No payout request found.
+                </div>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal for payment -->
+<div class="modal fade" id="payModal" tabindex="-1" role="dialog" aria-labelledby="payModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="paymentForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="payModalLabel">Make Payment</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="receiptId" name="receipt_id" value="">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="text" class="form-control" id="email" name="email" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Amount</label>
+                        <input type="text" class="form-control" id="amount" name="amount" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="bankName">Bank Name</label>
+                        <input type="text" class="form-control" id="bankName" name="bank_name" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="accountNumber">Account Number</label>
+                        <input type="text" class="form-control" id="accountNumber" name="account_number" readonly>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="payButton" disabled>Pay</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+<script>
+    $(document).ready(function () {
+        // When the "Pay" button is clicked, open the modal and populate its fields
+        $('button[data-target="#payModal"]').click(function () {
+            var requestId = $(this).data('request-id');
+            var modal = $('#payModal');
+            var form = $('#paymentForm');
+            var payButton = $('#payButton');
+            var emailField = $('#email');
+            var amountField = $('#amount');
+            var bankNameField = $('#bankName');
+            var accountNumberField = $('#accountNumber');
+
+            // Perform a GET request to retrieve payout details
+            $.get('/payout-details/' + requestId + '/', function (data) {
+                emailField.val(data.email);
+                amountField.val(data.amount);
+                bankNameField.val(data.bank_name);
+                accountNumberField.val(data.account_number);
+
+                // Enable the "Pay" button if account number is not missing
+                if (data.account_number) {
+                    payButton.prop('disabled', false);
+                } else {
+                    payButton.prop('disabled', true);
+                }
+
+                // Set the receipt ID in the hidden field
+                $('#receiptId').val(requestId);
+
+                // Show the modal
+                modal.modal('show');
+            });
+        });
+
+        // Handle the form submission
+        $('#paymentForm').submit(function (event) {
+            event.preventDefault();
+            var formData = $(this).serialize();
+
+            // Perform a POST request to make the payment
+            $.post('/makepayment/', formData, function (data) {
+                // Handle the response as needed
+                console.log(data);
+
+                // Close the modal
+                $('#payModal').modal('hide');
+            });
+        });
+    });
+</script>

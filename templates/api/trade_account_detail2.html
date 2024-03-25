@@ -1,0 +1,420 @@
+{% extends 'api/base.html' %}
+
+{%block text%} Trader Account Detail {{ trade_account.number }} {%endblock%}
+{% block content %}
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/dygraphs@2.2.1/dist/dygraph.min.css" />
+<div class="text-center mt-5"><h4>Trade Account Info for {{trade_account.trader.email}}</h4></div>
+<div class="table-responsive"> 
+  <table class="table table-striped mt-4 table-bordered table-hover table-success">
+      <thead>
+          <tr>
+              <th>Account</th>
+              <th>Password</th>
+              <th>Investor Password</th>
+              <th>Platform</th>
+              <th>Account Type</th>
+              <th>Broker</th>
+              <th>Account Size</th>
+              <th>Payout</th>
+              <th>Has SCA</th>
+              <th>Date Created</th>
+              <th>Update</th>
+          </tr>
+      </thead>
+      <tbody>
+              
+            <tr>
+                <td><span id="_number">{{ trade_account.number }}</span></td>
+                <td><span id="_password">{{ trade_account.password }}</span></td>
+                <td><span id="_investor_password">{{ trade_account.investor_password }}</span></td>
+                <td><span id="_platform">{{ trade_account.platform }}</span></td>
+                <td><span id="_typeofaccount">{{ trade_account.typeofaccount.title }}</span></td>
+                <td><span id="_broker">{{ trade_account.broker }}</span></td>
+                <td><span id="_acc_size">{{ trade_account.acc_size }}</span></td>
+                <td><span id="_payout">{{ user_account1.payout }}</span></td>
+                {%if trade_account.has_sca == True %}<td><a href="{%url 'trade_account_scas' trade_account.id %}">{{ trade_account.has_sca }}</a></td>{%else%} <td>{{ trade_account.has_sca }}</td>{%endif%}
+                
+                <td>{{ trade_account.created }}</td>
+                <td><button class="btn btn-sm btn-block btn-light" data-bs-toggle="modal" data-bs-target="#exampleModal">Edit Info</button></td>
+            </tr>
+
+      </tbody>
+  </table>
+</div>
+<input type="hidden" value="{{trade_account.id}}" id="trader_account_id">
+
+
+<!-- <div class="text-center mt-5">
+    <div class="card text-white bg-success mb-3" style="max-width: 18rem;">
+        <div class="card-header">Trade Account Info for {{trade_account.trader.email}}</div>
+        <div class="card-body">
+            <h5 class="card-title">Number: {{ trade_account.number }}</h5>
+            {% comment %} <p class="card-text">Password: {{ trade_account.password }}</p> {% endcomment %}
+            <p class="card-text">Platform: {{ trade_account.platform }}</p>
+            <p class="card-text">Account Type: {{ trade_account.typeofaccount.title }}</p>
+            <p class="card-text">Broker: {{ trade_account.broker }}</p>
+            <p class="card-text">Account Size: {{ trade_account.acc_size }}</p>
+            <p class="card-text">Date Created: {{ trade_account.created }}</p>
+            {% comment %} <p><a href="{%url 'trade_account_update' trader.pk %}" class="btn  btn-sm">Edit</a></p> {% endcomment %}
+          
+        </div>
+      </div>
+</div> -->
+    <!-- Display other fields as needed -->
+
+    <div class="table-responsive">
+        <div class="text-center"><h4>Related User Accounts</h4></div>
+        <table class="table table-striped mt-4 table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Account</th>
+                    <th>Account Type</th>
+                    <th>Broker</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user_account in user_accounts %}
+                    {% if user_account.acc.pk != trade_account.pk %} 
+                    
+                        <tr>
+                            <td><a href="{%url 'trade_account_detail' user_account.acc.pk  %}">{{ user_account.acc.number }}</a></td>
+                            <td>{{ user_account.acc.typeofaccount.title }}</td>
+                            <td>{{ user_account.acc.broker }}</td>
+                        </tr>
+                    
+                    {%endif%}
+                {% empty %}
+                    <li>No other accounts found for this trader.</li>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="row">
+      <div class="select-account">
+        <h4>Select Account</h4>
+        <select id="accountSelect" style="margin-top: 10px;">
+          <option value="{{trade_account.number }}" selected>{{trade_account.number }}</option>
+          {% for user_account in user_accounts %}
+            {% if user_account.acc.pk != trade_account.pk %} 
+              <option value="{{ user_account.acc.number }}" style="margin-bottom: 5px;">{{ user_account.acc.number }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    {% comment %} <div class="row row-sm">
+        <div class="col lg col-sm-6 col-md-12">
+          <div class="chartjs-wrapper-demo"><canvas id="chartLine1"></canvas></div>
+        </div><!-- col-6 -->
+        
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> {% endcomment %}
+    <hr>
+    <div class="row">
+  <div >
+    <div id="dygraphLine1" style="width: 100%; height: 300px;"></div>
+  </div>
+</div>
+<!-- Include the Dygraph library -->
+<script type="text/javascript" src="https://unpkg.com/dygraphs@2.2.1/dist/dygraph.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    'use strict';
+
+    const timestamps = JSON.parse('{{ timestamps|safe }}'); // List of unix timestamps
+    const balances = JSON.parse('{{ balances|safe }}'); // List of balance values
+    const equity = JSON.parse('{{ equity|safe }}'); // List of equity values
+
+    // Convert the unix timestamps to Date objects
+    const dates = timestamps.map(ts => new Date(ts * 1000));
+
+    // Log the first 5 data points in each list
+    console.log('First 5 Dates:', dates.slice(0, 5));
+    console.log('First 5 Balances:', balances.slice(0, 5));
+    console.log('First 5 Equity:', equity.slice(0, 5));
+
+    const ctx8 = document.getElementById('dygraphLine1');
+    const data = [];
+    for (let i = 0; i < dates.length; i++) {
+      data.push([dates[i], balances[i], equity[i]]);
+    }
+
+    const dygraph = new Dygraph(ctx8, data, {
+      labels: ['Date', 'Balance', 'Equity'],
+      colors: ['#00ff00', '#f10075'],
+      ylabel: 'Balance & Equity',
+      xlabel: 'Time (GMT)',
+      legend: 'follow', // Keep the legend always visible
+    });
+
+    function legendFormatter(data) {
+      // Custom legend formatter to add some space between legend items
+      return Dygraph.defaultInteractionModel.legendFormatter(data) + '<br>';
+    }
+
+    function pollView() {
+      setInterval(function() {
+        fetch('/api/poll?account=' + document.getElementById('accountSelect').value)
+          .then(function(response) {
+            if (response.ok) {
+              return response.json();
+            } else {
+              throw new Error('An error occurred while polling the view.');
+            }
+          })
+          .then(function(data) {
+            var newTimestamp = new Date(data.timestamp * 1000);
+            var newBalance = data.balance;
+            var newEquity = data.equity;
+
+            console.log("Received data:", data);
+
+            // Add the new data point to the Dygraph
+            dygraph.updateOptions({
+              file: dygraph.file().concat([[newTimestamp, newBalance, newEquity]])
+            });
+
+          })
+          .catch(function(error) {
+            console.log('An error occurred while polling the view:', error);
+          });
+      }, 60000);
+    }
+
+    document.getElementById('accountSelect').addEventListener('change', function() {
+      var selectedAccount = this.value;
+      updateDashboard(selectedAccount);
+    });
+
+    function updateDashboard(selectedAccount) {
+      fetch('/api/update-dashboard?account=' + selectedAccount)
+        .then(function(response) {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error('An error occurred while updating the dashboard.');
+          }
+        })
+        .then(function(data) {
+          console.log("Data received:", data);
+
+          const updatedData = [];
+          for (let i = 0; i < data.timestamps.length; i++) {
+            const ts = new Date(data.timestamps[i] * 1000);
+            updatedData.push([ts, data.balances[i], data.equity[i]]);
+          }
+
+          // Update the Dygraph data and redraw
+          dygraph.updateOptions({
+            file: updatedData
+          });
+        })
+        .catch(function(error) {
+          console.log('An error occurred while updating the dashboard:', error);
+        });
+    }
+
+    {% comment %} pollView(); {% endcomment %}
+  });
+</script>
+
+
+<!-- Script to perform updating of trading info -->
+<script>
+  $(document).ready(function(){
+      $("#typeofaccount").change(()=>{
+          $(".err").html("")
+      })
+      $("#number").keydown((e)=>{
+          var invalidChars = [
+          "-",
+          "+",
+          "e",
+          ];
+          if (invalidChars.includes(e.key)) {
+          e.preventDefault();
+      }
+      })
+      // var inputBox = document.getElementById("number");
+
+      // var invalidChars = [
+      // "-",
+      // "+",
+      // "e",
+      // ];
+      
+
+      // inputBox.addEventListener("keydown", function(e) {
+      // cc
+      // });
+      $("#form").submit((e)=>{
+          console.log()
+          e.preventDefault();
+          $("#submit_hoder").html(`<button type="submit" class="btn btn-primary" disabled>Loading...</button>`)
+          const csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+          $.ajax({
+              type: "POST",
+              url: "{% url 'trade_account_detail_update'%}",
+              data: {
+                  "csrfmiddlewaretoken": csrfToken, // Change "X-CSRFToken" to "csrfmiddlewaretoken"
+                  "platform": $("#platform").val(),
+                  "typeofaccount": $("#typeofaccount").val(),
+                  "broker": $("#broker").val(),
+                  "acc_size": $("#acc_size").val(),
+                  "payout":$("#payout").val(),
+                  "trader_account_id": $("#trader_account_id").val(),
+                  "number": $("#number").val(),
+                  "password": $("#exampleInputPassword1").val(),
+                  "investor_password": $("#investor_password").val(),
+              },
+              success: function(resp){
+                  console.log(resp)
+                  $(".err").html(`
+                  <div class="alert alert-success" role="alert">
+                      Data updated.
+                  </div> 
+                  `)
+                  // document.querySelector("#form").reset()
+                  // Populate the data
+                  $("#_platform").text(`${resp.details.platform}`);
+                  $("#_typeofaccount").text(`${resp.details.typeofaccount}`);
+                  $("#_broker").text(`${resp.details.broker}`);
+                  $("#_acc_size").text(`${resp.details.acc_size}`);
+                  $("#_payout").text(`${resp.details.payout}`);
+                  $("#_number").text(`${resp.details.number}`);
+                  $("#_password").text(`${resp.details.password}`);
+                  $("#_investor_password").text(`${resp.details.investor_password}`);
+                  $("#submit_hoder").html(`<button type="submit" class="btn btn-primary" >Save Changes</button>`)
+                  
+                  $("#exampleModal").modal("hide");
+                },
+              error: function(err){
+                  console.log(err)
+                  $(".err").html(`
+                  <div class="alert alert-danger" role="alert">
+                      ${err.responseJSON.details}
+                  </div> 
+                  `)
+                  $("#submit_hoder").html(`<button type="submit" class="btn btn-primary" disabled>Loading...</button>`)
+              }
+          });
+      });
+  });
+</script>
+
+
+<!-- Modal popup -->
+<!-- Button trigger modal -->
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Update Info</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+          <form id="form">
+            {%csrf_token%}
+            <div class="mb-3">
+              <label for="exampleInputFullName" class="form-label">Account</label>
+              <input type="number" class="form-control" id="number" name="number" step="1" required >
+
+            </div>
+            
+            <div class="mb-3">
+                <label for="exampleInputFullName" class="form-label">Server</label>
+                {% comment %} <select class="form-select" name="platform" required id="server">
+                    <!-- <option value="{{ trade_account.platform }}" selected disabled>{{ trade_account.platform }}</option> -->
+                    <option value="Deriv-Demo">Deriv-Demo</option>
+                    <option value="ICMarketsSC-Demo">ICMarketsSC-Demo</option>
+                    <option value="MetaQuotes-Demo">MetaQuotes-Demo</option>
+                    <!-- Add more options as needed -->
+                </select> {% endcomment %}
+                <input type="text"  class="form-control" name="broker" required id="broker">
+            </div>
+            <div class="mb-3">
+                <label for="exampleInputFullName" class="form-label">Account Type</label>
+                <select class="form-select" name="typeofaccount" id="typeofaccount" required>
+                    <!-- <option value="{{ trade_account.typeofaccount.title}}" selected disabled>{{ trade_account.typeofaccount.title}}</option> -->
+                    <option value="Zuma">Zuma</option>
+                    <option value="Aso">Aso</option>
+                    <option value="Challenge">Challenge</option>
+                    <option value="Verification">Verification</option>
+                    <!-- Add more options as needed -->
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="exampleInputPassword1" class="form-label">Password</label>
+                <input type="text" name="password" class="form-control" id="exampleInputPassword1" required>
+            </div>
+            <div class="mb-3">
+              <label for="investor_password" class="form-label">Investor Password</label>
+              <input type="text" name="investor_password" class="form-control" id="investor_password" required>
+          </div>
+            <div class="mb-3">
+                <label for="broker" class="form-label">Platform</label>
+                <select class="form-select" name ="platform" id="platform" required >
+                  <!-- <option value="{{ trade_account.broker}}" selected disabled>{{ trade_account.broker}}</option> -->
+                    <option value="Mt4">MT4</option>
+                    <option value="Mt5">MT5</option>
+                    <!-- Add more options as needed -->
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="payout" class="form-label">Payout</label>
+                <select class="form-select" name ="payout" id="payout" required >
+                  <!-- <option value="{{ trade_account.payout}}" selected disabled>{{ trade_account.payout}}</option> -->
+                    <option value="Weekly">Weekly</option>
+                    <option value="Monthly">Monthly</option>
+                    <!-- Add more options as needed -->
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="accountSize" class="form-label">Account Size</label>
+                <input type="text" name="acc_size" value="{{ trade_account.acc_size }}" class="form-control" id="acc_size" required>
+            </div>
+            <div class="err">
+
+            </div>
+            <div class="modal-footer" id="submit_hoder">
+              <button type="submit" class="btn btn-primary" >Save changes</button>
+            </div>
+          </form>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+{%endblock%}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

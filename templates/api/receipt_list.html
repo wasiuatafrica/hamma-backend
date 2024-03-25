@@ -1,0 +1,376 @@
+{% extends 'api/base.html' %}
+{% block text %} Receipts List {% endblock %}
+{% block content %}
+<div class="container mb-5 mt-5 text-center">
+    <button class="btn btn-success mt-2" id="normal_receiptsbtn">View Uploaded Receipts</button>
+    <button class="btn btn-success mt-2" id="payStack_receiptsbtn">View Paystack Receipts</button>
+</div>
+<div class="container text-center">
+    <form class="row row-cols-lg-auto g-3 align-items-center text-center" form action="" >
+
+
+        <div class="col-auto">
+          <label class="visually-hidden_" for="inlineFormSelectPref">Status</label>
+          <select class="form-select" id="inlineFormSelectPref" name="status">
+            <option selected>Choose...</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Not_received">Not Received</option>
+            <option value="Duplicate">Duplicate</option>
+            <option value="Unprocessed">Unprocessed</option>
+          </select>
+        </div>
+        <div class="col-auto">
+        <label class="visually-hidden_" for="autoSizingInput">From</label>
+        <input type="date" class="form-control" id="date" name="date" required>
+        </div>
+        <div class="col-auto date">
+            <label class="visually-hidden_" for="autoSizingInput">To</label>
+            <input type="date" class="form-control" id="to_date" name="to_date" required>
+        </div>
+
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </form>
+</div>
+    <div class="table-responsive" id="normal_receipts">
+        <div class="container mb-5 mt-5 text-center">
+            <h3> Bulk Recipts confirm</h3>
+            <form id="recipts_form"  method="post">
+                {%csrf_token%}
+                <input type="hidden" name="recipts">
+                <button type="submit" class="btn btn-success mt-2" id="receipt_confirmbtn">Confirm selected Receipts</button>
+            </form>
+        </div>
+        <div class="container mb-5 mt-5 text-center">
+            <form>
+                <div class="col-auto date">
+                    <input type="email" class="form-control"  name="filter" placeholder="search receipts by email">
+                    <input type="hidden" class="form-control"  name="type" value="receipts">
+                </div>
+                <button type="submit" class="btn btn-success mt-2" >Search</button>
+            </form>
+        </div>
+        <table class="table table-striped mt-4 table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Image</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Comment</th>
+                    <th>list</th>
+                    <th>Action</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                {% for receipt in receipts %}
+                {% comment %} <form action="" method="POST">
+                {% csrf_token %} {% endcomment %}
+                <tr>
+                    <td>{{ receipt.user }}</td>
+                    <td>
+                        {% if receipt.image %}
+                            <img src="{{ receipt.image.url }}" alt="Receipt Image" style="max-width: 100px;">
+                        {% else %}
+                            No Image
+                        {% endif %}
+                    </td>
+                    <td>{{ receipt.date }}</td>
+                    <td>{{receipt.receipt_status}}</td>
+                    <td>{{receipt.comment}}</td>
+                    {%if receipt.receipt_status == "Confirmed"%}
+                    <td> <button type="button" data-id="{{receipt.id}}" id="" class="btn btn-warning btn-sm" disabled><input type="checkbox" name="" id="" checked></button></td>
+                    {%else%}
+                    <td> <button type="button" data-id="{{receipt.id}}"  class="btn btn-warning btn-sm"><input data-id="{{receipt.id}}" type="checkbox" name="" id="addIDReciptBtn"></button></td>
+                    {%endif%}
+                    {% comment %} <td>
+                        <input type="hidden" name="receipt_id" value="{{ receipt.id }}">
+                        {% if receipt.receipt_confirm %}
+                        <button type="submit" id="confirmBtn" class="btn btn-warning btn-sm"disabled>confirmed</button>
+                        {% else %}
+                        <button type="submit" id="confirmBtn" class="btn btn-success btn-sm">confirm</button>
+                        {% endif %}
+                    </td> {% endcomment %}
+                    <!-- Replace the confirm buttons -->
+                    <td>
+                        <form action="" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="receipt_id" value="{{ receipt.id }}">
+                            {% comment %} <input type="hidden" name="is_paystack" value="False"> {% endcomment %}
+                            <div class="input-group">
+                                <select class="form-select" name="status">
+                                    <option value="Confirmed">Confirmed</option>
+                                    <option value="Rejected">Rejected</option>
+                                    <option value="Not_received">Not Received</option>
+                                    <option value="Duplicate">Duplicate</option>
+                                    {% comment %} <option value="Comment">Custom Comment</option> {% endcomment %}
+                                </select>
+                                <input type="text" class="form-control" name="comment" placeholder="Comment">
+                                <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                            </div>
+                        </form>
+                    </td>
+
+                </tr>
+                {% comment %} </form> {% endcomment %}
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="pagination">
+            {% if page.has_previous %}
+                <a href="?page=1">First</a>
+                <a href="?page={{ receipts.previous_page_number }}">Previous</a>
+            {% endif %}
+    
+            <span class="current mr-5">
+                Page {{ receipts.number }} of {{ receipts.paginator.num_pages }}.
+            </span>
+    
+            {% if receipts.has_next %}
+                <div style="float:right; margin-left: 20px;" >
+                  <a href="?page={{ receipts.next_page_number }}" class="btn btn-primary btn-sm mr-2">Next</a>
+                <a href="?page={{ receipts.paginator.num_pages }}" class="btn btn-info btn-sm mr-2">Last</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="table-responsive" id="payStack_receipts">
+        <h3 class="text-center">Paystack Receipts</h3>
+        <div class="container mb-5 mt-5 text-center">
+            <h3> Bulk Recipts confirm</h3>
+            <form id="paystackrecipts_form" method="post">
+                {%csrf_token%}
+                <input type="hidden" name="paystack">
+                <button type="submit" class="btn btn-success mt-2" id="paystackreceipt_confirmbtn">Confirm selected Receipts Paystack Receipts</button>
+            </form>
+        </div>
+        <div class="container mb-5 mt-5 text-center">
+            <form>
+                <div class="col-auto date">
+                    <input type="text" class="form-control" id="to_date" name="filter" placeholder="search paystack receipts by email">
+                    <input type="hidden" class="form-control"  name="type" value="paystack">
+                </div>
+                <button type="submit" class="btn btn-success mt-2" >Search</button>
+            </form>
+        </div>
+        <table class="table table-striped mt-4 table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Reference</th>
+                    <th>Trans</th>
+                    <th>Paystack Status</th>
+                    {% comment %} <th>Transaction</th> {% endcomment %}
+                    {% comment %} <th>Trxref</th> {% endcomment %}
+                    {% comment %} <th>Redirecturl</th> {% endcomment %}
+                    {% comment %} <th>receipt_confirm</th> {% endcomment %}
+                    <th>List</th>
+                    <th>Date</th>
+                    <th>Admin Status</th>
+                    <th>Comment</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for receipt in payStack_receipts %}
+                {% comment %} <form action="" method="POST"> {% endcomment %}
+                {% comment %} {% csrf_token %} {% endcomment %}
+                <tr>
+                    <td>{{ receipt.user }}</td>
+                    <td> {{ receipt.reference }}</td>
+                    <td> {{ receipt.trans }}</td>
+                    <td> {{ receipt.receipt_confirm }}</td>
+                    {% if receipt.receipt_status == "Confirmed"%}
+                    <td> <button type="button"  id="" class="btn btn-warning btn-sm" disabled><input type="checkbox" name="" id="" checked></button></td>
+                    {%else%}
+                    <td> <button type="button" class="btn btn-warning btn-sm"><input data-id="{{receipt.id}}"  type="checkbox" name="" id="addIDPaystackReciptBtn"></button></td>
+                    {%endif%}
+                    {% comment %} <td> {{ receipt.transaction }}</td> {% endcomment %}
+                    {% comment %} <td> {{ receipt.trxref }}</td> {% endcomment %}
+                     {% comment %} <td> {{ receipt.redirecturl }}</td> {% endcomment %}
+                    {% comment %} <td>{% if receipt.receipt_confirm %}
+                        <p>True</p>
+                        {% else %}
+                        <p>False</p>
+                        {% endif %}</td> {% endcomment %}
+                    <td>{{ receipt.date }}</td>
+                    {% comment %} <td>
+                        <input type="hidden" name="receipt_id" value="{{ receipt.id }}">
+                        <input type="hidden" name="is_paystack" value="True">
+                        {% if receipt.receipt_confirm %}
+                        <button type="submit" id="confirmBtn" class="btn btn-warning btn-sm"disabled>confirmed</button>
+                        {% else %}
+                        <button type="submit" id="confirmBtn" class="btn btn-success btn-sm">confirm</button>
+                        {% endif %}
+                    </td> {% endcomment %}
+                    <td>{{receipt.receipt_status}}</td>
+                    <td>{{receipt.comment}}</td>
+                    
+                    <td>
+                        <form action="" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="receipt_id" value="{{ receipt.id }}">
+                            <input type="hidden" name="is_paystack" value="True">
+                            <div class="input-group">
+                                <select class="form-select" name="status">
+                                    <option value="Confirmed">Confirmed</option>
+                                    <option value="Rejected">Rejected</option>
+                                    <option value="Not_received">Not Received</option>
+                                    <option value="Duplicate">Duplicate</option>
+                                    {% comment %} <option value="Comment">Custom Comment</option> {% endcomment %}
+                                </select>
+                                <input type="text" class="form-control" name="comment" placeholder="Comment">
+                                <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                            </div>
+                        </form>
+                    </td>
+
+                </tr>
+                {% comment %} </form> {% endcomment %}
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="pagination">
+            {% if page.has_previous %}
+                <a href="?page=1">First</a>
+                <a href="?page={{ payStack_receipts.previous_page_number }}">Previous</a>
+            {% endif %}
+    
+            <span class="current mr-5">
+                Page {{ payStack_receipts.number }} of {{ payStack_receipts.paginator.num_pages }}.
+            </span>
+    
+            {% if payStack_receipts.has_next %}
+                <div style="float:right; margin-left: 20px;" >
+                  <a href="?page={{ payStack_receipts.next_page_number }}" class="btn btn-primary btn-sm mr-2">Next</a>
+                <a href="?page={{ payStack_receipts.paginator.num_pages }}" class="btn btn-info btn-sm mr-2">Last</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+<script>
+    window.onload = function () {
+    localStorage.removeItem("Recipts"); // Clear all items in local storage
+    localStorage.removeItem("PaySatckRecipts"); // Clear all items in local storage
+}
+</script>   
+<script>
+    $("#normal_receiptsbtn").on("click", ()=>{
+        $("#normal_receipts").css("display", "block")
+        $("#payStack_receipts").css("display", "none")
+    })
+    $("#payStack_receiptsbtn").on("click", ()=>{
+        $("#payStack_receipts").css("display", "block")
+        $("#normal_receipts").css("display", "none")
+    })
+</script> 
+<script>
+    let dataId;
+    let dataIDPayStack;
+    const buttons = document.querySelectorAll('#addIDReciptBtn');  
+    const PayStackbuttons = document.querySelectorAll('#addIDPaystackReciptBtn');  
+    function handleClick(event) {
+        dataId = event.target.dataset.id;
+        console.log('data-id value:', dataId);
+
+        let _local = localStorage.getItem("Recipts");
+        let recipts = _local ? JSON.parse(_local) : []; // Parse the existing data or initialize as an empty array
+
+        if (!recipts.includes(dataId)) {
+            // Item is not in the array, so add it
+            recipts.push(dataId);
+        } else {
+            // Item is in the array, so remove it
+            recipts = recipts.filter(item => item !== dataId);
+        }
+
+        // Update localStorage with the updated array
+        localStorage.setItem("Recipts", JSON.stringify(recipts));
+    }
+    function handleClick2(event) {
+            dataIDPayStack = event.target.dataset.id;
+            console.log('data-id value:', dataIDPayStack);
+
+            let _local = localStorage.getItem("PaySatckRecipts");
+            let paystackrecipts = _local ? JSON.parse(_local) : [];
+
+            if (!paystackrecipts.includes(dataIDPayStack)) {
+            // Item is not in the array, so add it
+                paystackrecipts.push(dataIDPayStack);
+            }else {
+                // Item is in the array, so remove it
+                paystackrecipts = paystackrecipts.filter(item => item !== dataIDPayStack);
+            }
+            localStorage.setItem("PaySatckRecipts", JSON.stringify(paystackrecipts));
+
+    }
+    buttons.forEach((button) => {
+            button.addEventListener('click', handleClick);
+        });
+    PayStackbuttons.forEach((button) => {
+        button.addEventListener('click', handleClick2);
+    });
+    // Submit bulk recipts
+    $("#recipts_form").on("submit",(e)=>{
+        e.preventDefault();
+        let recipts=localStorage.getItem("Recipts")
+        console.log(recipts, "jsdhsjh");
+        if (recipts === null) {
+            alert("No item select one")
+        }else{
+            
+
+        $("#receipt_confirmbtn").text("Loading")
+        $.ajax({
+            type:"POST",
+            url:"bulk-recipt-confirmation/",
+            data:{
+                "type":"recipts",
+                "obj": recipts
+            },
+            success:function(resp){
+                console.log(resp)
+                localStorage.removeItem("Recipts")
+                location.reload();
+            },
+            error:function(err){
+                console.log(err)
+                alert("Mail sending failed")
+                $("#receipt_confirmbtn").text("Confirm selected Receipts")
+            }
+        })}
+    })
+    // Submit bulk paystackrecipts
+    $("#paystackrecipts_form").on("submit",(e)=>{
+        e.preventDefault();
+        let recipts=localStorage.getItem("PaySatckRecipts")
+        console.log(recipts, "jsdhsjh");
+        if (recipts === null) {
+            alert("No item select one")
+        }else{
+        $("#paystackreceipt_confirmbtn").text("Loading")
+        $.ajax({
+            type:"POST",
+            url:"bulk-recipt-confirmation/",
+            data:{
+                "type":"paystack_recipts",
+                "obj": recipts
+            },
+            success:function(resp){
+                console.log(resp)
+                localStorage.removeItem("PaySatckRecipts")
+                location.reload();
+            },
+            error:function(err){
+                console.log(err)
+                alert("Mail sending failed")
+                $("#paystackreceipt_confirmbtn").text("Confirm selected Receipts Paystack Receipts")
+            }
+        })}
+    })
+</script>
+{% endblock %}

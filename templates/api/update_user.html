@@ -1,0 +1,38 @@
+{% extends 'api/base.html' %}
+{% load static crispy_forms_tags %}
+<!-- your_template.html -->
+{%block text%} Update user form {%endblock%}
+{% block content %}
+<div class="container mt-5">
+    <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col mt-3">
+                <label for="">First name</label>
+              <input type="text" class="form-control" value="{{user.user.firstname}}" placeholder="First name" aria-label="First name" name="firstname">
+            </div>
+            
+            <div class="col mt-3">
+                <label for="">Last name</label>
+              <input type="text" class="form-control" value="{{user.user.lastname}}" placeholder="Last name" aria-label="Last name" name="lastname">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col mt-3">
+                <label for="">Bank name</label>
+              <input type="text" class="form-control" value="{{user.bank_name}}" placeholder="Bank name" aria-label="First name" name="bank_name">
+            </div>
+            <div class="col mt-3">
+                <label for="">Account Number</label>
+              <input type="text" class="form-control" value="{{user.account_number}}" placeholder="Account number" aria-label="Last name" name="account_number">
+            </div>
+          </div>
+            <div class="col mt-3">
+                <label for="">Paypal Address</label>
+                <input type="text" class="form-control" value="{{user.paypal_address}}" placeholder="Paypal address" aria-label="First name" name="paypal_address">
+            </div>
+
+            <div class="text-center mt-4"><button type="submit" class="btn btn-success">Submit</button></div>
+    </form>
+</div>
+{%endblock%}

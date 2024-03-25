@@ -1,0 +1,139 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="static\images\Favicon.svg" type="image/x-icon">
+    <!-- Bootstrap icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <!-- Google fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
+    <!-- Jquery -->
+    <title>FT9JA - Admin</title>
+  </head>
+  {% include 'api/style.html' %}
+  {% include 'api/responsive.html'%}
+  <body>
+    <div class="main-body">
+       <div class="nav-section">
+            <nav class="navbar navbar-expand-lg navbar-light">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="#"><span class="logo"><img src="https://ft9jahero.com/assets/logo-7ef4c480.svg" alt="" ></a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarText">
+                        <div class="side-links">
+                            <ul class="link-holder">
+                                <li class="login">Welcome {{request.user.email}}</li>
+                                <li>
+                                  <div class="btn-group">
+                                    <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                      Account Requests
+                                    </button>
+                                      <ul class="dropdown-menu">
+                                        
+                                          <li class="login"><a href="{% url 'sca_requests'%}">SCA</a></li>
+                                          <li><hr class="dropdown-divider"></li>
+                                          <li class="login"><a href="{% url 'aso_acc_requests'%}">ASO</a></li>
+                                          <li><hr class="dropdown-divider"></li>
+                                          <li class="login"><a href="{% url 'ver_acc_requests'%}">Verification</a></li>
+                                          <li><hr class="dropdown-divider"></li>
+                                      </ul>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                          Manage users
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                          {% if request.user.is_staff %}
+                                          <li class="_create-acc p-2"><a href="{%url 'create_trade_account'%}">Add new Trader Account</a></li>
+                                          <li><hr class="dropdown-divider"></li>
+                                          <li class="_create-acc p-2"><a href="{%url 'create_SecondChance_account'%}">Add SCA</a></li>
+                                          <li><hr class="dropdown-divider"></li>
+                                          <li class="_create-acc p-2"><a href="{%url 'create_aso_account'%}">Add Aso</a></li>
+                                          <li><hr class="dropdown-divider"></li>
+                                          <li class="login"><a href="{% url 'user_list'%}">Users</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="login"><a href="{% url 'approve_payout'%}">Payouts</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="login"><a href="{% url 'referral_payout'%}">Referral Payouts</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="login"><a href="{% url 'user_accounts_list'%}">Accounts</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="login"><a href="{% url 'receipt_list'%}">Receipts</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="login"><a href="{% url 'violations'%}">Violations</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            
+                                            {% elif request.user.is_ft9ja_staff_receipts %}
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="login"><a href="{% url 'receipt_list'%}">Receipts</a></li>
+
+                                            {% elif request.user.is_ft9ja_staff%}
+                                            <li class="_create-acc p-2"><a href="{%url 'create_trade_account'%}">Add new Trader Account</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="login"><a href="{% url 'user_list'%}">Users</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="login"><a href="{% url 'user_accounts_list'%}">Accounts</a></li>
+
+                                            {% elif request.user.is_ft9ja_staff_payouts %}
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="login"><a href="{% url 'approve_payout'%}">Payouts</a></li>
+                                            
+                                            {%endif%}
+ 
+                                        </ul>
+                                      </div>
+
+                                </li>
+                                <li>
+                                  {% if request.user.is_staff %}
+                                  <div class="btn-group">
+                                      <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Stats
+                                      </button>
+                                      <ul class="dropdown-menu">
+                                          <li class="login"><a href="{% url 'faq_reactions'%}">FAQ Feedbacks</a></li>
+                                          <li class="login"><a href="{% url 'referralplatformview'%}">User Stats</a></li>
+                                          <li class="login"><a href="{% url 'servers'%}">Servers</a></li>
+                                      </ul>
+                                    </div>
+                                  {%endif%}
+                              </li>
+                                {% if request.user.is_authenticated %} <li class="login btn btn-info"><a href="{%url 'dash-logout' %}">Logout</a></li>{%endif%}
+                                <!-- <li class="create-acc"><a href="https://ft9ja.com/register/" target="_blank">Create an account</a></li> -->
+              </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav> 
+       </div> 
+       <div class="video-meger-section">
+            <span class="video-meger-text">{%block text%}{%endblock%}</span>
+        </div> 
+            <div class="container">
+                {%block content%}
+                {%endblock%}
+            </div>
+       <footer>
+        <div class="footer row">
+           
+            <div class="copywrite text-center mb-1">&copy Copyright FT9JA. All reserved.</div>
+            
+        </div>  
+       </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    
+</body>
+</html>

@@ -1,0 +1,153 @@
+{% extends 'api/base.html' %}
+{% load static crispy_forms_tags %}
+<!-- your_template.html -->
+{%block text%} Create Aso Account{%endblock%}
+{% block content %}
+    <div class="form-holder mt-5">
+        <form id="form">
+            {%csrf_token%}
+            <div class="mb-3">
+                <label for="exampleInputFullName" class="form-label">FCA/SCA</label>
+                <input type="number" class="form-control" id="trader" name="trader" required placeholder="Trader's fca or sca">
+            </div>
+            <div class="mb-3">
+                <label for="exampleInputFullName" class="form-label">Account</label>
+                <input type="number" class="form-control" id="number" name="number" step="1" required >
+
+            </div>
+            
+            <div class="mb-3">
+                <label for="exampleInputFullName" class="form-label">Server</label>
+                <input type="text"  class="form-control" name="platform" required id="broker">
+            </div>
+            <div class="mb-3">
+                <label for="exampleInputPassword1" class="form-label">Password</label>
+                <input type="text" name="password" class="form-control" id="exampleInputPassword1" required>
+            </div>
+            <div class="mb-3">
+                <label for="exampleInputPassword1" class="form-label">Investor Password</label>
+                <input type="text" name="investor_password" class="form-control" id="investor_password" required>
+            </div>
+            <div class="mb-3">
+                <label for="broker" class="form-label">Platform</label>
+                <select class="form-select" name ="broker" id="platform" required >
+                    <option value="MT4">MT4</option>
+                    <option value="MT5">MT5</option>
+                    <!-- Add more options as needed -->
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="payout" class="form-label">Payout</label>
+                <select class="form-select" name ="payout" id="payout" required >
+                    <option value="Weekly">Weekly</option>
+
+                    <option value="Bi-Weekly">Bi-Weekly</option>
+
+                    <option value="Monthly">Monthly</option>
+                    <!-- Add more options as needed -->
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="accountSize" class="form-label">Account Size</label>
+                <input type="text" name="acc_size" class="form-control" id="acc_size" required>
+            </div>
+            <div class="err">
+
+            </div>
+            <div class="merger-btn-holder text-center form-button"><button type="submit">Create Account</button></div>
+            <div class="merger-btn-holder text-center loading-button"><button type="button" disabled>
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> creating account</button></div>
+        </form>
+        <input type="hidden" id="redirect-url" value="{% url 'user_accounts_list' %}">
+
+
+    </div>
+    <script>
+        $(document).ready(function () {
+
+            $("#typeofaccount").change(()=>{
+                $(".err").html("")
+            })
+            $("#number").keydown((e)=>{
+                var invalidChars = [
+                "-",
+                "+",
+                "e",
+                ];
+                if (invalidChars.includes(e.key)) {
+                e.preventDefault();
+            }})
+            $("#trader").keydown((e)=>{
+                var invalidChars = [
+                "-",
+                "+",
+                "e",
+                ];
+                if (invalidChars.includes(e.key)) {
+                e.preventDefault();
+            }})
+
+
+            $("#form").submit((e)=>{
+                e.preventDefault();
+                $(".form-button").css("display", "none")
+                $(".loading-button").css("display", "block")
+                const csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+                $.ajax({
+                    type: "POST",
+                    url: "",
+                    data: {
+                        "csrfmiddlewaretoken": csrfToken, // Change "X-CSRFToken" to "csrfmiddlewaretoken"
+                        "trader": $("#trader").val(),
+                        "number": $("#number").val(),
+                        "password": $("#exampleInputPassword1").val(),
+                        "investor_password": $("#investor_password").val(),
+                        "platform": $("#platform").val(),
+                        // "typeofaccount": $("#typeofaccount").val(),
+                        "broker": $("#broker").val(),
+                        "acc_size": $("#acc_size").val(),
+                        "payout":$("#payout").val(),
+                        // "scdChance":$("#scdChance").val()
+                    },
+                    success: function(resp){
+                        $(".err").html(`
+                        <div class="alert alert-success" role="alert">
+                            ${resp.details}
+                        </div> 
+                        `)
+                        document.querySelector("#form").reset()
+                        $(".form-button").css("display", "block")
+                        $(".loading-button").css("display", "none")
+                       var redirectUrl = document.getElementById("redirect-url").value;
+                        
+                        window.location.href = redirectUrl;
+            
+                    },
+                    error: function(err){
+                        console.log(err)
+                        if(err.status == 500){
+                            $(".err").html(`
+                            <div class="alert alert-danger" role="alert">
+                                Not Successful.
+                            </div> 
+                            `)
+                            $(".form-button").css("display", "block")
+                            $(".loading-button").css("display", "none")
+                        }else{
+                            $(".err").html(`
+                            <div class="alert alert-danger" role="alert">
+                                ${err.responseJSON.details}
+                            </div> 
+                            `)
+                            $(".form-button").css("display", "block")
+                            $(".loading-button").css("display", "none")
+                        }
+                        
+                        
+                    }
+                });
+            });
+        });
+    </script>
+    
+{% endblock content %}

@@ -1,0 +1,93 @@
+{% extends 'api/base.html' %}
+{% load static crispy_forms_tags %}
+<!-- your_template.html -->
+{%block text%} Violations List {%endblock%}
+{% block content %}
+<div class="my-4">
+    <form method="get" class="form-inline">
+        <div class="form-group mx-sm-3 mb-2">
+            <input type="text" class="form-control" id="search_query" name="search_query" value="{{ search_query }}" placeholder="Enter number to search">
+        </div>
+        <button type="submit" class="btn btn-primary mb-2">Search</button>
+    </form>
+</div>
+<div class="table-responsive">
+        <table class="table table-striped mt-4 table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Account</th>
+                    <th>Violation Type</th>
+                    <th>Admin Status</th>
+                    <th>Screenshot</th>
+                    <th>Percentage</th>
+                    <th>Date Checked</th>
+                    <th>Comment</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in violations_list %}
+                <tr>
+                    <td>{{ request.user }}</td>
+                    <td >{{ request.account }}</td>
+                    <td >{{ request.violation_type }}</td>
+                    <td>{{ request.status }}</td>
+                    {% comment %} {%if request.account %} 
+                        <td><button class="btn btn-success btn-sm"><a href="https://dashboard.ft9ja.com/login?email=owenyakubu533@gmail.com&password=EHpDFzL5hKnMqq8&number={{ request.account }}">View</a></button></td>
+                    {% else %} 
+                        <td><button class="btn btn-success btn-sm" disabled>View</a></button></td>
+                    {%endif%} {% endcomment %}
+                    <td >
+                        {% if request.image %}
+                        <img src="{{ request.image.url }}" alt="Violation Image" style="max-width: 100px;">
+                        {% else %}
+                            No Image
+                        {% endif %}
+                    </td>
+                    <td >{{ request.percent }}%</td>
+                    <td >{{ request.created }}</td>
+                    <td>{{ request.comment }}</td>
+                    <td>
+                      <form action="" method="POST">
+                          {% csrf_token %}
+                          <input type="hidden" name="receipt_id" value="{{ request.id }}">
+                          <div class="input-group">
+                              <select class="form-select" name="status">
+                                  <option value="Confirmed">Confirm</option>
+                                  <option value="Rejected">Reject</option>
+                              </select>
+                              <input type="text" class="form-control" name="comment" placeholder="Comment">
+                              <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                          </div>
+                      </form>
+                  </td>
+                </tr>
+                {%empty%}
+                <tr>
+                    <div class="alert alert-danger mt-5" role="alert">
+                    </div>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination">
+        {% if page.has_previous %}
+            <a href="?page=1">First</a>
+            <a href="?page={{ violations_list.previous_page_number }}">Previous</a>
+        {% endif %}
+
+        <span class="current mr-5">
+            Page {{ violations_list.number }} of {{ violations_list.paginator.num_pages }}.
+        </span>
+
+        {% if violations_list.has_next %}
+            <div style="float:right; margin-left: 20px;" >
+              <a href="?page={{ violations_list.next_page_number }}" class="btn btn-primary btn-sm mr-2">Next</a>
+            <a href="?page={{ violations_list.paginator.num_pages }}" class="btn btn-info btn-sm mr-2">Last</a>
+            </div>
+        {% endif %}
+    </div>
+
+{% endblock %}

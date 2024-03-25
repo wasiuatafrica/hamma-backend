@@ -1,0 +1,66 @@
+{% extends 'api/base.html' %}
+{% block text %} Daily Correlations History for {{main_account}} (Equity Only) {% endblock %}
+{% block content %}
+
+  <div class="table-responsive">
+    <table class="table table-striped mt-4 table-bordered table-hover">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Correlated</th>
+          <th>Anti-Correlated</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for data in datam %}
+        <tr>
+          <td>{{ data.date }}</td>
+          <td>
+            <div class="table-responsive">
+              {% comment %} <h4>Correlated</h4> {% endcomment %}
+              <table class="table table-striped mt-2 table-bordered table-hover">
+                <thead>
+                  <tr>
+                    {% comment %} <th>Account</th> {% endcomment %}
+                    {% comment %} <th>Correlation</th> {% endcomment %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for correlated_data in data.top_correlated_equity %}
+                  <tr>
+                    <td>{{ correlated_data.0 }}</td>
+                    <td>{{ correlated_data.1 }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </td>
+          <td>
+            <div class="table-responsive">
+              {% comment %} <h4>Anti-Correlated</h4> {% endcomment %}
+              <table class="table table-striped mt-2 table-bordered table-hover">
+                <thead>
+                  <tr>
+                    {% comment %} <th>Account</th> {% endcomment %}
+                    {% comment %} <th>Correlation</th> {% endcomment %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for anticorrelated_data in data.top_anticorrelated_equity %}
+                  <tr>
+                    <td>{{ anticorrelated_data.0 }}</td>
+                    <td>{{ anticorrelated_data.1 }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'api/base.html' %}
+{% load static crispy_forms_tags %}
+<!-- your_template.html -->
+{%block text%} Verification Account Request List {%endblock%}
+{% block content %}
+<div class="table-responsive">
+    <style>
+        /* Base styles for the form */
+        .search-form {
+            width: 60%;
+        }
+    
+        /* Media query for screens with a maximum width of 600px */
+        @media (max-width: 600px) {
+            .search-form {
+                width: 100%; /* Change the width to 100% for smaller screens */
+            }
+        }
+    </style>
+    
+    <div class="div mt-5">
+        <form class="search-form">
+            <div class="input-group">
+                <input type="text" class="form-control" name="q" placeholder="Search by email or account">
+                <button type="submit" class="btn btn-primary btn-sm">Search</button>
+            </div>
+        </form>
+    </div>
+        <table class="table table-striped mt-4 table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Account</th>
+                    <th>Admin Status</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in requests %}
+                <tr>
+                    <td>{{ request.user }}</td>
+                    <td >{{ request.account }}</td>
+                    <td>{{ request.status }}</td>
+                    <td >{{ request.date }}</td>
+                    <td>{{ request.comment }}</td>
+                    <td>
+                      <form action="" method="POST">
+                          {% csrf_token %}
+                          <input type="hidden" name="sca_id" value="{{ request.id }}">
+                          <div class="input-group">
+                              <select class="form-select" name="status">
+                                  <option value="Eligible">Eligible</option>
+                                  <option value="Ineligible">Ineligible</option>
+                              </select>
+                              <input type="text" class="form-control" name="comment" placeholder="Comment">
+                              <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                          </div>
+                      </form>
+                  </td>
+                </tr>
+                {%empty%}
+                <tr>
+                    <div class="alert alert-danger mt-5" role="alert">
+                        
+                    </div>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination">
+        {% if page.has_previous %}
+            <a href="?page=1">First</a>
+            <a href="?page={{ requests.previous_page_number }}">Previous</a>
+        {% endif %}
+
+        <span class="current mr-5">
+            Page {{ requests.number }} of {{ requests.paginator.num_pages }}.
+        </span>
+
+        {% if requests.has_next %}
+            <div style="float:right; margin-left: 20px;" >
+              <a href="?page={{ requests.next_page_number }}" class="btn btn-primary btn-sm mr-2">Next</a>
+            <a href="?page={{ requests.paginator.num_pages }}" class="btn btn-info btn-sm mr-2">Last</a>
+            </div>
+        {% endif %}
+    </div>
+
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'api/base.html' %}
+
+{%block text%} SCA  Detail {{ trade_account.number }} {%endblock%}
+{% block content %}
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/dygraphs@2.2.1/dist/dygraph.min.css" />
+<div class="text-center mt-5"><h4>Trade Account Info for {{trade_account.trader.email}}</h4></div>
+<div class="table-responsive"> 
+  <table class="table table-striped mt-4 table-bordered table-hover table-success">
+      <thead>
+          <tr>
+              <th>Account</th>
+              <th>Password</th>
+              <th>Investor Password</th>
+              <th>Platform</th>
+              <th>Account Type</th>
+              <th>Broker</th>
+              <th>Account Size</th>
+              <th>Payout</th>
+              <th>Date Created</th>
+          </tr>
+      </thead>
+      <tbody>
+             {%for trade_account in trade_account %} 
+            <tr>
+                <td><span id="_number">{{ trade_account.trader }}</span></td>
+                <td><span id="_password">{{ trade_account.password }}</span></td>
+                <td><span id="_investor_password">{{ trade_account.investor_password }}</span></td>
+                <td><span id="_platform">{{ trade_account.platform }}</span></td>
+                <td><span id="_typeofaccount">{{ trade_account.typeofaccount.title }}</span></td>
+                <td><span id="_broker">{{ trade_account.broker }}</span></td>
+                <td><span id="_acc_size">{{ trade_account.acc_size }}</span></td>
+                <td><span id="_payout">{{ trade_account.payout }}</span></td>
+                <td>{{ trade_account.created }}</td>
+            </tr>
+            {%endfor%}
+
+      </tbody>
+  </table>
+</div>
+
+{%endblock%}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

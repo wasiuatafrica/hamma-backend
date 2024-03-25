@@ -1,0 +1,72 @@
+{% extends 'api/base.html' %}
+{% block text %} Servers Info MT5 {% endblock %}
+{% block content %}
+
+    <div class="table-responsive" >
+        
+        <table class="table table-striped mt-4 table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Account Type</th>
+                    <th>Number of Accounts</th>
+                    <th>Required Server</th>
+                    <th>Available Server</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Deriv</td>
+                    <td>{{ deriv }}</td>
+                    <td>{{ deriv_required }}</td>
+                    <td>{{ deriv_available }}</td>
+                </tr>
+                <tr>
+                    <td>FXTM</td>
+                    <td>{{ fxtm }}</td>
+                    <td>{{ fxtm_required }}</td>
+                    <td>{{ fxtm_available }}</td>
+                </tr>
+                <tr>
+                    <td>ICMarkets</td>
+                    <td>{{ icm }}</td>
+                    <td>{{ icm_required }}</td>
+                    <td>{{ icm_available }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <br>
+        <table class="table table-striped mt-4 table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Server Name</th>
+                    <th>Last Collected Time (GMT)</th>
+                    <th>Account Checked</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for time, number in deriv_accounts %}
+                    {% if time and number %}
+                    <tr>
+                        <td>Deriv {{ forloop.counter }}</td>
+                        <td>{{ time }}</td>
+                        <td>{{ number }}</td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+                <tr>
+                    <td>ICMarkets 1</td>
+                    <td>{{ icm_1.0 }}</td>
+                    <td>{{ icm_1.1 }}</td>
+                </tr>
+                <tr>
+                    <td>FXTM 1</td>
+                    <td>{{ fxtm_1.0 }}</td>
+                    <td>{{ fxtm_1.1 }}</td>
+                </tr>
+            </tbody>
+            
+        </table>
+    </div>
+
+    
+{% endblock %}

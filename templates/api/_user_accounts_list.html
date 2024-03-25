@@ -1,0 +1,35 @@
+<!-- user_accounts_list.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <!-- Include Bootstrap CSS here -->
+</head>
+<body>
+    <div class="container">
+        <h1>User Accounts List</h1>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Account</th>
+                    {% comment %} <th>Payout</th> {% endcomment %}
+                    <th>Blown</th>
+                    <th>Paid</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user_account in user_accounts %}
+                <tr>
+                    <td>{{ user_account.user.email }}</td>
+                    <td>{{ user_account.acc.typeofaccount.title }}</td>
+                    {% comment %} <td>{{ user_account.payout }}</td> {% endcomment %}
+                    <td>{{ user_account.blown }}</td>
+                    <td>{{ user_account.paid }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

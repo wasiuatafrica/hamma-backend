@@ -1,0 +1,490 @@
+{% extends 'api/base.html' %}
+{% load static crispy_forms_tags %}
+
+{% block text %} Referral Payout Request List {% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5"></div>
+    <form class="row row-cols-lg-auto g-3 align-items-center text-center filter mt-4" form action="" >
+
+
+    <div class="col-auto">
+      <label class="visually-hidden_" for="inlineFormSelectPref">Status</label>
+      <select class="form-select" id="inlineFormSelectPref" name="status">
+        <option selected>Choose...</option>
+        <option value="Unprocessed">Unprocessed</option>
+        <option value="Duplicate">Duplicate</option>
+        <option value="Unpaid">Unpaid</option>
+        <option value="Paid">Paid</option>
+      </select>
+    </div>
+    <div class="col-auto date">
+    <label class="visually-hidden_" for="autoSizingInput">From</label>
+    <input type="date" class="form-control" id="date" name="date" required>
+    </div>
+    <div class="col-auto date">
+      <label class="visually-hidden_" for="autoSizingInput">To</label>
+      <input type="date" class="form-control" id="to_date" name="to_date" required>
+      </div>
+
+    <div class="col-auto">
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+
+  </form>
+</div>
+<div class="container mb-5 mt-5 text-center">
+    <form>
+        <div class="col-auto date">
+            <input type="text" class="form-control" id="to_date" name="filter" placeholder="search by email">
+        </div>
+        <button type="submit" class="btn btn-success mt-2" >Search</button>
+    </form>
+</div>
+<div class="table-responsive">
+    <table class="table table-striped mt-4 table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>User</th>
+                <th>Amount</th>
+                <th>Admin Status</th>
+                <th>Date</th>
+                <th>Comment</th>
+                <th>Dashboard</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for request in payout_list %}
+            <tr>
+                <td>{{ forloop.counter }}</td> 
+                <td>{{ request.user }}</td>
+                <td>{{ request.amount }}</td>
+                <td id ="payment_status{{ request.id }}">{{ request.status }}</td>
+                <td>{{ request.created }}</td>
+                <td>{{ request.comment }}</td>
+                <td><a target="_blank" href="https://dashboard.ft9ja.com/login?email=owenyakubu533@gmail.com&password=EHpDFzL5hKnMqq8&trader_email={{request.user}}">View</a></td>
+                <td>
+                    <form action="" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="receipt_id" value="{{ request.id }}">
+                        <div class="input-group">
+                            <select class="form-select" name="status">
+                                <option value="Unpaid">Unpaid</option>
+                                <option value="duplicate">Duplicate</option>
+                                <option value="Paid">Paid</option>
+                            </select>
+                            <input type="text" class="form-control" name="comment" placeholder="Comment">
+                            
+                            <button type="submit" id="updatebtn{{request.id}}" class="btn btn-primary btn-sm"{% if request.status == 'Paid' or request.status == 'duplicate' or request.comment == 'duplicate' %} disabled {%endif%}>Update</button>
+                            
+                            
+                        </div>
+                    </form>
+                    
+                </td>
+                <td><button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#payModal" id="listpaybutton{{request.id}}"
+                    data-request-id="{{ request.id }}" {% if request.status == 'Paid' or request.status == 'duplicate' or request.comment == 'duplicate'%} disabled {%endif%}>Pay</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <div class="alert alert-danger mt-5" role="alert">
+                    No payout request found.
+                </div>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="pagination">
+        {% if page.has_previous %}
+            <a href="?page=1">First</a>
+            <a href="?page={{ payout_list.previous_page_number }}">Previous</a>
+        {% endif %}
+
+        <span class="current mr-5">
+            Page {{ payout_list.number }} of {{ payout_list.paginator.num_pages }}.
+        </span>
+
+        {% if payout_list.has_next %}
+            <div style="float:right; margin-left: 20px;" >
+              <a href="?page={{ payout_list.next_page_number }}" class="btn btn-primary btn-sm mr-2">Next</a>
+            <a href="?page={{ payout_list.paginator.num_pages }}" class="btn btn-info btn-sm mr-2">Last</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal for payment -->
+<div class="modal fade" id="payModal" tabindex="-1" role="dialog" aria-labelledby="payModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="paymentForm">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="payModalLabel">Make Payment</h5>
+                    
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="receiptId" name="receipt_id" value="">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="text" class="form-control" id="email" name="email" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Amount</label>
+                        <input type="text" class="form-control" id="amount" name="amount" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="bankName">Bank Name</label>
+                        <input type="text" class="form-control" id="bankName" name="bank_name" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="accountNumber">Account Number</label>
+                        <input type="text" class="form-control" id="accountNumber" name="account_number" readonly>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="payButton" disabled>Pay</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for OTP submission -->
+<div class="modal fade" id="otpModal" tabindex="-1" role="dialog" aria-labelledby="otpModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="otpForm">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="otpModalLabel">OTP</h5>
+                    
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="transferCode" name="transfer_code" value="">
+                    <div class="form-group">
+                        <label for="otp">OTP</label>
+                        <input type="text" class="form-control" id="otp" name="otp">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="OTPButton">Confirm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        $(".filter").submit(function(e) {
+        // Get the values of from_date and to_date input fields
+        var fromDate = $("#date").val();
+        var toDate = $("#to_date").val();
+
+        // Compare dates before sending the request
+        if (new Date(fromDate) > new Date(toDate)) {
+            alert("From date cannot be greater than to date.");
+            e.preventDefault()
+            return; // Do not send the request if dates are not valid
+        }
+      })
+        // Trigger modal when "Pay" button is clicked
+        var bankOptions = {
+            "Select Bank":"Select Bank",
+            "9mobile 9Payment Service Bank": "120001",
+            "Abbey Mortgage Bank": "404",
+            "Above Only MFB": "51204",
+            "Abulesoro MFB": "51312",    
+            "Access Bank": "044",
+            "Access Bank (Diamond)": "063",
+            "Accion Microfinance Bank": "602",
+            "Ahmadu Bello University Microfinance Bank": "50036",
+            "Airtel Smartcash PSB": "120004",
+            "AKU Microfinance Bank": "51336",
+            "ALAT by WEMA": "035A",
+            "Amegy Microfinance Bank": "090629",
+            "Amju Unique MFB": "50926",
+            "AMPERSAND MICROFINANCE BANK": "51341",
+            "Aramoko MFB": "50083",
+            "ASO Savings and Loans": "401",
+            "Astrapolaris MFB LTD": "MFB50094",
+            "Bainescredit MFB": "51229",
+            "Banc Corp Microfinance Bank": "50117",
+            "Bowen Microfinance Bank": "50931",
+            "Branch International Financial Services Limited": "FC40163",
+            "Carbon": "565",
+            "CASHCONNECT MFB": "865",
+            "CEMCS Microfinance Bank": "50823",
+            "Chanelle Microfinance Bank Limited": "50171",
+            "Chikum Microfinance bank": "312",
+            "Citibank Nigeria": "023",
+            "Consumer Microfinance Bank": "50910",
+            "Corestep MFB": "50204",
+            "Coronation Merchant Bank": "559",
+            "County Finance Limited": "FC40128",
+            "Crescent MFB": "51297",
+            "Dot Microfinance Bank": "50162",
+            "Ecobank Nigeria": "050",
+            "Ekimogun MFB": "50263",
+            "Ekondo Microfinance Bank": "098",
+            "Eyowo": "50126",
+            "Fairmoney Microfinance Bank": "51318",
+            "Fidelity Bank": "070",
+            "Firmus MFB": "51314",
+            "First Bank of Nigeria": "011",
+            "First City Monument Bank": "214",
+            "FirstTrust Mortgage Bank Nigeria": "413",
+            "FLOURISH MFB": "50315",
+            "FSDH Merchant Bank Limited": "501",
+            "FUTMINNA MICROFINANCE BANK": "832",
+            "Gateway Mortgage Bank LTD": "812",
+            "Globus Bank": "00103",
+            "GoMoney": "100022",
+            "Goodnews Microfinance Bank": "50739",
+            "Greenwich Merchant Bank": "562",
+            "Guaranty Trust Bank": "058",
+            "Hackman Microfinance Bank": "51251",
+            "Hasal Microfinance Bank": "50383",
+            "Heritage Bank": "030",
+            "HopePSB": "120002",
+            "Ibile Microfinance Bank": "51244",
+            "Ikoyi Osun MFB": "50439",
+            "Ilaro Poly Microfinance Bank": "50442",
+            "Imowo MFB": "50453",
+            "Infinity MFB": "50457",
+            "Jaiz Bank": "301",
+            "Kadpoly MFB": "50502",
+            "Keystone Bank": "082",
+            "Kredi Money MFB LTD": "50200",
+            "Kuda Bank": "50211",
+            "Lagos Building Investment Company Plc.": "90052",
+            "Links MFB": "50549",
+            "Living Trust Mortgage Bank": "031",
+            "Lotus Bank": "303",
+            "Mayfair MFB": "50563",
+            "Mint MFB": "50304",
+            "Money Master PSB": "946",
+            "Moniepoint MFB": "50515",
+            "MTN Momo PSB": "120003",
+            "NPF MICROFINANCE BANK": "50629",
+            "OPay Digital Services Limited (OPay)": "999992",
+            "Optimus Bank Limited": "107",
+            "Paga": "100002",
+            "PalmPay": "999991",
+            "Parallex Bank": "104",
+            "Parkway - ReadyCash": "311",
+            "Paystack-Titan": "100039",
+            "Peace Microfinance Bank": "50743",
+            "Personal Trust MFB": "51146",
+            "Petra Mircofinance Bank Plc": "50746",
+            "Platinum Mortgage Bank": "268",
+            "Polaris Bank": "076",
+            "Polyunwana MFB": "50864",
+            "PremiumTrust Bank": "105",
+            "Providus Bank": "101",
+            "QuickFund MFB": "51293",
+            "Rand Merchant Bank": "502",
+            "Refuge Mortgage Bank": "90067",
+            "Rephidim Microfinance Bank": "50994",
+            "Rigo Microfinance Bank Limited": "51286",
+            "ROCKSHIELD MICROFINANCE BANK": "50767",
+            "Rubies MFB": "125",
+            "Safe Haven MFB": "51113",
+            "Safe Haven Microfinance Bank Limited": "951113",
+            "SAGE GREY FINANCE LIMITED": "40165",
+            "Shield MFB": "50582",
+            "Solid Allianze MFB": "51062",
+            "Solid Rock MFB": "50800",
+            "Sparkle Microfinance Bank": "51310",
+            "Stanbic IBTC Bank": "221",
+            "Standard Chartered Bank": "068",
+            "Stellas MFB": "51253",
+            "Sterling Bank": "232",
+            "Suntrust Bank": "100",
+            "Supreme MFB": "50968",
+            "TAJ Bank": "302",
+            "Tanadi Microfinance Bank": "090560",
+            "Tangerine Money": "51269",
+            "TCF MFB": "51211",
+            "Titan Bank": "102",
+            "U&C Microfinance Bank Ltd (U AND C MFB)": "50840",
+            "Uhuru MFB": "51322",
+            "Unaab Microfinance Bank Limited": "50870",
+            "Unical MFB": "50871",
+            "Unilag Microfinance Bank": "51316",
+            "Union Bank of Nigeria": "032",
+            "United Bank For Africa": "033",
+            "Unity Bank": "215",
+            "VFD Microfinance Bank Limited": "566",
+            "Waya Microfinance Bank": "51355",
+            "Wema Bank": "035",
+            "Zenith Bank": "057"
+        };
+
+        var requestId;
+        
+        var modal = $('#payModal');
+        var payButton = $('#payButton');
+        var emailField = $('#email');
+        var amountField = $('#amount');
+        var accountNumberField = $('#accountNumber');
+        var bankNameField = $('#bankName');
+        var form = $('#paymentForm');
+
+        $('button[data-bs-target="#payModal"]').click(function () {
+            form[0].reset();
+            if ($('#bankName').is("input")) {
+                // If bankNameField is still an input (as initially), set it to readonly
+                bankNameField.prop('readonly', true);
+            } else {
+                // If bankNameField has been changed to a "select", change it back to an input
+                $('#bankName').replaceWith('<input type="text" class="form-control" id="bankName" name="bank_name" readonly>');
+                // Re-assigning the bankNameField variable because a new field was just created.
+                bankNameField = $('#bankName');
+            }      
+
+            requestId = $(this).data('request-id');
+            $.ajax({
+                url: '/api/payout-details/' + requestId + '/',
+                type: 'get',
+                dataType: 'json',
+                success: function (data) {
+                    $('.alert-danger').remove();
+
+                    emailField.val(data.email);
+                    amountField.val(data.amount);
+                    bankNameField.val(data.bank_name);
+                    accountNumberField.val(data.account_number);
+    
+                    if (data.account_number && data.bank_name && data.account_number !== '1234567890') {
+                        $('.alert-danger').remove();
+                        payButton.prop('disabled', false);
+                    } else {
+                        $('.alert-danger').remove();
+                        payButton.prop('disabled', true);
+                        form.prepend('<div class="alert alert-danger">User has not added account</div>');
+                    }
+    
+                    modal.modal('show');
+                    $('.alert-danger').remove();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown); 
+                }
+            });
+        });
+    
+        $('#paymentForm').on('submit', function (e) {
+            e.preventDefault();
+            var payButton = $('#payButton');
+            payButton.text('Initiating payment...'); 
+    
+            var formData = $(this).serialize();
+    
+            $.ajax({
+                url: '/api/makepayment/',
+                type: 'post',
+                data: formData,
+                success: function (data) {
+                    console.log(data);
+                    {% comment %} if (data.transfer_code) {
+                        var modalBody = $('.modal-body');
+                        modalBody.empty();  
+                        modalBody.append('<form method="post" action={% url "finalize-payment" %} id="otpForm"><input type="hidden" name="transfer_code" value="' + data.transfer_code + '"><div class="form-group"><label for="otp">OTP</label><input type="text" class="form-control" id="otp" name="otp"><br></div><button type="submit" id="OTPButton" class="btn btn-primary">Confirm</button></form>'); } {% endcomment %}
+                    if (data.transfer_code) {
+                        // Fetch transfer code, fill and show otpModal
+                        $("#transferCode").val(data.transfer_code);
+                        // Hide the payment form
+                        $('#payModal').modal('hide');
+                        // Show the OTP form
+                        $("#otpModal").modal("show");
+                    
+                        
+                        var payButton = $('#payButton');
+                        payButton.text('Pay'); 
+                        payButton.prop('disabled', true);
+
+                        $('.alert-danger').remove();
+                    } else {
+                        $('.alert-danger').remove();
+                        form.prepend('<div class="alert alert-danger">No matching bank name, please select manually.</div>');
+                        bankNameField.replaceWith('<select class="form-control" id="bankName" name="bank_name">' + $.map(bankOptions, function(val, key) {
+                            return '<option value="'+key+'">'+key+'</option>';
+                        }).join('') + '</select>');
+                        var payButton = $('#payButton');
+                        payButton.text('Pay'); 
+                        payButton.prop('disabled', false);
+                        
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown);
+                }
+            });
+        });
+    
+        $(document).on('submit', '#otpForm', function(e) {
+            e.preventDefault();
+            var OTPButton = $('#OTPButton');
+            OTPButton.text('Confirming payment...');
+        
+            var otpData = $(this).serialize();
+            var otpData2 = $(this).serializeArray();
+            console.log(otpData2);
+        
+            $.ajax({
+                url: '/api/finalize_payment/',
+                type: 'post',
+                data: otpData,
+                success: function (data) {
+                    console.log(data);
+                    // $('#payModal').modal('hide');
+                    OTPButton.text('Confirmed');
+        
+                    if (data.reference) {
+                        OTPButton.prop('disabled', true);
+                        OTPButton.text('Updating Payout...');
+                         console.log(requestId)
+                        // AJAX post request
+                        $.ajax({
+                            url: '/api/update-referral-payout/',
+                            type: 'post',
+                            data: {
+                                'id': requestId,
+                                'csrfmiddlewaretoken': '{{ csrf_token }}'
+                            },
+                            success: function(response) {
+                                // check if response message returns 'Paid and Updated'
+                                console.log(response.message);
+                                if (response.message === 'Paid and Updated') {
+                                    var updatebtn = $('#updatebtn' + requestId)
+                                    var listpaybutton = $('#listpaybutton' + requestId)
+
+                                    $('#payment_status'+requestId).text('Paid');
+                                    OTPButton.text('Payout Updated');
+                                    updatebtn.prop('disabled', true);
+                                    listpaybutton.prop('disabled', true);
+                                    $('#otpModal').modal('hide');
+        
+                                   
+                                }
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                console.log(textStatus, errorThrown);
+                            }
+                        });
+                    }
+                }
+            });
+        });
+        
+    });
+</script>
+
+{% endblock %}
