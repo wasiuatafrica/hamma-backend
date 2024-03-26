@@ -5,7 +5,7 @@ from rest_framework import exceptions, serializers
 UserModel = get_user_model()
 
 from rest_framework import serializers
-from .models import Wallet, Stock, Holding, Portfolio, Receipts, PayStackReceipts,Transaction, Alert, Conversation,Trade
+from .models import Wallet, Stock, Receipts, PayStackReceipts,Transaction, Alert, Conversation
 
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,42 +30,42 @@ class StockSerializer(serializers.ModelSerializer):
         )
     
 
-class HoldingSerializer(serializers.ModelSerializer):
-    stock = serializers.SerializerMethodField()
+# class HoldingSerializer(serializers.ModelSerializer):
+#     stock = serializers.SerializerMethodField()
     
-    class Meta:
-        model = Holding
-        fields = (
-            'id',
-            'stock',
-            'quantity',
-            'created',
-            'updated',
-            'filled',
-            'incomplete',
-            'shares',
-            'avg_cost',
-            'ltp',
-            'cur_val',
-            'pnl',
-            'change',
-            'percent_change',
-            'avg_volume_3_months',
-            'volume',
+#     class Meta:
+#         model = Holding
+#         fields = (
+#             'id',
+#             'stock',
+#             'quantity',
+#             'created',
+#             'updated',
+#             'filled',
+#             'incomplete',
+#             'shares',
+#             'avg_cost',
+#             'ltp',
+#             'cur_val',
+#             'pnl',
+#             'change',
+#             'percent_change',
+#             'avg_volume_3_months',
+#             'volume',
             
-        )
+#         )
 
-    def get_stock(self,obj):
-        return obj.stock.symbol
+#     def get_stock(self,obj):
+#         return obj.stock.symbol
     
-class PortfolioSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Portfolio
-        fields = (
-            'portfolio_value',
-            'total_invested',
-            'profit_loss'
-        )
+# class PortfolioSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Portfolio
+#         fields = (
+#             'portfolio_value',
+#             'total_invested',
+#             'profit_loss'
+#         )
 
 class ReceiptsViewSerializer(serializers.ModelSerializer):
     class Meta:
@@ -91,16 +91,16 @@ class ConversationSerializer(serializers.ModelSerializer):
         model = Conversation
         fields = "__all__"
 
-class TradeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Trade
-        fields = [
-            "id",
-            "user",
-            "quantity",
-            "price",
-            "timestamp",
-            "status",
-            "order_type",
-            "symbol",
-        ]
+# class TradeSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Trade
+#         fields = [
+#             "id",
+#             "user",
+#             "quantity",
+#             "price",
+#             "timestamp",
+#             "status",
+#             "order_type",
+#             "symbol",
+#         ]

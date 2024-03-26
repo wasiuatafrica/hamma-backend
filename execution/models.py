@@ -12,7 +12,7 @@ import websockets
 import asyncio
 from django.db import close_old_connections
 from concurrent.futures import ThreadPoolExecutor
-from portfolio.models import  Stock, Trade
+from portfolio.models import  Stock
 from portfolio.utils import connect_to_mongodb
 
 User=get_user_model()
@@ -132,10 +132,10 @@ class DemoTrade(models.Model):
     def amount(self):
         return self.quantity * self.price    
   
-class MasterWallet(auto_prefetch.Model):
-    commission = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    trade = auto_prefetch.ForeignKey(Trade, on_delete=models.CASCADE,related_name='master_wallet', null=True, blank=True)
+# class MasterWallet(auto_prefetch.Model):
+#     commission = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+#     created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
+#     trade = auto_prefetch.ForeignKey(Trade, on_delete=models.CASCADE,related_name='master_wallet', null=True, blank=True)
 
 class DemoProfitLoss(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='demoprofitloss')

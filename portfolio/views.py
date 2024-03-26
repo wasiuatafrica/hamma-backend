@@ -4,17 +4,17 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import (Wallet, Stock, Portfolio, Holding, Receipts, PayStackReceipts, Alert,Trade,WithdrawalOTPRequest,
-                     Transaction, AlertAI, AlertAITracker, DemoPortfolio, Conversation, Message)
+from .models import (Wallet, Stock,  Receipts, PayStackReceipts, Alert,WithdrawalOTPRequest,
+                     Transaction, AlertAI, AlertAITracker, Conversation, Message)
 from .serializers import (StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
-                          AlertSerializer,TradeSerializer,   TransactionSerializer, ConversationSerializer)
+                          AlertSerializer,   TransactionSerializer, ConversationSerializer)
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view
 import random
 from django.core.mail import send_mail
 from django.utils import timezone
-from .utils import get_symbol_data,get_historical_data, get_mini_data, get_details3
+from .utils import get_price, get_symbol_data,get_historical_data, get_mini_data, get_details3
 from notifications.utils import save_and_send_notification
 from django.shortcuts import get_object_or_404
 from decimal import Decimal
@@ -505,7 +505,7 @@ class AlertView(APIView):
         return Response(data)
     
     def post(self, request):
-        action= ['price', 'volume']
+        types= ['price', 'volume']
         # counter = AlertAITracker.objects.get_or_create(user=request.user)[0]
         current_date = timezone.now()
         start_of_month = current_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -528,9 +528,18 @@ class AlertView(APIView):
         serializer=self.serializer_class(data=request.data)
         if serializer.is_valid():
             # ensure below < above for price and volume
-            if serializer.validated_data["alert_type"] not in action:
+            if serializer.validated_data["alert_type"] not in types:
                 return Response({"detail": "alert type must be 'price' or 'volume' "}, status=status.HTTP_400_BAD_REQUEST)
             
+            price = serializer.validated_data["to_price"] if serializer.validated_data["alert_type"] == "price" else None
+            current_price = get_price(serializer.validated_data["stock"])['current_price']
+            if price:
+                if price <= 0:
+                    return Response({"detail": "Price must be greater than 0"}, status=status.HTTP_400_BAD_REQUEST)
+                if serializer.validated_data["action"] == "below" and price > current_price:
+                    serializer.validated_data['frequency'] = 'Once'  
+                elif serializer.validated_data["action"] == "above" and price <= current_price:
+                    serializer.validated_data['frequency'] = 'Once'
             stock = get_object_or_404(Stock, symbol =serializer.validated_data["stock"])
             name = serializer.validated_data["alert_name"] + str(randint(23, 456789))
             serializer.save(user=request.user,stock=stock, alert_name=name)

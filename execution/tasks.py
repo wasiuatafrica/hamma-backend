@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from execution.utils import get_positions
 from .serializers import DemoPositionSerializer
 from anyon.views import User
-from portfolio.models import Message, Conversation, Stock, MarketAI,DemoTransaction, DemoTrade
+from portfolio.models import Message, Conversation, Stock, MarketAI,DemoTransaction
 from .models import   DemoPortfolio
 from random import uniform
 from django.db import transaction
@@ -33,89 +33,89 @@ logger = get_task_logger(__name__)
 channel_layer = get_channel_layer()
 
 
-@shared_task
-def process_trade(trade_id, time_in_force):
-    try:
-        trade = DemoTrade.objects.get(id=trade_id)
-        with transaction.atomic():
-            handle_trade(trade, time_in_force)
-    except DemoTrade.DoesNotExist:
-        pass
+# @shared_task
+# def process_trade(trade_id, time_in_force):
+#     try:
+#         trade = DemoTrade.objects.get(id=trade_id)
+#         with transaction.atomic():
+#             handle_trade(trade, time_in_force)
+#     except DemoTrade.DoesNotExist:
+#         pass
 
-def handle_trade(trade, time_in_force):
-    try:
-        user = trade.user
-        holding = trade.holding
-        stock = holding.stock
-        quantity = trade.quantity
-        price = trade.price
-        order_type = trade.order_type
-        position, created = DemoPosition.objects.get_or_create(
-            portfolio=holding.portfolio,
-            stock=stock,
-            defaults={'quantity': 0, 'average_price': 0.0}
-        )
-        print('Position created')
-        if order_type == 'buy':
-            position.quantity += quantity
-            position.average_price = ((position.average_price * position.quantity) + (price * quantity)) / (position.quantity + quantity)
-        elif order_type == 'sell':
-            # Ensure the quantity doesn't go below zero
-            if position.quantity < quantity:
-                raise ValueError("Attempt to sell more shares than available.")
-            position.quantity -= quantity
+# def handle_trade(trade, time_in_force):
+#     try:
+#         user = trade.user
+#         holding = trade.holding
+#         stock = holding.stock
+#         quantity = trade.quantity
+#         price = trade.price
+#         order_type = trade.order_type
+#         position, created = DemoPosition.objects.get_or_create(
+#             portfolio=holding.portfolio,
+#             stock=stock,
+#             defaults={'quantity': 0, 'average_price': 0.0}
+#         )
+#         print('Position created')
+#         if order_type == 'buy':
+#             position.quantity += quantity
+#             position.average_price = ((position.average_price * position.quantity) + (price * quantity)) / (position.quantity + quantity)
+#         elif order_type == 'sell':
+#             # Ensure the quantity doesn't go below zero
+#             if position.quantity < quantity:
+#                 raise ValueError("Attempt to sell more shares than available.")
+#             position.quantity -= quantity
 
-        position.save()
+#         position.save()
 
-        # print('position saved')
-        # Simulate market fluctuations
-        # price = simulate_price_fluctuation(stock.symbol, price)
+#         # print('position saved')
+#         # Simulate market fluctuations
+#         # price = simulate_price_fluctuation(stock.symbol, price)
 
-        # Simulate trade settlement delay
-        simulate_trade_settlement_delay(time_in_force)
+#         # Simulate trade settlement delay
+#         simulate_trade_settlement_delay(time_in_force)
 
-        holding.portfolio.update_equity()
+#         holding.portfolio.update_equity()
 
-        # print('Demo to be created')
-        DemoTransaction.objects.create(
-            user=user,
-            transaction_type='buy' if order_type == 'buy' else 'sell',
-            amount=quantity * price,
-            status='completed'
-        )
-        trade.status = 'completed'
-        trade.save()
+#         # print('Demo to be created')
+#         DemoTransaction.objects.create(
+#             user=user,
+#             transaction_type='buy' if order_type == 'buy' else 'sell',
+#             amount=quantity * price,
+#             status='completed'
+#         )
+#         trade.status = 'completed'
+#         trade.save()
 
-        print('trade completed')
-        # Simulate partial order filling
-        if order_type == 'buy':
-            cancel_pending_opposite_order(trade)
+#         print('trade completed')
+#         # Simulate partial order filling
+#         if order_type == 'buy':
+#             cancel_pending_opposite_order(trade)
 
-        # Simulate price matching for limit orders
-        if order_type == 'sell':
-            matching_buy_orders = DemoTrade.objects.filter(
-                holding=trade.holding,
-                order_type='buy',
-                price__gte=price,
-                status='pending'
-            ).order_by('price')
+#         # Simulate price matching for limit orders
+#         if order_type == 'sell':
+#             matching_buy_orders = DemoTrade.objects.filter(
+#                 holding=trade.holding,
+#                 order_type='buy',
+#                 price__gte=price,
+#                 status='pending'
+#             ).order_by('price')
 
-            for matching_order in matching_buy_orders:
-                if quantity == 0:
-                    break
-                if matching_order.quantity <= quantity:
-                    quantity -= matching_order.quantity
-                    matching_order.status = 'completed'
-                else:
-                    matching_order.quantity -= quantity
-                    break
-                matching_order.save()
-        update_equity(user.id, 'demo')
+#             for matching_order in matching_buy_orders:
+#                 if quantity == 0:
+#                     break
+#                 if matching_order.quantity <= quantity:
+#                     quantity -= matching_order.quantity
+#                     matching_order.status = 'completed'
+#                 else:
+#                     matching_order.quantity -= quantity
+#                     break
+#                 matching_order.save()
+#         update_equity(user.id, 'demo')
         
-    except Exception as e:
-        print(f"Error processing trade (id={trade.id}): {e}")
-        trade.status = 'failed'
-        trade.save()
+#     except Exception as e:
+#         print(f"Error processing trade (id={trade.id}): {e}")
+#         trade.status = 'failed'
+#         trade.save()
 
 # Simulate market fluctuations by adding random fluctuations
 def simulate_price_fluctuation(symbol, current_price):
@@ -130,19 +130,19 @@ def simulate_trade_settlement_delay(time_in_force):
         sleep(20)  # Assuming a 2-second settlement delay
 
 
-def cancel_pending_opposite_order(trade):
-    opposite_order_type = 'sell' if trade.order_type == 'buy' else 'buy'
-    opposite_order = DemoTrade.objects.filter(
-        user=trade.user,
-        holding=trade.holding,
-        order_type=opposite_order_type,
-        status='pending'
-    ).first()
+# def cancel_pending_opposite_order(trade):
+#     opposite_order_type = 'sell' if trade.order_type == 'buy' else 'buy'
+#     opposite_order = DemoTrade.objects.filter(
+#         user=trade.user,
+#         holding=trade.holding,
+#         order_type=opposite_order_type,
+#         status='pending'
+#     ).first()
 
-    if opposite_order:
-        # Cancel the pending opposite order
-        opposite_order.status = 'canceled'
-        opposite_order.save()
+#     if opposite_order:
+#         # Cancel the pending opposite order
+#         opposite_order.status = 'canceled'
+#         opposite_order.save()
 
 def get_equity_data(user):
         portfolio = DemoPortfolio.objects.get(user=user)

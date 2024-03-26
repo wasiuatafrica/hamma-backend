@@ -16,6 +16,7 @@ from asgiref.sync import async_to_sync
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.core.mail import send_mail
+import pytz
 
 User= get_user_model()
 
@@ -73,50 +74,57 @@ def check_alert(id):
         task.save()
         return
     
-    if timezone.now() < alert.expire:
-        if not alert.trigerred:
-            data =get_price(alert.stock.symbol)
-            if alert.alert_type == 'price':
-                price=data['current_price']
-                if alert.action == 'below':
-                    if price < alert.to_price:
-                        send_alert_email(alert.user, alert.stock.symbol,alert.alert_type,alert.action, alert.to_price)
-                        save_and_send_notification(alert.user.id, f'{alert.stock} price has gone below {alert.to_price} for the {alert.alert_name}.')
-                        if alert.frequency == 'Once':
-                            alert.trigerred=True
-                            alert.save()
-                elif alert.action == 'above':
-                    if price > alert.to_price:
-                        send_alert_email(alert.user, alert.stock.symbol,alert.alert_type,alert.action, alert.to_price)
-                        save_and_send_notification(alert.user.id, f'{alert.stock} price has gone above {alert.to_price} for the {alert.alert_name}.')
-                        if alert.frequency == 'Once':
-                            alert.trigerred=True
-                            alert.save()
-            elif alert.alert_type == 'volume':
-                price=data['volume']
-                if alert.action == 'below':
-                    if price < alert.to_volume:
-                        send_alert_email(alert.user, alert.stock.symbol,alert.alert_type,alert.action, alert.to_volume)
-                        save_and_send_notification(alert.user.id, f'stock {alert.stock} volume has gone below {alert.to_volume} for the {alert.alert_name}.')
-                        if alert.frequency == 'Once':
-                            alert.trigerred=True
-                            alert.save()
-                elif alert.action == 'above':
-                    if price > alert.to_volume:
-                        send_alert_email(alert.user, alert.stock.symbol,alert.alert_type,alert.action, alert.to_volume)
-                        save_and_send_notification(alert.user.id, f'stock {alert.stock} volume has gone above {alert.to_volume} for the {alert.alert_name}.')
-                        if alert.frequency == 'Once':
-                            alert.trigerred=True
-                            alert.save()
+    current_time = timezone.now()
+    if current_time.weekday() < 5 and current_time.time() >= datetime.strptime('9:30 AM', '%I:%M %p').time() and current_time.time() <= datetime.strptime('2:30 PM', '%I:%M %p').time():
+        if timezone.now() < alert.expire:
+            if not alert.trigerred:
+                data = get_price(alert.stock.symbol)
+                if alert.alert_type == 'price':
+                    price = data['current_price']
+                    if alert.action == 'below':
+                        if price < alert.to_price:
+                            if alert.frequency == 'Once' or (alert.frequency in ['Everytime','everytime'] and (alert.last_email_sent is None or (timezone.now() - alert.last_email_sent) >= timedelta(minutes=10))):
+                                send_alert_email(alert.user, alert.stock.symbol, alert.alert_type, alert.action, alert.to_price)
+                                save_and_send_notification(alert.user.id, f'{alert.stock} price has gone below {alert.to_price} for the {alert.alert_name}.')
+                                if alert.frequency == 'Once':
+                                    alert.trigerred = True
+                                alert.last_email_sent = timezone.now()
+                                alert.save()
+                    elif alert.action == 'above':
+                        if price > alert.to_price:
+                            if alert.frequency in ['Once', 'once'] or (alert.frequency in ['Everytime','everytime'] and (alert.last_email_sent is None or (timezone.now() - alert.last_email_sent) >= timedelta(hours=1))):
+                                send_alert_email(alert.user, alert.stock.symbol, alert.alert_type, alert.action, alert.to_price)
+                                save_and_send_notification(alert.user.id, f'{alert.stock} price has gone above {alert.to_price} for the {alert.alert_name}.')
+                                if alert.frequency in ['Once', 'once']:
+                                    alert.trigerred = True
+                                alert.last_email_sent = timezone.now()
+                                alert.save()
+
+                elif alert.alert_type == 'volume':
+                    price=data['volume']
+                    if alert.action == 'below':
+                        if price < alert.to_volume:
+                            send_alert_email(alert.user, alert.stock.symbol,alert.alert_type,alert.action, alert.to_volume)
+                            save_and_send_notification(alert.user.id, f'stock {alert.stock} volume has gone below {alert.to_volume} for the {alert.alert_name}.')
+                            if alert.frequency in ['Once', 'once']:
+                                alert.trigerred=True
+                                alert.save()
+                    elif alert.action == 'above':
+                        if price > alert.to_volume:
+                            send_alert_email(alert.user, alert.stock.symbol,alert.alert_type,alert.action, alert.to_volume)
+                            save_and_send_notification(alert.user.id, f'stock {alert.stock} volume has gone above {alert.to_volume} for the {alert.alert_name}.')
+                            if alert.frequency in ['Once', 'once']:
+                                alert.trigerred=True
+                                alert.save()
+            else:
+                task = PeriodicTask.objects.get(name=alert.alert_name )
+                task.enabled = False
+                task.save()
         else:
-            task = PeriodicTask.objects.get(name=alert.alert_name )
+            task = PeriodicTask.objects.get(name=alert.alert_name)
             task.enabled = False
             task.save()
-    else:
-        task = PeriodicTask.objects.get(name=alert.alert_name)
-        task.enabled = False
-        task.save()
-    print(f'Checking for alert {alert.alert_name} completed')
+        print(f'Checking for alert {alert.alert_name} completed')
     
 @shared_task
 def get_data_prompt(prompt):

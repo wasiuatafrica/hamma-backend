@@ -161,7 +161,7 @@ class FirstLogin(auto_prefetch.Model):
     
 class UserActivityLog(models.Model):
     user=models.ForeignKey(CustomUser, related_name='user_activity', on_delete=models.CASCADE)
-    action_type=models.CharField(max_length=20)
+    action_type=models.CharField(max_length=50)
     timestamp = models.DateTimeField(auto_now_add=True)
     description=models.CharField(max_length=100)
 

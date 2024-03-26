@@ -515,8 +515,9 @@ class AffilateManagement(APIView):
         return Response(sorted_data)
 
 from accounts.models import UserActivityLog
-from portfolio.models import Stock, Trade, Holding, Receipts, PayStackReceipts, Portfolio, Wallet
-from portfolio.serializers import TradeSerializer
+from portfolio.models import Stock, Receipts, PayStackReceipts, Wallet
+from execution.models import Portfolio
+# from portfolio.serializers import TradeSerializer
 
 class UserActivityLogView(APIView):
     serializer_class=acc_serializers.UserActivityLogSerializer

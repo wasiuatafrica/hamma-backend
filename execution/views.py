@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from accounts.utils import get_referrer
 from affilate.models import BrokageCommission,RewardActivities, ReferralWallet
 from decimal import Decimal
-from .tasks import process_trade, update_equity
+# from .tasks import process_trade, update_equity
 from portfolio.utils import get_price
 import random
 from datetime import datetime, timedelta
