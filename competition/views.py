@@ -43,6 +43,23 @@ from django.db.models import Max
 User = get_user_model()
 # Create your views here.
 
+
+def is_user_staff(user):
+    return user.is_staff
+
+# def is_ft9ja_staff(user):
+#     return user.is_ft9ja_staff or user.is_superuser
+
+# def is_ft9ja_staff_payouts(user):
+#     return user.is_ft9ja_staff_payouts or user.is_superuser
+
+# def is_ft9ja_staff_receipts(user):
+#     return user.is_ft9ja_staff_receipts or user.is_superuser
+
+# def custom_403(request, exception=None):
+#     return render(request, 'api/403.html', status=403)
+
+
 class CompetitionView(APIView):
     def get(self, request, *args, **kwargs):
         competitions = Competition.objects.all()
@@ -580,8 +597,8 @@ def testhtml(request):
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Q
 
-# @login_required
-# @user_passes_test(is_user_staff, login_url='/api/dashboard/login/', redirect_field_name='403')
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
 def leaderboard_view(request):
     # Filter by competition
     competitions=Competition.objects.filter(status='closed').order_by("-id")
@@ -737,8 +754,8 @@ class ClanRequestsAPIView(APIView):
             return Response(serializer.data, safe=False)
 
 
-# @login_required
-# @user_passes_test(is_user_staff, login_url='/api/dashboard/login/', redirect_field_name='403')
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
 def clan_list(request):
 
     q=request.GET.get("filter")
@@ -749,8 +766,8 @@ def clan_list(request):
     clans = Clan.objects.all()
     return render(request,'leaderboard/clan_list.html',{'clans':clans})
 
-# @login_required
-# @user_passes_test(is_user_staff, login_url='/api/dashboard/login/', redirect_field_name='403')
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
 def clan_detail(request,pk):
     clan = Clan.objects.get(id=pk)
     memebers= clan.member.all() or 0
@@ -770,8 +787,8 @@ def clan_detail(request,pk):
      
     return render(request,'leaderboard/clan-detail.html',{'count':memebers.count() +1,'accounts':accounts,'clan':clan})
 
-# @login_required
-# @user_passes_test(is_user_staff, login_url='/api/dashboard/login/', redirect_field_name='403')
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
 def clan_payout(request):
     q=request.GET.get("filter")
     if q:
@@ -830,8 +847,8 @@ def trader_payout(request):
         return render(request,'leaderboard/trader-payout.html',{'payouts':payouts})
     return render(request,'leaderboard/trader-payout.html',{'payouts':payouts})
 
-# @login_required
-# @user_passes_test(is_user_staff, login_url='/api/dashboard/login/', redirect_field_name='403')
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
 def create_competition(request):
     # import timezone
     # Create_competiton_summary()
@@ -868,8 +885,8 @@ def create_competition(request):
 
     return render(request, 'leaderboard/create.html')
 
-# @login_required
-# @user_passes_test(is_user_staff, login_url='/api/dashboard/login/', redirect_field_name='403')
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
 def competition_list(request):
     q=request.GET.get("filter")
     if q:
@@ -1198,8 +1215,8 @@ class PayoutHistory(APIView):
         serializer=serializers.TraderPayoutSerializer(history, many=True)
         return Response(serializer.data)
     
-# @login_required
-# @user_passes_test(is_user_staff, login_url='/api/dashboard/login/', redirect_field_name='403')
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
 def competition_list_for_top_trader_payout(request):
     competitions = Competition.objects.all().order_by('-id')
     return render(request, 'leaderboard/competition_list_for_top_trader_payout.html', {'competitions':competitions})
@@ -1385,3 +1402,43 @@ def update_topclan_payout(request):
     # update_referral_statuses(payout.user, payout.amount)
     # ReferralPayoutNotification(str(payout.user),payoutimg.image.url )
     return JsonResponse({'message':'Paid and Updated','pay_date': payout.payment_date,})
+
+
+
+from django.shortcuts import render, redirect
+from django.urls import reverse, reverse_lazy
+from django.contrib.auth import authenticate, login, logout
+from django.http import JsonResponse
+from django.shortcuts import redirect
+
+
+
+def login_view(request):
+    # if request.method == "POST" and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    # if request.method == "POST" and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if request.method == "POST":
+    
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        print(email, password,"sdbsvds")
+        user = authenticate(email=email, password=password)
+        # if user is not None and (user.is_staff or user.is_ft9ja_staff or user.is_ft9ja_staff_receipts or user.is_ft9ja_staff_payouts):
+        if user is not None and (user.is_staff):
+            login(request, user)
+            if user.is_staff:
+                return redirect("leaderboard")
+                # next_url = reverse("user_list")  # Get next URL from query parameter or default to "home"
+            # elif user.is_ft9ja_staff :
+            #     next_url = reverse("user_list")
+            # elif user.is_ft9ja_staff_payouts :
+            #     next_url = reverse("approve_payout")
+            # else:
+            #     next_url = reverse("receipt_list")
+            # return JsonResponse({"redirect_url": next_url, "message": "Login successful."})
+        else:
+            return JsonResponse({"error": "Please log in with your staff account."}, status=400)
+    return render(request, "leaderboard/dash_login.html", {})
+
+def logout_view(request):
+    logout(request)
+    return redirect('leaderboard_admin')

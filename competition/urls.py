@@ -34,6 +34,8 @@ urlpatterns=[
     path('top-traders/', views.TopTraders.as_view()),
     
     #admin
+    path("login/", views.login_view, name="leaderboard_admin"),
+    path("logout/", views.logout_view, name="logout"),
     path('leaderboard-list/', views.leaderboard_view, name='leaderboard'),
     path('create-clan-requests/', views.clan_requests, name='clan-requests'),
     path('all-clan-list/', views.clan_list, name='all-clan-list'),
