@@ -1345,26 +1345,6 @@ def update_toptrader_payout(request):
     payout.payment_date = today_str
     payout.save()
         
-    # if payout.paytype=='Zuma':
-    #     image = talentpayout(payout.useracc.user, '{:,}'.format(int(payout.amount)),payout.payment_date)
-    #         # #print('zuma image generated')
-    #     payoutimg, _ = PayoutImg.objects.get_or_create(payout=payout)
-    #     payoutimg.image = image
-    #     payoutimg.save()
-    #     ZumaPayoutNotification(str(payout.useracc.user),payoutimg.image.url )
-        
-        
-    # elif payout.paytype=='Aso':
-    #     image = g(payout.useracc.user, '{:,}'.format(int(payout.amount)),payout.payment_date)
-    #         # #print('zuma image generated')
-    #     payoutimg, _ = PayoutImg.objects.get_or_create(payout=payout)
-    #     payoutimg.image = image
-    #     payoutimg.save()
-    #     AsoPayoutNotification(str(payout.useracc.user),payoutimg.image.url )
-    # # #print('image created')
-    # upload_file(settings.MEDIA_ROOT + "/" + "PaymentsImgs/" + image, "ft9japayoutbucket1")
-    # update_referral_statuses(payout.user, payout.amount)
-    # ReferralPayoutNotification(str(payout.user),payoutimg.image.url )
     return JsonResponse({'message':'Paid and Updated','pay_date': payout.payment_date,})
 
 @csrf_exempt
@@ -1381,26 +1361,6 @@ def update_topclan_payout(request):
     payout.payment_date = today_str
     payout.save()
         
-    # if payout.paytype=='Zuma':
-    #     image = talentpayout(payout.useracc.user, '{:,}'.format(int(payout.amount)),payout.payment_date)
-    #         # #print('zuma image generated')
-    #     payoutimg, _ = PayoutImg.objects.get_or_create(payout=payout)
-    #     payoutimg.image = image
-    #     payoutimg.save()
-    #     ZumaPayoutNotification(str(payout.useracc.user),payoutimg.image.url )
-        
-        
-    # elif payout.paytype=='Aso':
-    #     image = g(payout.useracc.user, '{:,}'.format(int(payout.amount)),payout.payment_date)
-    #         # #print('zuma image generated')
-    #     payoutimg, _ = PayoutImg.objects.get_or_create(payout=payout)
-    #     payoutimg.image = image
-    #     payoutimg.save()
-    #     AsoPayoutNotification(str(payout.useracc.user),payoutimg.image.url )
-    # # #print('image created')
-    # upload_file(settings.MEDIA_ROOT + "/" + "PaymentsImgs/" + image, "ft9japayoutbucket1")
-    # update_referral_statuses(payout.user, payout.amount)
-    # ReferralPayoutNotification(str(payout.user),payoutimg.image.url )
     return JsonResponse({'message':'Paid and Updated','pay_date': payout.payment_date,})
 
 
@@ -1414,27 +1374,18 @@ from django.shortcuts import redirect
 
 
 def login_view(request):
-    # if request.method == "POST" and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-    # if request.method == "POST" and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
     if request.method == "POST":
     
         email = request.POST.get("email")
         password = request.POST.get("password")
         print(email, password,"sdbsvds")
         user = authenticate(email=email, password=password)
-        # if user is not None and (user.is_staff or user.is_ft9ja_staff or user.is_ft9ja_staff_receipts or user.is_ft9ja_staff_payouts):
         if user is not None and (user.is_staff):
             login(request, user)
             if user.is_staff:
                 return redirect("leaderboard")
                 # next_url = reverse("user_list")  # Get next URL from query parameter or default to "home"
-            # elif user.is_ft9ja_staff :
-            #     next_url = reverse("user_list")
-            # elif user.is_ft9ja_staff_payouts :
-            #     next_url = reverse("approve_payout")
-            # else:
-            #     next_url = reverse("receipt_list")
-            # return JsonResponse({"redirect_url": next_url, "message": "Login successful."})
+           
         else:
             return JsonResponse({"error": "Please log in with your staff account."}, status=400)
     return render(request, "leaderboard/dash_login.html", {})
