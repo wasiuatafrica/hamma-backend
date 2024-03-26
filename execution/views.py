@@ -177,7 +177,7 @@ class DemoTradeAPIView(APIView):
                 amount = quantity * market_price
                 
                 balance =  portfolio.balance
-                trade_commission = round(Decimal(0.01) * amount, 2) + 200
+                trade_commission = round(Decimal(0.00435) * amount, 2) + 200
                 
                 total= amount + trade_commission
                 if balance >= total:
