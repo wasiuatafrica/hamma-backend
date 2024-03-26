@@ -8,6 +8,7 @@ from django.utils.html import strip_tags
 from django.utils import timezone
 from . import models
 from . import utils
+from .tasks import daily_returns_setup
 
 User=get_user_model()
 
@@ -36,3 +37,7 @@ def create_wallet_and_send_email(sender, instance, created, **kwargs):
         recipient_list = [instance.email]
         send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
 
+@receiver(post_save, sender=User)
+def daily_returns(sender, instance, created, **kwargs):
+    if created:
+        daily_returns_setup(instance.id)

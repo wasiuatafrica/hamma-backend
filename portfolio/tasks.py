@@ -29,7 +29,7 @@ def create_alert_schedule(id):
     alert=Alert.objects.get(id=id)
     print('Alert object gotten')
     schedule, created = IntervalSchedule.objects.get_or_create(
-            every=2,
+            every=5,
             period=IntervalSchedule.MINUTES,
         )
     

@@ -228,11 +228,11 @@ class DemoTradeAPIView(APIView):
                         position_data_list = [result for result in futures if result]
                     
                         
-                    save_and_send_notification(request.user.id,f' COMPEITION: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ')
+                    save_and_send_notification(request.user.id,f' COMPETITION: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ')
                     
                     return Response({'message': f'{action.title()} order placed successfully.', 'positions':position_data_list}, status=status.HTTP_201_CREATED)
                 else:
-                    return Response({'error': 'Insufficient funds trade.'}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'error': 'Insufficient funds to trade.'}, status=status.HTTP_400_BAD_REQUEST)
 
             elif order_type == 'limit':
                 
@@ -464,7 +464,7 @@ class Home(APIView):
                 profit_loss = sum(profit_loss_list) if profit_loss_list else 0
                 
                 
-                daily_profitloss= CompetitionDailyReturns.objects.filter(user=request.user)
+                daily_profitloss= CompetitionDailyReturns.objects.filter(user=request.user, portfolio=in_competition)
                 if daily_profitloss:
                     today = timezone.now()
 
@@ -734,9 +734,10 @@ class DemoHolding(APIView):
                 floating_pl = sum([data['change'] for data in positions_data if data['status']=='open'])
                 closed_pl = sum([data['profit_loss'] for data in positions_data if data['status']=='close'])
                 open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
+                closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
                 
                 hold_data ={
-                    'balance':open_trade_sum + closed_pl if closed_pl else open_trade_sum ,
+                    'balance':closed_trade_sum + closed_pl,
                     'floating_pl':floating_pl,
                     'closed_pl':closed_pl,
                     'equity':open_trade_sum + floating_pl,

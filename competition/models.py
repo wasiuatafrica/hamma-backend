@@ -144,6 +144,9 @@ class CompetitionDailyReturns(auto_prefetch.Model):
     market_returns = models.FloatField(default=0.0)
     ngx_price = models.FloatField(default=0.0)
     created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    portfolio = auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE, related_name='returns', blank=True, null=True )
+
+    
 
     def __str__(self):
         return f"{self.user} - {self.created}"
@@ -159,6 +162,8 @@ class CompetitionTransaction(auto_prefetch.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateTimeField(auto_now_add=True)
     status= models.CharField(max_length=20, default='unprocessed', blank=True,null=True)
+    portfolio = auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE, related_name='transactions', blank=True, null=True)
+
   
 
 class Clan(auto_prefetch.Model):
