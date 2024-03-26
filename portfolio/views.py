@@ -358,37 +358,37 @@ def get_demo_holding_details_concurrently(holding):
         # Close the old database connections to avoid connection exhaustion
         close_old_connections()
         
-class PortfolioDetail(APIView):
-   def get(self, request, *args, **kwargs):
-        mode = self.kwargs.get('mode')
-        if not mode or mode == "demo":
-            portfolio = DemoPortfolio.objects.get_or_create(user=request.user)[0]
-            holdings = portfolio.demoholdings.all()
+# class PortfolioDetail(APIView):
+#    def get(self, request, *args, **kwargs):
+#         mode = self.kwargs.get('mode')
+#         if not mode or mode == "demo":
+#             portfolio = DemoPortfolio.objects.get_or_create(user=request.user)[0]
+#             holdings = portfolio.demoholdings.all()
 
-            # Use ThreadPoolExecutor to execute get_holding_detail concurrently.
-            with ThreadPoolExecutor() as executor:
-                # Map the holdings to the executor, it will return a generator.
-                futures = [executor.submit(get_demo_holding_details_concurrently, holding) for holding in holdings]
-                holdings_data = [future.result() for future in futures]
+#             # Use ThreadPoolExecutor to execute get_holding_detail concurrently.
+#             with ThreadPoolExecutor() as executor:
+#                 # Map the holdings to the executor, it will return a generator.
+#                 futures = [executor.submit(get_demo_holding_details_concurrently, holding) for holding in holdings]
+#                 holdings_data = [future.result() for future in futures]
 
            
-        if mode == 'live':
-            portfolio = Portfolio.objects.get(user=request.user)
-            holdings = portfolio.holdings.all()
+#         if mode == 'live':
+#             portfolio = Portfolio.objects.get(user=request.user)
+#             holdings = portfolio.holdings.all()
 
-            # Use ThreadPoolExecutor to execute get_holding_detail concurrently.
-            with ThreadPoolExecutor() as executor:
-                # Map the holdings to the executor, it will return a generator.
-                futures = [executor.submit(get_holding_details_concurrently, holding) for holding in holdings]
-                holdings_data = [future.result() for future in futures]
+#             # Use ThreadPoolExecutor to execute get_holding_detail concurrently.
+#             with ThreadPoolExecutor() as executor:
+#                 # Map the holdings to the executor, it will return a generator.
+#                 futures = [executor.submit(get_holding_details_concurrently, holding) for holding in holdings]
+#                 holdings_data = [future.result() for future in futures]
 
-        portfolio_data = get_portfolio_data(holdings_data)
+#         portfolio_data = get_portfolio_data(holdings_data)
 
-        data = {
-            'portfolio': portfolio_data,
-            'holdings': holdings_data
-        }
-        return Response(data)
+#         data = {
+#             'portfolio': portfolio_data,
+#             'holdings': holdings_data
+#         }
+#         return Response(data)
   
         
 class ReceiptsView(APIView):
@@ -599,37 +599,37 @@ class ConversationsView(APIView):
         serializer = AlertSerializer(conversations, many=True)
         return Response(serializer.data)
 
-class GetWalletSummary(APIView):
-    def get(self, request):
+# class GetWalletSummary(APIView):
+#     def get(self, request):
 
-        portfolio = Portfolio.objects.get(user=request.user)
-        holdings = portfolio.holdings.all()
+#         portfolio = Portfolio.objects.get(user=request.user)
+#         holdings = portfolio.holdings.all()
 
-        # Use ThreadPoolExecutor to execute get_holding_detail concurrently.
-        with ThreadPoolExecutor() as executor:
-            # Map the holdings to the executor, it will return a generator.
-            futures = [executor.submit(get_holding_details_concurrently, holding) for holding in holdings]
-            holdings_data = [future.result() for future in futures]
+#         # Use ThreadPoolExecutor to execute get_holding_detail concurrently.
+#         with ThreadPoolExecutor() as executor:
+#             # Map the holdings to the executor, it will return a generator.
+#             futures = [executor.submit(get_holding_details_concurrently, holding) for holding in holdings]
+#             holdings_data = [future.result() for future in futures]
 
-        portfolio_data = get_portfolio_data(holdings_data)
+#         portfolio_data = get_portfolio_data(holdings_data)
 
-        user_trans= Transaction.object.filter(user=request.user, transaction_type="deposit")
-        user_wallet= Wallet.object.filter(user=request.user).first()
+#         user_trans= Transaction.object.filter(user=request.user, transaction_type="deposit")
+#         user_wallet= Wallet.object.filter(user=request.user).first()
 
-        amount_depoisted=get_amount_invested(user_trans)
-        amount_invested= amount_depoisted - user_wallet.balance
-        uninvested=user_wallet.balance
-        balance=portfolio_data.portfolio_value
-        reserved= balance + uninvested
+#         amount_depoisted=get_amount_invested(user_trans)
+#         amount_invested= amount_depoisted - user_wallet.balance
+#         uninvested=user_wallet.balance
+#         balance=portfolio_data.portfolio_value
+#         reserved= balance + uninvested
 
-        summary={
-            "amount_depoisted":amount_depoisted,
-            "amount_invested":amount_invested,
-            "uninvested":uninvested,
-            "balance":balance,
-            "reserved":reserved
-        }
-        return Response(summary)
+#         summary={
+#             "amount_depoisted":amount_depoisted,
+#             "amount_invested":amount_invested,
+#             "uninvested":uninvested,
+#             "balance":balance,
+#             "reserved":reserved
+#         }
+#         return Response(summary)
 
 
 
