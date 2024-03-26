@@ -733,13 +733,13 @@ class DemoHolding(APIView):
 
                 floating_pl = sum([data['change'] for data in positions_data if data['status']=='open'])
                 closed_pl = sum([data['profit_loss'] for data in positions_data if data['status']=='close'])
-                
+                open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
                 
                 hold_data ={
                     'balance':balance,
                     'floating_pl':floating_pl,
                     'closed_pl':closed_pl,
-                    'equity':balance + floating_pl,
+                    'equity':open_trade_sum + floating_pl,
                     'holdings':positions_data
                     
                 }
