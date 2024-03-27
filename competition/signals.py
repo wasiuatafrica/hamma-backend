@@ -1,7 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import Competition
-import boto3
 import json
 from django.utils import timezone
 from datetime import datetime

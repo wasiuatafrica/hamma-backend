@@ -42,28 +42,6 @@ class Competition(auto_prefetch.Model):
     
   
 
-# class CompetionAccount(auto_prefetch.Model):
-#     user=auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='competition_account',blank=True, null=True)
-#     competition=auto_prefetch.ForeignKey(Competition, on_delete=models.CASCADE, blank=True)
-#     user_account=auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE,related_name='account_holder', blank=True, null=True)
-
-#     def __str__(self):
-#         return f'{self.competition.title} | {self.user_account.acc.number}'
-
-#     @property
-#     def account_number(self):
-#         return self.user_account.acc.number
-#     @property
-#     def country(self):
-#         user=self.user
-#         profile=Profile.objects.get(user=user)
-#         return profile.country
-#     @property
-#     def email(self):
-#         return self.user.email
-#     @property
-#     def fullname(self):
-#         return f'{self.user.firstname} {self.user.lastname}'
 
 class CompetitionPortfolio(auto_prefetch.Model):
     competition=auto_prefetch.ForeignKey(Competition, on_delete=models.CASCADE, related_name='competition')

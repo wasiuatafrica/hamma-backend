@@ -189,7 +189,7 @@ CORS_ALLOWED_ORIGINS = [
 
 DATE_INPUT_FORMATS = ["%d-%m-%Y"]
 
-# LOGIN_URL = '/api/dashboard/login/'
+LOGIN_URL = '/leaderboard/login/'
 # Rest config
 
 REST_USE_JWT = True

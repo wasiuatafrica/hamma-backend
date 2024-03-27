@@ -47,19 +47,6 @@ User = get_user_model()
 def is_user_staff(user):
     return user.is_staff
 
-# def is_ft9ja_staff(user):
-#     return user.is_ft9ja_staff or user.is_superuser
-
-# def is_ft9ja_staff_payouts(user):
-#     return user.is_ft9ja_staff_payouts or user.is_superuser
-
-# def is_ft9ja_staff_receipts(user):
-#     return user.is_ft9ja_staff_receipts or user.is_superuser
-
-# def custom_403(request, exception=None):
-#     return render(request, 'api/403.html', status=403)
-
-
 class CompetitionView(APIView):
     def get(self, request, *args, **kwargs):
         competitions = Competition.objects.all()
@@ -351,6 +338,7 @@ class CreateClanRequestView(APIView):
             return Response({'message':'There is an existing clan with this name'},status=status.HTTP_400_BAD_REQUEST)
         
         join_request = CreateClanRequest.objects.create(clan_admin=admin,clan_logo=logo, clan_name=name,community_link=link, description=description)
+        save_and_send_notification(admin.id, f"Your request to create a new clan {name} is pending. It will be attended to by Hamma Admin.")
         data = {
             'user': join_request.clan_admin.id,
             'clan': join_request.clan_name,
@@ -666,7 +654,8 @@ def leaderboard_view(request):
         past_data=CompetitionSummary.objects.filter(competition__id=q).order_by("position")
     return render(request, 'leaderboard/leaderboard.html', {'data':sorted_data, "competitions":competitions, "leaderboard":leaderboard, "pastLeaderboard":pastLeaderboard, "past_data":past_data})
 
-
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
 def clan_requests(request):
     if request.method == 'POST':
         request_id = request.POST.get('id')
@@ -857,8 +846,8 @@ def create_competition(request):
         end_date_str = request.POST.get('end_date')
         title = request.POST.get('title')
         first_prize = request.POST.get('first_prize')
-        second_prize = request.POST.get('second_prize')
-        third_prize = request.POST.get('third_prize')
+        # second_prize = request.POST.get('second_prize')
+        # third_prize = request.POST.get('third_prize')
         # status = request.POST.get('status')
         message = request.POST.get('notification')
         currents = Competition.objects.filter(status='current')
@@ -866,23 +855,19 @@ def create_competition(request):
             for current in currents:
                 current.status='closed'
                 current.save()
-        utc=pytz.UTC
-        start_date = utc.localize(datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M'))
-        end_date = utc.localize(datetime.strptime(end_date_str, '%Y-%m-%dT%H:%M'))
-        
+        start_date = timezone.make_aware(datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M'), timezone.get_current_timezone())
+        end_date = timezone.make_aware(datetime.strptime(end_date_str, '%Y-%m-%dT%H:%M'), timezone.get_current_timezone())
         Competition.objects.create(
             start_date=start_date,
             end_date=end_date,
             title=title,
             first_prize=first_prize,
-            second_prize=second_prize,
-            third_prize=third_prize,
+            # second_prize=second_prize,
+            # third_prize=third_prize,
             status='current',
             message=message
         )
-        
-        return redirect('competition_list')  # Redirect to a view that lists all competitions
-
+        return redirect('competition_list')
     return render(request, 'leaderboard/create.html')
 
 @login_required
