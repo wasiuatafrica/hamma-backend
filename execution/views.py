@@ -712,7 +712,7 @@ class DemoCloseTrade(APIView):
                 }
                 return Response(data)
             else:
-                return Response("Position is already closed")
+                return Response("Position is not open")
             
 class DemoHolding(APIView):
     def get(self,request):
@@ -767,13 +767,14 @@ class DemoHolding(APIView):
                 floating_pl = sum([data['change'] for data in positions_data if data['status']=='open'])
                 closed_pl = sum([data['profit_loss'] for data in positions_data if data['status']=='close'])
                 open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
-                closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
+                # closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
+                wallet_balance = portfolio.balance
                 
                 hold_data ={
-                    'balance':closed_trade_sum + closed_pl,
+                    'balance':open_trade_sum + wallet_balance,
                     'floating_pl':floating_pl,
                     'closed_pl':closed_pl,
-                    'equity':open_trade_sum + floating_pl,
+                    'equity':open_trade_sum + wallet_balance + floating_pl,
                     'holdings':positions_data
                     
                 }
@@ -837,13 +838,15 @@ class DemoHolding(APIView):
 
                 floating_pl = sum([data['change'] for data in positions_data if data['status']=='open'])
                 closed_pl = sum([data['profit_loss'] for data in positions_data if data['status']=='close'])
-                
+                open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
+                # closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
+                wallet_balance = portfolio.balance
                 
                 hold_data ={
-                    'balance':balance,
+                    'balance':open_trade_sum + wallet_balance,
                     'floating_pl':floating_pl,
                     'closed_pl':closed_pl,
-                    'equity':balance + floating_pl,
+                    'equity':open_trade_sum + wallet_balance + floating_pl,
                     'holdings':positions_data
                     
                 }

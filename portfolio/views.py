@@ -501,7 +501,7 @@ class AlertView(APIView):
             
             price = serializer.validated_data["to_price"] if serializer.validated_data["alert_type"] == "price" else None
             symbol2 = serializer.validated_data["stock"].symbol
-            print(type(symbol2))
+            # print(type(symbol2))
             current_price = get_price(symbol2)['current_price']
             if price:
                 if price <= 0:
@@ -511,7 +511,7 @@ class AlertView(APIView):
                 elif serializer.validated_data["action"] == "above" and price <= current_price:
                     serializer.validated_data['frequency'] = 'Once'
             stock = get_object_or_404(Stock, symbol =serializer.validated_data["stock"])
-            print(type(stock))
+            # print(type(stock))
             name = serializer.validated_data["alert_name"] + str(randint(23, 456789))
             serializer.save(user=request.user,stock=stock, alert_name=name)
             
