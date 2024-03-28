@@ -315,6 +315,10 @@ if os.environ.get('server') == 'local':
             'BACKEND': 'channels_redis.core.RedisChannelLayer',
         },
     }
+    
+    INSTALLED_APPS += ['silk']
+    MIDDLEWARE += ['silk.middleware.SilkyMiddleware']
+    SILKY_PYTHON_PROFILER = True
 else:
     # Use Redis for production
     CELERY_BROKER_URL = os.environ.get('REDISCLOUD_URL')

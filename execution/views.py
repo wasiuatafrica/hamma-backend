@@ -131,20 +131,34 @@ class DemoTradeAPIView(APIView):
             positions = DemoPosition.objects.filter(portfolio__user=request.user,status='open')
         
         def get_position(position):
+                # print(position.id)
                 pl, cur_val,price = position.calculate_profit_loss()
                 symbol=position.stock.symbol
                 
-                percent = round((pl/position.amount_invested) * 100,2)
-                data1 = {
-                    'id':position.id,
-                    'symbol':symbol,
-                    'open_pl':round(pl,2),
-                    'pl_percent': percent,
-                    'created':position.created,
-                    'status':position.status,
-                    'open_price': position.open_price,
-                    'order_id':position.order_id,
-                }
+                if position.amount_invested != 0:
+                    percent = round((pl/position.amount_invested) * 100,2)
+                    data1 = {
+                        'id':position.id,
+                        'symbol':symbol,
+                        'open_pl':round(pl,2),
+                        'pl_percent': percent,
+                        'created':position.created,
+                        'status':position.status,
+                        'open_price': position.open_price,
+                        'order_id':position.order_id,
+                    }
+                    
+                else:
+                    data1 = {
+                        'id':position.id,
+                        'symbol':symbol,
+                        'open_pl':0,
+                        'pl_percent': 0,
+                        'created':position.created,
+                        'status':position.status,
+                        'open_price': position.open_price,
+                        'order_id':position.order_id,
+                    }
                 return data1
             
         with ThreadPoolExecutor() as executor:
@@ -324,15 +338,23 @@ class DemoTradeAPIView(APIView):
                 def get_position(position):
                     pl, cur_val,price = position.calculate_profit_loss()
                     symbol=position.stock.symbol
-                    
-                    percent = round((pl/position.amount_invested) * 100,2)
-                    data1 = {
-                        'id':position.id,
-                        'symbol':symbol,
-                        'open_pl':pl,
-                        'pl_percent': percent,
-                        'created':position.created
-                    }
+                    if position.amount_invested != 0:
+                        percent = round((pl/position.amount_invested) * 100,2)
+                        data1 = {
+                            'id':position.id,
+                            'symbol':symbol,
+                            'open_pl':pl,
+                            'pl_percent': percent,
+                            'created':position.created
+                        }
+                    else:
+                        data1 = {
+                            'id':position.id,
+                            'symbol':symbol,
+                            'open_pl':0,
+                            'pl_percent': 0,
+                            'created':position.created
+                        }
                     return data1
                 
                 with ThreadPoolExecutor() as executor:
@@ -381,16 +403,27 @@ class DemoTradeAPIView(APIView):
                     pl, cur_val,price = position.calculate_profit_loss()
                     symbol=position.stock.symbol
                     
-                    percent = round((pl/position.amount_invested) * 100,2)
-                    data1 = {
-                        'id':position.id,
-                        'symbol':symbol,
-                        'open_pl':pl,
-                        'pl_percent': percent,
-                        'created':position.created,
-                        'order_id':position.order_id,
-                        
-                    }
+                    if position.amount_invested != 0:
+                        percent = round((pl/position.amount_invested) * 100,2)
+                        data1 = {
+                            'id':position.id,
+                            'symbol':symbol,
+                            'open_pl':pl,
+                            'pl_percent': percent,
+                            'created':position.created,
+                            'order_id':position.order_id,
+                            
+                        }
+                    else:
+                        data1 = {
+                            'id':position.id,
+                            'symbol':symbol,
+                            'open_pl':0,
+                            'pl_percent': 0,
+                            'created':position.created,
+                            'order_id':position.order_id,
+
+                        }
                     return data1
                 
                 with ThreadPoolExecutor() as executor:

@@ -14,6 +14,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.views.decorators.csrf import csrf_exempt
 import pytz
 from django.utils import timezone
+from .tasks import create_returns
 from .models import (
     Clan,
     CompetitionDailyReturns,
@@ -149,9 +150,7 @@ class JoinLeaveCompetetion(APIView):
                         return Response({"detail": "You have  already exited this competition"}, status=status.HTTP_400_BAD_REQUEST)
                 else:
                     portfolio = CompetitionPortfolio.objects.create(competition=competition, user=request.user, balance=1000000)
-                    data = get_price ('ASI')
-                    pr = data['current_price']
-                    CompetitionDailyReturns.objects.create(user=request.user, ngx_price = pr,portfolio=portfolio)
+                    create_returns.delay(portfolio.id)
                     save_and_send_notification(portfolio.user.id, "You have joined ongoing competition and been given 1,000,000 naira to compete. Goodluck!")
                     return Response({"detail": "You have successfully joined this competition"}, status=status.HTTP_200_OK)
                 
@@ -1226,7 +1225,7 @@ class TopClans(APIView):
     permission_classes = (AllowAny,)
     def get(self, request):
         competition = Competition.objects.filter(status='closed').order_by('id').last()
-        clans= ClanCompetitionSummary.objects.filter(competition=competition).order_by('position')[:3]
+        clans= ClanCompetitionSummary.objects.filter(competition=competition).order_by('position')[:1]
         data=[{'clan_id':comp.clan.id,'clan_name':comp.clan.clan_name,'community_link':comp.clan.community_link,'clan_logo':comp.clan.clan_logo.url,'description':comp.clan.description, 'profit':comp.profit, 'position':comp.position, 'top_3_count':comp.clan.top_3_count,'profit_comparison':comp.clan.profit_comparison,'members_count':comp.clan.members_count} for comp in clans ]
         return Response(data)
 
@@ -1234,7 +1233,7 @@ class TopTraders(APIView):
     permission_classes = (AllowAny,)
     def get(self, request):
         competition = Competition.objects.filter(status='closed').order_by('id').last()
-        accounts= CompetitionSummary.objects.filter(competition=competition).order_by('position')[:3]
+        accounts= CompetitionSummary.objects.filter(competition=competition).order_by('position')[:1]
         data = [{'name':f"{account.user.fullname}", 'profit':account.profit, 'position':account.position} for account in accounts]
         return Response(data)
 

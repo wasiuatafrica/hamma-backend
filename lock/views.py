@@ -75,7 +75,7 @@ class Savingclose(APIView):
         portfolio.balance += profit
         portfolio.save()
         
-        save_and_send_notification(request.user.id, f"Saving closed, {profit} deposited to your wallet.")
+        save_and_send_notification(request.user.id, f"Saving closed, {profit} interest was accrued and deposited to your wallet.")
         
         serializer = SavingSerializer(saving)
         return Response(serializer.data)

@@ -1,12 +1,10 @@
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.contrib.auth import get_user_model
-from django.core.management import call_command
 from execution.trades import simulate_trades
-from accounts.utils import send_welcome_email
 from execution.models import DemoDailyReturns, DailyReturns, get_price
-
-
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
 
 logger = get_task_logger(__name__)
 
@@ -24,3 +22,17 @@ def daily_returns_setup(id):
     pr = data['current_price']
     DemoDailyReturns.objects.create(user=user, ngx_price = pr)
     DailyReturns.objects.create(user=user, ngx_price = pr)
+    
+@shared_task
+def send_welcome_email(id):
+    user = User.objects.get(id=id)
+    # Send token to users email
+    context={
+        "firstname":user.firstname.title()
+    }
+    html_message = render_to_string('accounts/welcome_email.html', context)
+    plain_message = ""
+    subject = 'Welcome to Gohamma'
+    from_email = "teamgohamma@gmail.com"
+    recipient_list = [user.email]
+    send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)

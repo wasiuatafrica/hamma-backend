@@ -40,4 +40,4 @@ def create_wallet_and_send_email(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def daily_returns(sender, instance, created, **kwargs):
     if created:
-        daily_returns_setup(instance.id)
+        daily_returns_setup.delay(instance.id)

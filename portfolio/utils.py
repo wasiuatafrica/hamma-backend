@@ -122,7 +122,7 @@ def get_price(symbol):
     db = connect_to_mongodb("stock_prices")
     collection = db["price_combined"]
     last_item = collection.find_one(sort=[('_id', -1)])
-
+    # print(last_item)
     return last_item[symbol]
 
 def get_details(stock):

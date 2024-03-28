@@ -357,38 +357,6 @@ def get_demo_holding_details_concurrently(holding):
     finally:
         # Close the old database connections to avoid connection exhaustion
         close_old_connections()
-        
-# class PortfolioDetail(APIView):
-#    def get(self, request, *args, **kwargs):
-#         mode = self.kwargs.get('mode')
-#         if not mode or mode == "demo":
-#             portfolio = DemoPortfolio.objects.get_or_create(user=request.user)[0]
-#             holdings = portfolio.demoholdings.all()
-
-#             # Use ThreadPoolExecutor to execute get_holding_detail concurrently.
-#             with ThreadPoolExecutor() as executor:
-#                 # Map the holdings to the executor, it will return a generator.
-#                 futures = [executor.submit(get_demo_holding_details_concurrently, holding) for holding in holdings]
-#                 holdings_data = [future.result() for future in futures]
-
-           
-#         if mode == 'live':
-#             portfolio = Portfolio.objects.get(user=request.user)
-#             holdings = portfolio.holdings.all()
-
-#             # Use ThreadPoolExecutor to execute get_holding_detail concurrently.
-#             with ThreadPoolExecutor() as executor:
-#                 # Map the holdings to the executor, it will return a generator.
-#                 futures = [executor.submit(get_holding_details_concurrently, holding) for holding in holdings]
-#                 holdings_data = [future.result() for future in futures]
-
-#         portfolio_data = get_portfolio_data(holdings_data)
-
-#         data = {
-#             'portfolio': portfolio_data,
-#             'holdings': holdings_data
-#         }
-#         return Response(data)
   
         
 class ReceiptsView(APIView):
@@ -532,7 +500,9 @@ class AlertView(APIView):
                 return Response({"detail": "alert type must be 'price' or 'volume' "}, status=status.HTTP_400_BAD_REQUEST)
             
             price = serializer.validated_data["to_price"] if serializer.validated_data["alert_type"] == "price" else None
-            current_price = get_price(serializer.validated_data["stock"])['current_price']
+            symbol2 = serializer.validated_data["stock"].symbol
+            print(type(symbol2))
+            current_price = get_price(symbol2)['current_price']
             if price:
                 if price <= 0:
                     return Response({"detail": "Price must be greater than 0"}, status=status.HTTP_400_BAD_REQUEST)
@@ -541,6 +511,7 @@ class AlertView(APIView):
                 elif serializer.validated_data["action"] == "above" and price <= current_price:
                     serializer.validated_data['frequency'] = 'Once'
             stock = get_object_or_404(Stock, symbol =serializer.validated_data["stock"])
+            print(type(stock))
             name = serializer.validated_data["alert_name"] + str(randint(23, 456789))
             serializer.save(user=request.user,stock=stock, alert_name=name)
             
@@ -581,6 +552,8 @@ class AlertUpdateView(APIView):
                 serializer.save()
                 return Response(serializer.data)
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"detail": "Alert not found"}, status=status.HTTP_404_NOT_FOUND)
         
     def delete(self, request, *args, **kwargs):
         id = kwargs.get("id")

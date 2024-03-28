@@ -41,17 +41,7 @@ def  verify_token(user_email,token, _type=""):
         return True
     return False
 
-def send_welcome_email(user):
-    # Send token to users email
-    context={
-        "firstname":user.firstname.title()
-    }
-    html_message = render_to_string('accounts/welcome_email.html', context)
-    plain_message = ""
-    subject = 'Welcome to Gohamma'
-    from_email = "teamgohamma@gmail.com"
-    recipient_list = [user.email]
-    send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+
 
 
 def resendToken(instance, _type):
