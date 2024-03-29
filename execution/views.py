@@ -518,13 +518,18 @@ class Home(APIView):
                 else:
                     position_data_list =[]
                     overview = []
-                    
-                equity1 = round(balance + profit_loss,2)
-                equity = equity1 if equity1 >= 0 else 0
+                
+                balance2 = sum([pos.amount_invested for pos in positions])
+                  
+                # equity1 = round(balance + profit_loss,2)
+                equity2 = round(balance2 + profit_loss,2)
+                
+                # equity = equity1 if equity1 >= 0 else 0
+                equity = equity2 if equity2 >= 0 else 0
                 
                 
                 data = {
-                    'balance':round(balance,2),
+                    'balance':round(balance2,2),
                     'equity':equity,
                     'floating_pl' : profit_loss,
                     'closed_pl' : profit_loss2,
