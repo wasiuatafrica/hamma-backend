@@ -40,6 +40,7 @@ from django.shortcuts import get_object_or_404
 from notifications.utils import save_and_send_notification,get_notifications,update_notification
 from accounts.models import Profile
 from django.db.models import Max
+from .utils import count_business_days
 
 User = get_user_model()
 # Create your views here.
@@ -910,89 +911,6 @@ class CompetitionSummaryViewForClan(APIView):
 
         return Response(serializer.data)
 
-# class TopTraderPayoutRequest(APIView):
-#     serializer_class =  serializers.CompetitionSummarySerializer
-#     queryset = CompetitionSummary.objects.all()
-
-#     def get(self, request,*args, **kwargs):
-#         first_winers_summary=[]
-#         second_winers_summary=[]
-#         third_winers_summary=[]
-#         position=0
-#         competition_id=Competition.objects.filter(id=kwargs.get("competition_id")).first()
-#         if not competition_id:
-#             return Response({"detail":"competiton with this ID not found"}, status=status.HTTP_404_NOT_FOUND)
-#         # Prevent others from making request for another trader's payout
-#         user_acc=CompetitionPortfolio.objects.filter(competition=competition_id, user=request.user).first()
-#         if not user_acc:
-#             return Response({"detail": "Account not found. Ensure you are requesting payout for your personal account"}, status=status.HTTP_404_NOT_FOUND)
-#         # Get all the profits and prevents duplicates using set
-#         summary=sorted(list(set([i.profit for i in competition_id.competitionsummary_set.all()])), reverse=True)
-#         print(summary,"summary")
-#         # filter all the profits by each unique profits to resolves traders with tie profits for the 1-3 and
-#         # Account for when the list index is <3
-#         if len(summary) >=3: #then we have complete winners
-#             first_winers_summary=[i.user.email for i in competition_id.competitionsummary_set.filter(profit=summary[0]).order_by("-profit")]
-#             second_winers_summary=[i.user.email for i in competition_id.competitionsummary_set.filter(profit=summary[1]).order_by("-profit")]
-#             third_winers_summary=[i.user.email for i in competition_id.competitionsummary_set.filter(profit=summary[2]).order_by("-profit")]
-#         elif len(summary) >=2: #then we have only first and second winners
-#             first_winers_summary=[i.user.email for i in competition_id.competitionsummary_set.filter(profit=summary[0]).order_by("-profit")]
-#             second_winers_summary=[i.user.email for i in competition_id.competitionsummary_set.filter(profit=summary[1]).order_by("-profit")]
-#         elif len(summary) >=1: #then we have only first winners
-#             first_winers_summary=[i.user.email for i in competition_id.competitionsummary_set.filter(profit=summary[0]).order_by("-profit")]
-#         else: #The competitonsummary is empty
-#             return Response({"detail":"Empty"}, status=status.HTTP_400_BAD_REQEUEST)
-#         if request.user.email in first_winers_summary:
-#             # User is part of the first winner
-#             position=1
-#         elif request.user.email in second_winers_summary:
-#             # User is part of the first winner
-#             position=2
-#         elif request.user.email in third_winers_summary:
-#             # User is part of the first winner
-#             position=3
-#         else:
-#             return Response(False, status=status.HTTP_400_BAD_REQUEST)
-#         print(position,"position")
-#         print(user_acc.user_account,"user_acc.user_account")
-#         print(first_winers_summary,second_winers_summary,third_winers_summary,"arrays")
-#         # Save ther users competiton position
-#         _user=CompetitionSummary.objects.get(user=request.user,competition=competition_id)
-#         if not _user.position:
-#             _user.position=position
-#             _user.save()
-
-#         has_pending_request=TopTraderPayout.objects.filter( 
-#             useracc=user_acc.user_account,
-#             status="pending",
-#             competition=competition_id).first()
-#         desired_time = time(12, 0)
-#         wat_timezone = pytz.timezone('Africa/Lagos')
-#         #print(wat_timezone, "timeeeee")
-#         current_time_wat = datetime.now(wat_timezone)
-#         is_friday = current_time_wat.weekday() == 4  # 4 represents Friday
-#         is_after_12pm_wat = current_time_wat.time() > desired_time
-#         is_weekend = datetime.now().weekday() > 5
-
-#         if has_pending_request or (is_friday and is_after_12pm_wat) or is_weekend:
-#             return Response(False, status=status.HTTP_400_BAD_REQUEST)
-        
-#         return Response(True)
-#     def post(self, request,*args, **kwargs):
-#         competition_id=Competition.objects.filter(id=kwargs.get("competition_id"),status='current').first()
-#         if not competition_id:
-#             return Response({"detail":"competiton with this ID not found"}, status=status.HTTP_404_NOT_FOUND)
-#         user_acc=CompetitionPortfolio.objects.filter(competition=competition_id, user=request.user).first()
-#         top_trader_payout=TopTraderPayout.objects.create( 
-#             useracc=user_acc.user_account,
-#             date=datetime.now().date(),
-#             status="pending",
-#             paytype="Talent Payout",
-#             competition=competition_id)
-#         TopTraderPayoutButtonShows.objects.create(acc=user_acc.user_account)
-#         TopTraderPayoutImg.objects.create(payout=top_trader_payout)
-#         send_top_trader_payment_processing_mail(request.user.email)
-#         return Response({"detail":"Request sent"})
 
 class TopTraderPayoutRequest(APIView):
     serializer_class =  serializers.CompetitionSummarySerializer
@@ -1009,8 +927,12 @@ class TopTraderPayoutRequest(APIView):
         if not user_acc:
             return Response({"detail": "Account not found. Your account didn't make it to the end of competition."}, status=status.HTTP_404_NOT_FOUND)
         # Get all the profits and prevents duplicates using set
-        top_3= CompetitionSummary.objects.filter(competition=competition_id).order_by('position')[:3]
+        trading_days = count_business_days(competition_id.start_date, competition_id.end_date)
+        
+        top_3= CompetitionSummary.objects.filter(competition=competition_id,trading_days__gte=trading_days).order_by('position')[:1]
         # top_3=[account.user_account for account in top_]
+        
+        trading_days = count_business_days(competition_id.start_date, competition_id.end_date)
         
         has_pending_request=TopTraderPayout.objects.filter( 
             portfolio=user_acc.portfolio,
@@ -1037,11 +959,11 @@ class TopTraderPayoutRequest(APIView):
         competition_id=Competition.objects.filter(id=kwargs.get("competition_id")).first()
         if not competition_id:
             return Response({"detail":"competiton with this ID not found"}, status=status.HTTP_404_NOT_FOUND)
-        prize = {
-            '1':competition_id.first_prize,
-            '2': competition_id.second_prize,
-            '3':competition_id.third_prize
-        }
+        # prize = {
+        #     '1':competition_id.first_prize,
+        #     '2': competition_id.second_prize,
+        #     '3':competition_id.third_prize
+        # }
         user_acc=CompetitionSummary.objects.filter(competition=competition_id, user=request.user).first()
         top_trader_payout=TopTraderPayout.objects.create( 
             portfolio=user_acc.portfolio,
@@ -1050,7 +972,7 @@ class TopTraderPayoutRequest(APIView):
             paytype="Top Trader Payout",
             competition=competition_id,
             profit=user_acc.profit,
-            amount=prize[str(user_acc.position)],
+            amount=competition_id.first_prize,
             position=user_acc.position)
         save_and_send_notification(request.user.id, f"You have requested for Top Trader Prize payout in the '{competition_id.title.title()}' competition")
         TopTraderPayoutButtonShows.objects.create(portfolio=user_acc.portfolio)

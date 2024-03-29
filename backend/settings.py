@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'anyon',
     'lock',
     'competition',
-    # "leaderboard",
+    "waitlist",
     'notifications',
     'django_otp',
     'django_otp.plugins.otp_totp',

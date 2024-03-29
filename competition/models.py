@@ -348,6 +348,8 @@ class CompetitionSummary(auto_prefetch.Model):
     created_at=models.DateTimeField(blank=True,null=True, auto_now_add=True)
     updated_at=models.DateTimeField(blank=True,null=True, auto_now=True)
     position=models.PositiveIntegerField(blank=True, null=True)
+    trading_days=models.PositiveIntegerField(blank=True, null=True)
+    
 
     def __str__(self):
         return f"{self.user.email} | {self.clan} | {self.competition.title} | {self.position}"

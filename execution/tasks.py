@@ -249,37 +249,82 @@ def process_limit_order(id, in_competition=False):
                 
                 data =get_price(position.stock.symbol)
                 price=data['current_price']
+                balance =  position.portfolio.balance
+                
                 if position.action == 'buy':
                     if price <= position.limit_price:
-                        position.status= 'open'
-                        position.open_price = Decimal(price)
-                        position.amount_invested = Decimal(price) * position.quantity
-                        position.save()
-                    
-                        CompetitionTransaction.objects.create(
-                                user=user,
-                                transaction_type='open trade',
-                                amount=position.amount_invested,
-                                status='completed'
-                            )
-                        activity=UserActivityLog.objects.create(user=user, action_type="demo_open_trade",description=f"User opened demo trade with  {position.amount_invested}naira on {position.stock.symbol}.")
                         
-                        save_and_send_notification(user.id,f' COMPETITION: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value:{position.amount_invested}naira ')
+                        amount = Decimal(price) * position.quantity
+                        trade_commission = round(Decimal(0.00435) * amount, 2) + 200
+                
+                        total= amount + trade_commission
+                        
+                        if balance >= total:
+                            position.status= 'open'
+                            position.open_price = Decimal(price)
+                            position.amount_invested = amount
+                            position.save()
+                        
+                            CompetitionTransaction.objects.create(
+                                    user=user,
+                                    transaction_type='open trade',
+                                    amount=position.amount_invested,
+                                    status='completed'
+                                )
+                            
+                            CompetitionTransaction.objects.create(
+                                    user=user,
+                                    transaction_type='trade commission',
+                                    amount=trade_commission,
+                                    status='completed'
+                                )
+                            
+                            position.portfolio.balance -= total
+                            position.portfolio.save()
+                            
+                            activity=UserActivityLog.objects.create(user=user, action_type="competition_open_trade",description=f"User opened competition trade with  {position.amount_invested}naira on {position.stock.symbol}.")
+                            
+                            save_and_send_notification(user.id,f' COMPETITION: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value:{position.amount_invested}naira ')
+                        else:
+                            save_and_send_notification(user.id,f' COMPETITION: Your pending order:  {position.quantity} units of {position.stock.symbol}  cannot be filled because you do not have sufficient funds.')
+                            
 
                 elif position.action == 'sell':
                     if price >= position.limit_price:
-                        position.status= 'open'
-                        position.open_price = Decimal(price)
-                        position.amount_invested = Decimal(price) * position.quantity
-                        position.save()
-                    
-                        CompetitionTransaction.objects.create(
-                                user=user,
-                                transaction_type='open trade',
-                                amount=position.amount_invested,
-                                status='completed'
-                            )
-                        save_and_send_notification(user.id,f' COMPETITION: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value:{position.amount_invested}naira ')
+                        amount = Decimal(price) * position.quantity
+                        trade_commission = round(Decimal(0.00435) * amount, 2) + 200
+                
+                        total= amount + trade_commission
+                        
+                        if balance >= total:
+                            position.status= 'open'
+                            position.open_price = Decimal(price)
+                            position.amount_invested = amount
+                            position.save()
+                        
+                            CompetitionTransaction.objects.create(
+                                    user=user,
+                                    transaction_type='open trade',
+                                    amount=position.amount_invested,
+                                    status='completed'
+                                )
+                            
+                            CompetitionTransaction.objects.create(
+                                    user=user,
+                                    transaction_type='trade commission',
+                                    amount=trade_commission,
+                                    status='completed'
+                                )
+                            
+                            position.portfolio.balance -= total
+                            position.portfolio.save()
+                            
+                            activity=UserActivityLog.objects.create(user=user, action_type="competition_open_trade",description=f"User opened competition trade with  {position.amount_invested}naira on {position.stock.symbol}.")
+                            
+                            save_and_send_notification(user.id,f' COMPETITION: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value:{position.amount_invested}naira ')
+                        else:
+                            save_and_send_notification(user.id,f' COMPETITION: Your pending order:  {position.quantity} units of {position.stock.symbol}  cannot be filled because you do not have sufficient funds.')
+                            
                 print(f"limit order {position.alert_name} checked")
         else:
             task = PeriodicTask.objects.get(name=position.alert_name)

@@ -2,26 +2,57 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.contrib.auth import get_user_model
 from notifications.utils import save_and_send_notification
-
-# from .views import Create_competiton_summary, rank_traders, rank_clans
-from .models import Competition, CompetitionPortfolio, get_price, CompetitionDailyReturns, ClanCompetitionSummary, CompetitionSummary, Clan, CompetitionPosition
+from decimal import Decimal
+from .models import (Competition, CompetitionPortfolio, get_price, CompetitionDailyReturns, ClanCompetitionSummary, CompetitionSummary, Clan, 
+                     CompetitionPosition, CompetitionTransaction)
 
 from django.db.models import Sum, Avg
 from django.db.models.expressions import Window,F 
 from django.db.models.functions import Rank
+from accounts.models import UserActivityLog
+from datetime import datetime, timedelta
 
 
 logger = get_task_logger(__name__)
+
+def close_competition_trades(competition):
+    positions = CompetitionPosition.objects.filter(portfolio__competition=competition, status='open')
+    for position in positions:
+        pl, cur_val,price = position.calculate_profit_loss()
+        
+        position.status = 'close'
+        position.close_price = Decimal(price)
+        position.profit_loss =pl
+        position.save()
+        
+        CompetitionTransaction.objects.create(
+                user=position.portfolio.user,
+                transaction_type='close trade',
+                amount=position.amount_invested + position.profit_loss,
+                status='completed'
+            )
+        activity=UserActivityLog.objects.create(user=position.portfolio.user, action_type="competition_closed_trade",description=f"Open competition trade with symbol {position.stock.symbol} is closed.")
+        position.portfolio.balance += position.amount_invested + position.profit_loss
+        position.portfolio.save()
 
 def getProfit(portfolio):
     positions = CompetitionPosition.objects.filter(portfolio=portfolio, status='close')
     # print(len(positions))
     
-    profit = sum([position.profit_loss for position in positions if positions])
+    profit_list = []
+    trading_days = []
+    for position in positions:
+        profit_list.append(position.profit_loss)
+        if position.updated - position.created >= timedelta(minutes=5):
+            trading_days.append(position.updated)
+    profit = sum(profit_list)
+    days = len(trading_days)
     # print(profit)
-    return profit
+    return profit,days
 
 def Create_competiton_summary(competition):
+    close_competition_trades(competition)
+    
     portfolios = CompetitionPortfolio.objects.filter(competition=competition, active=True)
     
     for portfolio in portfolios:
@@ -32,7 +63,7 @@ def Create_competiton_summary(competition):
         except Clan.DoesNotExist:
             clan = Clan.objects.filter(clan_admin=portfolio.user).first()
         
-        profit = getProfit(portfolio)
+        profit,trading_days = getProfit(portfolio)
         percent = round(profit / 1000000 * 100, 2)
         
         # Use the single `portfolio` instance here

@@ -212,7 +212,13 @@ class DemoTradeAPIView(APIView):
                     CompetitionTransaction.objects.create(
                         user=request.user,
                         transaction_type='open trade',
-                        amount=quantity * market_price,
+                        amount=amount,
+                        status='completed'
+                    )
+                    CompetitionTransaction.objects.create(
+                        user=request.user,
+                        transaction_type='trade commission',
+                        amount=trade_commission,
                         status='completed'
                     )
                     
