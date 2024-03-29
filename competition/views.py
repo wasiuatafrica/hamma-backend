@@ -458,7 +458,7 @@ class ClanMembers(APIView):
                         'member_id':member.id,
                         'name':portfolio.user.fullname,
                         'profit':percent,
-                        'country':portfolio.user.country,
+                        'country':profile1.country,
                     }
                 
                 else:
@@ -1117,7 +1117,7 @@ def rank_traders(competition):
 
 class PayoutHistory(APIView):
     def get(self, request,*args, **kwargs):
-        history = TopTraderPayout.objects.filter(useracc__user=request.user)
+        history = TopTraderPayout.objects.filter(portfolio__user=request.user)
         serializer=serializers.TraderPayoutSerializer(history, many=True)
         return Response(serializer.data)
     
