@@ -6,7 +6,11 @@ from .models import (
     Transaction,  Alert, AlertAI, AlertAITracker,  Conversation, Message, DemoTransaction
 )
 
-admin.site.register(Stock)
+
+class StockAdmin(admin.ModelAdmin):
+    search_fields = ['symbol']
+    
+admin.site.register(Stock, StockAdmin)
 admin.site.register(PayStackReceipts)
 # admin.site.register(Holding)
 # admin.site.register(Portfolio)
