@@ -296,7 +296,7 @@ class CanJoin(APIView):
                              'reason':'has a pending clan creation request',
                              'request_info':serializerr2.data,
                               'clan_id':""
-                              }),
+                              })
                             
         elif pending_join1:
             serializerr= serializers.ClanSerializer(pending_join1.clan)
