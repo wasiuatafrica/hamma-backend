@@ -817,7 +817,10 @@ class DemoHolding(APIView):
                     else:
                         percent_change = None
                         
-                    
+                    if position.status == 'open':
+                        profit_loss = pl
+                    else:
+                        profit_loss = position.profit_loss
                     data = {
                         'id':position.id,
                         'stock':position.stock.symbol,
@@ -834,7 +837,7 @@ class DemoHolding(APIView):
                         "volume":'66000',
                         'status':position.status,
                         'invested':position.amount_invested,
-                        "profit_loss":position.profit_loss,
+                        "profit_loss":profit_loss,
                         "side":position.action,
                         "order":position.order_type,
                         'order_id':position.order_id
