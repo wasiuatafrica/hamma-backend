@@ -243,14 +243,14 @@ class DemoTradeAPIView(APIView):
                         }
                         return data1
                     
-                    with ThreadPoolExecutor() as executor:
-                        futures = executor.map(get_position, positions)
-                        position_data_list = [result for result in futures if result]
+                    # with ThreadPoolExecutor() as executor:
+                    #     futures = executor.map(get_position, positions)
+                    #     position_data_list = [result for result in futures if result]
                     
                         
                     save_and_send_notification(request.user.id,f' COMPETITION: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ')
                     
-                    return Response({'message': f'{action.title()} order placed successfully.', 'positions':position_data_list}, status=status.HTTP_201_CREATED)
+                    return Response({'message': f'{action.title()} order placed successfully.'}, status=status.HTTP_201_CREATED)
                 else:
                     return Response({'error': 'Insufficient funds to trade.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -303,13 +303,13 @@ class DemoTradeAPIView(APIView):
                     }
                     return data1
                 
-                with ThreadPoolExecutor() as executor:
-                    futures = executor.map(get_position, positions)
-                    position_data_list = [result for result in futures if result]
+                # with ThreadPoolExecutor() as executor:
+                #     futures = executor.map(get_position, positions)
+                #     position_data_list = [result for result in futures if result]
                     
                 save_and_send_notification(request.user.id,f' COMPETITION: Your limit order will be opened when the condition you set is met.')
                 
-                return Response({'message': f'{action.title()} order scheduled successfully.', 'positions':position_data_list}, status=status.HTTP_201_CREATED)
+                return Response({'message': f'{action.title()} order scheduled successfully.'}, status=status.HTTP_201_CREATED)
 
         else:
             portfolio = DemoPortfolio.objects.get_or_create(user=request.user)[0]
@@ -363,14 +363,14 @@ class DemoTradeAPIView(APIView):
                         }
                     return data1
                 
-                with ThreadPoolExecutor() as executor:
-                    futures = executor.map(get_position, positions)
-                    position_data_list = [result for result in futures if result]
+                # with ThreadPoolExecutor() as executor:
+                #     futures = executor.map(get_position, positions)
+                #     position_data_list = [result for result in futures if result]
                 
                     
                 save_and_send_notification(request.user.id,f' DEMO: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ')
                 
-                return Response({'message': f'{action.title()} order placed successfully.', 'positions':position_data_list}, status=status.HTTP_201_CREATED)
+                return Response({'message': f'{action.title()} order placed successfully.'}, status=status.HTTP_201_CREATED)
 
             elif order_type == 'limit':
                 
@@ -432,13 +432,13 @@ class DemoTradeAPIView(APIView):
                         }
                     return data1
                 
-                with ThreadPoolExecutor() as executor:
-                    futures = executor.map(get_position, positions)
-                    position_data_list = [result for result in futures if result]
+                # with ThreadPoolExecutor() as executor:
+                #     futures = executor.map(get_position, positions)
+                #     position_data_list = [result for result in futures if result]
                     
                 save_and_send_notification(request.user.id,f' DEMO: Your limit order will be opened when the condition you set is met.')
                 
-                return Response({'message': f'{action.title()} order scheduled successfully.', 'positions':position_data_list}, status=status.HTTP_201_CREATED)
+                return Response({'message': f'{action.title()} order scheduled successfully.'}, status=status.HTTP_201_CREATED)
 
             
 

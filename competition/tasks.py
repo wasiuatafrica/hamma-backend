@@ -67,7 +67,7 @@ def Create_competiton_summary(competition):
         percent = round(profit / 1000000 * 100, 2)
         
         # Use the single `portfolio` instance here
-        CompetitionSummary.objects.create(portfolio=portfolio, clan=clan, user=portfolio.user, profit=percent, competition=competition)
+        CompetitionSummary.objects.create(portfolio=portfolio, clan=clan, user=portfolio.user, profit=percent, competition=competition, trading_days=trading_days)
     
     # close the competition after the loop is completed
     competition.status = "closed"
