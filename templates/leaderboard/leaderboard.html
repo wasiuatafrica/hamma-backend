@@ -5,41 +5,14 @@
       <div class="bg-white m-4 p-3 title">
         <div class="left-bold-title">
           <h4>Leaderboard</h4>
-          <!-- <p>TradersLeaderboard</p> -->
         </div>
         <form>
         <div class="right-title">
-            <!-- <div class="right-filter mt-2">
-              <select class="form-select" id="validationCustom04" required>
-                <option selected disabled value="">Filter</option>
-                <option>...</option>
-              </select>
-            </div> -->
-            {% comment %} <div class="right-search mt-2">
-              <input type="text" class="form-control" name="country" placeholder="search by country">
-              <!-- <p>Filter</p> -->
-            </div> {% endcomment %}
-            {% comment %} <div class="right-search mt-2">
-              <select class="form-control" name="filter">
-                <option value="filter">Filter Competition</option>
-                {% for option in names %}
-                  <option value="{{ option }}">{{ option }}</option>
-                {% endfor %}
-              </select>
-            </div> {% endcomment %}
             
             <div class="right-search mt-2">
               <input type="text" class="form-control" name="email" placeholder="Email search">
               <!-- <p>Filter</p> -->
             </div>
-            {% comment %} <div class="right-search mt-2">
-              <input type="text" class="form-control" name="number" placeholder="Account Search">
-              <!-- <p>Filter</p> -->
-            </div> {% endcomment %}
-            {% comment %} <div class="right-search mt-2">
-              <input type="text" class="form-control" name="acc_size" placeholder="search by account-size">
-              <!-- <p>Filter</p> -->
-            </div> {% endcomment %}
             <div class="right-search mt-2">
               <input type="text" class="form-control" name="clan_name" placeholder="Clan Search">
               <!-- <p>Filter</p> -->
@@ -58,12 +31,6 @@
           </div>
           <form>
           <div class="right-title">
-              <!-- <div class="right-filter mt-2">
-                <select class="form-select" id="validationCustom04" required>
-                  <option selected disabled value="">Filter</option>
-                  <option>...</option>
-                </select>
-              </div> -->
               
               <div class="right-search mt-2">
                 <select class="form-control" name="filter" required>
@@ -88,31 +55,25 @@
                     <tr>
                       <th scope="col">#</th>
                       <th scope="col">Email</th>
-                      {% comment %} <th scope="col">Account Size</th> {% endcomment %}
-                      {% comment %} <th scope="col">Account Number</th> {% endcomment %}
-                      {% comment %} <th scope="col">Models</th> {% endcomment %}
-                      {% comment %} <th scope="col" style="color: #00C500">Total profits</th> {% endcomment %}
                       <th scope="col" >Total profits</th>
-                      {% comment %} <th scope="col">24 hrs</th> {% endcomment %}
-                      {% comment %} <th scope="col">1 week</th> {% endcomment %}
                       <th scope="col">Country</th>
                       <th scope="col" class="text-warning">Clan</th>
+
                     </tr>
                   </thead>
             <tbody>
               {%for account in data%}
             <tr>
                 <th scope="row">{{forloop.counter}}</th>
-                <td><span>{{account.name}}</td>
-                {% comment %} <td>${{account.acc_size}}</td> {% endcomment %}
-                {% comment %} <td>{{account.acc_number}}</td> {% endcomment %}
-                {% comment %} <td>{{account.typeofaccount.title}}</td> {% endcomment %}
-                {% comment %} <td style="color: #00C500">{{account.profit}}%</td> {% endcomment %}
+                <td>{{account.name}}</td>
                 <td>{{account.profit}}%</td>
-                {% comment %} <td>{{account.percent_24hrs}}%</td> {% endcomment %}
-                {% comment %} <td>{{account.percent_week}}%</td> {% endcomment %}
                 <td>{{account.country}}</td>
                 <td class="text-warning">{{account.clan.title}}</td>
+                <td>
+                  <button class="btn text-white remove-btn" data-account-id="{{ account.id }}" {% if not account.active %} disabled {% endif %} style="background: red; border-radius: 10px">Remove</button>
+              </td>
+              
+
             </tr>
             {%empty%}
             <tr>
@@ -167,5 +128,28 @@
   </tbody>
 </table>
 </div>
+
+<script>
+  document.querySelectorAll('.remove-btn').forEach(btn => {
+      btn.addEventListener('click', (event) => {
+          event.preventDefault();
+          const accountId = event.target.dataset.accountId;
+          fetch(`/leaderboard/remove/${accountId}/`)
+              .then(response => response.json())
+              .then(data => {
+                const accountId = event.target.dataset.accountId;
+                const removeBtn = document.querySelector(`.remove-btn[data-account-id="${accountId}"]`);
+                if (data.active) {
+                    removeBtn.disabled = false;
+                } else {
+                    removeBtn.disabled = true;
+                }
+              }) 
+              .catch(error => {
+                  console.error('Error:', error);
+              });
+      });
+  });
+</script>
 {%endblock%}
  

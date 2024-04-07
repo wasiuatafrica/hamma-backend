@@ -1,0 +1,69 @@
+
+{%extends 'leaderboard/base.html'%}
+
+{%block content%}
+    <div class="main-body">
+      <div class="bg-white m-4 p-3 title">
+        <div class="left-bold-title">
+          <h4>Users List</h4>
+        </div>
+        <form>
+        <div class="right-title">
+            
+            <div class="right-search mt-2">
+              <input type="text" class="form-control" name="search" placeholder="Search">
+              <!-- <p>Filter</p> -->
+            </div>
+            
+            <div class="right-search mt-2">
+              <input type="submit" class="form-control" value="Submit">
+              <!-- <p>Filter</p> -->
+            </div>
+          </div>
+        </form>
+        </div>
+        <div class="bg-white m-4 p-3 title">
+          
+          <form>
+          
+          </div>
+              <div class="bg-white m-4 p-3 main-table table-responsive newtable" {% if leaderboard == "hide" %} style="display: none;" {%endif%}>
+                <table class="table table-hover table-bordered">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Email</th>
+                      <th scope="col" >First Name</th>
+                      <th scope="col">Last Name</th>
+                      <th scope="col">Action</th>
+
+                    </tr>
+                  </thead>
+            <tbody>
+              {%for user in users%}
+            <tr>
+                <th scope="row">{{forloop.counter}}</th>
+                <td>{{ user.email }}</td>
+                <td>{{ user.firstname }}</td>
+                <td>{{ user.lastname }}</td>
+                <td>
+                    <a href="{% url 'edit-user' user.id %}" class="btn btn-primary">Edit</a>
+                </td>
+              
+
+            </tr>
+            {%empty%}
+            <tr>
+              <div class="alert alert-info" role="alert">
+                
+              </div>
+            </tr>
+            {%endfor%}
+            </tbody>
+        </table>
+    </div>
+      
+</div>
+
+{%endblock%}
+ 

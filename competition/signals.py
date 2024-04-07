@@ -1,14 +1,16 @@
+import json
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Competition
-import json
 from django.utils import timezone
-from datetime import datetime
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
-from .tasks import create_competition 
+
+from .models import Competition
+from .tasks import create_competition, setup_competition_emails
 
 @receiver(post_save, sender=Competition)
-def notify_all_users(sender, instance, created,update_fields, **kwargs):
+def notify_all_users(instance, created, **kwargs):
+      
     if instance.status == 'current':
         start_date = instance.start_date
         
@@ -64,4 +66,5 @@ def notify_all_users(sender, instance, created,update_fields, **kwargs):
                     one_off=True,  
                     crontab = end_schedule
                 )
-        
+    if created:
+        setup_competition_emails.delay(instance.id)

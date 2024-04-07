@@ -52,6 +52,14 @@ class CompetitionPortfolio(auto_prefetch.Model):
 
     def __str__(self):
         return f"{self.competition.title} {self.user}"
+    
+    @property
+    def profit(self):
+        closed_positions = self.composition.filter(status=CompetitionPosition.CLOSED)
+        profit = closed_positions.aggregate(Sum('profit_loss'))['profit_loss__sum'] or 0
+        percent= round((profit/1000000)*100,2)
+        return percent
+
 
 
  

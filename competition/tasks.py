@@ -1,6 +1,8 @@
+import time
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.contrib.auth import get_user_model
+from numpy import half
 from notifications.utils import save_and_send_notification
 from decimal import Decimal
 from .models import (Competition, CompetitionPortfolio, get_price, CompetitionDailyReturns, ClanCompetitionSummary, CompetitionSummary, Clan, 
@@ -11,7 +13,14 @@ from django.db.models.expressions import Window,F
 from django.db.models.functions import Rank
 from accounts.models import UserActivityLog
 from datetime import datetime, timedelta
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
+from django_celery_beat.models import PeriodicTask, CrontabSchedule
+from django.db.models import F, Window 
+from django.db.models.functions import Rank
+from django.utils import timezone
 
+User=get_user_model()
 
 logger = get_task_logger(__name__)
 
@@ -100,8 +109,7 @@ def rank_clans(competition):
 
  
 def rank_traders(competition): 
-    from django.db.models import F, Window 
-    from django.db.models.functions import Rank
+    
     summary = CompetitionSummary.objects.filter(competition=competition).exclude(profit=0)
     # Use the Window expression to rank the objects by profit 
     summary = summary.annotate( rank=Window( expression=Rank(), order_by=F('profit').desc() ) ) 
@@ -154,3 +162,239 @@ def create_returns(portfolio_id):
     data = get_price ('ASI')
     pr = data['current_price']
     CompetitionDailyReturns.objects.create(user=portfolio.user, ngx_price = pr,portfolio=portfolio)
+    
+@shared_task
+def two_days_before_start(): #2
+    users = User.objects.all()
+    for user in users:
+        context={
+        "firstname":user.firstname
+    }
+        html_message = render_to_string('competition/two_days_before_start.html', context)
+        plain_message = ""
+        subject = 'BEFORE STEPPING ON HAMMA STAGE!'
+        from_email = "teamgohamma@gmail.com"
+        recipient_list = [user.email]
+        send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+
+@shared_task
+def saturday_evening(): #3
+    competition = Competition.objects.filter(status='current')
+    if competition.exists():
+        users = User.objects.all()
+        
+        for user in users:
+            context={
+            "firstname":user.firstname,
+            'clan':user.clan.clan_name,
+        }
+            html_message = render_to_string('competition/saturday_evening.html', context)
+            plain_message = ""
+            subject = f' {user.firstname.title()}, WHERE DO YOU STAND?'
+            from_email = "teamgohamma@gmail.com"
+            recipient_list = [user.email]
+            send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+
+@shared_task
+def four_days_before_end(): #4
+    users = User.objects.all()
+    for user in users:
+        context={
+        "firstname":user.firstname,
+    }
+        html_message = render_to_string('competition/four_days_before_end.html', context)
+        plain_message = ""
+        subject = "Keep Pushing Forward - You're Doing Great!"
+        from_email = "teamgohamma@gmail.com"
+        recipient_list = [user.email]
+        send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+       
+@shared_task
+def friday_evening(): #5
+    competition = Competition.objects.filter(status='current')
+    if competition.exists():
+        users = User.objects.all()
+        for user in users:
+            context={
+            "firstname":user.firstname,
+            'clan':user.clan.clan_name,
+        }
+            html_message = render_to_string('competition/friday_evening.html', context)
+            plain_message = ""
+            subject = 'GUESS WHO MADE TOP TRADER FOR THE WEEK?'
+            from_email = "teamgohamma@gmail.com"
+            recipient_list = [user.email]
+            send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+            
+
+    
+@shared_task
+def mid_competition(): #7
+    users = User.objects.all()
+    for user in users:
+        context={
+        "firstname":user.firstname,
+    }
+        html_message = render_to_string('competition/mid_competition.html', context)
+        plain_message = ""
+        subject = "DO THIS IF YOU DON'T WANT TO WIN"
+        from_email = "teamgohamma@gmail.com"
+        recipient_list = [user.email]
+        send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+        
+@shared_task
+def last_day(): #8
+    users = User.objects.all()
+    for user in users:
+        context={
+        "firstname":user.firstname,
+    }
+        html_message = render_to_string('competition/last_day.html', context)
+        plain_message = ""
+        subject = "Congratulations - You're a Hamma Trading Competition Champion!"
+        from_email = "teamgohamma@gmail.com"
+        recipient_list = [user.email]
+        send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+        
+@shared_task
+def two_days_before_end(): #9
+    users = User.objects.all()
+    for user in users:
+        context={
+        "firstname":user.firstname,
+    }
+        html_message = render_to_string('competition/two_days_before_end.html', context)
+        plain_message = ""
+        subject = " Finish Strong in the Hamma Trading Competition!"
+        from_email = "teamgohamma@gmail.com"
+        recipient_list = [user.email]
+        send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+        
+@shared_task
+def three_days_after_end(): #10
+    users = User.objects.all()
+    for user in users:
+        context={
+        "firstname":user.firstname,
+    }
+        html_message = render_to_string('competition/three_days_after_end.html', context)
+        plain_message = ""
+        subject = "Reflecting on the Hamma Trading Competition Journey"
+        from_email = "teamgohamma@gmail.com"
+        recipient_list = [user.email]
+        send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+        
+def create_crontab(target_time):
+    start_schedule, created1 = CrontabSchedule.objects.get_or_create(
+            minute=target_time.minute,
+            hour=target_time.hour,
+            day_of_month=target_time.day,
+            month_of_year=target_time.month
+            )
+    return start_schedule
+
+
+def get_halfway_date(instance):
+    if instance.start_date and instance.end_date:
+        duration = instance.end_date - instance.start_date
+        halfway_duration = duration / 2
+        halfway_date = instance.start_date + halfway_duration
+        return halfway_date
+    return None
+    
+@shared_task
+def setup_competition_emails(competition_id):
+    competition = Competition.objects.get(id=competition_id)
+    start_date = competition.start_date
+    end_date = competition.end_date
+    
+    #1 done
+    #2 2days before competition
+    
+    two_days_before_start = start_date - timedelta(days=2)
+    if timezone.now() < two_days_before_start:
+        two_days_before_start_schedule = create_crontab(two_days_before_start)
+    else:
+        if timezone.now() < start_date - timedelta(days=1):
+            two_days_before_start_schedule = create_crontab(start_date - timedelta(days=1))
+        else:
+            two_days_before_start_schedule = create_crontab(timezone.now() + timedelta(minutes=5))
+            
+    PeriodicTask.objects.create(
+        name=f"competition {competition.id} 2 days before start schedule",
+        task='competition.tasks.two_days_before_start',
+        one_off=True,
+        crontab = two_days_before_start_schedule
+    )
+    
+    #3 done
+    #4 4days before end of competition
+    
+    four_days_before_end = end_date - timedelta(days=4)
+    
+    if timezone.now() < four_days_before_end:
+        four_days_before_end_schedule = create_crontab(four_days_before_end)
+    else:
+        four_days_before_end_schedule = create_crontab(timezone.now() + timedelta(minutes=5))
+        
+    
+    PeriodicTask.objects.create(
+        name=f"competition {competition.id} 4 days before end schedule",
+        task='competition.tasks.four_days_before_end',
+        one_off=True,
+        crontab = four_days_before_end_schedule
+    )
+    
+    #5 done
+    
+    #7 - mid competition
+    
+    halfway_date = get_halfway_date(competition)
+    
+    halfway_schedule = create_crontab(halfway_date)
+    PeriodicTask.objects.create(
+        name=f"competition {competition.id} mid competition schedule",
+        task='competition.tasks.mid_competition',
+        one_off=True,  
+        crontab = halfway_schedule
+    )
+    
+    #8
+    last_day = end_date.replace(hour=8)
+    if timezone.now() < last_day:
+        last_day_schedule = create_crontab(last_day)
+    else:
+        last_day_schedule = create_crontab(timezone.now() + timedelta(minutes=5))
+        
+    PeriodicTask.objects.create(
+        name=f"competition {competition.id} last day schedule",
+        task='competition.tasks.last_day',
+        one_off=True,
+        crontab = last_day_schedule
+    )
+    
+    #9 2days before end
+    
+    two_days_before_end_date = end_date - timedelta(days=2)  
+    if timezone.now() < two_days_before_end_date:
+        two_days_before_end_schedule = create_crontab(two_days_before_end_date)
+    else:
+        two_days_before_end_schedule = create_crontab(timezone.now() + timedelta(minutes=5))
+        
+    PeriodicTask.objects.create(
+        name=f"competition {competition.id} 2 days before end schedule",
+        task='competition.tasks.two_days_before_end',
+        one_off=True,
+        crontab = two_days_before_end_schedule
+    )
+    
+    #10 3days after end
+    three_days_after_end_date = end_date + timedelta(days=3)
+    three_days_after_end_schedule = create_crontab(three_days_after_end_date)
+    PeriodicTask.objects.create(
+        name=f"competition {competition.id} 3 days after end schedule",
+        task='competition.tasks.three_days_after_end',
+        one_off=True,
+        crontab = three_days_after_end_schedule
+    )
+    

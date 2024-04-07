@@ -1,19 +1,22 @@
-from django.shortcuts import render, redirect
+from datetime import date as dt
+from datetime import datetime,time, date, timedelta
+import pytz
+
+from django.shortcuts import render, redirect,get_object_or_404
+from django.core.paginator import Paginator, EmptyPage
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+from django.db.models import Max, Q
+from django.http import JsonResponse, HttpResponseRedirect,HttpResponseRedirect
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from django.http import HttpResponseRedirect
 from rest_framework.permissions import AllowAny
-from datetime import date as dt
-from datetime import datetime,time, date, timedelta
-from django.contrib.auth import get_user_model
 from rest_framework import status
-from . import serializers
-from django.http import JsonResponse, HttpResponseRedirect
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.views.decorators.csrf import csrf_exempt
-import pytz
-from django.utils import timezone
+
+from . import serializers
 from .tasks import create_returns
 from .models import (
     Clan,
@@ -36,10 +39,8 @@ TopClanMembersPayout,
 TopClanMembersPayoutImg,
     get_price
 )
-from django.shortcuts import get_object_or_404
 from notifications.utils import save_and_send_notification,get_notifications,update_notification
 from accounts.models import Profile
-from django.db.models import Max
 from .utils import count_business_days
 
 User = get_user_model()
@@ -144,6 +145,8 @@ class JoinLeaveCompetetion(APIView):
             if action == "join":
                 if competition.start_date > timezone.now():
                     return Response({"detail": "Competition has not started"}, status=status.HTTP_400_BAD_REQUEST)
+                if competition.end_date - timezone.now() < timedelta(weeks=2):
+                    return Response({"detail": "You can only join the competition up to 2 weeks before the end"}, status=status.HTTP_400_BAD_REQUEST)
                 if portfolio:
                     if portfolio.active:
                         return Response({"detail": "You are already  in this competition"}, status=status.HTTP_400_BAD_REQUEST)
@@ -620,8 +623,13 @@ def leaderboard_view(request):
     # print(len(accounts))
     leaderboard_list=[]
     zero_profit_list = []
+    # clans = Clan.objects.all()
+    # for clan in clans:
+    #     for memeber in clan.member.all():
+    #         # print(clan.clan_name, memeber)
     for account in base_query:
         try:
+            print(account.id)
             clan=Clan.objects.get(member=account.user)
         except Clan.DoesNotExist:
             clan=Clan.objects.get(clan_admin=account.user)
@@ -631,6 +639,8 @@ def leaderboard_view(request):
         percent= round((profit/1000000)*100,2)
         profile= Profile.objects.get(user=account.user)
         data= {
+            'id':user_portfolio.id,
+            'active':user_portfolio.active,
             'name':user_portfolio.user.fullname,
             'profit':percent,
             'country':profile.country,
@@ -652,7 +662,44 @@ def leaderboard_view(request):
         pastLeaderboard="show"
         sorted_data=[]
         past_data=CompetitionSummary.objects.filter(competition__id=q).order_by("position")
+    print(sorted_data)
     return render(request, 'leaderboard/leaderboard.html', {'data':sorted_data, "competitions":competitions, "leaderboard":leaderboard, "pastLeaderboard":pastLeaderboard, "past_data":past_data})
+
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
+def edit_user(request, user_id):
+    user = User.objects.get(id=user_id)
+    if request.method == 'POST':
+        user.firstname = request.POST.get('firstname')
+        user.lastname = request.POST.get('lastname')
+        user.save()
+        return redirect('list-users')  # Redirect to appropriate page after editing
+    return render(request, 'leaderboard/edit_user.html', {'user': user})
+
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
+def list_users(request):
+    users = User.objects.all()
+
+    # Handling search functionality
+    query = request.GET.get('search')
+    if query:
+        users = users.filter(
+            Q(email__icontains=query) |
+            Q(firstname__icontains=query) |
+            Q(lastname__icontains=query)
+        )
+
+    # Paginate users list
+    paginator = Paginator(users, 50)
+    page_number = request.GET.get('page')
+    try:
+        users = paginator.page(page_number)
+    except EmptyPage:
+        users = paginator.page(paginator.num_pages)
+
+    return render(request, 'leaderboard/list_users.html', {'users': users})
+
 
 @login_required
 @user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
@@ -759,22 +806,60 @@ def clan_list(request):
 @user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
 def clan_detail(request,pk):
     clan = Clan.objects.get(id=pk)
-    memebers= clan.member.all() or 0
+    memebers= clan.member.all() 
     q=request.GET.get("filter")
+    
+    
     
     if q:
         memeber= clan.member.filter(email=q)
-        print(memeber, "Heloo")
-        accounts = CompetitionPortfolio.objects.filter(user__in=memeber)
-        return render(request,'leaderboard/clan-detail.html',{'count':memebers.count()+1,'accounts':accounts,'clan':clan})
-    accounts1 = CompetitionPortfolio.objects.filter(user__in=memebers) 
-    accounts2 = CompetitionPortfolio.objects.filter(user=clan.clan_admin)
-    
-    # accounts = (accounts1 | accounts2).distinct('user').annotate(last_portfolio=Max('created'))
-    accounts = (accounts1 | accounts2)
-    
-     
-    return render(request,'leaderboard/clan-detail.html',{'count':memebers.count() +1,'accounts':accounts,'clan':clan})
+        # print(memeber, "Heloo")
+        if memeber:
+            accounts = CompetitionPortfolio.objects.filter(user__in=memeber, competition__status='current')
+            total_profits = sum(account.profit for account in accounts )
+            return render(request,'leaderboard/clan-detail.html',{'count':memebers.count()+1,'accounts':accounts,'clan':clan, 'total_profits':total_profits})
+    if memebers:
+        accounts1 = CompetitionPortfolio.objects.filter(user__in=memebers, competition__status='current') 
+        accounts2 = CompetitionPortfolio.objects.filter(user=clan.clan_admin, competition__status='current')
+        
+        # accounts = (accounts1 | accounts2).distinct('user').annotate(last_portfolio=Max('created'))
+        accounts = (accounts1 | accounts2)
+        
+        total_profits = sum(account.profit for account in accounts )/len(accounts)
+        return render(request,'leaderboard/clan-detail.html',{'count':memebers.count() +1,'accounts':accounts,'clan':clan, 'total_profits':total_profits})
+        
+    else:
+        
+        accounts= CompetitionPortfolio.objects.filter(user=clan.clan_admin, competition__status='current')
+        total_profits = sum(account.profit for account in accounts )
+        return render(request,'leaderboard/clan-detail.html',{'count':1,'accounts':accounts,'clan':clan, 'total_profits':total_profits})
+
+
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
+def edit_clan(request, pk):
+    clan = get_object_or_404(Clan, id=pk)
+    if request.method == 'POST':
+        if request.POST.get('clan_name'):
+            clan.clan_name = request.POST.get('clan_name')
+        if request.POST.get('description'):
+            clan.description = request.POST.get('description')
+        if request.POST.get('community_link'):
+            clan.community_link = request.POST.get('community_link')
+        if request.FILES.get('clan_logo'):
+            clan.clan_logo = request.FILES.get('clan_logo')
+        clan.save()
+        return redirect('clan-details', pk=clan.id)
+    return render(request, 'leaderboard/edit_clan.html', {'clan': clan})
+
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
+def delete_clan(request, pk):
+    clan = get_object_or_404(Clan, id=pk)
+    if request.method == 'POST':
+        clan.delete()
+        return redirect('leaderboard')
+    return render(request, 'leaderboard/delete_clan.html', {'clan': clan})
 
 @login_required
 @user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
@@ -785,6 +870,13 @@ def clan_payout(request):
         return render(request, 'leaderboard/clanpayout.html',{'payouts':payouts})
     payouts= TopClanPayout.objects.all().order_by('-id')
     return render(request, 'leaderboard/clanpayout.html',{'payouts':payouts})
+
+
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
+def all_trader(request):
+    accounts = CompetitionPortfolio.objects.filter(competition__status='current')
+    return render(request, 'leaderboard/traders.html', {'accounts':accounts})
 
 @login_required
 def clan_payout_detail(request,payout_id):
@@ -1218,6 +1310,15 @@ def payout_details(request,pk):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+def remove_trader(request,pk):
+    account=CompetitionPortfolio.objects.get(id=pk)
+    print(account.id)
+    account.active=False
+    account.save()
+    return JsonResponse({'active':False})
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def clan_payout_details(request,pk):
     # print('pk:',pk)
     payout = TopClanMembersPayout.objects.get(id=pk)
@@ -1233,7 +1334,8 @@ def clan_payout_details(request,pk):
     data = {'email':f"{payout.user.email}",
             'amount':amount,
             'bank_name':profile.bank_name,
-            'account_number':profile.account_number
+            'account_number':profile.account_number,
+            
     }
     return JsonResponse(data=data)
 

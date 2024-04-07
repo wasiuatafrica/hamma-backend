@@ -1,0 +1,31 @@
+{% extends 'leaderboard/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Edit Clan</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="clan_name">Clan Name</label>
+            <input type="text" class="form-control" id="clan_name" name="clan_name" value="{{ clan.clan_name }}">
+        </div>
+        <br>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea class="form-control" id="description" name="description">{{ clan.description }}</textarea>
+        </div>
+        <br>
+        <div class="form-group">
+            <label for="community_link">Community Link</label>
+            <input type="text" class="form-control" id="community_link" name="community_link" value="{{ clan.community_link }}">
+        </div>
+        <br>
+        <div class="form-group">
+            <label for="clan_logo">Clan Logo</label>
+            <input type="file" class="form-control-file" id="clan_logo" name="clan_logo">
+        </div>
+        <br>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

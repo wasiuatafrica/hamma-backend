@@ -30,9 +30,9 @@ def send_welcome_email(id):
     context={
         "firstname":user.firstname.title()
     }
-    html_message = render_to_string('accounts/welcome_email.html', context)
+    html_message = render_to_string('competition/welcome_competition.html', context)
     plain_message = ""
-    subject = 'Welcome to Gohamma'
+    subject = 'Welcome to Hamma'
     from_email = "teamgohamma@gmail.com"
     recipient_list = [user.email]
     send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
