@@ -635,26 +635,28 @@ def leaderboard_view(request):
     for account in base_query:
         try:
             # print(account.id)
-            clan=Clan.objects.get(member=account.user)
+            clan=Clan.objects.filter(member=account.user)
         except Clan.DoesNotExist:
-            clan=Clan.objects.get(clan_admin=account.user)
-        user_portfolio = base_query.filter(user=account.user).first()
-        # print(user_portfolio.competition.title)
-        profit = getProfit(user_portfolio)
-        percent= round((profit/1000000)*100,2)
-        profile= Profile.objects.get(user=account.user)
-        data= {
-            'id':user_portfolio.id,
-            'active':user_portfolio.active,
-            'name':user_portfolio.user.fullname,
-            'profit':percent,
-            'country':profile.country,
-            'clan':clan.clan_name
-        }
-        if percent != 0:
-            leaderboard_list.append(data)
-        else:
-            zero_profit_list.append(data)
+            clan=Clan.objects.filter(clan_admin=account.user)
+        if clan:
+            clan=clan.first()
+            user_portfolio = base_query.filter(user=account.user).first()
+            # print(user_portfolio.competition.title)
+            profit = getProfit(user_portfolio)
+            percent= round((profit/1000000)*100,2)
+            profile= Profile.objects.get(user=account.user)
+            data= {
+                'id':user_portfolio.id,
+                'active':user_portfolio.active,
+                'name':user_portfolio.user.fullname,
+                'profit':percent,
+                'country':profile.country,
+                'clan':clan.clan_name
+            }
+            if percent != 0:
+                leaderboard_list.append(data)
+            else:
+                zero_profit_list.append(data)
     sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
     sorted_data += zero_profit_list
     
