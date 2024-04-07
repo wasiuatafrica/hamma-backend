@@ -42,6 +42,7 @@ TopClanMembersPayoutImg,
 from notifications.utils import save_and_send_notification,get_notifications,update_notification
 from accounts.models import Profile
 from .utils import count_business_days
+import competition
 
 User = get_user_model()
 # Create your views here.
@@ -595,6 +596,7 @@ def leaderboard_view(request):
     competitions=Competition.objects.filter(status='closed').order_by("-id")
     country = request.GET.get("country", None)
     # number = request.GET.get("number", None)
+    old_competition_id = request.GET.get("filter", None)
     email = request.GET.get("email", None)
     # acc_size = request.GET.get('acc_size', None)
     clan_name = request.GET.get('clan_name', None)
@@ -618,6 +620,9 @@ def leaderboard_view(request):
     #     base_query = base_query.filter(user_account__acc__number__icontains=number)
     if email:
         base_query = base_query.filter(user__email__icontains=email)
+        
+    if old_competition_id:
+        base_query = CompetitionPortfolio.objects.filter(competition__id = old_competition_id)
 
     accounts = base_query
     # print(len(accounts))
@@ -629,7 +634,7 @@ def leaderboard_view(request):
     #         # print(clan.clan_name, memeber)
     for account in base_query:
         try:
-            print(account.id)
+            # print(account.id)
             clan=Clan.objects.get(member=account.user)
         except Clan.DoesNotExist:
             clan=Clan.objects.get(clan_admin=account.user)
@@ -662,7 +667,7 @@ def leaderboard_view(request):
         pastLeaderboard="show"
         sorted_data=[]
         past_data=CompetitionSummary.objects.filter(competition__id=q).order_by("position")
-    print(sorted_data)
+    # print(sorted_data)
     return render(request, 'leaderboard/leaderboard.html', {'data':sorted_data, "competitions":competitions, "leaderboard":leaderboard, "pastLeaderboard":pastLeaderboard, "past_data":past_data})
 
 @login_required
