@@ -3,7 +3,7 @@ from datetime import datetime,time, date, timedelta
 import pytz
 
 from django.shortcuts import render, redirect,get_object_or_404
-from django.core.paginator import Paginator, EmptyPage
+from django.core.paginator import Paginator, EmptyPage,PageNotAnInteger
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.db.models import Max, Q
@@ -694,9 +694,19 @@ def list_users(request):
     paginator = Paginator(users, 50)
     page_number = request.GET.get('page')
     try:
+        page_number = int(page_number)
+    except (TypeError, ValueError):
+        page_number = 1  # Default to first page if page number is not provided or invalid
+
+    try:
         users = paginator.page(page_number)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        users = paginator.page(1)
     except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
         users = paginator.page(paginator.num_pages)
+
 
     return render(request, 'leaderboard/list_users.html', {'users': users})
 
