@@ -132,14 +132,14 @@ class JoinLeaveCompetetion(APIView):
         if clan_query.exists():
             clan = clan_query.first()
             clan_members=clan.member.all().count()
-            if clan_members < 1:
-                return Response({"detail": "You need at least one (1) member in your clan to be able to participate in this competition."}, status=status.HTTP_400_BAD_REQUEST)
+            if clan_members < 2:
+                return Response({"detail": "You need at least two (2) member in your clan to be able to participate in this competition."}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 more_than_one_member=True
                 
         clan_query2= Clan.objects.filter(member=request.user)
         
-        if clan_query2.exists() or (clan_query.exists() and more_than_one_member) :
+        if (clan_query2.exists() and clan.member.all().count() > 1) or (clan_query.exists() and more_than_one_member) :
         
             portfolio = CompetitionPortfolio.objects.filter(competition=competition,user=request.user).first()
             
