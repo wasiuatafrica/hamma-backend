@@ -139,7 +139,7 @@ class JoinLeaveCompetetion(APIView):
                 
         clan_query2= Clan.objects.filter(member=request.user)
         
-        if (clan_query2.exists() and clan.member.all().count() > 1) or (clan_query.exists() and more_than_one_member) :
+        if (clan_query2.exists() and clan_query2.first().member.all().count() > 1) or (clan_query.exists() and more_than_one_member) :
         
             portfolio = CompetitionPortfolio.objects.filter(competition=competition,user=request.user).first()
             
