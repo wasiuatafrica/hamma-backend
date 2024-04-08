@@ -1256,7 +1256,7 @@ class TopClans(APIView):
     permission_classes = (AllowAny,)
     def get(self, request):
         competition = Competition.objects.filter(status='closed').order_by('id').last()
-        clans= ClanCompetitionSummary.objects.filter(competition=competition).order_by('position')[:1]
+        clans= ClanCompetitionSummary.objects.filter(competition=competition).order_by('position')[:3]
         data=[{'clan_id':comp.clan.id,'clan_name':comp.clan.clan_name,'community_link':comp.clan.community_link,'clan_logo':comp.clan.clan_logo.url,'description':comp.clan.description, 'profit':comp.profit, 'position':comp.position, 'top_3_count':comp.clan.top_3_count,'profit_comparison':comp.clan.profit_comparison,'members_count':comp.clan.members_count} for comp in clans ]
         return Response(data)
 
@@ -1276,12 +1276,12 @@ from django.template.loader import render_to_string
 
 def send_top_clan_payment_processing_mail(user):
      # render email text
-    subject="FT9JA Top Clan PAYMENT PROCESSING"
+    subject="Hamma Top Clan PAYMENT PROCESSING"
     html_content = render_to_string('custom/PaymentProcessing.html')
 
     # Create the EmailMultiAlternatives object
     email_message = EmailMultiAlternatives(subject=subject,
-        from_email="teamft9ja@gmail.com",
+        from_email="hello@gohamma.com",
         to=[user],
     )
     # Attach the HTML content to the email message
@@ -1290,12 +1290,12 @@ def send_top_clan_payment_processing_mail(user):
     email_message.send()
 def send_top_trader_payment_processing_mail(user):
      # render email text
-    subject="FT9JA Top Trader PAYMENT PROCESSING"
+    subject="Hamma Top Trader PAYMENT PROCESSING"
     html_content = render_to_string('custom/PaymentProcessing.html')
 
     # Create the EmailMultiAlternatives object
     email_message = EmailMultiAlternatives(subject=subject,
-        from_email="teamft9ja@gmail.com",
+        from_email="hello@gohamma.com",
         to=[user],
     )
     # Attach the HTML content to the email message

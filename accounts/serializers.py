@@ -63,6 +63,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = models.Profile
         fields = (
             "user",
+            "country",
             "address",
             "referral_code",
             "profile_img",
