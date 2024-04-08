@@ -12,7 +12,7 @@ def test_email(email,firstname):
     context={
         "firstname":firstname,
     }
-    html_message = render_to_string('competition/welcome_competition.html', context)
+    html_message = render_to_string('competition/welcome_competition2.html', context)
     plain_message = ""
     subject = "Welcome to Hamma"
     from_email = "teamgohamma@gmail.com"
@@ -23,11 +23,10 @@ class Command(BaseCommand):
     
 
     def handle(self, *args, **options):
-        test_email("nexxyb@gmail.com",'Wasiu')
+        # test_email("nexxyb@gmail.com",'Wasiu')
         # test_email("wasiu@atafrica.org",'Wasiu')
         
         # test_email("dev.ft9ja@gmail.com",'Joseph')
         
-        # test_email("ayo@ft9ja.com",'Ayo')
-        # test_email("teamft9ja@gmail.com",'Ayo')
-        # test_email("stephenamimi@gmail.com",'Stephen')
+        test_email("ayo@ft9ja.com",'Ayo')
+        test_email("teamft9ja@gmail.com",'Ayo')
