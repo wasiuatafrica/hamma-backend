@@ -189,4 +189,6 @@ class AdminUserActivityLog(models.Model):
         return self.action_type
     
 
-    
+class Unsubscribe(models.Model):
+    email = models.EmailField(_("email address"), unique=True)
+    created = models.DateTimeField(auto_now_add=True)
