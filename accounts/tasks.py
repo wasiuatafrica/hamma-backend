@@ -1,10 +1,13 @@
+from datetime import timedelta
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.contrib.auth import get_user_model
+from pytz import timezone
 from execution.trades import simulate_trades
 from execution.models import DemoDailyReturns, DailyReturns, get_price
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
+from django_celery_beat.models import PeriodicTask, CrontabSchedule
 
 logger = get_task_logger(__name__)
 
@@ -14,7 +17,52 @@ User=get_user_model()
 def set_up_user(user_email):
     user=User.objects.get(email=user_email)
     simulate_trades(user)
+
+@shared_task
+def after_signup_36h(id): #36h
+    user = User.objects.get(id=id )
     
+    context={
+        "firstname":user.firstname,
+        "email":user.email
+    }
+    html_message = render_to_string('competition/after_signup_36h.html', context)
+    plain_message = ""
+    subject = "Are We Friends on Social Media?"
+    from_email = "teamgohamma@gmail.com"
+    recipient_list = [user.email]
+    send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+
+@shared_task
+def welcome_1c(id): #24h
+    user = User.objects.get(id=id )
+    
+    context={
+        "email":user.email
+        # "firstname":user.firstname,
+    }
+    html_message = render_to_string('competition/welcome_1c.html', context)
+    plain_message = ""
+    subject = "Why You Should Create a Clan!"
+    from_email = "teamgohamma@gmail.com"
+    recipient_list = [user.email]
+    send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+    
+@shared_task
+def welcome_1b(id): #12h
+    user = User.objects.get(id=id )
+    
+    context={
+        "firstname":user.firstname,
+        "email":user.email
+    }
+    html_message = render_to_string('competition/welcome_1b.html', context)
+    plain_message = ""
+    subject = "Why You Should Join a Clan!"
+    from_email = "teamgohamma@gmail.com"
+    recipient_list = [user.email]
+    send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)    
+
 @shared_task
 def daily_returns_setup(id):
     user= User.objects.get(id=id)
@@ -22,7 +70,16 @@ def daily_returns_setup(id):
     pr = data['current_price']
     DemoDailyReturns.objects.create(user=user, ngx_price = pr)
     DailyReturns.objects.create(user=user, ngx_price = pr)
-    
+
+def create_crontab(target_time):
+    start_schedule, created1 = CrontabSchedule.objects.get_or_create(
+            minute=target_time.minute,
+            hour=target_time.hour,
+            day_of_month=target_time.day,
+            month_of_year=target_time.month
+            )
+    return start_schedule
+   
 @shared_task
 def send_welcome_email(id):
     user = User.objects.get(id=id)
@@ -36,3 +93,28 @@ def send_welcome_email(id):
     from_email = "teamgohamma@gmail.com"
     recipient_list = [user.email]
     send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+    
+    schedule1 = create_crontab(timezone.now()  + timedelta(hours=12))
+    schedule2 = create_crontab(timezone.now()  + timedelta(hours=24))
+    schedule3 = create_crontab(timezone.now()  + timedelta(hours=36))
+    
+    PeriodicTask.objects.create(
+        name=f"join clan {user.email} email",
+        task='accounts.tasks.welcome_1b',
+        one_off=True,
+        crontab = schedule1
+    )
+    
+    PeriodicTask.objects.create(
+        name=f"create clan {user.email} email",
+        task='accounts.tasks.welcome_1c',
+        one_off=True,
+        crontab = schedule2
+    )
+    
+    PeriodicTask.objects.create(
+        name=f"SM invite {user.email} email",
+        task='accounts.tasks.after_signup_36h',
+        one_off=True,
+        crontab = schedule3
+    )

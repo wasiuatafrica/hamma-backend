@@ -83,7 +83,7 @@ def check_alert(id):
                     price = data['current_price']
                     if alert.action == 'below':
                         if price < alert.to_price:
-                            if alert.frequency == 'Once' or (alert.frequency in ['Everytime','everytime'] and (alert.last_email_sent is None or (timezone.now() - alert.last_email_sent) >= timedelta(minutes=10))):
+                            if alert.frequency == 'Once' or (alert.frequency in ['Everytime','everytime'] and (alert.last_email_sent is None or (timezone.now() - alert.last_email_sent) >= timedelta(minutes=60))):
                                 send_alert_email(alert.user, alert.stock.symbol, alert.alert_type, alert.action, alert.to_price)
                                 save_and_send_notification(alert.user.id, f'{alert.stock} price has gone below {alert.to_price} for the {alert.alert_name}.')
                                 if alert.frequency == 'Once':

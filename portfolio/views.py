@@ -512,7 +512,7 @@ class AlertView(APIView):
                     serializer.validated_data['frequency'] = 'Once'
             stock = get_object_or_404(Stock, symbol =serializer.validated_data["stock"])
             # print(type(stock))
-            name = serializer.validated_data["alert_name"] + str(randint(23, 456789))
+            name = serializer.validated_data["alert_name"] + str(randint(10000, 99999))
             serializer.save(user=request.user,stock=stock, alert_name=name)
             
             counter.count += 1

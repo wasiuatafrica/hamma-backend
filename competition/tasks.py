@@ -20,6 +20,8 @@ from django.db.models import F, Window
 from django.db.models.functions import Rank
 from django.utils import timezone
 
+from accounts.models import Profile
+
 User=get_user_model()
 
 logger = get_task_logger(__name__)
@@ -168,7 +170,8 @@ def two_days_before_start(): #2
     users = User.objects.all()
     for user in users:
         context={
-        "firstname":user.firstname
+        "firstname":user.firstname.title(),
+        "email":user.email
     }
         html_message = render_to_string('competition/two_days_before_start.html', context)
         plain_message = ""
@@ -185,8 +188,8 @@ def saturday_evening(): #3
         
         for user in users:
             context={
-            "firstname":user.firstname,
-            'clan':user.clan.clan_name,
+            "firstname":user.firstname.title(),
+            "email":user.email
         }
             html_message = render_to_string('competition/saturday_evening.html', context)
             plain_message = ""
@@ -200,7 +203,8 @@ def four_days_before_end(): #4
     users = User.objects.all()
     for user in users:
         context={
-        "firstname":user.firstname,
+        "fullname":f"{user.firstname.title()} {user.lastname.title()}",
+        "email":user.email
     }
         html_message = render_to_string('competition/four_days_before_end.html', context)
         plain_message = ""
@@ -208,16 +212,55 @@ def four_days_before_end(): #4
         from_email = "teamgohamma@gmail.com"
         recipient_list = [user.email]
         send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
-       
+
+def get_top():
+    base_query = CompetitionPortfolio.objects.filter(competition__status='current',active=True)
+    
+    leaderboard_list=[]
+    zero_profit_list = []
+    
+    for account in base_query:
+        try:
+            clan=Clan.objects.filter(member=account.user)
+        except Clan.DoesNotExist:
+            clan=Clan.objects.filter(clan_admin=account.user)
+        if clan:
+            clan=clan.first()
+            user_portfolio = base_query.filter(user=account.user).first()
+            # print(user_portfolio.competition.title)
+            profit = getProfit(user_portfolio)
+            percent= round((profit/1000000)*100,2)
+            profile= Profile.objects.get(user=account.user)
+            data= {
+                'id':user_portfolio.id,
+                'active':user_portfolio.active,
+                'name':user_portfolio.user.fullname.title(),
+                'profit':percent,
+                'country':profile.country,
+                'clan':clan.clan_name.title(),
+            }
+            if percent != 0:
+                leaderboard_list.append(data)
+            else:
+                zero_profit_list.append(data)
+    sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
+    sorted_data += zero_profit_list
+    first = sorted_data[0]
+    trader,clan = first['name'],first['clan']
+    return trader,clan
+   
 @shared_task
 def friday_evening(): #5
     competition = Competition.objects.filter(status='current')
     if competition.exists():
         users = User.objects.all()
+        trader,clan = get_top()
         for user in users:
             context={
-            "firstname":user.firstname,
-            'clan':user.clan.clan_name,
+            "firstname":user.firstname.title(),
+            "email":user.email,
+            'top_trader':trader,
+            'top_clan':clan,
         }
             html_message = render_to_string('competition/friday_evening.html', context)
             plain_message = ""
@@ -233,7 +276,8 @@ def mid_competition(): #7
     users = User.objects.all()
     for user in users:
         context={
-        "firstname":user.firstname,
+        "firstname":user.firstname.title(),
+        "email":user.email
     }
         html_message = render_to_string('competition/mid_competition.html', context)
         plain_message = ""
@@ -247,7 +291,8 @@ def last_day(): #8
     users = User.objects.all()
     for user in users:
         context={
-        "firstname":user.firstname,
+        "firstname":user.firstname.title(),
+        "email":user.email
     }
         html_message = render_to_string('competition/last_day.html', context)
         plain_message = ""
@@ -261,11 +306,12 @@ def two_days_before_end(): #9
     users = User.objects.all()
     for user in users:
         context={
-        "firstname":user.firstname,
+        "firstname":user.firstname.title(),
+        "email":user.email
     }
         html_message = render_to_string('competition/two_days_before_end.html', context)
         plain_message = ""
-        subject = " Finish Strong in the Hamma Trading Competition!"
+        subject = "Finish Strong in the Hamma Trading Competition!"
         from_email = "teamgohamma@gmail.com"
         recipient_list = [user.email]
         send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
@@ -275,7 +321,8 @@ def three_days_after_end(): #10
     users = User.objects.all()
     for user in users:
         context={
-        "firstname":user.firstname,
+        "firstname":user.firstname.title(),
+        "email":user.email
     }
         html_message = render_to_string('competition/three_days_after_end.html', context)
         plain_message = ""
@@ -283,6 +330,8 @@ def three_days_after_end(): #10
         from_email = "teamgohamma@gmail.com"
         recipient_list = [user.email]
         send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+
+
         
 def create_crontab(target_time):
     start_schedule, created1 = CrontabSchedule.objects.get_or_create(
