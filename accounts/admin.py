@@ -25,7 +25,8 @@ class CustomUserAdmin(UserAdmin):
         "email",
         "is_staff",
         "is_active",
-        'twofa_type',)
+        'twofa_type',
+    )
     
     fieldsets = (
         (
@@ -36,13 +37,20 @@ class CustomUserAdmin(UserAdmin):
                     "lastname",
                     "email",
                     "password",
-                    'twofa_type',
-                    # "phone",
+                    "twofa_type",
+                    "last_login",
+                    "date_joined",
+                    "has_2fa",
+                    "totp_url",
+                    "last_ip",
+                    "last_location",
+                    "last_device",
                 )
             },
         ),
         ("Permissions", {"fields": ("is_superuser","is_staff", "is_active")}),
     )
+    
     add_fieldsets = (
         (
             None,
@@ -54,12 +62,21 @@ class CustomUserAdmin(UserAdmin):
                     "email",
                     "password1",
                     "password2",
-                    # "phone",
+                    "twofa_type",
+                    "last_login",
+                    "date_joined",
+                    "has_2fa",
+                    "totp_url",
+                    "last_ip",
+                    "last_location",
+                    "last_device",
                     "is_staff",
-                    "is_active",)
+                    "is_active",
+                )
             },
         ),
     )
+    
     search_fields = ("email",)
     ordering = ("email",)
 

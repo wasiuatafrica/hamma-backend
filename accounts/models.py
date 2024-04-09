@@ -1,4 +1,4 @@
-from sqlite3 import Timestamp
+
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -6,8 +6,6 @@ from django.utils import timezone
 from accounts.managers import CustomUserManager
 import auto_prefetch
 import random
-import string
-
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_("email address"), unique=True)
@@ -15,12 +13,15 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     lastname = models.CharField(max_length=255, default="", blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
-    # signup_type=models.CharField(max_length=50, null=True, blank=True, default="none", choices=(("email","email"), ("google","google")))
     date_joined = models.DateTimeField(default=timezone.now)
     has_2fa=models.BooleanField(default=True, null=True, blank=True)
     totp_url=models.ImageField(upload_to="qr_img", null=True, blank=True)
     twofa_type =models.CharField(max_length=50, null=True, blank=True, default="email", choices=(("email","email"), ("sms","sms"),("authapps","authapps"),("none","none")))
-    # is_first_time_user = models.BooleanField(default=True, null=True, blank=True)
+    last_ip = models.GenericIPAddressField(blank=True, null=True)
+    last_location = models.CharField(max_length=100, blank=True, null=True)
+    last_device = models.CharField(max_length=100, blank=True, null=True)
+    
+    
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["firstname", "lastname"]
 

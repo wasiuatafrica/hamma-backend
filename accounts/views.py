@@ -1,3 +1,4 @@
+from math import e
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
@@ -153,6 +154,10 @@ class LoginWithEmailView(APIView):
     def post(self, request):
         email = request.data.get("email")
         password = request.data.get("password")
+        ip_address = request.data.get("ip_address")
+        location = request.data.get("location")
+        device = request.data.get("device")
+        
         serializer=self.serializer_class(data=request.data)
         if serializer.is_valid():
             try:
@@ -161,6 +166,42 @@ class LoginWithEmailView(APIView):
                 return Response({"detail": "This account does not exist"}, status=status.HTTP_404_NOT_FOUND)
             if not user.is_active :
                     return Response({"detail": "This account is not active. Please verify account before login."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        #     if user.check_password(password):
+        #         requires_2fa = self.requires_2fa(user, ip_address, location, device)
+        #         print(requires_2fa)
+                
+        #         if requires_2fa:
+        #             if user.has_2fa:
+        #                 if user.twofa_type =="authapps": #send the user to the login
+        #                     return Response({"detail": "Please provide token from your 2fa application"}, status=status.HTTP_202_ACCEPTED)
+        #                 elif user.twofa_type =="sms": #send the user to the login
+        #                     user_phone=models.Profile.objects.get(user=user).phone
+        #                     sms_token=resendToken(user, "sms")
+        #                     send_sms_2fa=sms_2FA(user_phone,sms_token)
+        #                     return Response({"detail": "Please provide  sms token sent to your phone", "sms":sms_token}, status=status.HTTP_202_ACCEPTED)
+        #                 user = User.objects.get(email=email, is_active=True)
+        #                 resendToken(user, "login")
+        #                 return Response({"detail": "Please check your mail for your 2fa token"}, status=status.HTTP_202_ACCEPTED)
+        #         # Successful login without 2FA prompt
+        #         refresh = RefreshToken.for_user(user)
+        #         # refresh.save()
+        #         user_data =serializers.CustomUserSerializer(user, many=False).data
+        #         # update last_login
+        #         user.last_login=timezone.now()
+        #         user.save()
+        #         token_data = {
+        #             'refresh': str(refresh),
+        #             'access': str(refresh.access_token),
+        #             "user": user_data
+        #         }
+        #         #Add activity
+        #         activity=models.UserActivityLog.objects.create(user=user, action_type="login",description="User logged into their account")
+        #         return Response(token_data, status=status.HTTP_200_OK)
+        #         # return Response({"detail": "Login successful"}, status=status.HTTP_200_OK)
+        #     else:
+        #         return Response({"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             if user.check_password(password):
                 if user.has_2fa:
                     if user.twofa_type =="authapps": #send the user to the login
@@ -177,6 +218,48 @@ class LoginWithEmailView(APIView):
             else:
                 return Response({"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def requires_2fa(self, user, ip_address, location, device):
+        # Check if any of the conditions for requiring 2FA are met
+        if ip_address is None or location is None or device is None:
+        # If any of these fields are missing, return True to indicate 2FA is required
+            return True
+
+        try:
+            first_time = models.FirstLogin.objects.get(user=user)
+        except models.FirstLogin.DoesNotExist:
+            first_time = None
+            
+        if not first_time:
+            print('first_time', True)
+            # first_time = models.FirstLogin(user=user)
+            # first_time.save()
+            return True
+        
+        if user.last_ip != ip_address:
+            print('ip_address', True)
+            
+            # user.last_ip = ip_address
+            # user.save()
+            return True
+        
+        if user.last_location != location:
+            print('location', True)
+            
+            # user.last_location = location
+            # user.save()
+            return True
+        
+        if user.last_device != device:
+            print(device, user.last_device)
+            print('device', True)
+            
+            # user.last_device = device
+            # user.save()
+            return True
+        return False
+
+        
     
 class LoginWith2FA(APIView):
     permission_classes = [permissions.AllowAny]
@@ -186,6 +269,9 @@ class LoginWith2FA(APIView):
         email = request.data.get("email")
         # password = request.data.get("password")
         token = request.data.get("token")
+        ip_address = request.data.get("ip_address")
+        location = request.data.get("location")
+        device = request.data.get("device")
 
         serializer=self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -205,13 +291,18 @@ class LoginWith2FA(APIView):
                 user_data =serializers.CustomUserSerializer(user, many=False).data
                 # update last_login
                 user.last_login=timezone.now()
+                user.last_ip = ip_address
+                user.last_location = location
+                user.last_device = device             
                 user.save()
+                
                 token_data = {
                     'refresh': str(refresh),
                     'access': str(refresh.access_token),
                     "user": user_data
                 }
                 #Add activity
+                first_time = models.FirstLogin.objects.get_or_create(user=user)
                 activity=models.UserActivityLog.objects.create(user=user, action_type="login",description="User logged into their account")
                 return Response(token_data, status=status.HTTP_200_OK)
             else:
