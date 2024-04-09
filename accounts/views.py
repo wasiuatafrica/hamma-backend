@@ -372,3 +372,25 @@ class ResetForgettenPassword(APIView):
                 return Response({"detail": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
             return Response({"detail":"User with this email not found."}, status=status.HTTP_404_NOT_FOUND) 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UnsubscribeView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get_user(self, email):
+        user=User.objects.filter(email=email).first()
+        if not user:
+            return None
+        return user 
+    
+    def get(self, request):
+        email=request.GET.get("email")
+        if not email:
+            return Response({"detail":"email is required in params"}, status=status.HTTP_400_BAD_REQUEST)
+        user = self.get_user(email)
+        if user is None:
+            return Response({"detail": f"User with this email {email} does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        unsubscribe =models.Unsubscribe.objects.filter(email=email).first()
+        if not unsubscribe:
+            unsubscribe =models.Unsubscribe.objects.create(email=email)
+            return Response({"detail":"Ok"})
+        return Response({"detail":"Cannot unsubscribed same email twice."}, status=status.HTTP_400_BAD_REQUEST)

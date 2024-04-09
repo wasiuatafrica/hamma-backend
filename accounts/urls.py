@@ -14,4 +14,5 @@ urlpatterns=[
     path("reset-password/", views.ResetForgettenPassword.as_view()),
 
     path("activate-authapp/", views.ActivteAuthApp2fa.as_view()), 
+    path("unsubscribe/", views.UnsubscribeView.as_view()),
 ]

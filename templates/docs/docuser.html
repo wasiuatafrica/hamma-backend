@@ -1576,6 +1576,46 @@
         </div> 
     </div>
 
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#home4">17. Unsubcribe [NEW]</h3>
+        <div id="home4" class="collapse">
+            <p> POST /auth/unsubscribe/?email=nwaforglory6@gmail.com</p>
+            <p>Response.</p>
+            <pre>
+                {
+                    "detail":"ok"
+                }
+            </pre>
+            <h4>If the user has already unsubcribed:</h4>
+            <p>Response.</p>
+            <pre>
+                {
+                    "detail": "Cannot unsubscribed same email twice."
+                }
+            </pre>
+
+            <h4>If the email is not a registered user:</h4>
+            <p>Response.</p>
+            <pre>
+                {
+                    "detail": "User with this email {email} does not exist"
+                }
+            </pre>
+
+            <h4>If the email is missing from the params:</h4>
+            <p>Example: /auth/unsubscribe/</p>
+            <p>Response.</p>
+            <pre>
+                {
+                    "detail": "email is required in params"
+                }
+            </pre>
+            
+
+    
+        </div> 
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
