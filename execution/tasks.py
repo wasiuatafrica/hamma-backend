@@ -14,12 +14,11 @@ from random import uniform
 from django.db import transaction
 from time import sleep
 from decimal import Decimal
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,time
 from portfolio.utils import get_price
 from notifications.utils import save_and_send_notification
 from django_celery_beat.models import PeriodicTask
 from django.utils import timezone
-from datetime import datetime, time
 import pytz
 from accounts.models import  UserActivityLog 
 import json
@@ -204,7 +203,7 @@ def process_limit_order(id, in_competition=False):
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
 
     # Check if the current time is between 9:30 AM and 2:30 PM WAT and it's a weekday
-    if current_time_lagos.time() >= time(9, 30) and current_time_lagos.time() <= time(14, 30) and current_time_lagos.weekday() < 5:
+    if current_time_lagos.time() >= datetime.strptime('9:30 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:30 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
         if in_competition:
             position = get_object_or_404(CompetitionPosition, id=id)
             
