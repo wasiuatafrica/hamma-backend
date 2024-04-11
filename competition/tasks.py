@@ -257,7 +257,7 @@ def friday_evening(): #5
         trader,clan = get_top()
         for user in users:
             context={
-            "firstname":user.firstname.title(),
+            # "firstname":user.firstname.title(),
             "email":user.email,
             'top_trader':trader,
             'top_clan':clan,
