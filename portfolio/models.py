@@ -546,6 +546,7 @@ class Alert(auto_prefetch.Model):
     user= auto_prefetch.ForeignKey(User,on_delete=models.CASCADE)
     stock= auto_prefetch.ForeignKey(Stock,on_delete=models.CASCADE)
     alert_name=models.CharField(max_length=50)
+    task_name=models.CharField(max_length=50, blank=True, null=True)
     description=models.TextField(default="")
     alert_type=models.CharField(max_length=30, choices=(("price", "price"), ("volume", "volume")), default='price')
     action=models.CharField(max_length=50, choices=(("above", "above"), ("below", "below")))
@@ -556,6 +557,7 @@ class Alert(auto_prefetch.Model):
     created=models.DateTimeField(auto_now_add=True)
     trigerred = models.BooleanField(default=False)
     last_email_sent = models.DateTimeField(null=True, blank=True)
+    last_checked = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.expire:
@@ -564,7 +566,7 @@ class Alert(auto_prefetch.Model):
             super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return f"{self.stock.symbol} alert"
+        return f"{self.id} {self.created} {self.stock.symbol} alert"
     
 class AlertAI(auto_prefetch.Model):
     user= auto_prefetch.ForeignKey(User,on_delete=models.CASCADE)
