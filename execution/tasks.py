@@ -9,13 +9,12 @@ from execution.utils import get_positions
 from .serializers import DemoPositionSerializer
 from anyon.views import User
 from portfolio.models import Message, Conversation, Stock, MarketAI,DemoTransaction
-from .models import   DemoPortfolio
+from .models import   DemoPortfolio,DemoPosition, DemoDailyReturns, DemoCumulativeReturns
 from random import uniform
 from django.db import transaction
 from time import sleep
 from decimal import Decimal
 from datetime import datetime, timedelta
-from .models import DemoPosition, DemoDailyReturns
 from portfolio.utils import get_price
 from notifications.utils import save_and_send_notification
 from django_celery_beat.models import PeriodicTask
@@ -462,7 +461,10 @@ def get_daily_profit_loss():
 
 @shared_task
 def daily_returns():
-    today = datetime.now().weekday()
+    today1 = datetime.now()
+    today = today1.weekday()
+    date1=today1.date()
+    
     if today < 5:
         users = User.objects.all()
         data = get_price('ASI')
@@ -503,11 +505,125 @@ def daily_returns():
                     
                 DemoDailyReturns.objects.create(user=user, portfolio_returns=shares, market_returns =market_returns, ngx_price=pr)
                 print(f"{user.email} daily profit/loss calculated")
+            
+    else:
+        print("Not running on weekends.")
+
+@shared_task
+def cumulative_returns():
+    today1 = datetime.now()
+    today = today1.weekday()
+    
+    if today < 5:
+        users = User.objects.all()
+        data = get_price('ASI')
+        pr = data['current_price']
+        print(data)
+        # pr = 24.15
+        
+        for user in users:
+            positions = DemoPosition.objects.filter(portfolio__user=user,status='close')
+            
+            
+            if positions:
+                
+                    
+                total_invested  = sum([post.amount_invested for post in positions])
+                position_shares = []
+                for position in positions:
+                    # pl,value,price = position.calculate_profit_loss() 
+                    value = position.amount_invested + position.profit_loss
+                    returned =  (Decimal(value)/position.amount_invested) - 1
+                    weight = (position.amount_invested/total_invested )
+                    
+                    position_shares.append(returned*weight)
+                shares = round(sum(position_shares)*100,2)
+                
+                last_ngx_query = DemoCumulativeReturns.objects.filter(user=user).last()
+                # print(last_ngx_query.ngx_price)
+                if last_ngx_query:
+                    last_ngx = last_ngx_query.ngx_price
+                    market_returns = round(((pr - last_ngx)/last_ngx) *100,2)
+                
+                    print('return', shares)
+                else:
+                    market_returns = 0
+                # last_ngx = 25.5
+                
+                # market_returns = round(((pr - last_ngx)/last_ngx) *100,2)
+                    
+                DemoCumulativeReturns.objects.create(user=user, portfolio_returns=shares, market_returns =market_returns, ngx_price=pr)
+                print(f"{user.email} daily profit/loss calculated")
+            else:
+                last_ngx_query = DemoDailyReturns.objects.filter(user=user).last()
+                if last_ngx_query:
+                    last_ngx = last_ngx_query.ngx_price
+                    market_returns = round(((pr - last_ngx)/last_ngx) *100,2)
+                
+                    print('return', shares)
+                else:
+                    market_returns = 0
+                
+                    
+                DemoCumulativeReturns.objects.create(user=user, portfolio_returns=0, market_returns =market_returns, ngx_price=pr)
     else:
         print("Not running on weekends.")
 
 @shared_task
 def competition_daily_returns():
+    today = datetime.now().weekday()
+    if today < 5:
+        users = User.objects.all()
+        data = get_price('ASI')
+        pr = data['current_price']
+        print(data)
+        # pr = 24.15
+        
+        for user in users:
+            portfolio =  CompetitionPortfolio.objects.filter(user=user, competition__status='current',active=True).first()
+            if portfolio:
+                positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='close',updated__date =datetime.now().date() )
+            else:
+                positions = None
+            
+            
+            if positions:
+                
+                    
+                total_invested  = sum([post.amount_invested for post in positions])
+                position_shares = []
+                for position in positions:
+                    # pl,value,price = position.calculate_profit_loss() 
+                    value = position.amount_invested + position.profit_loss
+                    returned =  (Decimal(value)/position.amount_invested) - 1
+                    weight = (position.amount_invested/total_invested )
+                    
+                    position_shares.append(returned*weight)
+                shares = round(sum(position_shares)*100,2)
+                
+                last_ngx_query = CompetitionDailyReturns.objects.filter(user=user).last()
+                # print(last_ngx_query.ngx_price)
+                if last_ngx_query:
+                    last_ngx = last_ngx_query.ngx_price
+                    market_returns = round(((pr - last_ngx)/last_ngx) *100,2)
+                
+                    print('return', shares)
+                else:
+                    market_returns = 0
+                # last_ngx = 25.5
+                
+                # market_returns = round(((pr - last_ngx)/last_ngx) *100,2)
+                    
+                CompetitionDailyReturns.objects.create(user=user, portfolio_returns=shares, market_returns =market_returns, ngx_price=pr,portfolio=portfolio)
+                print(f"{user.email} daily profit/loss calculated")
+            
+                
+                
+    else:
+        print("Not running on weekends.")
+
+@shared_task
+def competition_cumulative_returns():
     today = datetime.now().weekday()
     if today < 5:
         users = User.objects.all()

@@ -156,6 +156,20 @@ class DemoDailyReturns(auto_prefetch.Model):
     def __str__(self):
         return f"{self.user} - {self.created}"
 
+class DemoCumulativeReturns(auto_prefetch.Model):
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='democumureturns')
+    portfolio_returns = models.FloatField(default=0.0)
+    market_returns = models.FloatField(default=0.0)
+    ngx_price = models.FloatField(default=0.0)
+    created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.created}"
+
+
+    def __str__(self):
+        return f"{self.user} - {self.created}"
+
 class Portfolio(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='portfolio2')
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -228,7 +242,17 @@ class DailyReturns(auto_prefetch.Model):
     
     def __str__(self):
         return f"{self.user} - {self.created}"
+
+class CumulativeReturns(auto_prefetch.Model):
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='cumureturns')
+    portfolio_returns = models.FloatField(default=0)
+    market_returns = models.FloatField(default=0)
+    ngx_price = models.FloatField(default=0)
+    created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
     
+    def __str__(self):
+        return f"{self.user} - {self.created}"
+
 class WithdrawalRequest(auto_prefetch.Model):
     wallet=auto_prefetch.ForeignKey(Portfolio, on_delete=models.CASCADE)
     amount = models.FloatField(null=True, blank=True)

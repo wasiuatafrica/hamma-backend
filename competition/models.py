@@ -141,6 +141,23 @@ class CompetitionDailyReturns(auto_prefetch.Model):
     def __str__(self):
         return f"{self.user} - {self.created}"
 
+class CompetitionCumulativeReturns(auto_prefetch.Model):
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='compcumureturns')
+    portfolio_returns = models.FloatField(default=0.0)
+    market_returns = models.FloatField(default=0.0)
+    ngx_price = models.FloatField(default=0.0)
+    created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    portfolio = auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE, related_name='cumureturns', blank=True, null=True )
+
+    
+
+    def __str__(self):
+        return f"{self.user} - {self.created}"
+
+
+    def __str__(self):
+        return f"{self.user} - {self.created}"
+
 
 class CompetitionTransaction(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='comtransactions')
