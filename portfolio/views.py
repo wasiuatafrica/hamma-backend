@@ -180,7 +180,56 @@ class WalletWithdraw(APIView):
         # Verify OTP token
         
         return otp_request.otp == int(provided_token)
+    
+class ResendWithdrawalOtp(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
 
+        otp_instance= self.get_valid_otp(request.user)
+        
+        # Send OTP to the user
+        self.send_otp(user=request.user, otp=otp_instance.otp)
+
+        return Response({"detail": "OTP has been sent to your email for verification.",
+                            "otp_request_id": otp_instance.id},
+                        status=status.HTTP_200_OK)
+    
+    def generate_otp(self):
+        # Generate a 6-digit OTP
+        return "".join([str(random.randint(0, 9)) for _ in range(6)])
+
+    def send_otp(self, user, otp):
+        # Send token to users email
+        context = {"firstname": user.firstname.title(), "token": otp}
+        html_message = render_to_string("portfolio/token.html", context)
+        plain_message = ""
+        subject = "Gohamma Withdrawal OTP"
+        from_email = "teamgohamma@gmail.com"
+        recipient_list = [user.email]
+        send_mail(
+            subject,
+            plain_message,
+            from_email,
+            recipient_list,
+            html_message=html_message,
+        )
+
+    def get_valid_otp(self, user):
+
+        otp_request = WithdrawalOTPRequest.objects.filter(
+            user=self.request.user,
+            used=False,
+            expiration_time__gte=timezone.now(),
+        ).first()
+        if not otp_request:
+            otp = self.generate_otp()
+            otp_request =WithdrawalOTPRequest.objects.create(user=user, otp=otp,
+                                                expiration_time=timezone.now() + timezone.timedelta(minutes=10))
+        return otp_request
+
+
+            
 class StockList(generics.ListAPIView):
     queryset = Stock.objects.all()
     permission_classes =[AllowAny,]
