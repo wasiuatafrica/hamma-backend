@@ -33,6 +33,7 @@ urlpatterns =  (   [
         path('affilate/',include("affilate.urls")),
         path('lock/',include("lock.urls")),
         path('leaderboard/',include("competition.urls")),
+        path('',include("notifications.urls")),
         path('',include("waitlist.urls")),
     ]
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)  

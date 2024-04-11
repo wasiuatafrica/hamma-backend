@@ -563,7 +563,7 @@ class Alert(auto_prefetch.Model):
         if not self.expire:
             last_day_of_month = timezone.now().replace(day=1, month=(timezone.now().month % 12) + 1, hour=22, minute=59, second=59) - timedelta(days=1)
             self.expire = last_day_of_month
-            super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"{self.id} {self.created} {self.stock.symbol} alert"
@@ -586,6 +586,9 @@ class AlertAITracker(auto_prefetch.Model):
     user= auto_prefetch.ForeignKey(User,on_delete=models.CASCADE)
     created=models.DateTimeField(auto_now_add=True)
     count = models.IntegerField(default=0)
+
+    def __str__(self) -> str:
+        return f"{self.user} - {self.created} - {self.count}"
 
 class Conversation(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(to=User, on_delete=models.CASCADE, related_name='conversation')
