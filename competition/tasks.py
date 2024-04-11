@@ -6,7 +6,7 @@ from numpy import half
 from notifications.utils import save_and_send_notification
 from decimal import Decimal
 from .models import (Competition, CompetitionPortfolio, get_price, CompetitionDailyReturns, ClanCompetitionSummary, CompetitionSummary, Clan, 
-                     CompetitionPosition, CompetitionTransaction)
+                     CompetitionPosition, CompetitionTransaction, CompetitionCumulativeReturns)
 
 from django.db.models import Sum, Avg
 from django.db.models.expressions import Window,F 
@@ -164,6 +164,7 @@ def create_returns(portfolio_id):
     data = get_price ('ASI')
     pr = data['current_price']
     CompetitionDailyReturns.objects.create(user=portfolio.user, ngx_price = pr,portfolio=portfolio)
+    CompetitionCumulativeReturns.objects.create(user=portfolio.user, ngx_price = pr,portfolio=portfolio)
     
 @shared_task
 def two_days_before_start(): #2

@@ -600,6 +600,7 @@ class AlertUpdateView(APIView):
                 if serializer.validated_data["alert_type"] not in action:
                     return Response({"detail": "alert type must be 'price' or 'volume' "}, status=status.HTTP_400_BAD_REQUEST)
                 serializer.save()
+                save_and_send_notification(request.user.id, f"Alert {alert.alert_name} has been updated.")
                 return Response(serializer.data)
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         else:
@@ -608,8 +609,12 @@ class AlertUpdateView(APIView):
     def delete(self, request, *args, **kwargs):
         id = kwargs.get("id")
         alert = self.get_queryset(id, request.user)
+        
         if alert is not None:
+            alert_name = alert.alert_name   
             alert.delete()
+            save_and_send_notification(request.user.id, f"Alert {alert_name} has been deleted.")
+            
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response({"detail": "Alert not found"}, status=status.HTTP_404_NOT_FOUND)
         

@@ -724,7 +724,65 @@ class DemoCloseTrade(APIView):
                 return Response(data)
             else:
                 return Response("Position is not open")
-            
+    
+class DemoClosePendingTrade(APIView):
+    def post(self, request, *args, **kwargs):
+        id= self.kwargs.get('id')
+        in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition__status='current',active=True).first()
+        if in_competition:
+            position =  get_object_or_404(CompetitionPosition, id=id)
+            if position.status == 'pending':
+                
+                
+                position.status = 'cancelled'
+                position.save()
+                
+               
+                activity=UserActivityLog.objects.create(user=request.user, action_type="competition_cancel_trade",description=f"User cancelled competition pending trade with symbol {position.stock.symbol}.")
+                               
+                data = {
+                    'id':position.id,
+                    'stock':position.stock.symbol,
+                    'quantity':position.quantity,
+                    'open_price':position.open_price,
+                    'close_price':position.close_price,
+                    'open_time':position.created.isoformat(),
+                    'close_time':position.updated.isoformat(),
+                    'profit_loss': position.profit_loss,
+                    'order_id':position.order_id
+                }
+                return Response(data)
+            else:
+                return Response("Position is already cancelled")
+        else:
+            position =  get_object_or_404(DemoPosition, id=id)
+            if position.status == 'pending':
+               
+                
+                position.status = 'cancelled'
+                
+                position.save()
+                
+                
+                UserActivityLog.objects.create(user=request.user, action_type="demo_closed_pending_trade",description=f"User cancelled  demo pending trade with symbol {position.stock.symbol}.")
+               
+                
+                data = {
+                    'id':position.id,
+                    'stock':position.stock.symbol,
+                    'quantity':position.quantity,
+                    'open_price':position.open_price,
+                    'close_price':position.close_price,
+                    'open_time':position.created.isoformat(),
+                    'close_time':position.updated.isoformat(),
+                    'profit_loss': position.profit_loss,
+                    'order_id':position.order_id
+                }
+                return Response(data)
+            else:
+                return Response("Position is not open")
+    
+        
 class DemoHolding(APIView):
     def get(self,request):
         in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition__status='current',active=True).first()

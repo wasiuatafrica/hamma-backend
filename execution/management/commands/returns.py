@@ -1,7 +1,7 @@
 import json
 from django.core.management.base import BaseCommand
 from portfolio.models import Stock
-from execution.tasks import daily_returns
+from execution.tasks import daily_returns, cumulative_returns
 from execution.models import DemoPosition, DemoProfitLoss
 from pymongo import MongoClient
 from datetime import datetime, timedelta
@@ -32,4 +32,4 @@ class Command(BaseCommand):
     help = 'Save all Stock symbols as JSON file'
 
     def handle(self, *args, **options):
-        daily_returns()
+        cumulative_returns()
