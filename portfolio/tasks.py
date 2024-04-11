@@ -76,7 +76,7 @@ def check_alert(id):
         return
     
     current_time = timezone.now()
-    # print(current_time )
+    print(current_time )
     if current_time.weekday() < 5 and current_time.time() >= datetime.strptime('9:30 AM', '%I:%M %p').time() and current_time.time() <= datetime.strptime('2:30 PM', '%I:%M %p').time():
         if timezone.now() < alert.expire:
             if not alert.trigerred:
