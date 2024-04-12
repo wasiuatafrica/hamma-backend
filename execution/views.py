@@ -21,7 +21,7 @@ import json
 from django.utils import timezone
 from accounts.models import  UserActivityLog 
 
-from .models import DemoPosition, DemoPortfolio, DemoDailyReturns
+from .models import DemoCumulativeReturns, DemoPosition, DemoPortfolio, DemoDailyReturns
 from  competition.models import CompetitionPosition,CompetitionDailyReturns,CompetitionPortfolio,CompetitionTransaction
 # class DemoTradeAPIView(APIView):
 #     permission_classes = [IsAuthenticated]
@@ -613,15 +613,11 @@ class Home(APIView):
                 
                 
                 daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
+                cumulative_profitloss= DemoCumulativeReturns.objects.filter(user=request.user)
+                
                 if daily_profitloss:
                     today = timezone.now()
-                    # position_data_list = [
-                    #     {
-                    #         'profit_loss': daily.portfolio_returns,
-                    #         'date': daily.created.date()
-                    #     } for daily in daily_profitloss if daily.market_returns != 0 and daily.created.month == today.month
-                    # ]
-
+                    
                     overview = [
                         {
                             'portfolio_returns': daily.portfolio_returns,
@@ -633,7 +629,21 @@ class Home(APIView):
                 else:
                     position_data_list =[]
                     overview = []
-                    
+                
+                if cumulative_profitloss:
+                    today = timezone.now()
+
+                    cumulative_overview = [
+                        {
+                            'portfolio_returns': daily.portfolio_returns,
+                            'market_returns': daily.market_returns,
+                            'date': daily.created.date()
+                        } for daily in cumulative_profitloss 
+                    ]
+
+                else:
+                    cumulative_overview = []
+                
                 equity1 = round(balance + profit_loss,2)
                 equity = equity1 if equity1 >= 0 else 0
                 
@@ -647,7 +657,8 @@ class Home(APIView):
                     'positions': final_list,
                     # 'open_positions': position_data_list,
                     'current_value':current_value_list,
-                    "overview":overview
+                    "overview":overview,
+                    "cumulative_overview":cumulative_overview
                 }
                 
                 return Response(data)
