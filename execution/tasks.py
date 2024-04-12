@@ -609,57 +609,50 @@ def competition_daily_returns():
                 
     else:
         print("Not running on weekends.")
-
-@shared_task
-def competition_cumulative_returns():
+        
+@shared_task                  
+def update_latest_competition_cumulative_returns():
     today = datetime.now().weekday()
     if today < 5:
         users = User.objects.all()
-        data = get_price('ASI')
-        pr = data['current_price']
-        print(data)
-        # pr = 24.15
-        
+
         for user in users:
             portfolio =  CompetitionPortfolio.objects.filter(user=user, competition__status='current',active=True).first()
             if portfolio:
-                positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='close')
-            else:
-                positions = None
-            
-            
-            if positions:
-                
-                    
-                total_invested  = sum([post.amount_invested for post in positions])
-                position_shares = []
-                for position in positions:
-                    pl,value,current_price = position.calculate_profit_loss() 
-                    returned =  (Decimal(current_price)/position.open_price) - 1
-                    weight = (position.amount_invested/total_invested )
-                    
-                    position_shares.append(returned*weight)
-                shares = round(sum(position_shares)*100,2)
-                
-                last_ngx_query = CompetitionCumulativeReturns.objects.filter(user=user).last()
-                # print(last_ngx_query.ngx_price)
-                if last_ngx_query:
-                    last_ngx = last_ngx_query.ngx_price
-                    market_returns = round(((pr - last_ngx)/last_ngx) *100,2)
-                
-                    print('return', shares)
-                else:
-                    market_returns = 0
-                # last_ngx = 25.5
-                
-                # market_returns = round(((pr - last_ngx)/last_ngx) *100,2)
-                    
-                CompetitionCumulativeReturns.objects.create(user=user, portfolio_returns=shares, market_returns =market_returns, ngx_price=pr,portfolio=portfolio)
-                print(f"{user.email} daily profit/loss calculated")
-    else:
-        print("Not running on weekends.")
+                latest_daily_return = CompetitionDailyReturns.objects.filter(user=user).order_by('-created').first()
 
-        
+                if latest_daily_return:
+                    daily_returns = CompetitionDailyReturns.objects.filter(user=user, created__lte=latest_daily_return.created).order_by('created')
+                    data = {
+                        'portfolio_returns': [dr.portfolio_returns/100 for dr in daily_returns],
+                        'market_returns': [dr.market_returns/100 for dr in daily_returns],
+                        'ngx_price': [dr.ngx_price for dr in daily_returns],
+                        'created': [dr.created for dr in daily_returns]
+                    }
+                    df = pd.DataFrame(data)
+
+                    if len(df) > 1:
+                        df['portfolio_cumulative'] = (1 + df['portfolio_returns']).cumprod() - 1
+                        df['market_cumulative'] = (1 + df['market_returns']).cumprod() - 1
+                        portfolio_cumulative = df['portfolio_cumulative'].iloc[-1]
+                        market_cumulative = df['market_cumulative'].iloc[-1]
+                    else:
+                        portfolio_cumulative = latest_daily_return.portfolio_returns
+                        market_cumulative = latest_daily_return.market_returns
+
+                    ngx_price = df['ngx_price'].iloc[-1]
+
+                    CompetitionCumulativeReturns.objects.create(
+                        user=user,
+                        created=latest_daily_return.created,
+                        portfolio_returns= round(portfolio_cumulative*100,2),
+                        market_returns=round(market_cumulative*100,2),
+                        ngx_price=ngx_price,
+                        portfolio=portfolio
+                        
+                    )
+                
+
 from openai import OpenAI
 from .symbol_pair import pairs
 def get_alert_data(prompt):
@@ -1081,39 +1074,41 @@ def update_latest_cumulative_returns():
     Updates the cumulative returns for the latest day for each user in the DailyReturns table
     and stores the results in the CumulativeReturns model.
     """
-    users = User.objects.all()
+    today = datetime.now().weekday()
+    if today < 5:
+        users = User.objects.all()
 
-    for user in users:
-        latest_daily_return = DemoDailyReturns.objects.filter(user=user).order_by('-created').first()
+        for user in users:
+            latest_daily_return = DemoDailyReturns.objects.filter(user=user).order_by('-created').first()
 
-        if latest_daily_return:
-            daily_returns = DemoDailyReturns.objects.filter(user=user, created__lte=latest_daily_return.created).order_by('created')
-            data = {
-                'portfolio_returns': [dr.portfolio_returns/100 for dr in daily_returns],
-                'market_returns': [dr.market_returns/100 for dr in daily_returns],
-                'ngx_price': [dr.ngx_price for dr in daily_returns],
-                'created': [dr.created for dr in daily_returns]
-            }
-            df = pd.DataFrame(data)
+            if latest_daily_return:
+                daily_returns = DemoDailyReturns.objects.filter(user=user, created__lte=latest_daily_return.created).order_by('created')
+                data = {
+                    'portfolio_returns': [dr.portfolio_returns/100 for dr in daily_returns],
+                    'market_returns': [dr.market_returns/100 for dr in daily_returns],
+                    'ngx_price': [dr.ngx_price for dr in daily_returns],
+                    'created': [dr.created for dr in daily_returns]
+                }
+                df = pd.DataFrame(data)
 
-            if len(df) > 1:
-                df['portfolio_cumulative'] = (1 + df['portfolio_returns']).cumprod() - 1
-                df['market_cumulative'] = (1 + df['market_returns']).cumprod() - 1
-                portfolio_cumulative = df['portfolio_cumulative'].iloc[-1]
-                market_cumulative = df['market_cumulative'].iloc[-1]
-            else:
-                portfolio_cumulative = latest_daily_return.portfolio_returns
-                market_cumulative = latest_daily_return.market_returns
+                if len(df) > 1:
+                    df['portfolio_cumulative'] = (1 + df['portfolio_returns']).cumprod() - 1
+                    df['market_cumulative'] = (1 + df['market_returns']).cumprod() - 1
+                    portfolio_cumulative = df['portfolio_cumulative'].iloc[-1]
+                    market_cumulative = df['market_cumulative'].iloc[-1]
+                else:
+                    portfolio_cumulative = latest_daily_return.portfolio_returns
+                    market_cumulative = latest_daily_return.market_returns
 
-            ngx_price = df['ngx_price'].iloc[-1]
+                ngx_price = df['ngx_price'].iloc[-1]
 
-            DemoCumulativeReturns.objects.create(
-                user=user,
-                created=latest_daily_return.created,
-                portfolio_returns= round(portfolio_cumulative*100,2),
-                market_returns=round(market_cumulative*100,2),
-                ngx_price=ngx_price
+                DemoCumulativeReturns.objects.create(
+                    user=user,
+                    created=latest_daily_return.created,
+                    portfolio_returns= round(portfolio_cumulative*100,2),
+                    market_returns=round(market_cumulative*100,2),
+                    ngx_price=ngx_price
+                    
+                )
                 
-            )
-            
-            
+                
