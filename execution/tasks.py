@@ -26,6 +26,7 @@ from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import shortuuid
 import time as timer
 from competition.models import CompetitionPortfolio, CompetitionPosition, CompetitionTransaction, CompetitionDailyReturns, CompetitionCumulativeReturns
+import pandas as pd
 
 logger = get_task_logger(__name__)
 channel_layer = get_channel_layer()
@@ -1074,6 +1075,46 @@ def process_market_data2(prompt, convsersation_id, user_id, channel_name):
                         marketai.position_created= True
                         marketai.save()
                         
-                    
-                
-                    
+@shared_task                  
+def update_latest_cumulative_returns():
+    """
+    Updates the cumulative returns for the latest day for each user in the DailyReturns table
+    and stores the results in the CumulativeReturns model.
+    """
+    users = DemoDailyReturns.objects.values_list('user', flat=True).distinct()
+
+    for user in users:
+        latest_daily_return = DemoDailyReturns.objects.filter(user=user).order_by('-created').first()
+
+        if latest_daily_return:
+            daily_returns = DemoDailyReturns.objects.filter(user=user, created__lte=latest_daily_return.created).order_by('created')
+            data = {
+                'portfolio_returns': [dr.portfolio_returns/100 for dr in daily_returns],
+                'market_returns': [dr.market_returns/100 for dr in daily_returns],
+                'ngx_price': [dr.ngx_price for dr in daily_returns],
+                'created': [dr.created for dr in daily_returns]
+            }
+            df = pd.DataFrame(data)
+
+            if len(df) > 1:
+                df['portfolio_cumulative'] = (1 + df['portfolio_returns']).cumprod() - 1
+                df['market_cumulative'] = (1 + df['market_returns']).cumprod() - 1
+                portfolio_cumulative = df['portfolio_cumulative'].iloc[-1]
+                market_cumulative = df['market_cumulative'].iloc[-1]
+            else:
+                portfolio_cumulative = latest_daily_return.portfolio_returns
+                market_cumulative = latest_daily_return.market_returns
+
+            ngx_price = df['ngx_price'].iloc[-1]
+
+            DemoCumulativeReturns.objects.update_or_create(
+                user_id=user,
+                created=latest_daily_return.created,
+                defaults={
+                    'portfolio_returns': portfolio_cumulative,
+                    'market_returns': market_cumulative,
+                    'ngx_price': ngx_price
+                }
+            )
+            
+            

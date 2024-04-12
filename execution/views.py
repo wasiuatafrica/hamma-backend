@@ -262,7 +262,7 @@ class DemoTradeAPIView(APIView):
                     status=CompetitionPosition.PENDING, 
                     limit_price = price,
                     quantity=quantity,
-                    alert_name = shortuuid.uuid(),
+                    alert_name = 'pending trade' + shortuuid.uuid(),
                     time_in_force=time_in_force,
                     order_id=order_id
                     
@@ -737,6 +737,9 @@ class DemoClosePendingTrade(APIView):
                 position.status = 'cancelled'
                 position.save()
                 
+                task = PeriodicTask.objects.get(name=position.alert_name)
+                task.enabled = False
+                task.save()
                
                 activity=UserActivityLog.objects.create(user=request.user, action_type="competition_cancel_trade",description=f"User cancelled competition pending trade with symbol {position.stock.symbol}.")
                                
@@ -763,6 +766,9 @@ class DemoClosePendingTrade(APIView):
                 
                 position.save()
                 
+                task = PeriodicTask.objects.get(name=position.alert_name)
+                task.enabled = False
+                task.save()
                 
                 UserActivityLog.objects.create(user=request.user, action_type="demo_closed_pending_trade",description=f"User cancelled  demo pending trade with symbol {position.stock.symbol}.")
                
@@ -934,3 +940,171 @@ class DemoHolding(APIView):
                 }
                 
                 return Response(hold_data)
+            
+
+class DemoHolding2(APIView):
+    def get(self,request):
+        def get_price():
+            from portfolio.utils import connect_to_mongodb
+            db = connect_to_mongodb("stock_prices")
+            collection = db["price_combined"]
+            last_item = collection.find_one(sort=[('_id', -1)])
+            # print(symbol)
+            return last_item
+        
+        all_prices = get_price()
+        
+        in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition__status='current',active=True).first()
+        if in_competition:
+            portfolio = in_competition
+                
+            positions =  CompetitionPosition.objects.filter(portfolio=portfolio).order_by("-updated")
+            balance =  portfolio.balance
+            
+            if positions:
+                
+                def get_position(position):
+                    if position.status == 'close':
+                    # pl, value, price= position.calculate_profit_loss()
+                    # print("plv",pl, value, price)
+                        pl = position.profit_loss
+                    
+                        if position.amount_invested != 0:
+                            percent_change = round(pl/position.amount_invested *100,2)
+                        else:
+                            percent_change = None
+                        price = all_prices[position.stock.symbol]['current_price']
+                        value = round(position.quantity * price,2)
+                        
+                    
+                        data = {
+                            'id':position.id,
+                            'stock':position.stock.symbol,
+                            'shares':position.quantity,
+                            'avg_cost':position.open_price,
+                            'close_price':position.close_price,
+                            'ltp':price,
+                            'open_time':position.created.isoformat(),
+                            'close_time':position.updated.isoformat() if position.updated != position.created else '-',
+                            'change': pl,
+                            "percent_change":percent_change,
+                            'cur_val':value,
+                            "avg_volume":'3300',
+                            "volume":'66000',
+                            'status':position.status,
+                            'invested':position.amount_invested,
+                            "profit_loss":position.profit_loss,
+                            "side":position.action,
+                            "order":position.order_type,
+                            'order_id':position.order_id
+                            
+                            }
+                    return data
+
+
+                with ThreadPoolExecutor() as executor:
+                    futures = executor.map(get_position, positions)
+                    positions_data = [result for result in futures if result]
+
+                floating_pl = sum([data['change'] for data in positions_data if data['status']=='open'])
+                closed_pl = sum([data['profit_loss'] for data in positions_data if data['status']=='close'])
+                open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
+                # closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
+                # wallet_balance = portfolio.balance
+                
+                hold_data ={
+                    'balance':open_trade_sum ,
+                    'floating_pl':floating_pl,
+                    'closed_pl':closed_pl,
+                    'equity':open_trade_sum  + floating_pl,
+                    'holdings':positions_data
+                    
+                }
+                
+                return Response(hold_data)
+            else:
+                hold_data ={
+                    'portfolio_value':0,
+                    'profit_loss':0,
+                    'total_invested':0,
+                    'holdings':[]
+                    
+                }
+                
+                return Response(hold_data)
+        else:
+            portfolio= DemoPortfolio.objects.get_or_create(user=request.user)[0]
+            positions =  DemoPosition.objects.filter(portfolio=portfolio).order_by("-updated")
+            balance =  portfolio.balance
+            
+            if positions:
+                
+                def get_position(position):
+                    
+                    pl, value, price= position.calculate_profit_loss()
+                    # print("plv",pl, value, price)
+                    if position.amount_invested != 0:
+                        percent_change = round(pl/position.amount_invested *100,2)
+                    else:
+                        percent_change = None
+                        
+                    if position.status == 'open':
+                        profit_loss = pl
+                    else:
+                        profit_loss = position.profit_loss
+                    data = {
+                        'id':position.id,
+                        'stock':position.stock.symbol,
+                        'shares':position.quantity,
+                        'avg_cost':position.open_price,
+                        'close_price':position.close_price,
+                        'ltp':price,
+                        'open_time':position.created.isoformat(),
+                        'close_time':position.updated.isoformat() if position.updated != position.created else '-',
+                        'change': pl,
+                        "percent_change":percent_change,
+                        'cur_val':value,
+                        "avg_volume":'3300',
+                        "volume":'66000',
+                        'status':position.status,
+                        'invested':position.amount_invested,
+                        "profit_loss":profit_loss,
+                        "side":position.action,
+                        "order":position.order_type,
+                        'order_id':position.order_id
+                        
+                        }
+                    return data
+
+
+                with ThreadPoolExecutor() as executor:
+                    futures = executor.map(get_position, positions)
+                    positions_data = [result for result in futures if result]
+
+                floating_pl = sum([data['change'] for data in positions_data if data['status']=='open'])
+                closed_pl = sum([data['profit_loss'] for data in positions_data if data['status']=='close'])
+                open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
+                # closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
+                # wallet_balance = portfolio.balance
+                
+                hold_data ={
+                    'balance':open_trade_sum ,
+                    'floating_pl':floating_pl,
+                    'closed_pl':closed_pl,
+                    'equity':open_trade_sum  + floating_pl,
+                    'holdings':positions_data
+                    
+                }
+                
+                return Response(hold_data)
+            else:
+                hold_data ={
+                    'portfolio_value':0,
+                    'profit_loss':0,
+                    'total_invested':0,
+                    'holdings':[]
+                    
+                }
+                
+                return Response(hold_data)
+            

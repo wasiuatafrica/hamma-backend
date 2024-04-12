@@ -29,6 +29,8 @@ from django.db.models import Exists, OuterRef
 from accounts.models import UserActivityLog,Referral
 from affilate.models import ReferralWallet,RewardActivities
 from execution import models as exec_models
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
+
 
 
  
@@ -599,8 +601,18 @@ class AlertUpdateView(APIView):
                 # ensure below < above for price and volume
                 if serializer.validated_data["alert_type"] not in action:
                     return Response({"detail": "alert type must be 'price' or 'volume' "}, status=status.HTTP_400_BAD_REQUEST)
+                
                 serializer.save()
+                
+                alert.trigerred = False
+                alert.save()
+                
+                task=PeriodicTask.objects.get(name=alert.task_name)
+                task.enabled=True
+                task.save()
+                
                 save_and_send_notification(request.user.id, f"Alert {alert.alert_name} has been updated.")
+                
                 return Response(serializer.data)
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         else:
@@ -612,6 +624,10 @@ class AlertUpdateView(APIView):
         
         if alert is not None:
             alert_name = alert.alert_name   
+            
+            task=PeriodicTask.objects.get(name=alert.task_name)
+            task.delete()
+            
             alert.delete()
             save_and_send_notification(request.user.id, f"Alert {alert_name} has been deleted.")
             

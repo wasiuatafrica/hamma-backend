@@ -1,6 +1,8 @@
 
-from .models import DemoPosition, DemoPortfolio
+from .models import DemoPosition, DemoPortfolio, DemoCumulativeReturns, DemoDailyReturns
 from rest_framework import serializers
+import pandas as pd
+
 
 class DemoPositionSerializer(serializers.ModelSerializer):
     symbol = serializers.SerializerMethodField()
@@ -35,3 +37,33 @@ def get_positions(user,status=None):
     
     serializer = DemoPositionSerializer(positions, many=True)
     return serializer.data
+
+
+def calculate_cumulative_returns():
+    """
+    Calculates the cumulative returns for each day in the DailyReturns table
+    and stores the results in the CumulativeReturns model.
+    """
+    daily_returns = DemoDailyReturns.objects.all().order_by('created')
+
+    if daily_returns.exists():
+        data = {
+            'portfolio_returns': [dr.portfolio_returns/100 for dr in daily_returns],
+            'market_returns': [dr.market_returns/100 for dr in daily_returns],
+            'ngx_price': [dr.ngx_price for dr in daily_returns],
+            'user': [dr.user for dr in daily_returns],
+            'created': [dr.created for dr in daily_returns]
+        }
+        df = pd.DataFrame(data)
+
+        df['portfolio_cumulative'] = (1 + df['portfolio_returns']).cumprod() - 1
+        df['market_cumulative'] = (1 + df['market_returns']).cumprod() - 1
+
+        for index, row in df.iterrows():
+            DemoCumulativeReturns.objects.create(
+                user=row['user'],
+                portfolio_returns=row['portfolio_cumulative'],
+                market_returns=row['market_cumulative'],
+                ngx_price=row['ngx_price'],
+                created=row['created']
+            )
