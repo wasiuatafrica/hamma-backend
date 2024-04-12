@@ -55,15 +55,18 @@ def calculate_cumulative_returns():
             'created': [dr.created for dr in daily_returns]
         }
         df = pd.DataFrame(data)
+        
+        print(df)
 
-        df['portfolio_cumulative'] = (1 + df['portfolio_returns']).cumprod() - 1
-        df['market_cumulative'] = (1 + df['market_returns']).cumprod() - 1
+        df['portfolio_cumulative'] = ((1 + df['portfolio_returns']).cumprod() - 1) *100
+        df['market_cumulative'] = ((1 + df['market_returns']).cumprod() - 1) *100
 
+        print(df)
         for index, row in df.iterrows():
             DemoCumulativeReturns.objects.create(
                 user=row['user'],
-                portfolio_returns=row['portfolio_cumulative'],
-                market_returns=row['market_cumulative'],
+                portfolio_returns=round(row['portfolio_cumulative'],2),
+                market_returns=round(row['market_cumulative'],2),
                 ngx_price=row['ngx_price'],
                 created=row['created']
             )
