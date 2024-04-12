@@ -219,7 +219,7 @@ def get_stockdata2():
 
 def get_details2(stock, stock_data):
     data = stock_data.get(stock.symbol, {})
-    print(data)
+    # print(data)
     if data:
         return {
             'company': stock.company,
@@ -228,6 +228,9 @@ def get_details2(stock, stock_data):
             'current_price': handle_special_values(data.get('current_price', 0)),
             "percent_change": handle_special_values(data.get('percentage_change', 0)),
             'change': handle_special_values(data.get("change", 0)),
+            'volume': handle_special_values(data.get("volume", 0)),
+            'momentum': handle_special_values(data.get("momentum", 0)),
+            'volatility': handle_special_values(data.get("volatility", 0)),
         }
     else:
         # Handle the case when data is not available for the symbol
