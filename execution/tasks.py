@@ -1081,7 +1081,7 @@ def update_latest_cumulative_returns():
     Updates the cumulative returns for the latest day for each user in the DailyReturns table
     and stores the results in the CumulativeReturns model.
     """
-    users = DemoDailyReturns.objects.values_list('user', flat=True).distinct()
+    users = User.objects.all()
 
     for user in users:
         latest_daily_return = DemoDailyReturns.objects.filter(user=user).order_by('-created').first()
@@ -1107,14 +1107,13 @@ def update_latest_cumulative_returns():
 
             ngx_price = df['ngx_price'].iloc[-1]
 
-            DemoCumulativeReturns.objects.update_or_create(
-                user_id=user,
+            DemoCumulativeReturns.objects.create(
+                user=user,
                 created=latest_daily_return.created,
-                defaults={
-                    'portfolio_returns': portfolio_cumulative,
-                    'market_returns': market_cumulative,
-                    'ngx_price': ngx_price
-                }
+                portfolio_returns= round(portfolio_cumulative*100,2),
+                market_returns=round(market_cumulative*100,2),
+                ngx_price=ngx_price
+                
             )
             
             

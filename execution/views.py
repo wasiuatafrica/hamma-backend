@@ -22,7 +22,7 @@ from django.utils import timezone
 from accounts.models import  UserActivityLog 
 
 from .models import DemoCumulativeReturns, DemoPosition, DemoPortfolio, DemoDailyReturns
-from  competition.models import CompetitionPosition,CompetitionDailyReturns,CompetitionPortfolio,CompetitionTransaction
+from  competition.models import CompetitionCumulativeReturns, CompetitionPosition,CompetitionDailyReturns,CompetitionPortfolio,CompetitionTransaction
 # class DemoTradeAPIView(APIView):
 #     permission_classes = [IsAuthenticated]
 
@@ -504,6 +504,7 @@ class Home(APIView):
                 
                 
                 daily_profitloss= CompetitionDailyReturns.objects.filter(user=request.user, portfolio=in_competition)
+                cumulative_profitloss= CompetitionCumulativeReturns .objects.filter(user=request.user, portfolio=in_competition)
                 if daily_profitloss:
                     today = timezone.now()
 
@@ -518,6 +519,20 @@ class Home(APIView):
                 else:
                     position_data_list =[]
                     overview = []
+                    
+                if cumulative_profitloss:
+                    today = timezone.now()
+
+                    cumulative_overview = [
+                        {
+                            'portfolio_returns': daily.portfolio_returns,
+                            'market_returns': daily.market_returns,
+                            'date': daily.created.date()
+                        } for daily in cumulative_profitloss 
+                    ]
+
+                else:
+                    cumulative_overview = []
                 
                 balance2 = sum([pos.amount_invested for pos in positions])
                   
@@ -537,7 +552,8 @@ class Home(APIView):
                     'positions': final_list,
                     # 'open_positions': position_data_list,
                     'current_value':current_value_list,
-                    "overview":overview
+                    "overview":overview,
+                    "cumulative_overview":cumulative_overview
                 }
                 
                 return Response(data)

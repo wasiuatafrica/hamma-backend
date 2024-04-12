@@ -21,5 +21,5 @@ class Command(BaseCommand):
                 
         #     )
         
-        calculate_cumulative_returns()
-        # update_latest_cumulative_returns()
+        # calculate_cumulative_returns()
+        update_latest_cumulative_returns()
