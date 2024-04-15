@@ -82,3 +82,41 @@ def calculate_cumulative_returns():
             DemoCumulativeReturns.objects.create(
                     user=user
                 )
+            
+def calculate_cumulative_returns_user(user):
+    """
+    Calculates the cumulative returns for each day in the DailyReturns table
+    and stores the results in the CumulativeReturns model.
+    """
+    
+        
+    daily_returns = DemoDailyReturns.objects.filter(user=user)
+
+    if daily_returns.exists():
+        data = {
+            'portfolio_returns': [dr.portfolio_returns/100 for dr in daily_returns],
+            'market_returns': [dr.market_returns/100 for dr in daily_returns],
+            'ngx_price': [dr.ngx_price for dr in daily_returns],
+            'user': [dr.user for dr in daily_returns],
+            'created': [dr.created for dr in daily_returns]
+        }
+        df = pd.DataFrame(data)
+        
+        print(df)
+
+        df['portfolio_cumulative'] = ((1 + df['portfolio_returns']).cumprod() - 1) *100
+        df['market_cumulative'] = ((1 + df['market_returns']).cumprod() - 1) *100
+
+        print(df)
+        for index, row in df.iterrows():
+            DemoCumulativeReturns.objects.create(
+                user=user,
+                portfolio_returns=round(row['portfolio_cumulative'],2),
+                market_returns=round(row['market_cumulative'],2),
+                ngx_price=row['ngx_price'],
+                created=row['created']
+            )
+    else:
+        DemoCumulativeReturns.objects.create(
+                user=user
+            )

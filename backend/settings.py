@@ -105,28 +105,12 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 DATABASES = {
     "default": dj_database_url.config(
         conn_max_age=600,
-         default=os.environ.get('DATABASE_URL') 
+         default=os.environ.get('DATABASE_URL2') 
         #  default=config('DATABASE_URL')
         )
 
  }
 
-# if DEBUG:
-#     DATABASES = {
-#         'default': {
-#             'ENGINE': 'django.db.backends.sqlite3',
-#             'NAME': BASE_DIR / 'db.sqlite3',
-#         }
-#     }
-# else:
-#     DATABASES = {
-#         "default": dj_database_url.config(
-#             conn_max_age=600,
-#             default=os.environ.get('DATABASE_URL')
-#             #  default=config('DATABASE_URL')
-#             )
-
-#     }
 
 AUTH_PASSWORD_VALIDATORS = [
     {

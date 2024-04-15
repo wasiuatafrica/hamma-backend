@@ -164,7 +164,13 @@ class DemoCumulativeReturns(auto_prefetch.Model):
     created =models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user} {self.portfolio_returns} - {self.created.date()}"
+        if self.created:
+            return f"{self.user} {self.portfolio_returns} - {self.created.date()}"
+        else:
+            return f"{self.user} {self.portfolio_returns}"
+            
+        
+        # return f"{self.user} {self.portfolio_returns} - {self.created.date()}"
 
 
 
