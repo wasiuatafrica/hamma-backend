@@ -150,7 +150,7 @@ class DemoDailyReturns(auto_prefetch.Model):
     created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user} - {self.created}"
+        return f"{self.user} {self.portfolio_returns} - {self.created.date()}"
 
 
     def __str__(self):
@@ -164,11 +164,9 @@ class DemoCumulativeReturns(auto_prefetch.Model):
     created =models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user} - {self.created}"
+        return f"{self.user} {self.portfolio_returns} - {self.created.date()}"
 
 
-    def __str__(self):
-        return f"{self.user} - {self.created}"
 
 class Portfolio(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='portfolio2')

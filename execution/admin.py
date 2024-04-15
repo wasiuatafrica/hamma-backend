@@ -10,7 +10,12 @@ admin.site.register(DemoPosition)
 admin.site.register(DemoTrade)
 admin.site.register(DemoPortfolio)
 admin.site.register(DemoProfitLoss)
-admin.site.register(DemoDailyReturns)
+
+class DemoDailyReturnsAdmin(admin.ModelAdmin):
+    search_fields = ['user__email']
+admin.site.register(DemoDailyReturns,DemoDailyReturnsAdmin)
+
+# admin.site.register(DemoDailyReturns)
 
 class DemoCumulativeReturnsAdmin(admin.ModelAdmin):
     search_fields = ['user__email']
