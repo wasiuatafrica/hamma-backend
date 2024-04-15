@@ -102,7 +102,7 @@ def calculate_cumulative_returns_user(user):
         }
         df = pd.DataFrame(data)
         
-        print(df)
+        # print(df)
 
         df['portfolio_cumulative'] = ((1 + df['portfolio_returns']).cumprod() - 1) *100
         df['market_cumulative'] = ((1 + df['market_returns']).cumprod() - 1) *100
@@ -116,7 +116,4 @@ def calculate_cumulative_returns_user(user):
                 ngx_price=row['ngx_price'],
                 created=row['created']
             )
-    else:
-        DemoCumulativeReturns.objects.create(
-                user=user
-            )
+    
