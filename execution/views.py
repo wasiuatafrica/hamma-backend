@@ -24,7 +24,8 @@ from accounts.models import  UserActivityLog
 
 from .models import DemoCumulativeReturns, DemoPosition, DemoPortfolio, DemoDailyReturns, DemoDailyReturns2, MarketReturns, CumulativeMarketReturns
 from  competition.models import CompetitionCumulativeReturns, CompetitionPosition,CompetitionDailyReturns,CompetitionPortfolio,CompetitionTransaction
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 # class DemoTradeAPIView(APIView):
 #     permission_classes = [IsAuthenticated]
 
