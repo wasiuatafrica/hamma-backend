@@ -155,7 +155,7 @@ class DemoDailyReturns(auto_prefetch.Model):
 class DemoDailyReturns2(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='demoreturns2')
     portfolio_returns = models.FloatField(default=0.0)
-    created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    created =models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.user} {self.portfolio_returns} - {self.created.date()}"
