@@ -7,5 +7,8 @@ urlpatterns = [
     path('close/demo/<str:id>/', views.DemoCloseTrade.as_view()),
     path('cancel/demo/<str:id>/', views.DemoClosePendingTrade.as_view()),
     path('holding/demo/', views.DemoHolding.as_view()),
+    
+    #support
+    path('home/<str:mode>/support/<str:email>/', views.SupportHome.as_view()),
     path('holding/demo/support/<str:email>/', views.SupportDemoHolding.as_view())
 ]
