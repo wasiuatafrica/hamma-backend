@@ -680,6 +680,15 @@ class Home(APIView):
                 if cumulative_profitloss:
                     today = timezone.now()
 
+                    cumulative_overview.append(
+                                    {
+                                        
+                            'portfolio_returns': 0,
+                            'market_returns': 0,
+                            'date': request.user.date_joined.date()
+                                    }
+                    )
+                    
                     for daily in cumulative_profitloss:
                         for daily2 in cumulative_market :
                             if daily.created.date() == daily2.created.date():
