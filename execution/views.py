@@ -21,7 +21,7 @@ import json
 from django.utils import timezone
 from accounts.models import  UserActivityLog 
 
-from .models import DemoCumulativeReturns, DemoPosition, DemoPortfolio, DemoDailyReturns
+from .models import DemoCumulativeReturns, DemoPosition, DemoPortfolio, DemoDailyReturns, DemoDailyReturns2, MarketReturns, CumulativeMarketReturns
 from  competition.models import CompetitionCumulativeReturns, CompetitionPosition,CompetitionDailyReturns,CompetitionPortfolio,CompetitionTransaction
 # class DemoTradeAPIView(APIView):
 #     permission_classes = [IsAuthenticated]
@@ -628,8 +628,12 @@ class Home(APIView):
                 profit_loss = sum(profit_loss_list) if profit_loss_list else 0
                 
                 
-                daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
+                # daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
+                daily_profitloss= DemoDailyReturns2.objects.filter(user=request.user)
                 cumulative_profitloss= DemoCumulativeReturns.objects.filter(user=request.user)
+                
+                market= MarketReturns.objects.all()
+                cumulative_market = CumulativeMarketReturns.objects.all()
                 
                 if daily_profitloss:
                     today = timezone.now()
@@ -637,11 +641,18 @@ class Home(APIView):
                     overview = [
                         {
                             'portfolio_returns': daily.portfolio_returns,
-                            'market_returns': daily.market_returns,
                             'date': daily.created.date()
                         } for daily in daily_profitloss 
                     ]
 
+                    for num,item in enumerate(overview):
+                        if num == 0:
+                                item['market_returns'] = 0
+                        for dr in market:
+                           
+                            if dr.created.date() == item['date']:
+                                item['market_returns'] = dr.market_returns
+                    
                 else:
                     position_data_list =[]
                     overview = []
@@ -652,10 +663,17 @@ class Home(APIView):
                     cumulative_overview = [
                         {
                             'portfolio_returns': daily.portfolio_returns,
-                            'market_returns': daily.market_returns,
                             'date': daily.created.date()
                         } for daily in cumulative_profitloss 
                     ]
+                    
+                    for num, item in enumerate(cumulative_overview):
+                        if num == 0:
+                            item['market_returns'] = 0
+                        for dr in cumulative_market:
+                            
+                            if dr.created.date() == item['date']:
+                                item['market_returns'] = dr.market_returns
 
                 else:
                     cumulative_overview = []

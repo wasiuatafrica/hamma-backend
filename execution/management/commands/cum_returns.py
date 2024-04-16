@@ -36,4 +36,4 @@ class Command(BaseCommand):
             
         daily_returns2()
         
-        mark_returns()
+        # mark_returns()

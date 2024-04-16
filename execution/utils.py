@@ -140,7 +140,7 @@ def daily_returns2():
 
             df['Sum_Balance'] = df.groupby('Closedate')['Balance'].cumsum()
             df['Sum_Invested'] = df.groupby('Closedate')['Invested'].cumsum()
-            df['Daily_PortfolioReturns'] = ((df['Sum_Balance'] / df['Sum_Invested']) - 1) *100
+            df['Daily_PortfolioReturns'] = (df['Sum_Balance'] / df['Sum_Invested']) - 1
 
             tz = pytz.timezone('Africa/Lagos')
             df['DateTime'] = pd.to_datetime(df['DateTime']).dt.tz_localize(tz)
@@ -153,19 +153,19 @@ def daily_returns2():
             max_time['running_Balance'] = max_time['Sum_Balance'].cumsum()
             max_time['running_Invested'] = max_time['Sum_Invested'].cumsum()
             
-            max_time['running_Profit'] = ((max_time.running_Balance/max_time.running_Invested)-1)*100
+            max_time['running_Profit'] = (max_time.running_Balance/max_time.running_Invested)-1
             print(max_time)
             
             for index, row in max_time.iterrows():
                 DemoDailyReturns2.objects.create(
                     user=user,
-                    portfolio_returns=round(row['Daily_PortfolioReturns'],2),
+                    portfolio_returns=round(row['Daily_PortfolioReturns']*100,2),
                     created=row['DateTime']
                 )
                 
                 DemoCumulativeReturns.objects.create(
                     user=user,
-                    portfolio_returns=round(row['running_Profit'],2),
+                    portfolio_returns=round(row['running_Profit']*100,2),
                     created=row['DateTime']
                 )
             print('done')
