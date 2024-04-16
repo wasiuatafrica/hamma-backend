@@ -683,7 +683,7 @@ class Home(APIView):
                     for daily in cumulative_profitloss:
                         for daily2 in cumulative_market :
                             if daily.created.date() == daily2.created.date():
-                                overview.append(
+                                cumulative_overview.append(
                                     {
                                         
                             'portfolio_returns': daily.portfolio_returns,
