@@ -672,7 +672,7 @@ class Home(APIView):
                             'date': daily.created.date()
                         } for daily in cumulative_profitloss 
                     ]
-                    first_ = overview[0]
+                    first_ = cumulative_overview[0]
                     first_['market_returns'] = 0
                     
                     for item in cumulative_overview:
