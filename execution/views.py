@@ -643,7 +643,7 @@ class Home(APIView):
                     overview = [
                         {
                             'portfolio_returns': daily.portfolio_returns,
-                            # 'market_returns': 0,
+                            'market_returns': 0,
                             'date': daily.created.date()
                         } for daily in daily_profitloss 
                     ]
@@ -668,7 +668,7 @@ class Home(APIView):
                     cumulative_overview = [
                         {
                             'portfolio_returns': daily.portfolio_returns,
-                            # 'market_returns': 0,
+                            'market_returns': 0,
                             'date': daily.created.date()
                         } for daily in cumulative_profitloss 
                     ]
