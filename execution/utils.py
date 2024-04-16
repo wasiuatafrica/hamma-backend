@@ -1,7 +1,8 @@
 
-from .models import DemoPosition, DemoPortfolio, DemoCumulativeReturns, DemoDailyReturns
+from .models import DemoPosition, DemoPortfolio, DemoCumulativeReturns, DemoDailyReturns, DemoDailyReturns2, MarketReturns, CumulativeMarketReturns
 from rest_framework import serializers
 import pandas as pd
+import pytz
 
 from anyon.views import User
 
@@ -117,3 +118,80 @@ def calculate_cumulative_returns_user(user):
                 created=row['created']
             )
     
+def daily_returns2():
+    users = User.objects.all()
+    for user in users:
+        print(user)
+        positions = DemoPosition.objects.filter(portfolio__user=user, status='close')
+        if positions.exists():
+            # print(positions)
+            data = {
+                'user': [p.portfolio.user.email for p in positions],
+                'Balance': [float(p.amount_invested + p.profit_loss) for p in positions],
+                'Invested': [float(p.amount_invested) for p in positions],
+                'Closedate': [p.created.date() for p in positions],
+                'DateTime': [p.created for p in positions],
+            }
+
+            df = pd.DataFrame(data)
+            df['DateTime'] = pd.to_datetime(df['DateTime'])
+            df['DateTime'] = df['DateTime'].dt.strftime('%Y-%m-%d %H:%M:%S')
+            df = df.sort_values(by='DateTime')
+
+            df['Sum_Balance'] = df.groupby('Closedate')['Balance'].cumsum()
+            df['Sum_Invested'] = df.groupby('Closedate')['Invested'].cumsum()
+            df['Daily_PortfolioReturns'] = ((df['Sum_Balance'] / df['Sum_Invested']) - 1) *100
+
+            tz = pytz.timezone('Africa/Lagos')
+            df['DateTime'] = pd.to_datetime(df['DateTime']).dt.tz_localize(tz)
+            
+            # print(df)
+            idx_max_time = df.groupby('Closedate')['DateTime'].idxmax()
+            max_time = df.loc[idx_max_time].reset_index(drop=True).sort_values(by='DateTime')
+
+            
+            max_time['running_Balance'] = max_time['Sum_Balance'].cumsum()
+            max_time['running_Invested'] = max_time['Sum_Invested'].cumsum()
+            
+            max_time['running_Profit'] = ((max_time.running_Balance/max_time.running_Invested)-1)*100
+            print(max_time)
+            
+            for index, row in max_time.iterrows():
+                DemoDailyReturns2.objects.create(
+                    user=user,
+                    portfolio_returns=round(row['Daily_PortfolioReturns'],2),
+                    created=row['DateTime']
+                )
+                
+                DemoCumulativeReturns.objects.create(
+                    user=user,
+                    portfolio_returns=round(row['running_Profit'],2),
+                    created=row['DateTime']
+                )
+            print('done')
+            
+def mark_returns():
+    returns=  DemoDailyReturns.objects.filter(user__email='nexxyb@gmail.com')
+    
+    for return_ in returns:
+        MarketReturns.objects.create(market_returns=return_.market_returns, created=return_.created, ngx_price = return_.ngx_price)
+    
+    simple_markets = MarketReturns.objects.all()
+     
+    data = {
+        'market_returns': [mr.market_returns for mr in simple_markets],
+        'datetime': [mr.created for mr in simple_markets],
+        'ngx_price': [mr.ngx_price for mr in simple_markets]
+        
+    }
+    
+    df = pd.DataFrame(data)
+    df['datetime'] = pd.to_datetime(df['datetime'])
+    df['cum_market_returns'] = ((1 + df['market_returns']).cumprod() - 1)
+    print(df)
+    for index, row in df.iterrows():
+            CumulativeMarketReturns.objects.create(
+                market_returns=round(row['cum_market_returns'],2),
+                created=row['datetime'],
+                
+            )

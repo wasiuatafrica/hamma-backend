@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (DemoPortfolio, DemoPosition, DemoTrade, DemoProfitLoss, Portfolio, WithdrawalRequest,Position, DemoDailyReturns, DailyReturns,
-                     DemoCumulativeReturns, CumulativeReturns,
+                     DemoCumulativeReturns, CumulativeReturns, DemoDailyReturns2,CumulativeMarketReturns, MarketReturns
                      )
 
 
@@ -15,6 +15,10 @@ class DemoDailyReturnsAdmin(admin.ModelAdmin):
     search_fields = ['user__email']
 admin.site.register(DemoDailyReturns,DemoDailyReturnsAdmin)
 
+
+class DemoDailyReturnsAdmin2(admin.ModelAdmin):
+    search_fields = ['user__email']
+admin.site.register(DemoDailyReturns2,DemoDailyReturnsAdmin2)
 # admin.site.register(DemoDailyReturns)
 
 class DemoCumulativeReturnsAdmin(admin.ModelAdmin):
@@ -22,6 +26,8 @@ class DemoCumulativeReturnsAdmin(admin.ModelAdmin):
 admin.site.register(DemoCumulativeReturns,DemoCumulativeReturnsAdmin)
 
 admin.site.register(CumulativeReturns)
+admin.site.register(CumulativeMarketReturns)
+admin.site.register(MarketReturns)
 admin.site.register(Position)
 admin.site.register(Portfolio)
 admin.site.register(DailyReturns)

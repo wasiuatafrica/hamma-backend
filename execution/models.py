@@ -152,15 +152,35 @@ class DemoDailyReturns(auto_prefetch.Model):
     def __str__(self):
         return f"{self.user} {self.portfolio_returns} - {self.created.date()}"
 
+class DemoDailyReturns2(auto_prefetch.Model):
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='demoreturns2')
+    portfolio_returns = models.FloatField(default=0.0)
+    created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user} - {self.created}"
+        return f"{self.user} {self.portfolio_returns} - {self.created.date()}"
+    
+class MarketReturns(auto_prefetch.Model):
+    market_returns = models.FloatField(default=0.0)
+    ngx_price = models.FloatField(default=0.0)
+    created =models.DateTimeField(null=True, blank=True)
+    
+
+    def __str__(self):
+        return f"{self.market_returns} - {self.created.date()}"
+
+class CumulativeMarketReturns(auto_prefetch.Model):
+    market_returns = models.FloatField(default=0.0)
+    ngx_price = models.FloatField(default=0.0)
+    created =models.DateTimeField(null=True, blank=True)
+    
+
+    def __str__(self):
+        return f"{self.market_returns} - {self.created.date()}"
 
 class DemoCumulativeReturns(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='democumureturns')
     portfolio_returns = models.FloatField(default=0.0)
-    market_returns = models.FloatField(default=0.0)
-    ngx_price = models.FloatField(default=0.0)
     created =models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
@@ -170,9 +190,6 @@ class DemoCumulativeReturns(auto_prefetch.Model):
             return f"{self.user} {self.portfolio_returns}"
             
         
-        # return f"{self.user} {self.portfolio_returns} - {self.created.date()}"
-
-
 
 class Portfolio(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='portfolio2')
