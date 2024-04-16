@@ -637,56 +637,83 @@ class Home(APIView):
                 market= MarketReturns.objects.all()
                 cumulative_market = CumulativeMarketReturns.objects.all()
                 
+                overview = []
+                cumulative_overview = []
+                
                 if daily_profitloss:
                     today = timezone.now()
                     
-                    overview = [
-                        {
+                    for daily in daily_profitloss:
+                        for daily2 in market:
+                            if daily.created.date() == daily2.created.date():
+                                overview.append(
+                                    {
+                                        
                             'portfolio_returns': daily.portfolio_returns,
-                            'market_returns': 0,
+                            'market_returns': daily2.market_returns,
                             'date': daily.created.date()
-                        } for daily in daily_profitloss 
-                    ]
+                        }
+                                    
+                                )
+                #     overview = [
+                #         {
+                #             'portfolio_returns': daily.portfolio_returns,
+                #             'market_returns': 0,
+                #             'date': daily.created.date()
+                #         } for daily in daily_profitloss 
+                #     ]
 
-                    first = overview[0]
-                    first['market_returns'] = 0
+                #     first = overview[0]
+                #     first['market_returns'] = 0
                     
-                    for item in overview:
+                #     for item in overview:
                         
-                        for dr in market:
+                #         for dr in market:
                            
-                            if dr.created.date() == item['date']:
-                                item['market_returns'] = dr.market_returns
+                #             if dr.created.date() == item['date']:
+                #                 item['market_returns'] = dr.market_returns
                     
-                else:
-                    position_data_list =[]
-                    overview = []
+                # else:
+                #     position_data_list =[]
+                #     overview = []
                 
                 if cumulative_profitloss:
                     today = timezone.now()
 
-                    cumulative_overview = [
-                        {
+                    for daily in cumulative_profitloss:
+                        for daily2 in cumulative_market :
+                            if daily.created.date() == daily2.created.date():
+                                overview.append(
+                                    {
+                                        
                             'portfolio_returns': daily.portfolio_returns,
-                            'market_returns': 0,
+                            'market_returns': daily2.market_returns,
                             'date': daily.created.date()
-                        } for daily in cumulative_profitloss 
-                    ]
-                    first_ = cumulative_overview[0]
-                    first_['market_returns'] = 0
+                        }
+                                    
+                                )
+                    # cumulative_overview = [
+                    #     {
+                    #         'portfolio_returns': daily.portfolio_returns,
+                    #         'market_returns': 0,
+                    #         'date': daily.created.date()
+                    #     } for daily in cumulative_profitloss 
+                    # ]
+                    # first_ = cumulative_overview[0]
+                    # first_['market_returns'] = 0
                     
-                    for item in cumulative_overview:
+                    # for item in cumulative_overview:
                         
-                        for dr in cumulative_market:
+                    #     for dr in cumulative_market:
                             
-                            if dr.created.date() == item['date']:
-                                item['market_returns'] = dr.market_returns
+                    #         if dr.created.date() == item['date']:
+                    #             item['market_returns'] = dr.market_returns
 
-                else:
-                    cumulative_overview = []
+                # else:
+                #     cumulative_overview = []
                 
-                equity1 = round(balance + profit_loss,2)
-                equity = equity1 if equity1 >= 0 else 0
+                # equity1 = round(balance + profit_loss,2)
+                # equity = equity1 if equity1 >= 0 else 0
                 
                 
                 data = {
