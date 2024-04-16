@@ -648,9 +648,11 @@ class Home(APIView):
                         } for daily in daily_profitloss 
                     ]
 
-                    for num,item in enumerate(overview):
-                        if num == 0:
-                                item['market_returns'] = 0
+                    first = overview[0]
+                    first['market_returns'] = 0
+                    
+                    for item in overview:
+                        
                         for dr in market:
                            
                             if dr.created.date() == item['date']:
@@ -670,10 +672,11 @@ class Home(APIView):
                             'date': daily.created.date()
                         } for daily in cumulative_profitloss 
                     ]
+                    first_ = overview[0]
+                    first_['market_returns'] = 0
                     
-                    for num, item in enumerate(cumulative_overview):
-                        if num == 0:
-                            item['market_returns'] = 0
+                    for item in cumulative_overview:
+                        
                         for dr in cumulative_market:
                             
                             if dr.created.date() == item['date']:

@@ -15,20 +15,8 @@ class Command(BaseCommand):
     help = 'calculate_cumulative_returns'
 
     def handle(self, *args, **options):
-        users = User.objects.all()
-        # cumulative_returns = DemoCumulativeReturns.objects.filter(user=user)
-        # for cumulative_return in cumulative_returns:
-        #     cumulative_return.delete()
-        # for user in users:
-        #     DemoCumulativeReturns.objects.create(
-        #         user=user
-                
-        #     )
+        # users = User.objects.all()
         
-        # calculate_cumulative_returns()
-        # update_latest_cumulative_returns()
-        
-        # calculate_cumulative_returns_user(user)
         
         # for user in users:
         #     DemoDailyReturns2.objects.create(user=user, created=user.date_joined)
