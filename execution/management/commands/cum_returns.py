@@ -30,10 +30,10 @@ class Command(BaseCommand):
         
         # calculate_cumulative_returns_user(user)
         
-        for user in users:
-            DemoDailyReturns2.objects.create(user=user, created=user.date_joined)
-            DemoCumulativeReturns.objects.create(user=user, created=user.date_joined)
+        # for user in users:
+        #     DemoDailyReturns2.objects.create(user=user, created=user.date_joined)
+        #     DemoCumulativeReturns.objects.create(user=user, created=user.date_joined)
             
-        daily_returns2()
+        # daily_returns2()
         
-        # mark_returns()
+        mark_returns()

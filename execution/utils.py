@@ -153,7 +153,7 @@ def daily_returns2():
             max_time['running_Balance'] = max_time['Sum_Balance'].cumsum()
             max_time['running_Invested'] = max_time['Sum_Invested'].cumsum()
             
-            max_time['running_Profit'] = (max_time.running_Balance/max_time.running_Invested)-1
+            max_time['cum_returns'] = (max_time.running_Balance/max_time.running_Invested)-1
             print(max_time)
             
             for index, row in max_time.iterrows():
@@ -171,27 +171,38 @@ def daily_returns2():
             print('done')
             
 def mark_returns():
-    returns=  DemoDailyReturns.objects.filter(user__email='nexxyb@gmail.com')
+    from tvDatafeed import TvDatafeed, Interval
+    tv = TvDatafeed()
     
-    for return_ in returns:
-        MarketReturns.objects.create(market_returns=return_.market_returns, created=return_.created, ngx_price = return_.ngx_price)
+    df = tv.get_hist(symbol="ASI", exchange='NSENG', interval=Interval.in_daily, n_bars=65)
+    # print(data.head(27))
     
-    simple_markets = MarketReturns.objects.all()
+    df['Sum_Balance'] = df['close'].cumsum()
+
+    
+    print(df.head(27))
+    
+    # returns=  DemoDailyReturns.objects.filter(user__email='nexxyb@gmail.com')
+    
+    # for return_ in returns:
+    #     MarketReturns.objects.create(market_returns=return_.market_returns, created=return_.created, ngx_price = return_.ngx_price)
+    
+    # simple_markets = MarketReturns.objects.all()
      
-    data = {
-        'market_returns': [mr.market_returns for mr in simple_markets],
-        'datetime': [mr.created for mr in simple_markets],
-        'ngx_price': [mr.ngx_price for mr in simple_markets]
+    # data = {
+    #     'market_returns': [mr.market_returns for mr in simple_markets],
+    #     'datetime': [mr.created for mr in simple_markets],
+    #     'ngx_price': [mr.ngx_price for mr in simple_markets]
         
-    }
+    # }
     
-    df = pd.DataFrame(data)
-    df['datetime'] = pd.to_datetime(df['datetime'])
-    df['cum_market_returns'] = ((1 + df['market_returns']).cumprod() - 1)
-    print(df)
-    for index, row in df.iterrows():
-            CumulativeMarketReturns.objects.create(
-                market_returns=round(row['cum_market_returns'],2),
-                created=row['datetime'],
+    # df = pd.DataFrame(data)
+    # df['datetime'] = pd.to_datetime(df['datetime'])
+    # df['cum_market_returns'] = ((1 + df['market_returns']).cumprod() - 1)
+    # print(df)
+    # for index, row in df.iterrows():
+    #         CumulativeMarketReturns.objects.create(
+    #             market_returns=round(row['cum_market_returns'],2),
+    #             created=row['datetime'],
                 
-            )
+    #         )
