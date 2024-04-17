@@ -23,7 +23,7 @@ from django.utils import timezone
 from accounts.models import  UserActivityLog 
 
 from .models import DemoCumulativeReturns, DemoPosition, DemoPortfolio, DemoDailyReturns, DemoDailyReturns2, MarketReturns, CumulativeMarketReturns
-from  competition.models import CompetitionCumulativeReturns, CompetitionPosition,CompetitionDailyReturns,CompetitionPortfolio,CompetitionTransaction
+from  competition.models import CompetitionCumulativeReturns, CompetitionCumulativeReturns2, CompetitionDailyReturns2, CompetitionPosition,CompetitionDailyReturns,CompetitionPortfolio,CompetitionTransaction
 from django.contrib.auth import get_user_model
 User = get_user_model()
 # class DemoTradeAPIView(APIView):
@@ -485,6 +485,7 @@ class Home(APIView):
                 
                 balance = portfolio.balance
                 
+                
                 def pl_cv(position):
                     pl, cur_val,price = position.calculate_profit_loss()
                     symbol=position.stock.symbol
@@ -506,48 +507,74 @@ class Home(APIView):
                 profit_loss = sum(profit_loss_list) if profit_loss_list else 0
                 
                 
-                daily_profitloss= CompetitionDailyReturns.objects.filter(user=request.user, portfolio=in_competition)
-                cumulative_profitloss= CompetitionCumulativeReturns .objects.filter(user=request.user, portfolio=in_competition)
+                # daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
+                daily_profitloss= CompetitionDailyReturns2 .objects.filter(user=request.user)
+                cumulative_profitloss= CompetitionCumulativeReturns2.objects.filter(user=request.user)
+                
+                market= MarketReturns.objects.all()
+                cumulative_market = CumulativeMarketReturns.objects.all()
+                
+                overview = []
+                cumulative_overview = []
+                
                 if daily_profitloss:
                     today = timezone.now()
-
-                    overview = [
-                        {
-                            'portfolio_returns': daily.portfolio_returns,
-                            'market_returns': daily.market_returns,
-                            'date': daily.created.date()
-                        } for daily in daily_profitloss 
-                    ]
-
-                else:
-                    position_data_list =[]
-                    overview = []
                     
+                    
+                    
+                    for daily in daily_profitloss:
+                        for daily2 in market:
+                            if daily.created.date() == daily2.created.date():
+                                overview.append(
+                                    {
+                                        
+                            'portfolio_returns': daily.portfolio_returns,
+                            'market_returns': daily2.market_returns,
+                            'date': daily.created.date()
+                        }
+                                    
+                                )
+                    first = overview[0]
+                    if first['portfolio_returns'] == 0:
+                        first['market_returns'] = 0
+                
                 if cumulative_profitloss:
                     today = timezone.now()
 
-                    cumulative_overview = [
-                        {
+                    cumulative_overview.append(
+                                    {
+                                        
+                            'portfolio_returns': 0,
+                            'market_returns': 0,
+                            'date': request.user.date_joined.date()
+                                    }
+                    )
+                    
+                    for daily in cumulative_profitloss:
+                        for daily2 in cumulative_market :
+                            if daily.created.date() == daily2.created.date():
+                                cumulative_overview.append(
+                                    {
+                                        
                             'portfolio_returns': daily.portfolio_returns,
-                            'market_returns': daily.market_returns,
+                            'market_returns': daily2.market_returns,
                             'date': daily.created.date()
-                        } for daily in cumulative_profitloss 
-                    ]
-
-                else:
-                    cumulative_overview = []
+                        }
+                                    
+                                )
+                    
                 
-                balance2 = sum([pos.amount_invested for pos in positions])
-                  
-                # equity1 = round(balance + profit_loss,2)
-                equity2 = round(balance2 + profit_loss,2)
+                equity1 = round(balance + profit_loss,2)
+                equity = equity1 if equity1 >= 0 else 0
                 
-                # equity = equity1 if equity1 >= 0 else 0
-                equity = equity2 if equity2 >= 0 else 0
-                
-                
+                calendar = [
+                    {
+                        'date':daily.created.date(),
+                        'return':daily.portfolio_returns,
+                    } for daily in daily_profitloss
+                ]
                 data = {
-                    'balance':round(balance2,2),
+                    'balance':round(balance,2),
                     'equity':equity,
                     'floating_pl' : profit_loss,
                     'closed_pl' : profit_loss2,
@@ -556,7 +583,8 @@ class Home(APIView):
                     # 'open_positions': position_data_list,
                     'current_value':current_value_list,
                     "overview":overview,
-                    "cumulative_overview":cumulative_overview
+                    "cumulative_overview":cumulative_overview,
+                    "calendar":calendar
                 }
                 
                 return Response(data)
@@ -762,48 +790,73 @@ class SupportHome(APIView):
                 profit_loss = sum(profit_loss_list) if profit_loss_list else 0
                 
                 
-                daily_profitloss= CompetitionDailyReturns.objects.filter(user=user, portfolio=in_competition)
-                cumulative_profitloss= CompetitionCumulativeReturns .objects.filter(user=user, portfolio=in_competition)
+                daily_profitloss= CompetitionDailyReturns2 .objects.filter(user=user)
+                cumulative_profitloss= CompetitionCumulativeReturns2.objects.filter(user=user)
+                
+                market= MarketReturns.objects.all()
+                cumulative_market = CumulativeMarketReturns.objects.all()
+                
+                overview = []
+                cumulative_overview = []
+                
                 if daily_profitloss:
                     today = timezone.now()
-
-                    overview = [
-                        {
-                            'portfolio_returns': daily.portfolio_returns,
-                            'market_returns': daily.market_returns,
-                            'date': daily.created.date()
-                        } for daily in daily_profitloss 
-                    ]
-
-                else:
-                    position_data_list =[]
-                    overview = []
                     
+                    
+                    
+                    for daily in daily_profitloss:
+                        for daily2 in market:
+                            if daily.created.date() == daily2.created.date():
+                                overview.append(
+                                    {
+                                        
+                            'portfolio_returns': daily.portfolio_returns,
+                            'market_returns': daily2.market_returns,
+                            'date': daily.created.date()
+                        }
+                                    
+                                )
+                    first = overview[0]
+                    if first['portfolio_returns'] == 0:
+                        first['market_returns'] = 0
+                
                 if cumulative_profitloss:
                     today = timezone.now()
 
-                    cumulative_overview = [
-                        {
+                    cumulative_overview.append(
+                                    {
+                                        
+                            'portfolio_returns': 0,
+                            'market_returns': 0,
+                            'date': user.date_joined.date()
+                                    }
+                    )
+                    
+                    for daily in cumulative_profitloss:
+                        for daily2 in cumulative_market :
+                            if daily.created.date() == daily2.created.date():
+                                cumulative_overview.append(
+                                    {
+                                        
                             'portfolio_returns': daily.portfolio_returns,
-                            'market_returns': daily.market_returns,
+                            'market_returns': daily2.market_returns,
                             'date': daily.created.date()
-                        } for daily in cumulative_profitloss 
-                    ]
-
-                else:
-                    cumulative_overview = []
+                        }
+                                    
+                                )
+                    
                 
-                balance2 = sum([pos.amount_invested for pos in positions])
-                  
-                # equity1 = round(balance + profit_loss,2)
-                equity2 = round(balance2 + profit_loss,2)
+                equity1 = round(balance + profit_loss,2)
+                equity = equity1 if equity1 >= 0 else 0
                 
-                # equity = equity1 if equity1 >= 0 else 0
-                equity = equity2 if equity2 >= 0 else 0
-                
-                
+                calendar = [
+                    {
+                        'date':daily.created.date(),
+                        'return':daily.portfolio_returns,
+                    } for daily in daily_profitloss
+                ]
                 data = {
-                    'balance':round(balance2,2),
+                    'balance':round(balance,2),
                     'equity':equity,
                     'floating_pl' : profit_loss,
                     'closed_pl' : profit_loss2,
@@ -812,7 +865,8 @@ class SupportHome(APIView):
                     # 'open_positions': position_data_list,
                     'current_value':current_value_list,
                     "overview":overview,
-                    "cumulative_overview":cumulative_overview
+                    "cumulative_overview":cumulative_overview,
+                    "calendar":calendar
                 }
                 
                 return Response(data)
@@ -850,22 +904,7 @@ class SupportHome(APIView):
                 
                 balance = portfolio.balance
                 
-                # profit_loss_list = []
-                # current_value_list = []
                 
-                # if positions:
-                #     for position in positions:
-                #         pl, cur_val,price = position.calculate_profit_loss()
-                #         symbol=position.stock.symbol
-                #         print(pl)
-                #         profit_loss_list.append(pl) 
-                        
-                        
-                #         data2 =  {
-                #             'stock':symbol,
-                #             'current_value':round(cur_val,2)
-                #         }
-                #         current_value_list.append(data2)
                 def pl_cv(position):
                     pl, cur_val,price = position.calculate_profit_loss()
                     symbol=position.stock.symbol
@@ -894,55 +933,65 @@ class SupportHome(APIView):
                 market= MarketReturns.objects.all()
                 cumulative_market = CumulativeMarketReturns.objects.all()
                 
+                overview = []
+                cumulative_overview = []
+                
                 if daily_profitloss:
                     today = timezone.now()
                     
-                    overview = [
-                        {
-                            'portfolio_returns': daily.portfolio_returns,
-                            'market_returns': 0,
-                            'date': daily.created.date()
-                        } for daily in daily_profitloss 
-                    ]
-
-                    for num,item in enumerate(overview):
-                        if num == 0:
-                                item['market_returns'] = 0
-                        for dr in market:
-                           
-                            if dr.created.date() == item['date']:
-                                item['market_returns'] = dr.market_returns
                     
-                else:
-                    position_data_list =[]
-                    overview = []
+                    
+                    for daily in daily_profitloss:
+                        for daily2 in market:
+                            if daily.created.date() == daily2.created.date():
+                                overview.append(
+                                    {
+                                        
+                            'portfolio_returns': daily.portfolio_returns,
+                            'market_returns': daily2.market_returns,
+                            'date': daily.created.date()
+                        }
+                                    
+                                )
+                    first = overview[0]
+                    if first['portfolio_returns'] == 0:
+                        first['market_returns'] = 0
                 
                 if cumulative_profitloss:
                     today = timezone.now()
 
-                    cumulative_overview = [
-                        {
-                            'portfolio_returns': daily.portfolio_returns,
+                    cumulative_overview.append(
+                                    {
+                                        
+                            'portfolio_returns': 0,
                             'market_returns': 0,
-                            'date': daily.created.date()
-                        } for daily in cumulative_profitloss 
-                    ]
+                            'date': user.date_joined.date()
+                                    }
+                    )
                     
-                    for num, item in enumerate(cumulative_overview):
-                        if num == 0:
-                            item['market_returns'] = 0
-                        for dr in cumulative_market:
-                            
-                            if dr.created.date() == item['date']:
-                                item['market_returns'] = dr.market_returns
-
-                else:
-                    cumulative_overview = []
+                    for daily in cumulative_profitloss:
+                        for daily2 in cumulative_market :
+                            if daily.created.date() == daily2.created.date():
+                                cumulative_overview.append(
+                                    {
+                                        
+                            'portfolio_returns': daily.portfolio_returns,
+                            'market_returns': daily2.market_returns,
+                            'date': daily.created.date()
+                        }
+                                    
+                                )
+                    
                 
                 equity1 = round(balance + profit_loss,2)
                 equity = equity1 if equity1 >= 0 else 0
                 
-                
+                calendar = [
+                    {
+                        'date':daily.created.date(),
+                        'return':daily.portfolio_returns,
+                    } for daily in daily_profitloss
+                ]
                 data = {
                     'balance':round(balance,2),
                     'equity':equity,
@@ -953,7 +1002,8 @@ class SupportHome(APIView):
                     # 'open_positions': position_data_list,
                     'current_value':current_value_list,
                     "overview":overview,
-                    "cumulative_overview":cumulative_overview
+                    "cumulative_overview":cumulative_overview,
+                    "calendar":calendar
                 }
                 
                 return Response(data)
