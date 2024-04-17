@@ -1,10 +1,11 @@
 from datetime import timedelta
+import time
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.contrib.auth import get_user_model
 from pytz import timezone
 from execution.trades import simulate_trades
-from execution.models import DemoDailyReturns, DailyReturns, get_price, DemoCumulativeReturns
+from execution.models import DemoDailyReturns, DailyReturns, DemoDailyReturns2, get_price, DemoCumulativeReturns
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
@@ -68,9 +69,9 @@ def daily_returns_setup(id):
     user= User.objects.get(id=id)
     data = get_price ('ASI')
     pr = data['current_price']
-    DemoDailyReturns.objects.create(user=user, ngx_price = pr)
-    DailyReturns.objects.create(user=user, ngx_price = pr)
-    DemoCumulativeReturns.objects.create(user=user, ngx_price = pr)
+    DemoDailyReturns2.objects.create(user=user, created=timezone.now())
+    DailyReturns.objects.create(user=user, created=timezone.now())
+    DemoCumulativeReturns.objects.create(user=user, created=timezone.now())
 
 def create_crontab(target_time):
     start_schedule, created1 = CrontabSchedule.objects.get_or_create(
