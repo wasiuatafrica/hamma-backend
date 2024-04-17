@@ -282,7 +282,7 @@ def daily_returns3():
             DemoDailyReturns2.objects.create(
                 user=user,
                 portfolio_returns=round(last_row['Daily_PortfolioReturns'],2),
-                created=last_row['closedatetime']
+                created=timezone.now()
             )
             
             # Save the last row of the cumulative table to the database
@@ -297,36 +297,41 @@ def daily_returns3():
             DemoCumulativeReturns.objects.create(
                 user=user,
                 portfolio_returns=round(last_row_cum['cum_returns'],2),
-                created=last_row_cum['closedatetime']
+                created=timezone.now()
             )
         
             
     tv = TvDatafeed()
     
     days_passed = days_since_date('2024-04-16')
-    
-    df2 = tv.get_hist(symbol="ASI", exchange='NSENG', interval=Interval.in_daily, n_bars=65 + days_passed)
+    # print('days',days_passed)
+    n_bars=65 + days_passed 
+    df2 = tv.get_hist(symbol="ASI", exchange='NSENG', interval=Interval.in_daily, n_bars=n_bars)
     ASI_daily_selected = df2.reset_index()
     ASI_daily_selected['ASI_daily_retuns'] = ASI_daily_selected['close'].pct_change() * 100
     ASI_daily_selected['Date'] = ASI_daily_selected['datetime'].dt.strftime('%Y-%m-%d')
 
     # Save the last row to the database
     last_row_market = ASI_daily_selected.iloc[-1]
+    # print(last_row_market)
+    
     market_returns = last_row_market['ASI_daily_retuns']
     if np.isnan(market_returns):
         market_returns = 0
-    MarketReturns.objects.create(market_returns=round(market_returns, 2), created=last_row_market['datetime'])
+    MarketReturns.objects.create(market_returns=round(market_returns, 2), created=timezone.now())
 
     cum_mark_table = ASI_daily_selected[['Date', 'ASI_daily_retuns']]
     cum_mark_table['cum_ASI_daily_retuns'] = (1 + cum_mark_table.ASI_daily_retuns / 100).cumprod() - 1
     cum_mark_table['cum_ASI_daily_retuns'] = cum_mark_table.cum_ASI_daily_retuns * 100
 
+    # print(cum_mark_table)
     # Save the last row to the database
     last_row_cum_market = cum_mark_table.iloc[-1]
+    # print(last_row_cum_market)
     cum_market_returns = last_row_cum_market['cum_ASI_daily_retuns']
     if np.isnan(cum_market_returns):
         cum_market_returns = 0
-    CumulativeMarketReturns.objects.create(market_returns=round(cum_market_returns, 2), created=last_row_cum_market['Date'])     
+    CumulativeMarketReturns.objects.create(market_returns=round(cum_market_returns, 2), created=timezone.now())     
         
 def competition_daily_returns3():
     from tvDatafeed import TvDatafeed, Interval
@@ -377,7 +382,7 @@ def competition_daily_returns3():
             CompetitionDailyReturns2.objects.create(
                 user=portfolio.user,
                 portfolio_returns=round(last_row['Daily_PortfolioReturns'],2),
-                created=last_row['closedatetime']
+                created=timezone.now()    
             )
             
             # Save the last row of the cumulative table to the database
@@ -392,7 +397,6 @@ def competition_daily_returns3():
             CompetitionCumulativeReturns2.objects.create(
                 user=portfolio.user,
                 portfolio_returns=round(last_row_cum['cum_returns'],2),
-                created=last_row_cum['closedatetime']
-            )
+                created=timezone.now())     
         
     
