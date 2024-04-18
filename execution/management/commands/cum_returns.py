@@ -24,5 +24,5 @@ class Command(BaseCommand):
             
         # daily_returns2()
         
-        # mark_returns()
-        daily_returns3()
+        mark_returns()
+        # daily_returns3()

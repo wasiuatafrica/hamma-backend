@@ -3,7 +3,7 @@ from datetime import datetime,time, date, timedelta
 import pytz
 
 from django.shortcuts import render, redirect,get_object_or_404
-from django.core.paginator import Paginator, EmptyPage,PageNotAnInteger
+from django.core.paginator import Paginator, EmptyPage,PageNotAnInteger 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.db.models import Max, Q
@@ -686,7 +686,7 @@ def edit_user(request, user_id):
 @login_required
 @user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
 def list_users(request):
-    users = User.objects.all()
+    users = User.objects.all().order_by('-date_joined')
 
     # Handling search functionality
     query = request.GET.get('search')

@@ -194,7 +194,7 @@ import numpy as np
 def mark_returns():
     from tvDatafeed import TvDatafeed, Interval
     tv = TvDatafeed()
-    df = tv.get_hist(symbol="ASI", exchange='NSENG', interval=Interval.in_daily, n_bars=65)
+    df = tv.get_hist(symbol="ASI", exchange='NSENG', interval=Interval.in_daily, n_bars=67)
     ASI_daily_selected = df.reset_index()
     ASI_daily_selected['ASI_daily_retuns'] = ASI_daily_selected['close'].pct_change() * 100
     ASI_daily_selected['Date'] = ASI_daily_selected['datetime'].dt.strftime('%Y-%m-%d')
@@ -204,7 +204,7 @@ def mark_returns():
         market_returns = row['ASI_daily_retuns']
         if np.isnan(market_returns):
             market_returns = 0  # or any other valid value
-        # MarketReturns.objects.create(market_returns=round(market_returns, 2), created=row['datetime'])
+        MarketReturns.objects.create(market_returns=round(market_returns, 2), created=row['datetime'])
 
     cum_mark_table = ASI_daily_selected[['Date', 'ASI_daily_retuns']]
     cum_mark_table['cum_ASI_daily_retuns'] = (1 + cum_mark_table.ASI_daily_retuns / 100).cumprod() - 1
@@ -215,7 +215,7 @@ def mark_returns():
         cum_market_returns = row['cum_ASI_daily_retuns']
         if np.isnan(cum_market_returns):
             cum_market_returns = 0  # or any other valid value
-        # CumulativeMarketReturns.objects.create(market_returns=round(cum_market_returns, 2), created=row['Date'])
+        CumulativeMarketReturns.objects.create(market_returns=round(cum_market_returns, 2), created=row['Date'])
     # print(ASI_daily_selected)
 
 def days_since_date(date_str):
