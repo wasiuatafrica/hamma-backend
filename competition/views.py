@@ -803,6 +803,40 @@ def list_users(request):
 
 @login_required
 @user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
+def current_competition_users(request):
+    users = CompetitionPortfolio.objects.filter(competition__status='current')
+    # users = [port.user for port in portfolio]
+
+    # Handling search functionality
+    query = request.GET.get('search')
+    
+    if query:
+        users = CompetitionPortfolio.objects.filter(competition__status='current', user__email__icontains=query)
+        # users = [port.user for port in portfolio]
+
+        
+    paginator = Paginator(users, 50)
+    page_number = request.GET.get('page')
+    try:
+        page_number = int(page_number)
+    except (TypeError, ValueError):
+        page_number = 1  # Default to first page if page number is not provided or invalid
+
+    try:
+        users = paginator.page(page_number)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        users = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        users = paginator.page(paginator.num_pages)
+
+
+    return render(request, 'leaderboard/current_competition_users.html', {'users': users})
+
+
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
 def clan_requests(request):
     if request.method == 'POST':
         request_id = request.POST.get('id')

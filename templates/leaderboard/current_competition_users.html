@@ -1,0 +1,87 @@
+
+{%extends 'leaderboard/base.html'%}
+
+{%block content%}
+    <div class="main-body">
+      <div class="bg-white m-4 p-3 title">
+        <div class="left-bold-title">
+          <h4>Current Competition Traders</h4>
+        </div>
+        <form>
+        <div class="right-title">
+            
+            <div class="right-search mt-2">
+              <input type="text" class="form-control" name="search" placeholder="Search">
+              <!-- <p>Filter</p> -->
+            </div>
+            
+            <div class="right-search mt-2">
+              <input type="submit" class="form-control" value="Submit">
+              <!-- <p>Filter</p> -->
+            </div>
+          </div>
+        </form>
+        </div>
+        <div class="bg-white m-4 p-3 title">
+          
+          <form>
+          
+          </div>
+              <div class="bg-white m-4 p-3 main-table table-responsive newtable" {% if leaderboard == "hide" %} style="display: none;" {%endif%}>
+                <table class="table table-hover table-bordered">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Email</th>
+                      <th scope="col" >First Name</th>
+                      <th scope="col">Last Name</th>
+                      <th scope="col">Date Joined</th>
+                      {% comment %} <th scope="col">Action</th> {% endcomment %}
+
+                    </tr>
+                  </thead>
+            <tbody>
+              {%for user in users%}
+            <tr>
+                <th scope="row">{{forloop.counter}}</th>
+                <td>{{ user.user.email }}</td>
+                <td>{{ user.user.firstname }}</td>
+                <td>{{ user.user.lastname }}</td>
+                <td>{{ user.created }}</td>
+                {% comment %} <td>
+                    <a href="{% url 'edit-user' user.id %}" class="btn btn-primary">Edit</a>
+                </td> {% endcomment %}
+              
+
+            </tr>
+            {%empty%}
+            <tr>
+              <div class="alert alert-info" role="alert">
+                
+              </div>
+            </tr>
+            {%endfor%}
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination mt-4 bg-white m-4 p-3">
+        <span class="step-links">
+            {% if users.has_previous %}
+                <a href="?page=1">&laquo; First</a>
+                <a href="?page={{ users.previous_page_number }}">Previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ users.number }} of {{ users.paginator.num_pages }}.
+            </span>
+
+            {% if users.has_next %}
+                <a href="?page={{ users.next_page_number }}">Next</a>
+                <a href="?page={{ users.paginator.num_pages }}">Last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+</div>
+
+{%endblock%}
+ 

@@ -39,6 +39,7 @@ urlpatterns=[
     path('leaderboard-list/', views.leaderboard_view, name='leaderboard'),
     path('remove/<int:pk>/', views.remove_trader, name='remove'),
     path('users/', views.list_users, name='list-users'),
+    path('current_competition_users/', views.current_competition_users, name='current_competition_users'),
     path('edit-user/<int:user_id>/', views.edit_user, name='edit-user'),
     # path('traders/', views.all_trader, name='traders'),
     path('create-clan-requests/', views.clan_requests, name='clan-requests'),
