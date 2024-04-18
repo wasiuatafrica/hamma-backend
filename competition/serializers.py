@@ -58,6 +58,7 @@ class ClanUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'community_link',
             'clan_logo',
+            'description',
         ]
 class ClanNameChangeRequestSerializer(serializers.ModelSerializer):
     class Meta:
