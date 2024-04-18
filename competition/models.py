@@ -200,7 +200,9 @@ class Clan(auto_prefetch.Model):
         summary=CompetitionSummary.objects.filter(clan=self).aggregate(total_profit=Sum('profit'))['total_profit']
         # summary=self.competitionsummary_set.all().aggregate(total_profit=Sum('profits'))['total_profit']
         # print(summary,"Heloo")
-        return summary
+        if summary:
+            return summary
+        return 0
     
 
     @property

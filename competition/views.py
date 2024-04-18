@@ -826,32 +826,53 @@ def clan_detail(request,pk):
     memebers= clan.member.all() 
     q=request.GET.get("filter")
     
-    
-    
     if q:
-        memeber= clan.member.filter(email=q)
+        memeber= memebers.filter(email=q)
         # print(memeber, "Heloo")
         if memeber:
-            accounts = CompetitionPortfolio.objects.filter(user__in=memeber, competition__status='current')
-            total_profits = sum(account.profit for account in accounts )
-            return render(request,'leaderboard/clan-detail.html',{'count':memebers.count()+1,'accounts':accounts,'clan':clan, 'total_profits':total_profits})
-    if memebers:
-        accounts1 = CompetitionPortfolio.objects.filter(user__in=memebers, competition__status='current') 
-        accounts2 = CompetitionPortfolio.objects.filter(user=clan.clan_admin, competition__status='current')
+            member_list = []
+            for mem in memeber:
+                member_list.append(mem)
+            
+            return render(request,'leaderboard/clan-detail.html',{'count':memebers.count()+1,'accounts':member_list,'clan':clan})
+    member_list = []
+    member_list.append(clan.clan_admin)
+    for mem in memebers:
+        member_list.append(mem)
+    
+    return render(request,'leaderboard/clan-detail.html',{'count':memebers.count()+1,'accounts':member_list,'clan':clan})
+    
+    # competition = Competition
+    # if q:
+    #     memeber= clan.member.filter(email=q)
+    #     # print(memeber, "Heloo")
+    #     if memeber:
+    #         accounts = CompetitionPortfolio.objects.filter(user__in=memeber, competition__status='current')
+    #         total_profits = sum(account.profit for account in accounts )
+    #         account_list = [{'user':account.portfolio.user, 'profit':account.profit } for account in accounts]
+    #         return render(request,'leaderboard/clan-detail.html',{'count':memebers.count()+1,'accounts':account_list,'clan':clan, 'total_profits':total_profits})
+    # if memebers:
+    #     accounts1 = CompetitionPortfolio.objects.filter(user__in=memebers, competition__status='current') 
+    #     accounts2 = CompetitionPortfolio.objects.filter(user=clan.clan_admin, competition__status='current')
         
-        # accounts = (accounts1 | accounts2).distinct('user').annotate(last_portfolio=Max('created'))
-        accounts = (accounts1 | accounts2)
-        if accounts:
-            total_profits = sum(account.profit for account in accounts )/len(accounts)
-        else:
-            total_profits = 0
-        return render(request,'leaderboard/clan-detail.html',{'count':memebers.count() +1,'accounts':accounts,'clan':clan, 'total_profits':total_profits})
+    #     # accounts = (accounts1 | accounts2).distinct('user').annotate(last_portfolio=Max('created'))
+    #     accounts = (accounts1 | accounts2)
+    #     if accounts:
+    #         total_profits = sum(account.profit for account in accounts )/len(accounts)
+    #         account_list = [{'user':account.portfolio.user, 'profit':account.profit } for account in accounts]
+            
+    #         return render(request,'leaderboard/clan-detail.html',{'count':memebers.count() +1,'accounts':account_list,'clan':clan, 'total_profits':total_profits})
+            
+    #     else:
+    #         total_profits = 0
         
-    else:
+    # else:
         
-        accounts= CompetitionPortfolio.objects.filter(user=clan.clan_admin, competition__status='current')
-        total_profits = sum(account.profit for account in accounts )
-        return render(request,'leaderboard/clan-detail.html',{'count':1,'accounts':accounts,'clan':clan, 'total_profits':total_profits})
+    #     accounts= CompetitionPortfolio.objects.filter(user=clan.clan_admin, competition__status='current')
+    #     total_profits = sum(account.profit for account in accounts )
+    #     account_list = [{'user':account.portfolio.user, 'profit':account.profit } for account in accounts]
+        
+    #     return render(request,'leaderboard/clan-detail.html',{'count':1,'accounts':account_list,'clan':clan, 'total_profits':total_profits})
 
 
 @login_required

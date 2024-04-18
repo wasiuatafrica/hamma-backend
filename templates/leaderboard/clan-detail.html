@@ -29,14 +29,14 @@
                         </div>
                     </div>
                     
-                    <div class="col-md-3 col-sm-12" style="padding: 20px; background: white; border-radius: 20px; border: 0.50px #808080 solid; margin:10px;">
+                    {% comment %} <div class="col-md-3 col-sm-12" style="padding: 20px; background: white; border-radius: 20px; border: 0.50px #808080 solid; margin:10px;">
                         <div class="name_and_logo text-center mb-2">
                             <p style="color: #00C500;">Total profits</p>
                         </div>
                         <div class="viewmore text-center">
                             <h4>{{total_profits}}%</h4>
                         </div>
-                    </div>
+                    </div> {% endcomment %}
                     <div class="col-md-3 col-sm-12 mb-2">
 
                     </div>
@@ -68,7 +68,7 @@
                         <th scope="col">Email</th>
                         {% comment %} <th scope="col">Account Size</th> {% endcomment %}
                         {% comment %} <th scope="col">Models</th> {% endcomment %}
-                        <th scope="col" style="color: #00C500">Total profits</th>
+                        {% comment %} <th scope="col" style="color: #00C500">Total profits</th> {% endcomment %}
                         <th scope="col">Country</th>
                         <th scope="col" class="text-warning">Clan</th>
                       </tr>
@@ -77,11 +77,11 @@
                       {%for acc in accounts%}
                       <tr>
                         <th scope="row">{{forloop.counter}}</th>
-                        <td><span>{%if acc.user_account.profile.profile_img%}<img src="{{acc.user_account.profile.profile_img.url}}" style="border-radius: 50%; width: 20px;" alt="">{%else%}<img src="" style="border-radius: 50%; width: 20px;" alt="">{%endif%}</span>{{acc.user.email}}</td>
+                        <td><span>{%if acc.profile.profile_img%}<img src="{{acc.profile.profile_img.url}}" style="border-radius: 50%; width: 20px;" alt="">{%else%}<img src="" style="border-radius: 50%; width: 20px;" alt="">{%endif%}</span>{{acc.email}}</td>
                         {% comment %} <td>$1000</td> {% endcomment %}
                         {% comment %} <td>{{acc.user_account.acc.typeofaccount}}</td> {% endcomment %}
-                        <td style="color: #00C500">{{acc.profit}}%</td>
-                        <td>{{acc.user_account.profile.country}}</td>
+                        {% comment %} <td style="color: #00C500">{{profit}}%</td> {% endcomment %}
+                        <td>{{acc.profile.country}}</td>
                         <td class="text-warning">{{clan.clan_name}}</td>
                       </tr>
                       {%endfor%}
