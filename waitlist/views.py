@@ -28,12 +28,10 @@ class WaitlistListCreateView(generics.ListCreateAPIView):
         serializer.save(email=email)
 
 class JoinClickView(APIView):
-    serializer_class = JoinClickSerializer
     permission_classes = [IsAuthenticated]
 
 
-    def post(self, request):
-        user =request.user
+    def get(self, request):
         JoinClick.objects.create(user=request.user)
         return Response('success')
         
