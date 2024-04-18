@@ -229,6 +229,25 @@ class Clan(auto_prefetch.Model):
         # Handle the case where there are no profit records or other exceptional cases
         return (0, 'no_data')
 
+class ClanNameChangeRequest(auto_prefetch.Model):
+    clan_owner=auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='clan_owner_name',null=True, blank=True)
+    clan=auto_prefetch.ForeignKey(Clan, on_delete=models.CASCADE, related_name='clan_to_change_name')
+    new_clan_name=models.CharField(max_length=200, unique=True,blank=True)
+    date_request=models.DateTimeField(auto_now_add=True)
+    updated_at=models.DateTimeField(auto_now=True)
+    reason=models.CharField(max_length=200, null=True, blank=True)
+    approved=models.CharField(max_length=200,default='pending',choices=(('pending','pending'),('approved','approved'),('rejected','rejected')))
+
+class ClanMemeberRemoverRequest(auto_prefetch.Model):
+    clan_owner=auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='clan_admin_name',null=True, blank=True)
+    clan=auto_prefetch.ForeignKey(Clan, on_delete=models.CASCADE, related_name='clan_to_remove_member')
+    clan_member_to_remove=auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='clan_member',null=True, blank=True)
+    reason_for_removal=models.CharField(max_length=200, null=True, blank=True)
+    date_request=models.DateTimeField(auto_now_add=True)
+    updated_at=models.DateTimeField(auto_now=True)
+    reason=models.CharField(max_length=200, null=True, blank=True)
+    approved=models.CharField(max_length=200,default='pending',choices=(('pending','pending'),('approved','approved'),('rejected','rejected')))
+
 
 class JoinClanRequest(auto_prefetch.Model):
     user=auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='join_clan_user',null=True, blank=True)

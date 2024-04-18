@@ -15,9 +15,13 @@ TopClanMembersPayoutImg,
 TopClanPayoutButtonShows,
 TopTraderPayoutButtonShows,
 CompetitionPosition,
-CompetitionTransaction
+CompetitionTransaction,
+ClanNameChangeRequest,
+ClanMemeberRemoverRequest
 )
 # Register your models here.
+admin.site.register(ClanNameChangeRequest)
+admin.site.register(ClanMemeberRemoverRequest)
 admin.site.register(Competition)
 admin.site.register(CompetitionPortfolio)
 admin.site.register(Clan)

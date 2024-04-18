@@ -7,7 +7,9 @@ TopTraderPayout,
 Competition,
 CompetitionPortfolio,
 CompetitionSummary,
-CreateClanRequest
+CreateClanRequest,
+ClanNameChangeRequest,
+ClanMemeberRemoverRequest
 )
 
 class CompetitionSerializer(serializers.ModelSerializer):
@@ -49,6 +51,30 @@ class ClanSerializer(serializers.ModelSerializer):
             'member': {'read_only': True},
             'date_request': {'read_only': True},
         }
+
+class ClanUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Clan
+        fields = [
+            'community_link',
+            'clan_logo',
+        ]
+class ClanNameChangeRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClanNameChangeRequest
+        fields = [
+            "clan",
+            "new_clan_name"
+        ]
+class ClanMemeberRemoverRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClanMemeberRemoverRequest
+        fields = [
+            "clan",
+            "clan_member_to_remove",
+            "reason_for_removal"
+        ]
+
 class JoinClanRequestSerializers(serializers.ModelSerializer):
     class Meta:
         model = JoinClanRequest

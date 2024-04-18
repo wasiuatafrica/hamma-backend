@@ -1,0 +1,60 @@
+{%extends 'leaderboard/base.html'%}
+{%block content%}
+            <!-- Here is the main page body starts here -->
+            <div class="main-body">
+              <div class="bg-white m-4 p-3 title">
+                <div class="left-bold-title">
+                  <h3>Clan Member Removal Requests</h3>
+                  <!-- <p>TradersLeaderboard</p> -->
+                </div>
+                <form>
+                  <div class="right-title">
+                    <div class="right-filter mt-2">
+                      <select class="form-select" name="filter" id="validationCustom04" required>
+                        <option selected disabled value="">Filter</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Declined">Declined</option>
+                        <option value="Approved">Approved</option>
+                      </select>
+                    </div>
+                    <div class="right-search mt-2">
+                      <input type="submit" class="form-control" value="Submit">
+                      <!-- <p>Filter</p> -->
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div class="bg-white m-4 p-3 main-table table-responsive">
+                <table class="table table-hover table-bordered">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col" class="text-warning">Clan</th>
+                      <th scope="col">Member ID</th>
+                      <th scope="col">Removal Reason</th>
+                      <th scope="col" style="color: #00C500">Reason</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Date</th>
+                      <th scope="col"></th>
+                      
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {%for request in clan_member_removal_requests%}
+                    <tr>
+                      <td scope="row">{{forloop.counter}}</td>
+                      <td class="text-warning">{{request.clan.clan_name}}</td>
+                      <td >{{request.clan_member_to_remove.email}}</td>
+                      <td >{{request.reason_for_removal}}</td>
+                      <td >{{request.reason}}</td>
+                      <td>{{request.approved}}</td>
+                      <td>{{request.date_request}}</td>
+                      <td><a href="{%url 'remove_member_detailed' request.id %}" class='btn text-white' style="background: #00C500; border-radius: 10px">Update</a></td>
+                      
+                    </tr>
+                    {%endfor%}
+                  </tbody>
+                </table>
+              </div>
+              <!-- Mainpage ends here -->
+{%endblock%}

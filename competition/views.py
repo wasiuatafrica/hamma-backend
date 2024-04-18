@@ -1,5 +1,7 @@
 from datetime import date as dt
 from datetime import datetime,time, date, timedelta
+from functools import partial
+from multiprocessing import context
 import pytz
 
 from django.shortcuts import render, redirect,get_object_or_404
@@ -43,6 +45,10 @@ from notifications.utils import save_and_send_notification,get_notifications,upd
 from accounts.models import Profile
 from .utils import count_business_days
 import competition
+
+# competion
+from competition import models as competion_models, serializers as competion_serializers
+
 
 User = get_user_model()
 # Create your views here.
@@ -184,6 +190,83 @@ class ClanViewSet(viewsets.ModelViewSet):
         item = get_object_or_404(self.queryset, id=id) 
         serializer = self.get_serializer(item) 
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class ClanUpdateLogoAndLInk(APIView):
+    serializer_class= serializers.ClanUpdateSerializer
+
+    def get_clan(self, id):
+        clan= Clan.objects.filter(id=id).first()
+        if not clan:
+            return None
+        return clan
+    
+    def put(self, request, *args, **kwargs):
+        id = kwargs.get("clan_id")
+        clan = self.get_clan(id)
+        if clan is None:
+            return Response({"detail": f"Clan with id {id} not found."}, status=status.HTTP_400_BAD_REQUEST)
+        if clan.clan_admin != request.user:
+            return Response({"detail": f"Permission denied. NOt  a clan admin"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.serializer_class(clan, data=request.data,partial=True, context={"request":request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ClanNameChangeRequestView(APIView):
+    serializer_class= serializers.ClanNameChangeRequestSerializer
+
+    def get_clan(self, id):
+        clan= Clan.objects.filter(id=id).first()
+        if not clan:
+            return None
+        return clan
+    
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            clan= self.get_clan(serializer.validated_data["clan"].id)
+            if clan is None:
+                return Response({"detail": f"Clan with id {id} not found."}, status=status.HTTP_400_BAD_REQUEST)
+            if clan.clan_admin != request.user:
+                return Response({"detail": f"Permission denied. Not  a clan admin"}, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer.save(clan_owner=request.user)
+            return Response({"detail":"Request successful."})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ClanMemeberRemoverRequest(APIView):
+    serializer_class= serializers.ClanMemeberRemoverRequestSerializer
+
+    def get_clan(self, id):
+        clan= Clan.objects.filter(id=id).first()
+        if not clan:
+            return None
+        return clan
+    
+    def get_clan_members(self, id):
+        clan_member= Clan.objects.filter(member=id).first()
+        if not clan_member:
+            return None
+        return clan_member
+    
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            clan= self.get_clan(serializer.validated_data["clan"].id)
+            if clan is None:
+                return Response({"detail": f"Clan with id {id} not found."}, status=status.HTTP_400_BAD_REQUEST)
+            if clan.clan_admin != request.user:
+                return Response({"detail": f"Permission denied. Not  a clan admin"}, status=status.HTTP_400_BAD_REQUEST)
+            clan_member = self.get_clan_members(serializer.validated_data["clan_member_to_remove"].id)
+            if clan_member is None:
+                return Response({"detail": f"Member is not part of the clan."}, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer.save(clan_owner=request.user)
+            return Response({"detail":"Request successful."})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class TradingDays(APIView):
@@ -1418,3 +1501,51 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('leaderboard_admin')
+
+# new clan admin actions
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
+def admin_clan_update_name_link(request):
+    clan_name_requests = competion_models.ClanNameChangeRequest.objects.all()
+    return render(request,"leaderboard/clan-name-change.html", {"clan_name_requests":clan_name_requests})
+
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
+def admin_clan_update_name_detailed(request, req_id):
+    clan_name_request = competion_models.ClanNameChangeRequest.objects.filter(id=req_id).first()
+    if request.method == "POST":
+        clan_name_request.reason = request.POST.get("reason",clan_name_request.reason)
+        clan_name_request.approved = request.POST.get("approved",clan_name_request.approved)
+        clan_name_request.save()
+        if clan_name_request.approved == "approved":
+            clan =Clan.objects.filter(id= clan_name_request.clan.id).first()
+            clan.clan_name = clan_name_request.new_clan_name
+            clan.save()
+        save_and_send_notification(clan_name_request.clan_owner.id, f"Your request to remove a member has been {clan_name_request.approved}")
+        return redirect("admin_name_change_req")
+
+    return render(request,"leaderboard/clan-name-change-approval.html", {"clan_name_request":clan_name_request})
+
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
+def admin_clan_remove_member(request):
+    clan_member_removal_requests = competion_models.ClanMemeberRemoverRequest.objects.all()
+    return render(request,"leaderboard/clan-remove-member.html", {"clan_member_removal_requests":clan_member_removal_requests})
+
+
+@login_required
+@user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
+def admin_clan_remove_member_detailed(request, req_id):
+    clan_remove_member_request = competion_models.ClanMemeberRemoverRequest.objects.filter(id=req_id).first()
+
+    if request.method == "POST":
+        clan_remove_member_request.reason = request.POST.get("reason",clan_remove_member_request.reason)
+        clan_remove_member_request.approved = request.POST.get("approved",clan_remove_member_request.approved)
+        clan_remove_member_request.save()
+        if clan_remove_member_request.approved == "approved":
+            clan_remove_member_request.clan.member.remove(clan_remove_member_request.clan_member_to_remove)
+        save_and_send_notification(clan_remove_member_request.clan_owner.id, f"Your request to remove a member has been {clan_remove_member_request.approved}")
+        return redirect("admin_member_req")
+
+    return render(request,"leaderboard/clan-name-change-approval.html", {"clan_remove_member_request":clan_remove_member_request})
+

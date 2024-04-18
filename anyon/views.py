@@ -28,8 +28,6 @@ from execution import models as exec_models
 from portfolio.utils import get_price
 from accounts.models import  AdminUserActivityLog 
 
-
-
 User=get_user_model()
 
 
@@ -1232,3 +1230,25 @@ class AllAdminUsersActivityLogView(APIView):
             activities=AdminUserActivityLog.objects.all().order_by("-timestamp")
         serializer=self.serializer_class(activities, many=True)
         return Response(serializer.data)
+
+# class AdminClanUpdateLogoAndLInk(APIView):
+#     serializer_class = competion_serializers.ClanNameChangeRequestSerializer
+#     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]
+
+#     # get all requests
+#     def get(self, request):
+#         clan_name_requests = competion_models.ClanNameChangeRequest.objects.all()
+#         serializer = self.serializer_class(clan_name_requests, many=True)
+#         return Response(serializer.data)
+        
+
+# class AdminClanMemeberRemoverRequest(APIView):
+#     serializer_class = competion_serializers.ClanMemeberRemoverRequestSerializer
+#     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]
+
+#     # get all requests
+#     def get(self, request):
+#         clan_member_removal_requests = competion_models.ClanMemeberRemoverRequest.objects.all()
+#         serializer = self.serializer_class(clan_member_removal_requests, many=True)
+#         return Response(serializer.data)
+        
