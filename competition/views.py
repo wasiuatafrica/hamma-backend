@@ -841,8 +841,10 @@ def clan_detail(request,pk):
         
         # accounts = (accounts1 | accounts2).distinct('user').annotate(last_portfolio=Max('created'))
         accounts = (accounts1 | accounts2)
-        
-        total_profits = sum(account.profit for account in accounts )/len(accounts)
+        if accounts:
+            total_profits = sum(account.profit for account in accounts )/len(accounts)
+        else:
+            total_profits = 0
         return render(request,'leaderboard/clan-detail.html',{'count':memebers.count() +1,'accounts':accounts,'clan':clan, 'total_profits':total_profits})
         
     else:
