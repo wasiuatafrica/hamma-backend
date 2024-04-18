@@ -1,0 +1,36 @@
+{% extends 'leaderboard/base.html' %}
+{% block content %}
+<div class="main-body">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Clan Name Change Approval</h2>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="reason">Reason:</label>
+                                <input type="text" id="reason" name="reason" value="{{ clan_name_request.reason }}" class="form-control">
+                            </div>
+                            <br>
+                            <div class="form-group">
+                                <select class="form-select" name="approved" id="validationCustom04" required>
+                                    <option selected disabled value="">Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="rejected">Reject</option>
+                                    <option value="approved">Approved</option>
+                                  </select>
+                            </div>
+                            <br>
+                            <button type="submit" class="btn btn-success">Save</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

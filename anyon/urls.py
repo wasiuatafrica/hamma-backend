@@ -25,7 +25,7 @@ urlpatterns = [
    path("admin-users-activity-log/", views.AllAdminUsersActivityLogView.as_view()),
    path("flag-reward-activity/<str:reward_activity_id>/", views.FlagRewardActivities.as_view()),
 
-   
+   #new clan admin links
 
 
 ]

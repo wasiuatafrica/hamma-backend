@@ -58,5 +58,19 @@ urlpatterns=[
     path('payout/toptrader/select-competition/', views.competition_list_for_top_trader_payout, name="competition_list_for_top_trader_payout"),
     # path('competition/<str:competition_id>/payout/toptrader/', views.topclan_payout, name="toptrader"),
     path('competition-summary/<str:competition_id>/<str:clan_id>/', views.CompetitionSummaryViewForClan.as_view()),
+    
+
+    # New admin views
+    path("clan-name-change-requests", views.admin_clan_update_name_link, name="admin_name_change_req"),
+    path("clan-name-change-requests/<str:req_id>/", views.admin_clan_update_name_detailed, name="change_name_detailed"),
+    path("clan-remove-member-requests", views.admin_clan_remove_member, name="admin_member_req"),
+    path("clan-remove-member-requests/<str:req_id>/", views.admin_clan_remove_member_detailed, name="remove_member_detailed"),
+    
+    
+    # new clan endpoints
+    path('clan/<str:clan_id>/update-logo-link/', views.ClanUpdateLogoAndLInk.as_view()),
+    path('clan/request-name-change/', views.ClanNameChangeRequestView.as_view()),
+    path('clan/request-member-removal/', views.ClanMemeberRemoverRequest.as_view()),
+
 
 ]+router.urls
