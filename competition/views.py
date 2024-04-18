@@ -804,7 +804,7 @@ def list_users(request):
 @login_required
 @user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
 def current_competition_users(request):
-    users = CompetitionPortfolio.objects.filter(competition__status='current')
+    users = CompetitionPortfolio.objects.filter(competition__status='current').order_by('-created')
     # users = [port.user for port in portfolio]
 
     # Handling search functionality
