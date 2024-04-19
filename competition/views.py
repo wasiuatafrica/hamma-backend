@@ -48,6 +48,7 @@ import competition
 
 # competion
 from competition import models as competion_models, serializers as competion_serializers
+from django.utils import timezone
 
 
 User = get_user_model()
@@ -642,34 +643,43 @@ class LeaderBoardView(APIView):
     permission_classes = (AllowAny,)
     
     def get(self, request,*args, **kwargs):
-        portfolio = CompetitionPortfolio.objects.filter(competition__status='current', active=True)
-        
-        leaderboard_list=[]
-        zero_profit_list = []
-        for account in portfolio:
-            try:
-                clan=Clan.objects.get(member=account.user)
-            except Clan.DoesNotExist:
-                clan=Clan.objects.get(clan_admin=account.user)
-            user_portfolio = portfolio.filter(user=account.user).first()
-            # print(user_portfolio.competition.title)
-            profit = getProfit(user_portfolio)
-            percent= round((profit/1000000)*100,2)
-            profile= Profile.objects.get(user=account.user)
-            data= {
-                'name':user_portfolio.user.fullname,
-                'profit':percent,
-                'country':profile.country,
-                'clan':clan.clan_name
-            }
-            if percent != 0:
-                leaderboard_list.append(data)
-            else:
-                zero_profit_list.append(data)
-        sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
-        sorted_data += zero_profit_list
+        competition = Competition.objects.filter(status='current').first()
+        if competition:
+            if timezone.now() > competition.start_date:
+                portfolio = CompetitionPortfolio.objects.filter(competition=competition, active=True)
+                
+                leaderboard_list=[]
+                zero_profit_list = []
+                for account in portfolio:
+                    print(account.user)
+                    try:
+                        clan=Clan.objects.filter(member=account.user).first()
+                    except Clan.DoesNotExist:
+                        clan=Clan.objects.get(clan_admin=account.user)
+                    print(clan)
+                    user_portfolio = portfolio.filter(user=account.user).first()
+                    # print(user_portfolio.competition.title)
+                    profit = getProfit(user_portfolio)
+                    percent= round((profit/1000000)*100,2)
+                    profile= Profile.objects.get(user=account.user)
+                    data= {
+                        'name':user_portfolio.user.fullname,
+                        'profit':percent,
+                        'country':profile.country,
+                        'clan':clan.clan_name
+                    }
+                    if percent != 0:
+                        leaderboard_list.append(data)
+                    else:
+                        zero_profit_list.append(data)
+                sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
+                sorted_data += zero_profit_list
 
-        return Response(sorted_data)
+                return Response(sorted_data)
+            else:
+                return Response([])
+        else:
+            return Response([])
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
