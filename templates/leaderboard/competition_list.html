@@ -49,9 +49,15 @@
                 <tr>
                     <td>{{ item.title }}</td>
                     {% if item.status == 'current' %}
-                    <td>
-                        <a href="{% url 'join-competition' %}" class="btn btn-primary">Join</a>
-                    </td>
+                      {% if active%}
+                        <td>
+                          <button class="btn btn-primary" disabled>Join</button>
+                        </td>
+                      {%else%}
+                        <td>
+                            <a href="{% url 'join-competition' %}" class="btn btn-primary">Join</a>
+                        </td>
+                      {%endif%}
                     {% else %}
                     <td>
                         <button class="btn btn-primary" disabled>Join</button>

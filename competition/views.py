@@ -197,7 +197,8 @@ def join_competition(request):
         try:
             competition = Competition.objects.get(status='current')
         except Competition.DoesNotExist:
-            return JsonResponse({"detail": "There is no ongoing competition"}, status=404)
+            error_message = "There is no ongoing competition"
+            return render(request, 'leaderboard/join.html', {'error_message': error_message})
         
         clan_query = Clan.objects.filter(clan_admin=request.user)
         more_than_one_member = False
@@ -206,46 +207,57 @@ def join_competition(request):
             clan = clan_query.first()
             clan_members = clan.member.all().count()
             if clan_members < 2:
-                return JsonResponse({"detail": "You need at least two (2) members in your clan to be able to participate in this competition."}, status=400)
+                error_message = "You need at least two (2) members in your clan to be able to participate in this competition."
+                return render(request, 'leaderboard/join.html', {'error_message': error_message})
             else:
                 more_than_one_member = True
                 
         clan_query2 = Clan.objects.filter(member=request.user)
         
         if clan_query2.exists() and clan_query2.first().member.all().count() < 2:
-            return JsonResponse({"detail": "You need at least 3 people in your clan to be able to participate in this competition."}, status=400)
+            error_message = "You need at least 3 people in your clan to be able to participate in this competition."
+            return render(request, 'leaderboard/join.html', {'error_message': error_message})
             
         if (clan_query2.exists() and clan_query2.first().member.all().count() > 1) or (clan_query.exists() and more_than_one_member):
             portfolio = CompetitionPortfolio.objects.filter(competition=competition, user=request.user).first()
             
             if action == "join":
                 if competition.end_date - timezone.now() < timedelta(weeks=2):
-                    return JsonResponse({"detail": "You can only join the competition up to 2 weeks before the end"}, status=400)
+                    error_message = "You can only join the competition up to 2 weeks before the end"
+                    return render(request, 'leaderboard/join.html', {'error_message': error_message})
                 
                 if portfolio:
                     if portfolio.active:
-                        return JsonResponse({"detail": "You are already in this competition"}, status=400)
+                        error_message = "You are already in this competition"
+                        return render(request, 'leaderboard/join.html', {'error_message': error_message})
                     else:
-                        return JsonResponse({"detail": "You have already exited this competition"}, status=400)
+                        error_message = "You have already exited this competition"
+                        return render(request, 'leaderboard/join.html', {'error_message': error_message})
                 else:
                     portfolio = CompetitionPortfolio.objects.create(competition=competition, user=request.user, balance=1000000)
                     create_returns.delay(portfolio.id)
                     save_and_send_notification(portfolio.user.id, "You have joined the ongoing competition. Good luck!")
-                    return JsonResponse({"detail": "You have successfully joined this competition"}, status=200)
+                    success_message = "You have successfully joined this competition"
+                    return render(request, 'leaderboard/join.html', {'success_message': success_message})
                 
             elif action == "leave":
                 if not portfolio:
-                    return JsonResponse({"detail": "You are not in this competition"}, status=400)
+                    error_message = "You are not in this competition"
+                    return render(request, 'leaderboard/join.html', {'error_message': error_message})
                 if portfolio.active:
                     portfolio.active = False
                     portfolio.save()
-                    return JsonResponse({"detail": "You have successfully left this competition"}, status=200)
+                    success_message = "You have successfully left this competition"
+                    return render(request, 'leaderboard/join.html', {'success_message': success_message})
                 else:
-                    return JsonResponse({"detail": "You have already exited this competition"}, status=400)
+                    error_message = "You have already exited this competition"
+                    return render(request, 'leaderboard/join.html', {'error_message': error_message})
         else:
-            return JsonResponse({"detail": "You need to be in a clan to join the competition. Create or join a clan."}, status=400) 
+            error_message = "You need to be in a clan to join the competition. Create or join a clan."
+            return render(request, 'leaderboard/join.html', {'error_message': error_message}) 
 
-    return render (request, 'leaderboard/join.html')
+    return render(request, 'leaderboard/join.html')
+
 
 
 
@@ -1201,12 +1213,17 @@ def create_competition(request):
 @user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
 def competition_list(request):
     q=request.GET.get("filter")
+    portfolio=CompetitionPortfolio.objects.filter(competition__status='current', user=request.user)
+    if portfolio.exists():
+        active = True
+    else:
+        active = False
     if q:
         competitions = Competition.objects.filter(status__icontains=q).order_by('-id')
-        return render(request, 'leaderboard/competition_list.html', {'competitions':competitions})
+        return render(request, 'leaderboard/competition_list.html', {'competitions':competitions, 'active':active})
 
     competitions = Competition.objects.all().order_by('-id')
-    return render(request, 'leaderboard/competition_list.html', {'competitions':competitions})
+    return render(request, 'leaderboard/competition_list.html', {'competitions':competitions, 'active':active})
 # # For API
 class CompetitionSummaryView(APIView):
     serializer_class =  serializers.CompetitionSummarySerializer
