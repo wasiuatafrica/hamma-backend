@@ -236,12 +236,12 @@ class LoginWithEmailView(APIView):
             # first_time.save()
             return True
         
-        if user.last_ip != ip_address:
-            print('ip_address', True)
+        # if user.last_ip != ip_address:
+        #     print('ip_address', True)
             
-            # user.last_ip = ip_address
-            # user.save()
-            return True
+        #     # user.last_ip = ip_address
+        #     # user.save()
+        #     return True
         
         # if user.last_location != location:
         #     print('location', True)
