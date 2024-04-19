@@ -190,14 +190,13 @@ class JoinLeaveCompetetion(APIView):
             
             return Response({"detail": "You need to be in a clan to join competition. Create or join one clan."}, status=status.HTTP_400_BAD_REQUEST)
 
-
+@csrf_exempt
 def join_competition(request, action):
     if request.method == 'POST':
         try:
             competition = Competition.objects.get(status='current')
         except Competition.DoesNotExist:
-            error_message = "There is no ongoing competition"
-            return render(request, 'leaderboard/competitions_list.html', {'error_message': error_message})
+            return JsonResponse({"detail": "There is no ongoing competition"}, status=404)
         
         clan_query = Clan.objects.filter(clan_admin=request.user)
         more_than_one_member = False
@@ -206,52 +205,45 @@ def join_competition(request, action):
             clan = clan_query.first()
             clan_members = clan.member.all().count()
             if clan_members < 2:
-                error_message = "You need at least two (2) members in your clan to be able to participate in this competition."
-                return render(request, 'leaderboard/competitions_list.html', {'error_message': error_message})
+                return JsonResponse({"detail": "You need at least two (2) members in your clan to be able to participate in this competition."}, status=400)
             else:
                 more_than_one_member = True
                 
         clan_query2 = Clan.objects.filter(member=request.user)
         
         if clan_query2.exists() and clan_query2.first().member.all().count() < 2:
-            error_message = "You need at least 3 people in your clan to be able to participate in this competition."
-            return render(request, 'leaderboard/competitions_list.html', {'error_message': error_message})
+            return JsonResponse({"detail": "You need at least 3 people in your clan to be able to participate in this competition."}, status=400)
             
         if (clan_query2.exists() and clan_query2.first().member.all().count() > 1) or (clan_query.exists() and more_than_one_member):
             portfolio = CompetitionPortfolio.objects.filter(competition=competition, user=request.user).first()
             
             if action == "join":
                 if competition.end_date - timezone.now() < timedelta(weeks=2):
-                    error_message = "You can only join the competition up to 2 weeks before the end"
-                    return render(request, 'leaderboard/competitions_list.html', {'error_message': error_message})
+                    return JsonResponse({"detail": "You can only join the competition up to 2 weeks before the end"}, status=400)
                 
                 if portfolio:
                     if portfolio.active:
-                        error_message = "You are already in this competition"
-                        return render(request, 'leaderboard/competitions_list.html', {'error_message': error_message})
+                        return JsonResponse({"detail": "You are already in this competition"}, status=400)
                     else:
-                        error_message = "You have already exited this competition"
-                        return render(request, 'leaderboard/competitions_list.html', {'error_message': error_message})
+                        return JsonResponse({"detail": "You have already exited this competition"}, status=400)
                 else:
                     portfolio = CompetitionPortfolio.objects.create(competition=competition, user=request.user, balance=1000000)
                     create_returns.delay(portfolio.id)
                     save_and_send_notification(portfolio.user.id, "You have joined the ongoing competition. Good luck!")
-                    return redirect('competitions_list')  # Redirect to competitions list after successful join
+                    return JsonResponse({"detail": "You have successfully joined this competition"}, status=200)
                 
             elif action == "leave":
                 if not portfolio:
-                    error_message = "You are not in this competition"
-                    return render(request, 'leaderboard/competitions_list.html', {'error_message': error_message})
+                    return JsonResponse({"detail": "You are not in this competition"}, status=400)
                 if portfolio.active:
                     portfolio.active = False
                     portfolio.save()
-                    return redirect('competitions_list')  # Redirect to competitions list after successful leave
+                    return JsonResponse({"detail": "You have successfully left this competition"}, status=200)
                 else:
-                    error_message = "You have already exited this competition"
-                    return render(request, 'leaderboard/competitions_list.html', {'error_message': error_message})
+                    return JsonResponse({"detail": "You have already exited this competition"}, status=400)
         else:
-            error_message = "You need to be in a clan to join the competition. Create or join a clan."
-            return render(request, 'leaderboard/competitions_list.html', {'error_message': error_message})
+            return JsonResponse({"detail": "You need to be in a clan to join the competition. Create or join a clan."}, status=400) 
+
 
 
 

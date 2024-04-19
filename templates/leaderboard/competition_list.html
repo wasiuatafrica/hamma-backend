@@ -24,52 +24,70 @@
             </div>
         </form>
     </div>
-    {% if error_message %}
-    <div class="alert alert-danger" role="alert">
-        {{ error_message }}
-    </div>
-    {% endif %}
-    <div class="bg-white m-4 p-3 main-table table-responsive">
-        <table class="table table-hover table-bordered">
-            <thead>
-                <tr>
-                    <th scope="col">Competition</th>
-                    <th scope="col">Action</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Sent Notification</th>
-                    <th scope="col">Start date</th>
-                    <th scope="col">End date</th>
-                    <th scope="col">Prize</th>
-                    <!-- <th scope="col">Second Prize</th>
-                    <th scope="col">Third Prize</th> -->
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in competitions %}
-                <tr>
-                    <td>{{ item.title }}</td>
-                    {% if item.status == 'current' %}
-                    <td>
-                        <a href="{% url 'join-competition' 'join' %}" class="btn btn-primary">Join</a>
-                    </td>
-                    {% else %}
-                    <td>
-                        <button class="btn btn-primary" disabled>Join</button>
-                    </td>
-                    {% endif %}
-                    <td>{{ item.status.title }}</td>
-                    <td>{{ item.message }}</td>
-                    <td>{{ item.start_date }}</td>
-                    <td>{{ item.end_date }}</td>
-                    <td>&#x20A6;{{ item.first_prize|intcomma }}</td>
-                    <!-- <td>&#x20A6;{{ item.second_prize|intcomma }}</td>
-                    <td>&#x20A6;{{ item.third_prize|intcomma }}</td> -->
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
     <!-- Main page ends here -->
     
+</div>
+
+<script>
+    // Function to handle the join competition action
+    function joinCompetition() {
+        // Perform AJAX POST request to join competition
+        $.post("{% url 'join-competition' 'join' %}", function(data, status) {
+            if (status === "success") {
+                // If successful, reload the page
+                location.reload();
+            } else {
+                // If error, display the error message
+                alert(data.detail);
+            }
+        });
+    }
+</script>
+
+{% if error_message %}
+<div class="alert alert-danger" role="alert">
+    {{ error_message }}
+</div>
+{% endif %}
+
+<div class="bg-white m-4 p-3 main-table table-responsive">
+    <table class="table table-hover table-bordered">
+        <thead>
+            <tr>
+                <th scope="col">Competition</th>
+                <th scope="col">Action</th>
+                <th scope="col">Status</th>
+                <th scope="col">Sent Notification</th>
+                <th scope="col">Start date</th>
+                <th scope="col">End date</th>
+                <th scope="col">Prize</th>
+                <!-- <th scope="col">Second Prize</th>
+                <th scope="col">Third Prize</th> -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in competitions %}
+            <tr>
+                <td>{{ item.title }}</td>
+                {% if item.status == 'current' %}
+                <td>
+                    <button onclick="joinCompetition()" class="btn btn-primary">Join</button>
+                </td>
+                {% else %}
+                <td>
+                    <button class="btn btn-primary" disabled>Join</button>
+                </td>
+                {% endif %}
+                <td>{{ item.status.title }}</td>
+                <td>{{ item.message }}</td>
+                <td>{{ item.start_date }}</td>
+                <td>{{ item.end_date }}</td>
+                <td>&#x20A6;{{ item.first_prize|intcomma }}</td>
+                <!-- <td>&#x20A6;{{ item.second_prize|intcomma }}</td>
+                <td>&#x20A6;{{ item.third_prize|intcomma }}</td> -->
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}
