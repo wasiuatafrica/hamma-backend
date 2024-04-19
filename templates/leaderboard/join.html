@@ -1,0 +1,35 @@
+{% extends 'leaderboard/base.html' %}
+{% block content %}
+<div class="main-body">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Join Competition</h2>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <!-- Added hidden input field for action -->
+                            <input type="hidden" name="action" value="join">
+                            <div class="form-group">
+                                <label for="firstname">First Name:</label>
+                                <input type="text" id="firstname" name="firstname" value="{{ user.firstname }}" class="form-control">
+                            </div>
+                            <br>
+                            <div class="form-group">
+                                <label for="lastname">Last Name:</label>
+                                <input type="text" id="lastname" name="lastname" value="{{ user.lastname }}" class="form-control">
+                            </div>
+                            <br>
+                            <!-- Change button type to submit -->
+                            <button type="submit" class="btn btn-success">Join</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

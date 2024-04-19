@@ -191,8 +191,9 @@ class JoinLeaveCompetetion(APIView):
             return Response({"detail": "You need to be in a clan to join competition. Create or join one clan."}, status=status.HTTP_400_BAD_REQUEST)
 
 @csrf_exempt
-def join_competition(request, action):
+def join_competition(request):
     if request.method == 'POST':
+        action = request.POST.get('action')
         try:
             competition = Competition.objects.get(status='current')
         except Competition.DoesNotExist:
@@ -244,7 +245,7 @@ def join_competition(request, action):
         else:
             return JsonResponse({"detail": "You need to be in a clan to join the competition. Create or join a clan."}, status=400) 
 
-
+    return render (request, 'leaderboard/join.html')
 
 
 
