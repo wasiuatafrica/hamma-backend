@@ -139,12 +139,20 @@ class JoinLeaveCompetetion(APIView):
             clan = clan_query.first()
             clan_members=clan.member.all().count()
             if clan_members < 2:
+                save_and_send_notification(request.user.id, "There should be atleast 3 people in your clan before you can join competition.")
+                
                 return Response({"detail": "You need at least two (2) member in your clan to be able to participate in this competition."}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 more_than_one_member=True
                 
         clan_query2= Clan.objects.filter(member=request.user)
         
+        
+        if clan_query2.exists() and clan_query2.first().member.all().count() < 2:
+            save_and_send_notification(request.user.id, "There should be atleast 3 people in your clan before you can join competition.")
+                
+            return Response({"detail": "You need at least 3 people in your clan to be able to participate in this competition."}, status=status.HTTP_400_BAD_REQUEST)
+            
         if (clan_query2.exists() and clan_query2.first().member.all().count() > 1) or (clan_query.exists() and more_than_one_member) :
         
             portfolio = CompetitionPortfolio.objects.filter(competition=competition,user=request.user).first()
@@ -153,6 +161,7 @@ class JoinLeaveCompetetion(APIView):
                 # if competition.start_date > timezone.now():
                 #     return Response({"detail": "Competition has not started"}, status=status.HTTP_400_BAD_REQUEST)
                 if competition.end_date - timezone.now() < timedelta(weeks=2):
+                    
                     return Response({"detail": "You can only join the competition up to 2 weeks before the end"}, status=status.HTTP_400_BAD_REQUEST)
                 if portfolio:
                     if portfolio.active:
@@ -176,6 +185,8 @@ class JoinLeaveCompetetion(APIView):
                     else:
                         return Response({"detail": "You have  already exited this competition"}, status=status.HTTP_400_BAD_REQUEST)
         else:
+            save_and_send_notification(request.user.id, "You need to be in a clan to join competition. Create or join one clan.")
+            
             return Response({"detail": "You need to be in a clan to join competition. Create or join one clan."}, status=status.HTTP_400_BAD_REQUEST)
 
 
