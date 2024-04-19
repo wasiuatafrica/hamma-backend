@@ -167,57 +167,57 @@ class LoginWithEmailView(APIView):
             if not user.is_active :
                     return Response({"detail": "This account is not active. Please verify account before login."}, status=status.HTTP_400_BAD_REQUEST)
             
-            if user.check_password(password):
-                requires_2fa = self.requires_2fa(user, ip_address, location, device)
-                print(requires_2fa)
-                
-                if requires_2fa:
-                    if user.has_2fa:
-                        if user.twofa_type =="authapps": #send the user to the login
-                            return Response({"detail": "Please provide token from your 2fa application"}, status=status.HTTP_202_ACCEPTED)
-                        elif user.twofa_type =="sms": #send the user to the login
-                            user_phone=models.Profile.objects.get(user=user).phone
-                            sms_token=resendToken(user, "sms")
-                            send_sms_2fa=sms_2FA(user_phone,sms_token)
-                            return Response({"detail": "Please provide  sms token sent to your phone", "sms":sms_token}, status=status.HTTP_202_ACCEPTED)
-                        user = User.objects.get(email=email, is_active=True)
-                        resendToken(user, "login")
-                        return Response({"detail": "Please check your mail for your 2fa token"}, status=status.HTTP_202_ACCEPTED)
-                # Successful login without 2FA prompt
-                refresh = RefreshToken.for_user(user)
-                # refresh.save()
-                user_data =serializers.CustomUserSerializer(user, many=False).data
-                # update last_login
-                user.last_login=timezone.now()
-                user.save()
-                token_data = {
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                    "user": user_data
-                }
-                #Add activity
-                activity=models.UserActivityLog.objects.create(user=user, action_type="login",description="User logged into their account")
-                return Response(token_data, status=status.HTTP_200_OK)
-                # return Response({"detail": "Login successful"}, status=status.HTTP_200_OK)
-            else:
-                return Response({"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         #     if user.check_password(password):
-        #         if user.has_2fa:
-        #             if user.twofa_type =="authapps": #send the user to the login
-        #                 return Response({"detail": "Please provide token from your 2fa application"}, status=status.HTTP_202_ACCEPTED)
-        #             elif user.twofa_type =="sms": #send the user to the login
-        #                 user_phone=models.Profile.objects.get(user=user).phone
-        #                 sms_token=resendToken(user, "sms")
-        #                 send_sms_2fa=sms_2FA(user_phone,sms_token)
-        #                 return Response({"detail": "Please provide  sms token sent to your phone", "sms":sms_token}, status=status.HTTP_202_ACCEPTED)
-        #             user = User.objects.get(email=email, is_active=True)
-        #             resendToken(user, "login")
-        #             return Response({"detail": "Please check your mail for your 2fa token"}, status=status.HTTP_202_ACCEPTED)
-               
+        #         requires_2fa = self.requires_2fa(user, ip_address, location, device)
+        #         print(requires_2fa)
+                
+        #         if requires_2fa:
+        #             if user.has_2fa:
+        #                 if user.twofa_type =="authapps": #send the user to the login
+        #                     return Response({"detail": "Please provide token from your 2fa application"}, status=status.HTTP_202_ACCEPTED)
+        #                 elif user.twofa_type =="sms": #send the user to the login
+        #                     user_phone=models.Profile.objects.get(user=user).phone
+        #                     sms_token=resendToken(user, "sms")
+        #                     send_sms_2fa=sms_2FA(user_phone,sms_token)
+        #                     return Response({"detail": "Please provide  sms token sent to your phone", "sms":sms_token}, status=status.HTTP_202_ACCEPTED)
+        #                 user = User.objects.get(email=email, is_active=True)
+        #                 resendToken(user, "login")
+        #                 return Response({"detail": "Please check your mail for your 2fa token"}, status=status.HTTP_202_ACCEPTED)
+        #         # Successful login without 2FA prompt
+        #         refresh = RefreshToken.for_user(user)
+        #         # refresh.save()
+        #         user_data =serializers.CustomUserSerializer(user, many=False).data
+        #         # update last_login
+        #         user.last_login=timezone.now()
+        #         user.save()
+        #         token_data = {
+        #             'refresh': str(refresh),
+        #             'access': str(refresh.access_token),
+        #             "user": user_data
+        #         }
+        #         #Add activity
+        #         activity=models.UserActivityLog.objects.create(user=user, action_type="login",description="User logged into their account")
+        #         return Response(token_data, status=status.HTTP_200_OK)
+        #         # return Response({"detail": "Login successful"}, status=status.HTTP_200_OK)
         #     else:
         #         return Response({"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
         # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if user.check_password(password):
+                if user.has_2fa:
+                    if user.twofa_type =="authapps": #send the user to the login
+                        return Response({"detail": "Please provide token from your 2fa application"}, status=status.HTTP_202_ACCEPTED)
+                    elif user.twofa_type =="sms": #send the user to the login
+                        user_phone=models.Profile.objects.get(user=user).phone
+                        sms_token=resendToken(user, "sms")
+                        send_sms_2fa=sms_2FA(user_phone,sms_token)
+                        return Response({"detail": "Please provide  sms token sent to your phone", "sms":sms_token}, status=status.HTTP_202_ACCEPTED)
+                    user = User.objects.get(email=email, is_active=True)
+                    resendToken(user, "login")
+                    return Response({"detail": "Please check your mail for your 2fa token"}, status=status.HTTP_202_ACCEPTED)
+               
+            else:
+                return Response({"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
     def requires_2fa(self, user, ip_address, location, device):
         # Check if any of the conditions for requiring 2FA are met
