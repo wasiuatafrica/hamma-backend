@@ -88,14 +88,14 @@ class LoginWithEmailSeriailizer(serializers.Serializer):
     password=serializers.CharField(max_length=200)
     ip_address = serializers.IPAddressField()
     location = serializers.CharField(max_length=100)
-    device = serializers.CharField(max_length=100)
+    device = serializers.CharField(max_length=1000)
     
 class LoginTokenSeriailizer(serializers.Serializer):
     email=serializers.EmailField()
     token=serializers.CharField(max_length=8)
     ip_address = serializers.IPAddressField()
     location = serializers.CharField(max_length=100)
-    device = serializers.CharField(max_length=100)
+    device = serializers.CharField(max_length=1000)
 
 class DashBoardChangePassword(serializers.Serializer):
     current_password=serializers.CharField(max_length=200)
