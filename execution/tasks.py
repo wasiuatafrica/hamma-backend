@@ -103,8 +103,8 @@ def process_limit_order(id, in_competition=False):
             
             expired = False
             
-            # target_time = time(14, 30)  # 14 is the hour, 30 is the minute
-            target_time = datetime.combine(datetime.today(), datetime.strptime('14:30', '%H:%M').time())
+            target_time = time(14, 30)  # 14 is the hour, 30 is the minute
+            # target_time = datetime.combine(datetime.today(), datetime.strptime('14:30', '%H:%M').time())
             if position.status == 'pending':
             
                 if position.time_in_force== 'day':
@@ -234,8 +234,8 @@ def process_limit_order(id, in_competition=False):
             lagos_timezone = pytz.timezone('Africa/Lagos')
             current_time_lagos = timezone.now().astimezone(lagos_timezone).time()
 
-            # target_time = time(14, 30)  # 14 is the hour, 30 is the minute
-            target_time = datetime.combine(datetime.today(), datetime.strptime('14:30', '%H:%M').time())
+            target_time = time(14, 30)  # 14 is the hour, 30 is the minute
+            # target_time = datetime.combine(datetime.today(), datetime.strptime('14:30', '%H:%M').time())
             if position.status == 'pending':
             
                 if position.time_in_force== 'day':
