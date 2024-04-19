@@ -34,7 +34,7 @@
             <thead>
                 <tr>
                     <th scope="col">Competition</th>
-                    {% comment %} <th scope="col">Action</th> {% endcomment %}
+                    <th scope="col">Action</th>
                     <th scope="col">Status</th>
                     <th scope="col">Sent Notification</th>
                     <th scope="col">Start date</th>
@@ -48,15 +48,15 @@
                 {% for item in competitions %}
                 <tr>
                     <td>{{ item.title }}</td>
-                    {% comment %} {% if item.status == 'current' %}
+                    {% if item.status == 'current' %}
                     <td>
-                        <a href="{% url 'join-competition' item.id %}" class="btn btn-primary">Join</a>
+                        <a href="{% url 'join-competition' 'join' %}" class="btn btn-primary">Join</a>
                     </td>
                     {% else %}
                     <td>
                         <button class="btn btn-primary" disabled>Join</button>
                     </td>
-                    {% endif %} {% endcomment %}
+                    {% endif %}
                     <td>{{ item.status.title }}</td>
                     <td>{{ item.message }}</td>
                     <td>{{ item.start_date }}</td>

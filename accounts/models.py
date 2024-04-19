@@ -19,7 +19,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     twofa_type =models.CharField(max_length=50, null=True, blank=True, default="email", choices=(("email","email"), ("sms","sms"),("authapps","authapps"),("none","none")))
     last_ip = models.GenericIPAddressField(blank=True, null=True)
     last_location = models.CharField(max_length=100, blank=True, null=True)
-    last_device = models.CharField(max_length=100, blank=True, null=True)
+    last_device = models.TextField(max_length=100, blank=True, null=True)
     
     
     USERNAME_FIELD = "email"
