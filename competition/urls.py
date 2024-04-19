@@ -19,7 +19,7 @@ urlpatterns=[
     path('leave-clan/<str:clan_id>/', views.LeaveAClan.as_view()),
     path('transfer-admin/<str:clan_id>/<str:new_admin_id>/', views.TransferAdmin.as_view()),
     path('clan_members/<str:clan_id>/', views.ClanMembers.as_view()), #not complete
-    path('join-leave/<str:action>/', views.JoinLeaveCompetetion.as_view()), #
+    path('join-leave/<str:action>/', views.JoinLeaveCompetetion.as_view(), name='join-leave-competition'), #
     path('trading-days/', views.TradingDays.as_view()),
     
     path('leaderboard/', views.LeaderBoardView.as_view(),),

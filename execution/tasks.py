@@ -25,7 +25,7 @@ import json
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import shortuuid
 import time as timer
-from competition.models import CompetitionPortfolio, CompetitionPosition, CompetitionTransaction, CompetitionDailyReturns, CompetitionCumulativeReturns
+from competition.models import Competition, CompetitionPortfolio, CompetitionPosition, CompetitionTransaction, CompetitionDailyReturns, CompetitionCumulativeReturns
 import pandas as pd
 
 logger = get_task_logger(__name__)
@@ -92,17 +92,19 @@ def update_equity(user_id,type):
 def process_limit_order(id, in_competition=False):
     lagos_timezone = pytz.timezone('Africa/Lagos')
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
+    competition = Competition.objects.filter(status='current').first()
 
     # Check if the current time is between 9:30 AM and 2:30 PM WAT and it's a weekday
     if current_time_lagos.time() >= datetime.strptime('9:30 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:30 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
-        if in_competition:
+        if in_competition and timezone.now() > competition.start_date:
             position = get_object_or_404(CompetitionPosition, id=id)
             
             user = position.portfolio.user
             
             expired = False
             
-            target_time = time(14, 30)  # 14 is the hour, 30 is the minute
+            # target_time = time(14, 30)  # 14 is the hour, 30 is the minute
+            target_time = datetime.combine(datetime.today(), datetime.strptime('14:30', '%H:%M').time())
             if position.status == 'pending':
             
                 if position.time_in_force== 'day':
@@ -232,7 +234,8 @@ def process_limit_order(id, in_competition=False):
             lagos_timezone = pytz.timezone('Africa/Lagos')
             current_time_lagos = timezone.now().astimezone(lagos_timezone).time()
 
-            target_time = time(14, 30)  # 14 is the hour, 30 is the minute
+            # target_time = time(14, 30)  # 14 is the hour, 30 is the minute
+            target_time = datetime.combine(datetime.today(), datetime.strptime('14:30', '%H:%M').time())
             if position.status == 'pending':
             
                 if position.time_in_force== 'day':
@@ -724,7 +727,7 @@ def process_market_data(prompt, convsersation_id, user_id, channel_name):
         Message.objects.create(user =user, sender='bot',room=conversation, content="Your prompt does not contain stock symbol, limit price, either to buy or sell,  or you didn't specify quantity.")
 
 from openai import OpenAI
-import time
+# import time
 import concurrent.futures
 
 client = OpenAI()
@@ -745,7 +748,7 @@ def conversation_response(thread_id, prompt,user):
     )
     
     completed = False
-    start_time = time.time()
+    start_time = timer.time()
     
     while not completed:
         run = client.beta.threads.runs.retrieve(
@@ -797,9 +800,9 @@ def conversation_response(thread_id, prompt,user):
         elif run.status in  ["cancelling", "cancelled", "failed", "expired"]:
             return '{"main_response": "Error occured, please start new conversation", "extracted_data": []}'
         else:
-            time.sleep(0.5)
+            timer.sleep(0.5)
             
-        elapsed_time = time.time() - start_time
+        elapsed_time = timer.time() - start_time
         
         if elapsed_time >= 30:
             break
