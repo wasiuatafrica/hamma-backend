@@ -23,7 +23,7 @@ from django.utils import timezone
 from accounts.models import  UserActivityLog 
 
 from .models import DemoCumulativeReturns, DemoPosition, DemoPortfolio, DemoDailyReturns, DemoDailyReturns2, MarketReturns, CumulativeMarketReturns
-from  competition.models import CompetitionCumulativeReturns, CompetitionCumulativeReturns2, CompetitionDailyReturns2, CompetitionPosition,CompetitionDailyReturns,CompetitionPortfolio,CompetitionTransaction
+from  competition.models import Competition, CompetitionCumulativeReturns, CompetitionCumulativeReturns2, CompetitionDailyReturns2, CompetitionPosition,CompetitionDailyReturns,CompetitionPortfolio,CompetitionTransaction
 from django.contrib.auth import get_user_model
 User = get_user_model()
 # class DemoTradeAPIView(APIView):
@@ -127,8 +127,13 @@ class DemoTradeAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self,request):
-        portfolio =  CompetitionPortfolio.objects.filter(user=request.user, competition__status='current',active=True).first()
-        if portfolio:
+        competition = Competition.objects.filter(status='current').first()
+        portfolio = None
+        
+        if competition:
+            portfolio = CompetitionPortfolio.objects.filter(user=request.user, competition=competition, active=True).first()
+            
+        if portfolio and timezone.now() > competition.start_date:
             positions = CompetitionPosition.objects.filter(portfolio=portfolio, status='open')
         else:
             positions = DemoPosition.objects.filter(portfolio__user=request.user,status='open')
@@ -172,6 +177,7 @@ class DemoTradeAPIView(APIView):
     
     def post(self, request):
         
+        
         symbol = request.data.get('symbol')
         order_id = request.data.get('order_id')
         quantity = int(request.data.get('quantity'))
@@ -185,9 +191,10 @@ class DemoTradeAPIView(APIView):
         # print(order_type)
         
         stock = get_object_or_404(Stock, symbol=symbol)
+        competition = Competition.objects.filter(status='current').first()
         
-        in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition__status='current',active=True).first()
-        if in_competition:
+        in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
+        if in_competition and timezone.now() > competition.start_date:
             portfolio = in_competition
             if order_type == 'market':
                 market_price = round(Decimal(get_price(symbol)['current_price']), 2)
@@ -449,8 +456,10 @@ class Home(APIView):
     def get(self, request, *args, **kwargs):
         mode = self.kwargs.get('mode')
         if mode == 'demo':
-            in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition__status='current',active=True).first()
-            if in_competition:
+            competition = Competition.objects.filter(status='current').first()
+        
+            in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
+            if in_competition and timezone.now() > competition.start_date:
                 portfolio = in_competition
                 
                 positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open')
@@ -518,10 +527,6 @@ class Home(APIView):
                 cumulative_overview = []
                 
                 if daily_profitloss:
-                    today = timezone.now()
-                    
-                    
-                    
                     for daily in daily_profitloss:
                         for daily2 in market:
                             if daily.created.date() == daily2.created.date():
@@ -539,17 +544,8 @@ class Home(APIView):
                         first['market_returns'] = 0
                 
                 if cumulative_profitloss:
-                    today = timezone.now()
-
-                    cumulative_overview.append(
-                                    {
+                    print('cpl', cumulative_profitloss)
                                         
-                            'portfolio_returns': 0,
-                            'market_returns': 0,
-                            'date': request.user.date_joined.date()
-                                    }
-                    )
-                    
                     for daily in cumulative_profitloss:
                         for daily2 in cumulative_market :
                             if daily.created.date() == daily2.created.date():
@@ -562,7 +558,10 @@ class Home(APIView):
                         }
                                     
                                 )
-                    
+                    print('cumu',cumulative_overview)
+                    first_ = cumulative_overview[0]
+                    if first_['portfolio_returns'] == 0:
+                        first_['market_returns'] = 0
                 
                 equity1 = round(balance + profit_loss,2)
                 equity = equity1 if equity1 >= 0 else 0
@@ -673,15 +672,7 @@ class Home(APIView):
                 
                 if cumulative_profitloss:
                     print('cpl', cumulative_profitloss)
-                    # cumulative_overview.append(
-                    #                 {
                                         
-                    #         'portfolio_returns': 0,
-                    #         'market_returns': 0,
-                    #         'date': request.user.date_joined.date()
-                    #                 }
-                    # )
-                    
                     for daily in cumulative_profitloss:
                         for daily2 in cumulative_market :
                             if daily.created.date() == daily2.created.date():
@@ -731,8 +722,10 @@ class SupportHome(APIView):
         user = User.objects.get(email=email)
         
         if mode == 'demo':
-            in_competition =  CompetitionPortfolio.objects.filter(user=user, competition__status='current',active=True).first()
-            if in_competition:
+            competition = Competition.objects.filter(status='current').first()
+        
+            in_competition =  CompetitionPortfolio.objects.filter(user=user, competition=competition,active=True).first()
+            if in_competition and timezone.now() > competition.start_date:
                 portfolio = in_competition
                 
                 positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open')
@@ -798,10 +791,6 @@ class SupportHome(APIView):
                 cumulative_overview = []
                 
                 if daily_profitloss:
-                    today = timezone.now()
-                    
-                    
-                    
                     for daily in daily_profitloss:
                         for daily2 in market:
                             if daily.created.date() == daily2.created.date():
@@ -819,17 +808,8 @@ class SupportHome(APIView):
                         first['market_returns'] = 0
                 
                 if cumulative_profitloss:
-                    today = timezone.now()
-
-                    cumulative_overview.append(
-                                    {
+                    print('cpl', cumulative_profitloss)
                                         
-                            'portfolio_returns': 0,
-                            'market_returns': 0,
-                            'date': user.date_joined.date()
-                                    }
-                    )
-                    
                     for daily in cumulative_profitloss:
                         for daily2 in cumulative_market :
                             if daily.created.date() == daily2.created.date():
@@ -842,6 +822,10 @@ class SupportHome(APIView):
                         }
                                     
                                 )
+                    print('cumu',cumulative_overview)
+                    first_ = cumulative_overview[0]
+                    if first_['portfolio_returns'] == 0:
+                        first_['market_returns'] = 0
                     
                 
                 equity1 = round(balance + profit_loss,2)
@@ -952,17 +936,8 @@ class SupportHome(APIView):
                         first['market_returns'] = 0
                 
                 if cumulative_profitloss:
-                    today = timezone.now()
-
-                    cumulative_overview.append(
-                                    {
+                    print('cpl', cumulative_profitloss)
                                         
-                            'portfolio_returns': 0,
-                            'market_returns': 0,
-                            'date': user.date_joined.date()
-                                    }
-                    )
-                    
                     for daily in cumulative_profitloss:
                         for daily2 in cumulative_market :
                             if daily.created.date() == daily2.created.date():
@@ -975,7 +950,10 @@ class SupportHome(APIView):
                         }
                                     
                                 )
-                    
+                    print('cumu',cumulative_overview)
+                    first_ = cumulative_overview[0]
+                    if first_['portfolio_returns'] == 0:
+                        first_['market_returns'] = 0
                 
                 equity1 = round(balance + profit_loss,2)
                 equity = equity1 if equity1 >= 0 else 0
@@ -1006,8 +984,10 @@ class SupportHome(APIView):
 class DemoCloseTrade(APIView):
     def post(self, request, *args, **kwargs):
         id= self.kwargs.get('id')
-        in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition__status='current',active=True).first()
-        if in_competition:
+        competition = Competition.objects.filter(status='current').first()
+        
+        in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
+        if in_competition and timezone.now() > competition.start_date:
             position =  get_object_or_404(CompetitionPosition, id=id)
             if position.status == 'open':
                 pl, cur_val,price = position.calculate_profit_loss()
@@ -1079,8 +1059,10 @@ class DemoCloseTrade(APIView):
 class DemoClosePendingTrade(APIView):
     def post(self, request, *args, **kwargs):
         id= self.kwargs.get('id')
-        in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition__status='current',active=True).first()
-        if in_competition:
+        competition = Competition.objects.filter(status='current').first()
+        
+        in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
+        if in_competition and timezone.now() > competition.start_date:
             position =  get_object_or_404(CompetitionPosition, id=id)
             if position.status == 'pending':
                 
@@ -1142,8 +1124,10 @@ class DemoClosePendingTrade(APIView):
         
 class DemoHolding(APIView):
     def get(self,request):
-        in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition__status='current',active=True).first()
-        if in_competition:
+        competition = Competition.objects.filter(status='current').first()
+        
+        in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
+        if in_competition and timezone.now() > competition.start_date:
             portfolio = in_competition
                 
             positions =  CompetitionPosition.objects.filter(portfolio=portfolio).order_by("-updated")
@@ -1302,8 +1286,10 @@ class SupportDemoHolding(APIView):
         print(email)
         user = CustomUser.objects.get(email=email)
         
-        in_competition =  CompetitionPortfolio.objects.filter(user=user, competition__status='current',active=True).first()
-        if in_competition:
+        competition = Competition.objects.filter(status='current').first()
+        
+        in_competition =  CompetitionPortfolio.objects.filter(user=user, competition=competition,active=True).first()
+        if in_competition and timezone.now() > competition.start_date:
             portfolio = in_competition
                 
             positions =  CompetitionPosition.objects.filter(portfolio=portfolio).order_by("-updated")

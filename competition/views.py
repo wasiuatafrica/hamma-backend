@@ -133,7 +133,7 @@ class JoinLeaveCompetetion(APIView):
         clan_query= Clan.objects.filter(clan_admin=request.user)
         
         more_than_one_member=False
-        
+                
         print('exists',clan_query.exists())
         if clan_query.exists():
             clan = clan_query.first()
@@ -150,8 +150,8 @@ class JoinLeaveCompetetion(APIView):
             portfolio = CompetitionPortfolio.objects.filter(competition=competition,user=request.user).first()
             
             if action == "join":
-                if competition.start_date > timezone.now():
-                    return Response({"detail": "Competition has not started"}, status=status.HTTP_400_BAD_REQUEST)
+                # if competition.start_date > timezone.now():
+                #     return Response({"detail": "Competition has not started"}, status=status.HTTP_400_BAD_REQUEST)
                 if competition.end_date - timezone.now() < timedelta(weeks=2):
                     return Response({"detail": "You can only join the competition up to 2 weeks before the end"}, status=status.HTTP_400_BAD_REQUEST)
                 if portfolio:
@@ -162,7 +162,7 @@ class JoinLeaveCompetetion(APIView):
                 else:
                     portfolio = CompetitionPortfolio.objects.create(competition=competition, user=request.user, balance=1000000)
                     create_returns.delay(portfolio.id)
-                    save_and_send_notification(portfolio.user.id, "You have joined ongoing competition and been given 1,000,000 naira to compete. Goodluck!")
+                    save_and_send_notification(portfolio.user.id, "You have joined the ongoing competition. Goodluck!")
                     return Response({"detail": "You have successfully joined this competition"}, status=status.HTTP_200_OK)
                 
             elif action == "leave":
