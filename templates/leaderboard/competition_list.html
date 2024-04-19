@@ -1,61 +1,75 @@
-{%extends 'leaderboard/base.html'%}
+{% extends 'leaderboard/base.html' %}
 {% load humanize %}
-{%block content%}
-            <!-- Here is the main page body starts here -->
-            <div class="main-body">
-              <div class="bg-white m-4 p-3 title">
-                <div class="left-bold-title">
-                  <h4>Competitions List</h4>
-                  <!-- <p>TradersLeaderboard</p> -->
-                </div>
-                <form>
-                  <div class="right-title">
-                    <div class="right-filter mt-2">
-                      <select class="form-select" name="filter" id="validationCustom04" required>
+{% block content %}
+<!-- Here is the main page body starts here -->
+<div class="main-body">
+    <div class="bg-white m-4 p-3 title">
+        <div class="left-bold-title">
+            <h4>Competitions List</h4>
+            <!-- <p>TradersLeaderboard</p> -->
+        </div>
+        <form>
+            <div class="right-title">
+                <div class="right-filter mt-2">
+                    <select class="form-select" name="filter" id="validationCustom04" required>
                         <option selected disabled value="">Filter</option>
-                           <option value="closed">Closed</option>
+                        <option value="closed">Closed</option>
                         <option value="current">Current</option>
-                      </select>
-                    </div>
-                    <div class="right-search mt-2">
-                      <input type="submit" class="form-control" placeholder="search" value="Submit">
-                      <!-- <p>Filter</p> -->
-                    </div>
-                  </div>
-                </form>
-              </div>
-              <div class="bg-white m-4 p-3 main-table table-responsive">
-                <table class="table table-hover table-bordered">
-                  <thead>
-                    <tr>
-                        <th scope="col">Competition</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Sent Notification</th>
-                        <th scope="col">Start date</th>
-                        <th scope="col">End date</th>
-                        <th scope="col">Prize</th>
-                        {% comment %} <th scope="col">Second Prize</th>
-                        <th scope="col">Third Prize</th>
-                      </tr> {% endcomment %}
-                    </thead>
-                    <tbody>
-                      {% for item in competitions%}
-
-                      <tr>
-                        <td>{{item.title}}</td>
-                        <td>{{item.status.title}}</td>
-                        <td>{{item.message}}</td>
-                        <td>{{item.start_date}}</td>
-                        <td>{{item.end_date}}</td>
-                        <td>&#x20A6;{{item.first_prize|intcomma}}</td>
-                        {% comment %} <td>&#x20A6;{{item.second_prize|intcomma}}</td>
-                        <td>&#x20A6;{{item.third_prize|intcomma}}</td> {% endcomment %}
-                        
-                      </tr>
-                      {%endfor%}
-
-                  </tbody>
-                </table>
-              </div>
-              <!-- Mainpage ends here -->
-{%endblock%}
+                    </select>
+                </div>
+                <div class="right-search mt-2">
+                    <input type="submit" class="form-control" placeholder="search" value="Submit">
+                    <!-- <p>Filter</p> -->
+                </div>
+            </div>
+        </form>
+    </div>
+    {% if error_message %}
+    <div class="alert alert-danger" role="alert">
+        {{ error_message }}
+    </div>
+    {% endif %}
+    <div class="bg-white m-4 p-3 main-table table-responsive">
+        <table class="table table-hover table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col">Competition</th>
+                    {% comment %} <th scope="col">Action</th> {% endcomment %}
+                    <th scope="col">Status</th>
+                    <th scope="col">Sent Notification</th>
+                    <th scope="col">Start date</th>
+                    <th scope="col">End date</th>
+                    <th scope="col">Prize</th>
+                    <!-- <th scope="col">Second Prize</th>
+                    <th scope="col">Third Prize</th> -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in competitions %}
+                <tr>
+                    <td>{{ item.title }}</td>
+                    {% comment %} {% if item.status == 'current' %}
+                    <td>
+                        <a href="{% url 'join-competition' item.id %}" class="btn btn-primary">Join</a>
+                    </td>
+                    {% else %}
+                    <td>
+                        <button class="btn btn-primary" disabled>Join</button>
+                    </td>
+                    {% endif %} {% endcomment %}
+                    <td>{{ item.status.title }}</td>
+                    <td>{{ item.message }}</td>
+                    <td>{{ item.start_date }}</td>
+                    <td>{{ item.end_date }}</td>
+                    <td>&#x20A6;{{ item.first_prize|intcomma }}</td>
+                    <!-- <td>&#x20A6;{{ item.second_prize|intcomma }}</td>
+                    <td>&#x20A6;{{ item.third_prize|intcomma }}</td> -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- Main page ends here -->
+    
+</div>
+{% endblock %}

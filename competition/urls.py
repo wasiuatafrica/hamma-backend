@@ -19,7 +19,7 @@ urlpatterns=[
     path('leave-clan/<str:clan_id>/', views.LeaveAClan.as_view()),
     path('transfer-admin/<str:clan_id>/<str:new_admin_id>/', views.TransferAdmin.as_view()),
     path('clan_members/<str:clan_id>/', views.ClanMembers.as_view()), #not complete
-    path('join-leave/<str:action>/', views.JoinLeaveCompetetion.as_view(), name='join-leave-competition'), #
+    path('join-leave/<str:action>/', views.JoinLeaveCompetetion.as_view()), #
     path('trading-days/', views.TradingDays.as_view()),
     
     path('leaderboard/', views.LeaderBoardView.as_view(),),
@@ -38,6 +38,7 @@ urlpatterns=[
     path("logout/", views.logout_view, name="logout"),
     path('leaderboard-list/', views.leaderboard_view, name='leaderboard'),
     path('remove/<int:pk>/', views.remove_trader, name='remove'),
+    path('join-competition/<str:action>/', views.join_competition, name='join-competition'),
     path('users/', views.list_users, name='list-users'),
     path('current_competition_users/', views.current_competition_users, name='current_competition_users'),
     path('edit-user/<int:user_id>/', views.edit_user, name='edit-user'),
