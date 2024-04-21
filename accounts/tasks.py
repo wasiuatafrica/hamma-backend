@@ -3,7 +3,7 @@ import time
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.contrib.auth import get_user_model
-from pytz import timezone
+from django.utils import timezone
 from execution.trades import simulate_trades
 from execution.models import DemoDailyReturns, DailyReturns, DemoDailyReturns2, get_price, DemoCumulativeReturns
 from django.template.loader import render_to_string
