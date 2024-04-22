@@ -26,7 +26,7 @@ def create_crontab(target_time):
 def send_welcome_email(user):
     # user = User.objects.get(id=id)
     
-    schedule1 = create_crontab(timezone.now()   + timedelta(minutes=5))
+    schedule1 = create_crontab(timezone.now()   + timedelta(minutes=65))
     schedule2 = create_crontab(timezone.now()  + timedelta(hours=12))
     schedule3 = create_crontab(timezone.now()  + timedelta(hours=24))
     
