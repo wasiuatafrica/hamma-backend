@@ -894,7 +894,8 @@ def list_users(request):
 @login_required
 @user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')
 def current_competition_users(request,id):
-    users = CompetitionPortfolio.objects.filter(competition__id=id).order_by('-created')
+    competition = Competition.objects.get(id=id)
+    users = CompetitionPortfolio.objects.filter(competition=competition).order_by('-created')
     # users = [port.user for port in portfolio]
 
     # Handling search functionality
@@ -922,7 +923,7 @@ def current_competition_users(request,id):
         users = paginator.page(paginator.num_pages)
 
 
-    return render(request, 'leaderboard/current_competition_users.html', {'users': users})
+    return render(request, 'leaderboard/current_competition_users.html', {'users': users, 'title':competition.title})
 
 
 @login_required
