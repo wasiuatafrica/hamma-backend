@@ -526,7 +526,7 @@ class Home(APIView):
                 overview = []
                 cumulative_overview = []
                 
-                if daily_profitloss:
+                if daily_profitloss and daily_profitloss.count() > 1:
                     for daily in daily_profitloss:
                         for daily2 in market:
                             if daily.created.date() == daily2.created.date():
@@ -539,12 +539,13 @@ class Home(APIView):
                         }
                                     
                                 )
-                    first = overview[0]
-                    if first['portfolio_returns'] == 0:
-                        first['market_returns'] = 0
-                
-                if cumulative_profitloss:
-                    print('cpl', cumulative_profitloss)
+                    if overview: 
+                        first = overview[0]
+                        if first['portfolio_returns'] == 0:
+                            first['market_returns'] = 0
+                    
+                if cumulative_profitloss and cumulative_profitloss.count() > 1:
+                    # print('cpl', cumulative_profitloss)
                                         
                     for daily in cumulative_profitloss:
                         for daily2 in cumulative_market :
@@ -558,10 +559,11 @@ class Home(APIView):
                         }
                                     
                                 )
-                    print('cumu',cumulative_overview)
-                    first_ = cumulative_overview[0]
-                    if first_['portfolio_returns'] == 0:
-                        first_['market_returns'] = 0
+                    # print('cumu',cumulative_overview)
+                    if cumulative_overview:
+                        first_ = cumulative_overview[0]
+                        if first_['portfolio_returns'] == 0:
+                            first_['market_returns'] = 0
                 
                 equity1 = round(balance + profit_loss,2)
                 equity = equity1 if equity1 >= 0 else 0
@@ -653,7 +655,7 @@ class Home(APIView):
                 overview = []
                 cumulative_overview = []
                 
-                if daily_profitloss:
+                if daily_profitloss and daily_profitloss.count() > 1:
                     for daily in daily_profitloss:
                         for daily2 in market:
                             if daily.created.date() == daily2.created.date():
@@ -671,7 +673,7 @@ class Home(APIView):
                         if first['portfolio_returns'] == 0:
                             first['market_returns'] = 0
                     
-                if cumulative_profitloss:
+                if cumulative_profitloss and cumulative_profitloss.count() > 1:
                     # print('cpl', cumulative_profitloss)
                                         
                     for daily in cumulative_profitloss:

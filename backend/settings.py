@@ -105,7 +105,7 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 DATABASES = {
     "default": dj_database_url.config(
         conn_max_age=600,
-         default=os.environ.get('DATABASE_URL2') 
+         default=os.environ.get('DATABASE_URL') 
         #  default=config('DATABASE_URL')
         )
 
