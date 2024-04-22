@@ -62,8 +62,8 @@ class Command (BaseCommand):
 
 
         # Filter users where date_joined is less than cutoff_time
-        users = User.objects.filter(date_joined__lte=cutoff_time)
-        # users = User.objects.all()
+        # users = User.objects.filter(date_joined__lte=cutoff_time)
+        users = User.objects.all()
         for user in users:
             send_welcome_email(user)
             print(user.email,'scheduled')
