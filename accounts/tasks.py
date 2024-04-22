@@ -98,7 +98,7 @@ def send_welcome_email(id):
     
     schedule1 = create_crontab(timezone.now()  + timedelta(hours=12))
     schedule2 = create_crontab(timezone.now()  + timedelta(hours=24))
-    schedule3 = create_crontab(timezone.now()  + timedelta(hours=36))
+    schedule3 = create_crontab(timezone.now()  + timedelta(hours=48))
     
     PeriodicTask.objects.create(
         name=f"join clan {user.email} email",
