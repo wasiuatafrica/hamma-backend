@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
-from datetime import datetime
+from datetime import datetime,timedelta,time
 from django.contrib.auth import get_user_model
-from datetime import timedelta
 import time
 from celery import shared_task
 from celery.utils.log import get_task_logger
@@ -56,8 +55,15 @@ class Command (BaseCommand):
     help = ''
 
     def handle (self, *args, **options):
-        
-        users = User.objects.all()
+        yesterday = timezone.now().date() - timedelta(days=1)
+        # cutoff_time = datetime.combine(yesterday, time(20, 0))  # 8 PM
+        # cutoff_time = timezone.make_aware(datetime.combine(yesterday, time(20, 0)))
+        cutoff_time = datetime(yesterday.year, yesterday.month, yesterday.day, 20, 0)
+
+
+        # Filter users where date_joined is less than cutoff_time
+        users = User.objects.filter(date_joined__lte=cutoff_time)
+        # users = User.objects.all()
         for user in users:
             send_welcome_email(user)
             print(user.email,'scheduled')
