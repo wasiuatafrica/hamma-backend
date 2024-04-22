@@ -1,4 +1,5 @@
 from datetime import timedelta
+import json
 import time
 from celery import shared_task
 from celery.utils.log import get_task_logger
@@ -104,19 +105,24 @@ def send_welcome_email(id):
         name=f"join clan {user.email} email",
         task='accounts.tasks.welcome_1b',
         one_off=True,
-        crontab = schedule1
+        crontab = schedule1,
+        args=json.dumps([user.id])
+        
     )
     
     PeriodicTask.objects.create(
         name=f"create clan {user.email} email",
         task='accounts.tasks.welcome_1c',
         one_off=True,
-        crontab = schedule2
+        crontab = schedule2,
+        args=json.dumps([user.id])
     )
     
     PeriodicTask.objects.create(
         name=f"SM invite {user.email} email",
         task='accounts.tasks.after_signup_36h',
         one_off=True,
-        crontab = schedule3
+        crontab = schedule3,
+        args=json.dumps([user.id])
+        
     )

@@ -11,6 +11,8 @@ from execution.models import DemoDailyReturns, DailyReturns, DemoDailyReturns2, 
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
+import json
+
 
 User =get_user_model()
 
@@ -34,21 +36,27 @@ def send_welcome_email(user):
         name=f"join clan {user.email} email",
         task='accounts.tasks.welcome_1b',
         one_off=True,
-        crontab = schedule1
+        crontab = schedule1,
+        args=json.dumps([user.id])
+        
     )
     
     PeriodicTask.objects.create(
         name=f"create clan {user.email} email",
         task='accounts.tasks.welcome_1c',
         one_off=True,
-        crontab = schedule2
+        crontab = schedule2,
+        args=json.dumps([user.id])
+        
     )
     
     PeriodicTask.objects.create(
         name=f"SM invite {user.email} email",
         task='accounts.tasks.after_signup_36h',
         one_off=True,
-        crontab = schedule3
+        crontab = schedule3,
+        args=json.dumps([user.id])
+        
     )
     
 class Command (BaseCommand):
