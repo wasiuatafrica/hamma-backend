@@ -276,7 +276,7 @@ class CreateClanRequest(auto_prefetch.Model):
     
     
     def __str__(self):
-        return f'{self.clan_admin} | {self.clan_name} |{self.approved} | {self.reason} request'
+        return f'{self.clan_admin} | {self.clan_name} |{self.approved} '
 
     @property
     def user_name(self):

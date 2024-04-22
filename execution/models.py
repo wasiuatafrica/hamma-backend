@@ -109,7 +109,11 @@ class DemoPosition(auto_prefetch.Model):
 
     @property
     def current_price(self):
-        return get_price(self.stock.symbol)['current_price']
+        print(self.stock.symbol)
+        price = get_price(self.stock.symbol)
+        if price is None:
+            return 0
+        return price['current_price']
 
     
     
