@@ -133,28 +133,29 @@ class JoinLeaveCompetetion(APIView):
         
         clan_query= Clan.objects.filter(clan_admin=request.user)
         
-        more_than_one_member=False
+        # more_than_one_member=False
                 
-        print('exists',clan_query.exists())
-        if clan_query.exists():
-            clan = clan_query.first()
-            clan_members=clan.member.all().count()
-            if clan_members < 2:
-                save_and_send_notification(request.user.id, "There should be atleast 3 people in your clan before you can join competition.")
+        # # print('exists',clan_query.exists())
+        # if clan_query.exists():
+        #     clan = clan_query.first()
+        #     clan_members=clan.member.all().count()
+        #     if clan_members < 2:
+        #         save_and_send_notification(request.user.id, "There should be atleast 3 people in your clan before you can join competition.")
                 
-                return Response({"detail": "You need at least two (2) member in your clan to be able to participate in this competition."}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                more_than_one_member=True
+        #         return Response({"detail": "You need at least two (2) member in your clan to be able to participate in this competition."}, status=status.HTTP_400_BAD_REQUEST)
+        #     else:
+        #         more_than_one_member=True
                 
         clan_query2= Clan.objects.filter(member=request.user)
         
         
-        if clan_query2.exists() and clan_query2.first().member.all().count() < 2:
-            save_and_send_notification(request.user.id, "There should be atleast 3 people in your clan before you can join competition.")
+        # if clan_query2.exists() and clan_query2.first().member.all().count() < 2:
+        #     save_and_send_notification(request.user.id, "There should be atleast 3 people in your clan before you can join competition.")
                 
-            return Response({"detail": "You need at least 3 people in your clan to be able to participate in this competition."}, status=status.HTTP_400_BAD_REQUEST)
+        #     return Response({"detail": "You need at least 3 people in your clan to be able to participate in this competition."}, status=status.HTTP_400_BAD_REQUEST)
             
-        if (clan_query2.exists() and clan_query2.first().member.all().count() > 1) or (clan_query.exists() and more_than_one_member) :
+        # if (clan_query2.exists() and clan_query2.first().member.all().count() > 1) or (clan_query.exists() and more_than_one_member) :
+        if clan_query2.exists()  or clan_query.exists() :
         
             portfolio = CompetitionPortfolio.objects.filter(competition=competition,user=request.user).first()
             
