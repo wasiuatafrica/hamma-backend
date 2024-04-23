@@ -1,5 +1,8 @@
 from rest_framework import serializers
 from .import models
+from django.contrib.auth.password_validation import validate_password
+
+
 
 class CustomUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
@@ -32,6 +35,11 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'totp_url': {'read_only': True},
             # 'signup_type': {'read_only': True},
         }
+        
+    def validate_password(self, value):
+        # Validate the password against Django's password validation rules
+        validate_password(value)
+        return value
 
 class UpdateCustomUserSerializer(serializers.ModelSerializer):
 
