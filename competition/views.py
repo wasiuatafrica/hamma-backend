@@ -50,6 +50,9 @@ import competition
 from competition import models as competion_models, serializers as competion_serializers
 from django.utils import timezone
 
+# Send mails
+from .managers.utils import sendMail 
+
 
 User = get_user_model()
 # Create your views here.
@@ -399,6 +402,10 @@ class JoinClanRequestView(APIView):
         # Send clan admin a membership notifcation
         save_and_send_notification(join_request.user.id,f"Your request to join clan {clan.clan_name} has been sent and awaiting the clan admin approval")
         save_and_send_notification(join_request.clan.clan_admin.id,f"{request.user.firstname} {request.user.lastname} wants to join your clan.")
+        mail=sendMail("competition/joinClanRequest.html","Join a Clan (Request)",[request.user.email],{"first_name":request.user.firstname, "clan_name":clan.clan_name})
+
+        # send mail to clan admin to review request
+        mail=sendMail("competition/notifyClanAdminJoinClanRequest.html","Review and Approve 'Request to Join clan'",[clan.clan_admin.email],{"first_name":join_request.user.firstname})
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             return Response(serializer.data)
@@ -425,10 +432,15 @@ class JoinClanRequestView(APIView):
             join_request.clan.member.add(account)
             # Send the clan member a notfication
             save_and_send_notification(join_request.user.id, f"Your memebership request has been approved by the admin of {join_request.clan.clan_name}")
-        elif join_request.approved in ['rejected', 'leave', 'remove']:
+            mail=sendMail("competition/joinClanApproved.html","Join a Clan (Approved)",[join_request.user.email],{"first_name":join_request.user.firstname, "clan_name":join_request.clan.clan_name})
+        elif join_request.approved in ['leave', 'remove']:
             join_request.clan.member.remove(account)
             # Send the clan member a notfication
             save_and_send_notification(join_request.user.id, f"You have been removed from {join_request.clan.clan_name} clan by the clan admin.")
+        elif join_request.approved == "rejected":
+            # Send the clan member a notfication
+            save_and_send_notification(join_request.user.id, f"You have been removed from {join_request.clan.clan_name} clan by the clan admin.")
+            mail=sendMail("competition/joinClanRejected.html","Join a Clan (Rejected)",[join_request.user.email],{"first_name":join_request.user.firstname, "clan_name":join_request.clan.clan_name})
         elif action == "withdraw":
             # Trader wants to withdraw his request
             admin=join_request.clan.clan_admin.id #save admin id before delete
@@ -512,6 +524,8 @@ class CreateClanRequestView(APIView):
             'user': join_request.clan_admin.id,
             'clan': join_request.clan_name,
         }
+        # send clan creaeRequest mail
+        mail=sendMail("competition/createClanRequest.html","Create a Clan (Request)",[request.user.email],{"first_name":request.user.firstname, "clan_name":name})
        
         return Response(data)
     
@@ -952,6 +966,7 @@ def clan_requests(request):
                 request1.approved='approved'
                 request1.save()
                 save_and_send_notification(request1.clan_admin.id, f"Your clan {request1.clan_name.title()} creation request has been approved, You are the clan admin")
+                mail=sendMail("competition/CreateClanApproved.html","Create a Clan (Approved)",[request1.clan_admin.email],{"first_name":request1.clan_admin.firstname, "clan_name":request1.clan_name})
         
             elif action=='rejected':
                 reason=request.POST.get("reason")
@@ -960,6 +975,7 @@ def clan_requests(request):
                 request1.reason=reason
                 request1.save()
                 save_and_send_notification(request1.clan_admin.id, f"Your clan {request1.clan_name.title()} creation request has been rejected. Reason: {reason}")
+                mail=sendMail("competition/CreateClanRejected.html","Create a Clan (Rejected)",[request1.clan_admin.email],{"first_name":request1.clan_admin.firstname, "clan_name":request1.clan_name, "reasons":reason})
                 
         referer = request.META.get('HTTP_REFERER')
         if referer:
