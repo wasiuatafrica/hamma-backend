@@ -367,7 +367,7 @@ class TopTraderPayout(auto_prefetch.Model):
     
 
     def __str__(self):
-        return 'Payout' + '-' + str(self.portfolio.acc.number)
+        return 'Payout' + '-' + str(self.portfolio.user.email)
 
 class TopTraderPayoutButtonShows(auto_prefetch.Model):
     portfolio = auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE)

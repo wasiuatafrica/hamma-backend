@@ -77,6 +77,14 @@ urlpatterns=[
     #support
     path('trading-days/support/<str:email>/', views.SupportTradingDays.as_view()),
     path('clan/support/<str:email>/', views.SupportClandetails.as_view()),
+    path('join-clan/support/<str:email>/', views.SupportJoinClanRequestView.as_view()),
+    path('request-top-trader-payout/<str:competition_id>/support/<str:email>/', views.SupportTopTraderPayoutRequest.as_view()),
+    path('request-top-clan-payout/<str:competition_id>/support/<str:email>/', views.SupportTopClanPayoutRequest.as_view()),
+    path('trader-payout-history/support/<str:email>/',views.SupportPayoutHistory.as_view()),
+    
+    
+    
+    
     
 
 ]+router.urls

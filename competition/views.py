@@ -491,6 +491,25 @@ class JoinClanRequestView(APIView):
         clan_serializer = serializers.ClanSerializer(join_request.clan, many=False)
         return Response({'join_request':serializer.data, 'clan':clan_serializer.data}, status=status.HTTP_200_OK)
 
+class SupportJoinClanRequestView(APIView):
+    serializer_class =  serializers.JoinClanRequestSerializers
+    queryset = JoinClanRequest.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        email = self.kwargs.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({})
+        
+        is_admin = Clan.objects.filter(clan_admin=user)
+        if not is_admin.exists():
+            return Response({})
+        # Filter by clan_id
+        join_request=JoinClanRequest.objects.filter(clan=is_admin.first())
+        print(join_request)
+        serializer = self.serializer_class(join_request, many=True)
+        return Response([{'admin':is_admin.exists()}, serializer.data])
 
 class CanJoin(APIView):
     def get(self, request):
@@ -1385,6 +1404,54 @@ class TopTraderPayoutRequest(APIView):
         # send_top_trader_payment_processing_mail(request.user.email)
         return Response({"detail":"Request sent"})
 
+class SupportTopTraderPayoutRequest(APIView):
+    serializer_class =  serializers.CompetitionSummarySerializer
+    queryset = CompetitionSummary.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        email = self.kwargs.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({})
+        
+        competition_id=Competition.objects.filter(id=kwargs.get("competition_id")).first()
+        if not competition_id:
+            return Response({"detail":"competiton with this ID not found"}, status=status.HTTP_404_NOT_FOUND)
+        # Prevent others from making request for another trader's payout
+        user_acc=CompetitionSummary.objects.filter(competition=competition_id, user=user).first()
+        
+        if not user_acc:
+            return Response({"detail": "Account not found. Your account didn't make it to the end of competition."}, status=status.HTTP_404_NOT_FOUND)
+        # Get all the profits and prevents duplicates using set
+        trading_days = count_business_days(competition_id.start_date, competition_id.end_date)
+        
+        top_3= CompetitionSummary.objects.filter(competition=competition_id,trading_days__gte=trading_days).order_by('position')[:1]
+        # top_3=[account.user_account for account in top_]
+        
+        trading_days = count_business_days(competition_id.start_date, competition_id.end_date)
+        
+        has_pending_request=TopTraderPayout.objects.filter( 
+            portfolio=user_acc.portfolio,
+            status="pending",
+            competition=competition_id).first()
+        if has_pending_request:
+                return Response({'status':False, 'reason': 'has pending payout request' },status=status.HTTP_200_OK)
+        desired_time = time(12, 0)
+        wat_timezone = pytz.timezone('Africa/Lagos')
+        #print(wat_timezone, "timeeeee")
+        current_time_wat = datetime.now(wat_timezone)
+        is_friday = current_time_wat.weekday() == 4  # 4 represents Friday
+        is_after_12pm_wat = current_time_wat.time() > desired_time
+        is_weekend = datetime.now().weekday() > 5
+        requested_today= TopTraderPayoutButtonShows.objects.filter(portfolio=user_acc.portfolio, paydate = datetime.now().date()).exists()
+        if (is_friday and is_after_12pm_wat) or is_weekend:
+                return Response({'status':False, 'reason': 'Can only request mon-fri 12pm' },status=status.HTTP_200_OK)
+            
+        if user_acc not in top_3:
+            return Response({'status':False, 'reason': 'Ineligible' },status=status.HTTP_200_OK)
+        
+        return Response({'status':True, 'reason': '' })
 
     
 class TopClanPayoutRequest(APIView):
@@ -1426,6 +1493,7 @@ class TopClanPayoutRequest(APIView):
                 return Response({'status':False, 'reason': 'Ineligible' },status=status.HTTP_200_OK)
         
             return Response({'status':True, 'reason': '' })
+        
     def post(self, request,*args, **kwargs):
         competition_id=Competition.objects.filter(id=kwargs.get("competition_id")).first()
         if not competition_id:
@@ -1454,7 +1522,51 @@ class TopClanPayoutRequest(APIView):
         # send_top_clan_payment_processing_mail(request.user.email)
         return Response({"detail":"Request sent"})
         
+class SupportTopClanPayoutRequest(APIView):
+    serializer_class =  serializers.CompetitionSummarySerializer
+    queryset = ClanCompetitionSummary.objects.all()
 
+    def get(self, request, *args, **kwargs):
+        email = self.kwargs.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({})
+        
+        competition_id=Competition.objects.filter(id=kwargs.get("competition_id")).first()
+        if not competition_id:
+            return Response({"detail":"competiton with this ID not found"}, status=status.HTTP_404_NOT_FOUND)
+        # Prevent others from making request for another trader's payout
+        try:
+            clan=Clan.objects.get(clan_admin=user)
+        except Clan.DoesNotExist:
+            clan=None
+            return Response({'status':False, 'reason': 'Ineligible' }, status=status.HTTP_200_OK)
+        if clan:
+            top_3 = [summary.clan for summary in ClanCompetitionSummary.objects.filter(competition=competition_id).order_by('position')[:3]]
+        
+            has_pending_request=TopClanPayout.objects.filter( 
+                clan__clan_admin=user,
+                status="pending",
+                competition=competition_id).first()
+            if has_pending_request:
+                return Response({'status':False, 'reason': 'has pending payout request' },status=status.HTTP_200_OK)
+            desired_time = time(12, 0)
+            wat_timezone = pytz.timezone('Africa/Lagos')
+            #print(wat_timezone, "timeeeee")
+            current_time_wat = datetime.now(wat_timezone)
+            is_friday = current_time_wat.weekday() == 4  # 4 represents Friday
+            is_after_12pm_wat = current_time_wat.time() > desired_time
+            is_weekend = datetime.now().weekday() > 5
+            requested_today= TopClanPayoutButtonShows.objects.filter(clan=clan, paydate = datetime.now().date()).exists()
+
+            if (is_friday and is_after_12pm_wat) or is_weekend:
+                return Response({'status':False, 'reason': 'Can only request mon-fri 12pm' },status=status.HTTP_200_OK)
+            
+            if clan not in top_3:
+                return Response({'status':False, 'reason': 'Ineligible' },status=status.HTTP_200_OK)
+        
+            return Response({'status':True, 'reason': '' })
 
 
 def Create_competiton_summary(competition):
@@ -1523,6 +1635,19 @@ def rank_traders(competition):
 class PayoutHistory(APIView):
     def get(self, request,*args, **kwargs):
         history = TopTraderPayout.objects.filter(portfolio__user=request.user)
+        serializer=serializers.TraderPayoutSerializer(history, many=True)
+        return Response(serializer.data)
+    
+class SupportPayoutHistory(APIView):
+    
+    def get(self, request, *args, **kwargs):
+        email = self.kwargs.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({})
+        
+        history = TopTraderPayout.objects.filter(portfolio__user=user)
         serializer=serializers.TraderPayoutSerializer(history, many=True)
         return Response(serializer.data)
     
