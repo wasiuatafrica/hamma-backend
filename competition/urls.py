@@ -74,5 +74,9 @@ urlpatterns=[
     path('clan/request-name-change/', views.ClanNameChangeRequestView.as_view()),
     path('clan/request-member-removal/', views.ClanMemeberRemoverRequest.as_view()),
 
+    #support
+    path('trading-days/support/<str:email>/', views.SupportTradingDays.as_view()),
+    path('clan/support/<str:email>/', views.SupportClandetails.as_view()),
+    
 
 ]+router.urls

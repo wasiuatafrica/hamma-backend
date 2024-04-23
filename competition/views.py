@@ -368,6 +368,42 @@ class TradingDays(APIView):
         
         return Response({"trading_days": days})
 
+class SupportTradingDays(APIView):
+    def get(self, request, *args, **kwargs):
+        email = self.kwargs.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"trading_days": []})
+    
+        portfolio = CompetitionPortfolio.objects.filter(competition__status='current', user=user,  active=True).first()
+        if not portfolio:
+            return Response({"trading_days": []})
+
+        positions = portfolio.composition.all()
+        valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
+        
+        days = [position.updated.date() for position in valid_positions]
+        
+        return Response({"trading_days": days})
+
+class SupportClandetails(APIView):
+    serializer_class= serializers.ClanSerializer
+
+    def get(self, request, *args, **kwargs):
+        email = self.kwargs.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({})
+
+        try:
+            clan=  Clan.objects.get(member=user)
+        except Clan.DoesNotExist:
+            return Response({})
+        serializer = self.serializer_class(clan)
+        return Response(serializer.data)
+
 class JoinClanRequestView(APIView):
     serializer_class =  serializers.JoinClanRequestSerializers
     queryset = JoinClanRequest.objects.all()
