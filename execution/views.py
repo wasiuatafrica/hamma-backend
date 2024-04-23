@@ -450,7 +450,62 @@ class DemoTradeAPIView(APIView):
                 
                 return Response({'message': f'{action.title()} order scheduled successfully.'}, status=status.HTTP_201_CREATED)
 
+class SupportDemoTradeAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        email = self.kwargs.get('email')
+        user = User.objects.get(email=email)
+        
+        competition = Competition.objects.filter(status='current').first()
+        portfolio = None
+        
+        if competition:
+            portfolio = CompetitionPortfolio.objects.filter(user=user, competition=competition, active=True).first()
             
+        if portfolio and timezone.now() > competition.start_date:
+            positions = CompetitionPosition.objects.filter(portfolio=portfolio, status='open')
+        else:
+            positions = DemoPosition.objects.filter(portfolio__user=user,status='open')
+        
+        def get_position(position):
+                # print(position.id)
+                pl, cur_val,price = position.calculate_profit_loss()
+                symbol=position.stock.symbol
+                
+                if position.amount_invested != 0:
+                    percent = round((pl/position.amount_invested) * 100,2)
+                    data1 = {
+                        'id':position.id,
+                        'symbol':symbol,
+                        'open_pl':round(pl,2),
+                        'pl_percent': percent,
+                        'created':position.created,
+                        'status':position.status,
+                        'open_price': position.open_price,
+                        'order_id':position.order_id,
+                    }
+                    
+                else:
+                    data1 = {
+                        'id':position.id,
+                        'symbol':symbol,
+                        'open_pl':0,
+                        'pl_percent': 0,
+                        'created':position.created,
+                        'status':position.status,
+                        'open_price': position.open_price,
+                        'order_id':position.order_id,
+                    }
+                return data1
+            
+        with ThreadPoolExecutor() as executor:
+            futures = executor.map(get_position, positions)
+            position_data_list = [result for result in futures if result]
+            
+            return Response(position_data_list)
+    
+          
 
 class Home(APIView):
     def get(self, request, *args, **kwargs):

@@ -844,7 +844,11 @@ def leaderboard_view(request):
         sorted_data=[]
         past_data=CompetitionSummary.objects.filter(competition__id=q).order_by("position")
     # print(sorted_data)
-    return render(request, 'leaderboard/leaderboard.html', {'data':sorted_data, "competitions":competitions, "leaderboard":leaderboard, "pastLeaderboard":pastLeaderboard, "past_data":past_data})
+    current_comp =  Competition.objects.filter(status='current')
+    if current_comp.exists() and timezone.now() > current_comp.first().start_date:
+        return render(request, 'leaderboard/leaderboard.html', {'data':sorted_data, "competitions":competitions, "leaderboard":leaderboard, "pastLeaderboard":pastLeaderboard, "past_data":past_data})
+    else:
+        return render(request, 'leaderboard/leaderboard.html', {'data':[], "competitions":competitions, "leaderboard":leaderboard, "pastLeaderboard":pastLeaderboard, "past_data":past_data})
 
 @login_required
 @user_passes_test(is_user_staff, login_url='/leaderboard/login/', redirect_field_name='403')

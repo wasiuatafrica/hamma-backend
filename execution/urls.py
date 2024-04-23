@@ -10,5 +10,7 @@ urlpatterns = [
     
     #support
     path('home/<str:mode>/support/<str:email>/', views.SupportHome.as_view()),
-    path('holding/demo/support/<str:email>/', views.SupportDemoHolding.as_view())
+    path('holding/demo/support/<str:email>/', views.SupportDemoHolding.as_view()),
+    path('trade/demo/support/<str:email>/', views.SupportDemoTradeAPIView.as_view()),
+    
 ]
