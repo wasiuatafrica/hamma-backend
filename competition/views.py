@@ -400,7 +400,10 @@ class SupportClandetails(APIView):
         try:
             clan=  Clan.objects.get(member=user)
         except Clan.DoesNotExist:
-            return Response({})
+            clan=  Clan.objects.filter(clan_admin=user).first()
+            if not clan:
+                return Response({})
+            
         serializer = self.serializer_class(clan)
         return Response(serializer.data)
 
