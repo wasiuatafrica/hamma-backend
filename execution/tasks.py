@@ -147,7 +147,7 @@ def process_limit_order(id, in_competition=False):
                     if position.action == 'buy':
                         if price <= position.limit_price:
                             
-                            amount = Decimal(price) * position.quantity
+                            amount = round(Decimal(price) * position.quantity,2)
                             trade_commission = round(Decimal(0.00435) * amount, 2) + 200
                     
                             total= amount + trade_commission
@@ -184,7 +184,7 @@ def process_limit_order(id, in_competition=False):
 
                     elif position.action == 'sell':
                         if price >= position.limit_price:
-                            amount = Decimal(price) * position.quantity
+                            amount = round(Decimal(price) * position.quantity,2)
                             trade_commission = round(Decimal(0.00435) * amount, 2) + 200
                     
                             total= amount + trade_commission
@@ -277,7 +277,7 @@ def process_limit_order(id, in_competition=False):
                         if price <= position.limit_price:
                             position.status= 'open'
                             position.open_price = Decimal(price)
-                            position.amount_invested = Decimal(price) * position.quantity
+                            position.amount_invested = round(Decimal(price) * position.quantity,2)
                             position.save()
                         
                             DemoTransaction.objects.create(
@@ -294,7 +294,7 @@ def process_limit_order(id, in_competition=False):
                         if price >= position.limit_price:
                             position.status= 'open'
                             position.open_price = Decimal(price)
-                            position.amount_invested = Decimal(price) * position.quantity
+                            position.amount_invested = round(Decimal(price) * position.quantity, 2)
                             position.save()
                         
                             DemoTransaction.objects.create(
