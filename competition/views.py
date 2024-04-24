@@ -948,7 +948,7 @@ def list_users(request):
         )
 
     # Paginate users list
-    paginator = Paginator(users, 50)
+    paginator = Paginator(users, 100)
     page_number = request.GET.get('page')
     try:
         page_number = int(page_number)
@@ -983,7 +983,7 @@ def current_competition_users(request,id):
         # users = [port.user for port in portfolio]
 
         
-    paginator = Paginator(users, 50)
+    paginator = Paginator(users, 100)
     page_number = request.GET.get('page')
     try:
         page_number = int(page_number)

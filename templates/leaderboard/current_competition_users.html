@@ -44,7 +44,7 @@
             <tbody>
               {%for user in users%}
             <tr>
-                <th scope="row">{{forloop.counter}}</th>
+                <th scope="row">{{users.start_index|add:forloop.counter0}}</th>
                 <td>{{ user.user.email }}</td>
                 <td>{{ user.user.firstname }}</td>
                 <td>{{ user.user.lastname }}</td>
