@@ -395,14 +395,14 @@ class SupportClandetails(APIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({})
+            return Response([])
 
         try:
             clan=  Clan.objects.get(member=user)
         except Clan.DoesNotExist:
             clan=  Clan.objects.filter(clan_admin=user).first()
             if not clan:
-                return Response({})
+                return Response([])
             
         serializer = self.serializer_class(clan)
         return Response(serializer.data)
@@ -500,11 +500,11 @@ class SupportJoinClanRequestView(APIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({})
+            return Response([])
         
         is_admin = Clan.objects.filter(clan_admin=user)
         if not is_admin.exists():
-            return Response({})
+            return Response([])
         # Filter by clan_id
         join_request=JoinClanRequest.objects.filter(clan=is_admin.first())
         print(join_request)
@@ -1413,7 +1413,7 @@ class SupportTopTraderPayoutRequest(APIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({})
+            return Response([])
         
         competition_id=Competition.objects.filter(id=kwargs.get("competition_id")).first()
         if not competition_id:
@@ -1531,7 +1531,7 @@ class SupportTopClanPayoutRequest(APIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({})
+            return Response([])
         
         competition_id=Competition.objects.filter(id=kwargs.get("competition_id")).first()
         if not competition_id:
@@ -1645,7 +1645,7 @@ class SupportPayoutHistory(APIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({})
+            return Response([])
         
         history = TopTraderPayout.objects.filter(portfolio__user=user)
         serializer=serializers.TraderPayoutSerializer(history, many=True)
