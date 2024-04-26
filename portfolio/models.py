@@ -566,7 +566,7 @@ class Alert(auto_prefetch.Model):
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return f"{self.id} {self.created} {self.stock.symbol} alert"
+        return f"{self.user.email}|{self.id} {self.created} {self.stock.symbol} alert"
     
 class AlertAI(auto_prefetch.Model):
     user= auto_prefetch.ForeignKey(User,on_delete=models.CASCADE)

@@ -12,5 +12,5 @@ class SavingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Saving
         fields = ['id','title','source', 'status', 'amount', 'interest_rate', 'start_date',
-                  'duration', 'potential_interest', 'total_amount_after_close',
+                  'duration', 'potential_interest', 'total_amount_after_close', "profit"
                   ]

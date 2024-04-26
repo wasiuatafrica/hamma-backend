@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import SavingsLockList, SavingsLockDetail, SavingList,SavingDetail, Savingclose
+from .views import SavingsLockList, SavingsLockDetail, SavingList,SavingDetail, Savingclose, SupportSavingList
 
 urlpatterns = [
     path('savings/', SavingsLockList.as_view(), name='savings_lock_list_api'),
@@ -7,4 +7,8 @@ urlpatterns = [
     path('saving/', SavingList.as_view(), ),
     path('saving/<int:pk>/', SavingDetail.as_view(), ),
     path('saving/close/<str:id>/', Savingclose.as_view(), ),
+    
+    #support
+    path('saving/support/<str:email>/', SupportSavingList.as_view(), ),
+    
 ]
