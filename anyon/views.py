@@ -219,7 +219,7 @@ class AdminReceiptsView(APIView):
             receipt.save()
             activity=AdminUserActivityLog.objects.create(admin=request.user, user=receipt.user, action_type="approved_reciept",description=f"Admin user approved reciept.")
             # wallet=models.Wallet.objects.get(user=receipt.user)
-            wallet= exec_models.Portfolio.objects.get(user=request.user)
+            wallet= exec_models.Portfolio.objects.get(user=receipt.user)
             amount = Decimal(amount)
             wallet.balance += amount
             wallet.save()
