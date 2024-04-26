@@ -4,6 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
+
+from waitlist import serializer
 from .models import (Wallet, Stock,  Receipts, PayStackReceipts, Alert,WithdrawalOTPRequest,
                      Transaction, AlertAI, AlertAITracker, Conversation, Message)
 from .serializers import (StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
@@ -508,6 +510,21 @@ class TransactionList(generics.ListAPIView):
         # Only retrieve transactions for the logged-in user
         return Transaction.objects.filter(user=self.request.user)
 
+class SupportTransactionList(APIView):
+    serializer_class = TransactionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        email = self.kwargs.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response([])
+        
+        transactions = Transaction.objects.filter(user=user)
+        serializer=TransactionSerializer(transactions, many=True)
+        return Response(serializer.data)
+    
 
 
 class Symbols(APIView):
