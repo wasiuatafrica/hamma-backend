@@ -19,7 +19,7 @@ class Command (BaseCommand):
         for req in join_requests:
             diff = timezone.now() - req.date_request
             if diff.days > 2:
-                req.status = 'rejected'
+                req.approved = 'rejected'
                 req.save()
                 save_and_send_notification(req.user.id, "Your clan join request has been rejected")
                 mail=sendMail("competition/joinClanRejected.html","Join a Clan (Rejected)",[req.user.email],{"first_name":req.user.firstname.title(), "clan_name":req.clan.clan_name.title()})
