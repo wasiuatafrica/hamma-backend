@@ -19,7 +19,7 @@ from django_celery_beat.models import PeriodicTask, CrontabSchedule
 from django.db.models import F, Window 
 from django.db.models.functions import Rank
 from django.utils import timezone
-
+from .managers.utils import sendMail
 from accounts.models import Profile
 
 User=get_user_model()
@@ -458,3 +458,5 @@ def check_pending_join_clan_requests():
             req.status = 'rejected'
             req.save()
             save_and_send_notification(req.user.id, "Your clan join request has been rejected")
+            mail=sendMail("competition/joinClanRejected.html","Join a Clan (Rejected)",[req.user.email],{"first_name":req.user.firstname.title(), "clan_name":req.clan.clan_name.title()})
+    print("check pending join clan requests done for today")

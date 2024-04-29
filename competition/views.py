@@ -470,7 +470,7 @@ class JoinClanRequestView(APIView):
         if join_request.approved == 'approved':
             join_request.clan.member.add(account)
             # Send the clan member a notfication
-            save_and_send_notification(join_request.user.id, f"Your memebership request has been approved by the admin of {join_request.clan.clan_name}")
+            save_and_send_notification(join_request.user.id, f"Your membership request has been approved by the admin of {join_request.clan.clan_name}")
             mail=sendMail("competition/joinClanApproved.html","Join a Clan (Approved)",[join_request.user.email],{"first_name":join_request.user.firstname, "clan_name":join_request.clan.clan_name})
         elif join_request.approved in ['leave', 'remove']:
             join_request.clan.member.remove(account)
@@ -478,7 +478,7 @@ class JoinClanRequestView(APIView):
             save_and_send_notification(join_request.user.id, f"You have been removed from {join_request.clan.clan_name} clan by the clan admin.")
         elif join_request.approved == "rejected":
             # Send the clan member a notfication
-            save_and_send_notification(join_request.user.id, f"You have been removed from {join_request.clan.clan_name} clan by the clan admin.")
+            save_and_send_notification(join_request.user.id, f"Your clan join request to {join_request.clan.clan_name.title()} has been rejected.")
             mail=sendMail("competition/joinClanRejected.html","Join a Clan (Rejected)",[join_request.user.email],{"first_name":join_request.user.firstname, "clan_name":join_request.clan.clan_name})
         elif action == "withdraw":
             # Trader wants to withdraw his request
