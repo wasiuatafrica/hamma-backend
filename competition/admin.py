@@ -25,7 +25,18 @@ admin.site.register(ClanMemeberRemoverRequest)
 admin.site.register(Competition)
 admin.site.register(CompetitionPortfolio)
 admin.site.register(Clan)
-admin.site.register(JoinClanRequest)
+
+class JoinClanRequestAdmin(admin.ModelAdmin):
+    # List the fields you want to display in the admin panel
+    list_display = ('user', 'clan', 'approved', 'date_request')
+    
+    # Add a filter for the 'approved' field
+    list_filter = ('approved',)  # You can add more filters if needed
+
+# Register the ModelAdmin
+admin.site.register(JoinClanRequest, JoinClanRequestAdmin)
+
+# admin.site.register(JoinClanRequest)
 admin.site.register(TopClanPayout)
 admin.site.register(TopTraderPayout)
 admin.site.register(Notification)
