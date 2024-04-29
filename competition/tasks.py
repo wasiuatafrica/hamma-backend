@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from numpy import half
 from notifications.utils import save_and_send_notification
 from decimal import Decimal
-from .models import (Competition, CompetitionCumulativeReturns2, CompetitionDailyReturns2, CompetitionPortfolio, get_price, CompetitionDailyReturns, ClanCompetitionSummary, CompetitionSummary, Clan, 
+from .models import (Competition, CompetitionCumulativeReturns2, CompetitionDailyReturns2, CompetitionPortfolio, JoinClanRequest, get_price, CompetitionDailyReturns, ClanCompetitionSummary, CompetitionSummary, Clan, 
                      CompetitionPosition, CompetitionTransaction, CompetitionCumulativeReturns)
 
 from django.db.models import Sum, Avg
@@ -448,3 +448,13 @@ def setup_competition_emails(competition_id):
         crontab = three_days_after_end_schedule
     )
     
+@shared_task
+def check_pending_join_clan_requests():
+    join_requests = JoinClanRequest .objects.filter(status='pending')
+    
+    for req in join_requests:
+        diff = timezone.now() - req.date_request
+        if diff.days > 2:
+            req.status = 'rejected'
+            req.save()
+            save_and_send_notification(req.user.id, "Your clan join request has been rejected")
