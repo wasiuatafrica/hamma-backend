@@ -450,7 +450,7 @@ def setup_competition_emails(competition_id):
     
 @shared_task
 def check_pending_join_clan_requests():
-    join_requests = JoinClanRequest .objects.filter(status='pending')
+    join_requests = JoinClanRequest .objects.filter(approved='pending')
     
     for req in join_requests:
         diff = timezone.now() - req.date_request
