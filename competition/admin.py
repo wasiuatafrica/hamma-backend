@@ -32,6 +32,7 @@ class JoinClanRequestAdmin(admin.ModelAdmin):
     
     # Add a filter for the 'approved' field
     list_filter = ('approved',)  # You can add more filters if needed
+    search_fields = ['user__email']
 
 # Register the ModelAdmin
 admin.site.register(JoinClanRequest, JoinClanRequestAdmin)

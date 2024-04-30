@@ -18,7 +18,18 @@ admin.site.register(Receipts)
 admin.site.register(WithdrawalOTPRequest)
 admin.site.register(Wallet)
 # admin.site.register(WithdrawalRequest)
-admin.site.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    # Displaying all relevant fields in the list view
+    list_display = ('user', 'transaction_type', 'amount', 'date', 'status', 'channel')
+
+    # Allowing filtering by the 'status' field
+    list_filter = ('status',)
+
+    # Adding a search field for searching by user email
+    search_fields = ['user__email']
+
+# Registering the admin model with the Transaction model
+admin.site.register(Transaction, TransactionAdmin)
 # admin.site.register(Trade)
 admin.site.register(Alert)
 admin.site.register(AlertAI)
