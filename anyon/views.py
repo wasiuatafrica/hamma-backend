@@ -27,6 +27,7 @@ from concurrent.futures import ThreadPoolExecutor
 from execution import models as exec_models
 from portfolio.utils import get_price
 from accounts.models import  AdminUserActivityLog 
+from competition.managers.utils import sendMail 
 
 User=get_user_model()
 
@@ -218,13 +219,14 @@ class AdminReceiptsView(APIView):
             receipt.amount=amount
             receipt.save()
             activity=AdminUserActivityLog.objects.create(admin=request.user, user=receipt.user, action_type="approved_reciept",description=f"Admin user approved reciept.")
-            # wallet=models.Wallet.objects.get(user=receipt.user)
+
             wallet= exec_models.Portfolio.objects.get(user=receipt.user)
             amount = Decimal(amount)
             wallet.balance += amount
             wallet.save()
             
             save_and_send_notification(wallet.user.id, f"{amount} credited to your wallet.")
+            mail=sendMail("general/depositRecieptApproved.html","Deposit receipt Approved",[receipt.user.email],{"first_name":receipt.user.firstname,"amount":amount})
             
             models.Transaction.objects.create(user=wallet.user, transaction_type='deposit',amount=amount, status='completed', channel='Bank Transfer')
             
@@ -323,6 +325,7 @@ class WithdrawalView(APIView):
                 activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal.wallet.user, action_type="approved_withrawal",description=f"Admin user approved withrawal.")
                 
                 save_and_send_notification(wallet.user.id, f"Your withdrawal of {withdrawal.amount} has been approved.")
+                mail=sendMail("general/withdrawlRequestApproved.html","Payout sent",[wallet.user.email],{"first_name":wallet.user.firstname})
                 models.Transaction.objects.create(user=wallet.user, transaction_type='withdrawal',amount=Decimal(withdrawal.amount), status='completed')
 
                 
@@ -344,6 +347,7 @@ class WithdrawalView(APIView):
                 withdrawal.save()
                 activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal.wallet.user, action_type="rejected_withrawal",description=f"Admin user rejected withrawal.")
                 save_and_send_notification(wallet.user.id, f"Your withdrawal of {withdrawal.amount} has been rejected.")
+                mail=sendMail("general/WithdrawalRequestRejected.html","Payout declined",[wallet.user.email],{"first_name":wallet.user.firstname})
                 
                 data = {
                     'id':withdrawal.id,
@@ -378,6 +382,7 @@ class WithdrawalView(APIView):
                 
                 save_and_send_notification(wallet.user.id, f"Your referral withdrawal of {withdrawal.amount} has been approved.")
                 models.Transaction.objects.create(user=wallet.user, transaction_type='referral withdrawal',amount=Decimal(withdrawal.amount), status='completed')
+                mail=sendMail("general/withdrawlRequestApproved.html","Payout sent",[wallet.user.email],{"first_name":wallet.user.firstname})
                 
                 data = {
                     'id':withdrawal.id,
@@ -397,6 +402,7 @@ class WithdrawalView(APIView):
                 withdrawal.save()
                 activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal.wallet.user, action_type="rejected_referral_withrawal",description=f"Admin user rejected referral withrawal.")
                 save_and_send_notification(wallet.user.id, f"Your referral withdrawal of {withdrawal.amount} has been rejected.")
+                mail=sendMail("general/WithdrawalRequestRejected.html","Payout declined",[wallet.user.email],{"first_name":wallet.user.firstname})
                 
                 data = {
                     'id':withdrawal.id,

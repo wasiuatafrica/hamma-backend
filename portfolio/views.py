@@ -32,6 +32,7 @@ from accounts.models import UserActivityLog,Referral
 from affilate.models import ReferralWallet,RewardActivities
 from execution import models as exec_models
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
+from competition.managers.utils import sendMail 
 
 
 
@@ -168,6 +169,7 @@ class WalletWithdraw(APIView):
                 save_and_send_notification(request.user.id, 'Your withdrawal is processing.')
                 activity=UserActivityLog.objects.create(user=request.user, action_type="withdrawal_request",description="User requested for a withdrawal")
                 transactions = Transaction.objects.filter(user=request.user,transaction_type="deposit")
+                mail=sendMail("general/WIthdrawalRequesReceived.html","Withdrawal request received",[request.user.email],{"first_name":request.user.firstname,"amount":amount})
                 
                 return Response({"detail": "Withdrawal request has been created successfully."},
                                 status=status.HTTP_200_OK)
@@ -458,6 +460,7 @@ class ReceiptsView(APIView):
             # sendreciptsmail(request,image)
             save_and_send_notification(request.user.id, "Receipt Upload Successful.")
             activity=UserActivityLog.objects.create(user=request.user, action_type="receipt",description="User uploaded a payment receipt.")
+            mail=sendMail("general/depositRecieptRecieved.html","Deposit receipt reviewed",[request.user.email],{"first_name":request.user.firstname})
             return Response({"message": "File uploaded successfully"})
         return Response(serializers.errors)
     
