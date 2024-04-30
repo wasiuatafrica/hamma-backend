@@ -1,3 +1,4 @@
+from shlex import join
 import time
 from celery import shared_task
 from celery.utils.log import get_task_logger
@@ -161,9 +162,7 @@ def end_competition(id):
 @shared_task
 def create_returns(portfolio_id):
     portfolio=CompetitionPortfolio.objects.get(id=portfolio_id)
-    data = get_price ('ASI')
-    pr = data['current_price']
-    CompetitionDailyReturns2 .objects.create(user=portfolio.user,creaed=timezone.now())
+    CompetitionDailyReturns2 .objects.create(user=portfolio.user,created=timezone.now())
     CompetitionCumulativeReturns2.objects.create(user=portfolio.user, created=timezone.now())
     
 @shared_task
@@ -460,3 +459,15 @@ def check_pending_join_clan_requests():
             save_and_send_notification(req.user.id, "Your clan join request has been rejected")
             mail=sendMail("competition/joinClanRejected.html","Join a Clan (Rejected)",[req.user.email],{"first_name":req.user.firstname.title(), "clan_name":req.clan.clan_name.title()})
     print("check pending join clan requests done for today")
+    
+@shared_task
+def auto_approve_join_clan_requests(id):
+    join_request = JoinClanRequest.objects.get(id=id)
+ 
+    account= join_request.user
+    join_request.approved = 'approved'
+    join_request.save()
+    join_request.clan.member.add(account)
+    save_and_send_notification(join_request.user.id, f"Your request to join  {join_request.clan.clan_name.title()}  has been approved")
+    mail=sendMail("competition/joinClanApproved.html","Join a Clan (Approved)",[join_request.user.email],{"first_name":join_request.user.firstname, "clan_name":join_request.clan.clan_name})
+    print("request approved")

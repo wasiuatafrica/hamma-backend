@@ -5,8 +5,8 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
 
-from .models import Competition
-from .tasks import create_competition, setup_competition_emails
+from .models import Competition, JoinClanRequest
+from .tasks import create_competition, setup_competition_emails, auto_approve_join_clan_requests
 
 @receiver(post_save, sender=Competition)
 def notify_all_users(instance, created, **kwargs):
@@ -68,3 +68,8 @@ def notify_all_users(instance, created, **kwargs):
                 )
     if created:
         setup_competition_emails.delay(instance.id)
+        
+@receiver(post_save, sender=JoinClanRequest)
+def notify_all_users(instance, created, **kwargs):
+    if created:
+        auto_approve_join_clan_requests.delay(instance.id)

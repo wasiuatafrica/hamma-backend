@@ -82,7 +82,7 @@ class JoinClanRequestSerializers(serializers.ModelSerializer):
         fields = [
             'approved',
             'date_request',
-            'user_name',
+            'user',
             'id',
             'clan',
         ]
