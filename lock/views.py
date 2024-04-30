@@ -10,6 +10,9 @@ from notifications.utils import save_and_send_notification
 from decimal import Decimal
 from accounts.models import UserActivityLog
 from execution.models import Portfolio
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class SavingList(APIView):
@@ -44,6 +47,22 @@ class SavingList(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class SupportSavingList(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        email = self.kwargs.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response([])
+        
+        savings_locks = Saving.objects.filter(user=user).order_by('-id')
+        serializer = SavingSerializer(savings_locks, many=True)
+        return Response(serializer.data)
+
+
 class SavingDetail(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -68,9 +87,10 @@ class Savingclose(APIView):
         saving = get_object_or_404(Saving, pk=id, user=self.request.user)
         
         saving.status = 'closed'
+        saving.profit = Decimal(saving.potential_interest)
         saving.save()
         
-        profit = saving.amount + Decimal(saving.potential_interest)
+        profit = saving.amount + saving.profit
         
         portfolio.balance += profit
         portfolio.save()

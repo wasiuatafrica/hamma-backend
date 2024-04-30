@@ -20,9 +20,11 @@ class CustomUserAdmin(UserAdmin):
     form = CustomUserChangeForm
     model = CustomUser
     list_display = (
+        
+        "email",
+        "id",
         "firstname",
         "lastname",
-        "email",
         "is_staff",
         "is_active",
         'twofa_type',
@@ -33,9 +35,9 @@ class CustomUserAdmin(UserAdmin):
             None,
             {
                 "fields": (
-                    "firstname",
-                    "lastname",
                     "email",
+                    "firstname",
+                    "lastname",                    
                     "password",
                     "twofa_type",
                     "last_login",
@@ -78,7 +80,8 @@ class CustomUserAdmin(UserAdmin):
     )
     
     search_fields = ("email",)
-    ordering = ("email",)
+    ordering = ("-date_joined",)
+    readonly_fields = ('id',)
 
 
 admin.site.register(CustomUser, CustomUserAdmin)

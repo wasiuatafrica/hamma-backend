@@ -258,7 +258,7 @@ class JoinClanRequest(auto_prefetch.Model):
     date_request=models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.user} | {self.clan} | {self.approved} request'
+        return f'{self.user} | {self.clan} | {self.approved}| {self.date_request}'
 
     @property
     def user_name(self):
@@ -367,7 +367,7 @@ class TopTraderPayout(auto_prefetch.Model):
     
 
     def __str__(self):
-        return 'Payout' + '-' + str(self.portfolio.acc.number)
+        return 'Payout' + '-' + str(self.portfolio.user.email)
 
 class TopTraderPayoutButtonShows(auto_prefetch.Model):
     portfolio = auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE)

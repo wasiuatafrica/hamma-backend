@@ -18,6 +18,12 @@ urlpatterns = [
     path('transactions/', views.TransactionList.as_view(), name='transaction-list'),
     path("alert/", views.AlertView.as_view()),
     path("alert/<int:id>/", views.AlertUpdateView.as_view()),
+    
+    #wallet
+    path('wallet/support/<str:email>/', views.SupportWalletBalance.as_view()),
+    path("alert/support/<str:email>/", views.SupportAlertView.as_view()),
+    path('transactions/support/<str:email>/', views.SupportTransactionList.as_view()),
+    
    
 
 ]

@@ -4,6 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
+
+from waitlist import serializer
 from .models import (Wallet, Stock,  Receipts, PayStackReceipts, Alert,WithdrawalOTPRequest,
                      Transaction, AlertAI, AlertAITracker, Conversation, Message)
 from .serializers import (StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
@@ -57,6 +59,39 @@ class WalletBalance(APIView):
         transactions = Transaction.objects.filter(user=request.user)
         positions= portfolio.positions2.all()
         savings = Saving.objects.filter(user=request.user,status='ongoing')
+        
+        deposited = sum([trans.amount for trans in transactions if trans.transaction_type == "deposit"]) - sum([trans.amount for trans in transactions if trans.transaction_type == "withdrawal"])
+        invested= sum([post.amount_invested for post in positions]) + sum([lock.amount for lock in savings])
+        balance = portfolio.balance
+        uninvested = deposited - invested
+        
+        data = {
+            "deposited":deposited,
+            "invested":invested,
+            # "uninvested":uninvested ,
+            "uninvested":balance ,
+            "balance":balance,
+            "reserve": balance,
+            # "reserve": uninvested + balance
+            
+        }
+        
+        return Response(data)
+
+class SupportWalletBalance(APIView):
+    
+
+    def get(self, request, *args, **kwargs):
+        email = self.kwargs.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response([])
+        
+        portfolio = exec_models.Portfolio.objects.get(user=user)
+        transactions = Transaction.objects.filter(user=user)
+        positions= portfolio.positions2.all()
+        savings = Saving.objects.filter(user=user,status='ongoing')
         
         deposited = sum([trans.amount for trans in transactions if trans.transaction_type == "deposit"]) - sum([trans.amount for trans in transactions if trans.transaction_type == "withdrawal"])
         invested= sum([post.amount_invested for post in positions]) + sum([lock.amount for lock in savings])
@@ -478,6 +513,21 @@ class TransactionList(generics.ListAPIView):
         # Only retrieve transactions for the logged-in user
         return Transaction.objects.filter(user=self.request.user)
 
+class SupportTransactionList(APIView):
+    serializer_class = TransactionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        email = self.kwargs.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response([])
+        
+        transactions = Transaction.objects.filter(user=user)
+        serializer=TransactionSerializer(transactions, many=True)
+        return Response(serializer.data)
+    
 
 
 class Symbols(APIView):
@@ -576,7 +626,55 @@ class AlertView(APIView):
 
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-    
+
+class SupportAlertView(APIView):
+    serializer_class= AlertSerializer
+
+
+    def get(self, request, *args, **kwargs):
+        email = self.kwargs.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response([])
+        
+        current_month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        current_month_end = current_month_start.replace(month=current_month_start.month + 1) - timezone.timedelta(seconds=1)
+
+        alerts_query = Alert.objects.filter(
+            created__range=(current_month_start, current_month_end), user=user
+        )
+        conversation_query = Conversation.objects.annotate(
+            has_messages=Exists(Message.objects.filter(room=OuterRef('pk')))
+        ).filter(user=user, has_messages=True)
+                
+        alerts =   [  {
+            "id":alert.id,
+            "stock": alert.stock.symbol,
+            "stock_id": alert.stock.id,
+            "alert_name": alert.alert_name,
+            "description": alert.description,
+            "alert_type": alert.alert_type,
+            "action": alert.action,
+            "to_price": alert.to_price,
+            "to_volume": alert.to_volume,
+            "frequency": alert.frequency,
+            "expire": alert.created,
+            "trigerred": alert.trigerred
+        } for alert in alerts_query]
+        
+        conversations = [{
+            'conversation_id': conver.name,
+            'created':conver.created
+        } for conver in conversation_query]
+        data = {
+            'alerts': alerts,
+            'conversations': conversations
+        }
+        return Response(data)
+
+
+  
 class AlertUpdateView(APIView):
     serializer_class = AlertSerializer
 

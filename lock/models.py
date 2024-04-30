@@ -65,6 +65,7 @@ class Saving(auto_prefetch.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=10.0)
     start_date = models.DateTimeField(auto_now_add=True)
+    profit = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
 
     @property
     def duration(self):
@@ -82,7 +83,10 @@ class Saving(auto_prefetch.Model):
 
     @property
     def total_amount_after_close(self):
-        return round(self.amount + self.potential_interest, 2)
+        if self.status == 'ongoing':
+            return round(self.amount + self.potential_interest, 2)
+        else:
+            return round(self.amount + self.profit, 2)
 
     def __str__(self):
         return f"{self.user.email} - {self.amount} - {self.status}"

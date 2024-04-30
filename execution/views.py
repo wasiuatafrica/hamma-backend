@@ -849,7 +849,7 @@ class SupportHome(APIView):
                 overview = []
                 cumulative_overview = []
                 
-                if daily_profitloss:
+                if daily_profitloss and daily_profitloss.count() > 1:
                     for daily in daily_profitloss:
                         for daily2 in market:
                             if daily.created.date() == daily2.created.date():
@@ -862,12 +862,13 @@ class SupportHome(APIView):
                         }
                                     
                                 )
-                    first = overview[0]
-                    if first['portfolio_returns'] == 0:
-                        first['market_returns'] = 0
-                
-                if cumulative_profitloss:
-                    print('cpl', cumulative_profitloss)
+                    if overview: 
+                        first = overview[0]
+                        if first['portfolio_returns'] == 0:
+                            first['market_returns'] = 0
+                    
+                if cumulative_profitloss and cumulative_profitloss.count() > 1:
+                    # print('cpl', cumulative_profitloss)
                                         
                     for daily in cumulative_profitloss:
                         for daily2 in cumulative_market :
@@ -881,11 +882,11 @@ class SupportHome(APIView):
                         }
                                     
                                 )
-                    print('cumu',cumulative_overview)
-                    first_ = cumulative_overview[0]
-                    if first_['portfolio_returns'] == 0:
-                        first_['market_returns'] = 0
-                    
+                    # print('cumu',cumulative_overview)
+                    if cumulative_overview:
+                        first_ = cumulative_overview[0]
+                        if first_['portfolio_returns'] == 0:
+                            first_['market_returns'] = 0
                 
                 equity1 = round(balance + profit_loss,2)
                 equity = equity1 if equity1 >= 0 else 0
@@ -977,7 +978,7 @@ class SupportHome(APIView):
                 overview = []
                 cumulative_overview = []
                 
-                if daily_profitloss:
+                if daily_profitloss and daily_profitloss.count() > 1:
                     for daily in daily_profitloss:
                         for daily2 in market:
                             if daily.created.date() == daily2.created.date():
@@ -990,12 +991,13 @@ class SupportHome(APIView):
                         }
                                     
                                 )
-                    first = overview[0]
-                    if first['portfolio_returns'] == 0:
-                        first['market_returns'] = 0
-                
-                if cumulative_profitloss:
-                    print('cpl', cumulative_profitloss)
+                    if overview: 
+                        first = overview[0]
+                        if first['portfolio_returns'] == 0:
+                            first['market_returns'] = 0
+                    
+                if cumulative_profitloss and cumulative_profitloss.count() > 1:
+                    # print('cpl', cumulative_profitloss)
                                         
                     for daily in cumulative_profitloss:
                         for daily2 in cumulative_market :
@@ -1009,10 +1011,11 @@ class SupportHome(APIView):
                         }
                                     
                                 )
-                    print('cumu',cumulative_overview)
-                    first_ = cumulative_overview[0]
-                    if first_['portfolio_returns'] == 0:
-                        first_['market_returns'] = 0
+                    # print('cumu',cumulative_overview)
+                    if cumulative_overview:
+                        first_ = cumulative_overview[0]
+                        if first_['portfolio_returns'] == 0:
+                            first_['market_returns'] = 0
                 
                 equity1 = round(balance + profit_loss,2)
                 equity = equity1 if equity1 >= 0 else 0
@@ -1203,7 +1206,10 @@ class DemoHolding(APIView):
                     else:
                         percent_change = None
                         
-                    
+                    if position.status == 'open':
+                        profit_loss = pl
+                    else:
+                        profit_loss = position.profit_loss
                     data = {
                         'id':position.id,
                         'stock':position.stock.symbol,
@@ -1220,7 +1226,7 @@ class DemoHolding(APIView):
                         "volume":'66000',
                         'status':position.status,
                         'invested':position.amount_invested,
-                        "profit_loss":position.profit_loss,
+                        "profit_loss":profit_loss,
                         "side":position.action,
                         "order":position.order_type,
                         'order_id':position.order_id
@@ -1236,14 +1242,15 @@ class DemoHolding(APIView):
                 floating_pl = sum([data['change'] for data in positions_data if data['status']=='open'])
                 closed_pl = sum([data['profit_loss'] for data in positions_data if data['status']=='close'])
                 open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
-                # closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
+                closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
                 # wallet_balance = portfolio.balance
+                balance = open_trade_sum + closed_trade_sum + closed_pl 
                 
                 hold_data ={
-                    'balance':open_trade_sum ,
+                    'balance':balance,
                     'floating_pl':floating_pl,
                     'closed_pl':closed_pl,
-                    'equity':open_trade_sum  + floating_pl,
+                    'equity':balance  + floating_pl,
                     'holdings':positions_data
                     
                 }
@@ -1251,9 +1258,10 @@ class DemoHolding(APIView):
                 return Response(hold_data)
             else:
                 hold_data ={
-                    'portfolio_value':0,
-                    'profit_loss':0,
-                    'total_invested':0,
+                    'balance':0,
+                    'floating_pl':0,
+                    'closed_pl':0,
+                    'equity':0,
                     'holdings':[]
                     
                 }
@@ -1365,7 +1373,10 @@ class SupportDemoHolding(APIView):
                     else:
                         percent_change = None
                         
-                    
+                    if position.status == 'open':
+                        profit_loss = pl
+                    else:
+                        profit_loss = position.profit_loss
                     data = {
                         'id':position.id,
                         'stock':position.stock.symbol,
@@ -1382,7 +1393,7 @@ class SupportDemoHolding(APIView):
                         "volume":'66000',
                         'status':position.status,
                         'invested':position.amount_invested,
-                        "profit_loss":position.profit_loss,
+                        "profit_loss":profit_loss,
                         "side":position.action,
                         "order":position.order_type,
                         'order_id':position.order_id
@@ -1398,14 +1409,15 @@ class SupportDemoHolding(APIView):
                 floating_pl = sum([data['change'] for data in positions_data if data['status']=='open'])
                 closed_pl = sum([data['profit_loss'] for data in positions_data if data['status']=='close'])
                 open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
-                # closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
+                closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
                 # wallet_balance = portfolio.balance
+                balance = open_trade_sum + closed_trade_sum + closed_pl 
                 
                 hold_data ={
-                    'balance':open_trade_sum ,
+                    'balance':balance,
                     'floating_pl':floating_pl,
                     'closed_pl':closed_pl,
-                    'equity':open_trade_sum  + floating_pl,
+                    'equity':balance  + floating_pl,
                     'holdings':positions_data
                     
                 }
@@ -1413,9 +1425,10 @@ class SupportDemoHolding(APIView):
                 return Response(hold_data)
             else:
                 hold_data ={
-                    'portfolio_value':0,
-                    'profit_loss':0,
-                    'total_invested':0,
+                    'balance':0,
+                    'floating_pl':0,
+                    'closed_pl':0,
+                    'equity':0,
                     'holdings':[]
                     
                 }
