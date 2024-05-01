@@ -436,7 +436,10 @@ class CompetitionDailyReturns2(auto_prefetch.Model):
     created =models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.portfolio.user} {self.portfolio_returns} - {self.created.date()}"
+        if self.portfolio:
+            return f"{self.portfolio.user} {self.portfolio_returns} - {self.created.date()}"
+        else:
+            return f"{self.portfolio_returns}"
     
 class CompetitionCumulativeReturns2(auto_prefetch.Model):
     # user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='compcumureturns2')
@@ -448,4 +451,4 @@ class CompetitionCumulativeReturns2(auto_prefetch.Model):
         if self.created:
             return f"{self.portfolio.user} {self.portfolio_returns} - {self.created.date()}"
         else:
-            return f"{self.user} {self.portfolio_returns}"
+            return f"{self.portfolio_returns}"
