@@ -193,7 +193,8 @@ def saturday_evening(): #3
         }
             html_message = render_to_string('competition/saturday_evening.html', context)
             plain_message = ""
-            subject = f' {user.firstname.title()}, WHERE DO YOU STAND?'
+            
+            subject = "DO THIS IF YOU DON'T WANT TO WIN"
             from_email = "teamgohamma@gmail.com"
             recipient_list = [user.email]
             send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
@@ -208,7 +209,8 @@ def four_days_before_end(): #4
     }
         html_message = render_to_string('competition/four_days_before_end.html', context)
         plain_message = ""
-        subject = "Keep Pushing Forward - You're Doing Great!"
+        # subject = "Keep Pushing Forward - You're Doing Great!"
+        subject = "Finish Strong in the Hamma Trading Competition!"
         from_email = "teamgohamma@gmail.com"
         recipient_list = [user.email]
         send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
@@ -281,7 +283,8 @@ def mid_competition(): #7
     }
         html_message = render_to_string('competition/mid_competition.html', context)
         plain_message = ""
-        subject = "DO THIS IF YOU DON'T WANT TO WIN"
+        subject = f' {user.firstname.title()}, WHERE DO YOU STAND?'
+        # subject = "DO THIS IF YOU DON'T WANT TO WIN"
         from_email = "teamgohamma@gmail.com"
         recipient_list = [user.email]
         send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
@@ -312,7 +315,8 @@ def two_days_before_end(): #9
     }
         html_message = render_to_string('competition/two_days_before_end.html', context)
         plain_message = ""
-        subject = "Finish Strong in the Hamma Trading Competition!"
+        
+        subject = "Keep Pushing Forward - You're Doing Great!"
         from_email = "teamgohamma@gmail.com"
         recipient_list = [user.email]
         send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
