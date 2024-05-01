@@ -448,7 +448,7 @@ class CompetitionCumulativeReturns2(auto_prefetch.Model):
     created =models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        if self.created:
+        if self.portfolio:
             return f"{self.portfolio.user} {self.portfolio_returns} - {self.created.date()}"
         else:
             return f"{self.portfolio_returns}"
