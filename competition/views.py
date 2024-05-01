@@ -439,12 +439,12 @@ class JoinClanRequestView(APIView):
             'clan': join_request.clan.id,
         }
         # Send clan admin a membership notifcation
-        save_and_send_notification(join_request.user.id,f"Your request to join clan {clan.clan_name} has been sent and awaiting the clan admin approval")
-        save_and_send_notification(join_request.clan.clan_admin.id,f"{request.user.firstname} {request.user.lastname} wants to join your clan.")
-        mail=sendMail("competition/joinClanRequest.html","Join a Clan (Request)",[request.user.email],{"first_name":request.user.firstname, "clan_name":clan.clan_name})
+        # save_and_send_notification(join_request.user.id,f"Your request to join clan {clan.clan_name} has been sent and awaiting the clan admin approval")
+        # save_and_send_notification(join_request.clan.clan_admin.id,f"{request.user.firstname} {request.user.lastname} wants to join your clan.")
+        # mail=sendMail("competition/joinClanRequest.html","Join a Clan (Request)",[request.user.email],{"first_name":request.user.firstname, "clan_name":clan.clan_name})
 
-        # send mail to clan admin to review request
-        mail=sendMail("competition/notifyClanAdminJoinClanRequest.html","Review and Approve 'Request to Join clan'",[clan.clan_admin.email],{"first_name":join_request.user.firstname})
+        # # send mail to clan admin to review request
+        # mail=sendMail("competition/notifyClanAdminJoinClanRequest.html","Review and Approve 'Request to Join clan'",[clan.clan_admin.email],{"first_name":join_request.user.firstname})
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             return Response(serializer.data)
