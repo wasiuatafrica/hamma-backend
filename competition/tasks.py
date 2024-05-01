@@ -183,7 +183,7 @@ def two_days_before_start(): #2
 @shared_task
 def saturday_evening(): #3
     competition = Competition.objects.filter(status='current')
-    if competition.exists():
+    if competition.exists() and timezone.now() > competition.first().start_date:
         users = User.objects.all()
         
         for user in users:
@@ -252,7 +252,7 @@ def get_top():
 @shared_task
 def friday_evening(): #5
     competition = Competition.objects.filter(status='current')
-    if competition.exists():
+    if competition.exists() and timezone.now() > competition.first().start_date:
         users = User.objects.all()
         trader,clan = get_top()
         for user in users:
