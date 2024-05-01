@@ -203,7 +203,7 @@ def four_days_before_end(): #4
     users = User.objects.all()
     for user in users:
         context={
-        "fullname":f"{user.firstname.title()} {user.lastname.title()}",
+        "firstname":user.firstname.title(),
         "email":user.email
     }
         html_message = render_to_string('competition/four_days_before_end.html', context)
@@ -306,7 +306,8 @@ def two_days_before_end(): #9
     users = User.objects.all()
     for user in users:
         context={
-        "firstname":user.firstname.title(),
+        
+        "fullname":f"{user.firstname.title()} {user.lastname.title()}",
         "email":user.email
     }
         html_message = render_to_string('competition/two_days_before_end.html', context)

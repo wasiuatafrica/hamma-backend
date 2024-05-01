@@ -396,4 +396,24 @@ def process_alert_data2(prompt, convsersation_id, user_id, channel_name):
                             counter.save()
                             
                
-                    
+
+from django.db.models import Q
+
+@shared_task
+def disable_old_periodic_tasks():
+    """Disables all PeriodicTask objects not created in the current month and year."""
+    # Get the current month and year
+    now = timezone.now()
+    current_month = now.month
+    current_year = now.year
+
+    # Find PeriodicTask objects not created in the current month and year
+    old_periodic_tasks = PeriodicTask.objects.filter(
+        ~Q(date_changed__month=current_month) | ~Q(date_changed__year=current_year)
+    )
+
+    # Disable these old periodic tasks
+    old_periodic_tasks.update(enabled=False)
+
+    # Return the count of tasks that were disabled
+    return old_periodic_tasks.count()
