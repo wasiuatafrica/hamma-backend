@@ -17,7 +17,9 @@ TopTraderPayoutButtonShows,
 CompetitionPosition,
 CompetitionTransaction,
 ClanNameChangeRequest,
-ClanMemeberRemoverRequest
+ClanMemeberRemoverRequest,
+CompetitionCumulativeReturns2,
+CompetitionDailyReturns2
 )
 # Register your models here.
 admin.site.register(ClanNameChangeRequest)
@@ -50,3 +52,5 @@ admin.site.register(TopClanPayoutButtonShows)
 admin.site.register(TopTraderPayoutButtonShows)
 admin.site.register(CompetitionPosition)
 admin.site.register(CompetitionTransaction)
+admin.site.register(CompetitionCumulativeReturns2)
+admin.site.register(CompetitionDailyReturns2)

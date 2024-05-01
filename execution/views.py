@@ -572,8 +572,8 @@ class Home(APIView):
                 
                 
                 # daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
-                daily_profitloss= CompetitionDailyReturns2 .objects.filter(user=request.user)
-                cumulative_profitloss= CompetitionCumulativeReturns2.objects.filter(user=request.user)
+                daily_profitloss= CompetitionDailyReturns2 .objects.filter(portfolio=in_competition)
+                cumulative_profitloss= CompetitionCumulativeReturns2.objects.filter(portfolio=in_competition)
                 
                 market= MarketReturns.objects.all()
                 cumulative_market = CumulativeMarketReturns.objects.all()
@@ -840,8 +840,8 @@ class SupportHome(APIView):
                 profit_loss = sum(profit_loss_list) if profit_loss_list else 0
                 
                 
-                daily_profitloss= CompetitionDailyReturns2 .objects.filter(user=user)
-                cumulative_profitloss= CompetitionCumulativeReturns2.objects.filter(user=user)
+                daily_profitloss= CompetitionDailyReturns2 .objects.filter(portfolio=in_competition)
+                cumulative_profitloss= CompetitionCumulativeReturns2.objects.filter(portfolio=in_competition)
                 
                 market= MarketReturns.objects.all()
                 cumulative_market = CumulativeMarketReturns.objects.all()

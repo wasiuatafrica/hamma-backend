@@ -162,8 +162,8 @@ def end_competition(id):
 @shared_task
 def create_returns(portfolio_id):
     portfolio=CompetitionPortfolio.objects.get(id=portfolio_id)
-    CompetitionDailyReturns2 .objects.create(user=portfolio.user,created=timezone.now())
-    CompetitionCumulativeReturns2.objects.create(user=portfolio.user, created=timezone.now())
+    CompetitionDailyReturns2 .objects.create(portfolio=portfolio,created=timezone.now())
+    CompetitionCumulativeReturns2.objects.create(portfolio=portfolio, created=timezone.now())
     
 @shared_task
 def two_days_before_start(): #2

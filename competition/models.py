@@ -430,15 +430,17 @@ class ClanCompetitionSummary(auto_prefetch.Model):
         return f"{self.competition.title} - {self.clan} - {self.position}"
     
 class CompetitionDailyReturns2(auto_prefetch.Model):
-    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='compreturns2')
+    # user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='compreturns2')
     portfolio_returns = models.FloatField(default=0.0)
+    portfolio=auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE, blank=True, null=True)
     created =models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.user} {self.portfolio_returns} - {self.created.date()}"
     
 class CompetitionCumulativeReturns2(auto_prefetch.Model):
-    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='compcumureturns2')
+    # user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='compcumureturns2')
+    portfolio=auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE, blank=True, null=True)
     portfolio_returns = models.FloatField(default=0.0)
     created =models.DateTimeField(null=True, blank=True)
 

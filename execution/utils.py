@@ -380,7 +380,8 @@ def competition_daily_returns3():
             # Save the last row to the database
             last_row = max_time.iloc[-1]
             CompetitionDailyReturns2.objects.create(
-                user=portfolio.user,
+                # user=portfolio.user,
+                portfolio=portfolio,
                 portfolio_returns=round(last_row['Daily_PortfolioReturns'],2),
                 created=timezone.now()    
             )
@@ -395,7 +396,8 @@ def competition_daily_returns3():
             
             last_row_cum = cum_table.iloc[-1]
             CompetitionCumulativeReturns2.objects.create(
-                user=portfolio.user,
+                # user=portfolio.user,
+                portfolio=portfolio,
                 portfolio_returns=round(last_row_cum['cum_returns'],2),
                 created=timezone.now())     
         
