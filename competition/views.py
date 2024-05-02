@@ -808,7 +808,7 @@ class LeaderBoardView(APIView):
                         percent= round((profit/1000000)*100,2)
                         profile= Profile.objects.get(user=account.user)
                         data= {
-                            'name':account.user.fullname,
+                            'name':account.user.firstname,
                             'profit':percent,
                             'country':profile.country,
                             'clan':account.user.clans
