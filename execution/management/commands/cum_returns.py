@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from django.core.management.base import BaseCommand
-from execution.utils import calculate_cumulative_returns, calculate_cumulative_returns_user, daily_returns2, mark_returns, daily_returns3
+from execution.utils import calculate_cumulative_returns, calculate_cumulative_returns_user, daily_returns2, mark_returns, daily_returns3, competition_daily_returns4
 from execution.tasks import cumulative_returns, update_latest_cumulative_returns
 from execution.models import DemoPosition, DemoProfitLoss, DemoCumulativeReturns, DemoDailyReturns2
 
@@ -24,5 +24,6 @@ class Command(BaseCommand):
             
         # daily_returns2()
         
-        mark_returns()
+        # mark_returns()
         # daily_returns3()
+        competition_daily_returns4()

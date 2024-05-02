@@ -810,6 +810,7 @@ class LeaderBoardView(APIView):
                         data= {
                             'name':account.user.firstname,
                             'profit':percent,
+                            'profit_naira':profit,
                             'country':profile.country,
                             'clan':account.user.clans
                         }

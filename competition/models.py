@@ -57,7 +57,7 @@ class CompetitionPortfolio(auto_prefetch.Model):
     @property
     def profit(self):
         closed_positions = self.composition.filter(status=CompetitionPosition.CLOSED)
-        profit = closed_positions.aggregate(Sum('profit_loss'))['profit_loss__sum'] or 0
+        profit = closed_positions.aggregate(Sum('profit_loss'))['profit_loss__sum'] or None
         percent= round((profit/1000000)*100,2)
         return percent
 
@@ -435,6 +435,7 @@ class CompetitionDailyReturns2(auto_prefetch.Model):
     portfolio_returns = models.FloatField(default=0.0)
     portfolio=auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE, blank=True, null=True)
     created =models.DateTimeField(null=True, blank=True)
+    first_entry=models.BooleanField(default=True)
 
     def __str__(self):
         if self.created:
@@ -447,6 +448,8 @@ class CompetitionCumulativeReturns2(auto_prefetch.Model):
     portfolio=auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE, blank=True, null=True)
     portfolio_returns = models.FloatField(default=0.0)
     created =models.DateTimeField(null=True, blank=True)
+    first_entry=models.BooleanField(default=True)
+    
 
     def __str__(self):
         if self.created:
