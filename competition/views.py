@@ -794,21 +794,21 @@ class LeaderBoardView(APIView):
                 zero_profit_list = []
                 for account in portfolio:
                     print(account.user)
-                    try:
-                        clan=Clan.objects.filter(member=account.user).first()
-                    except Clan.DoesNotExist:
-                        clan=Clan.objects.get(clan_admin=account.user)
-                    print(clan)
-                    user_portfolio = portfolio.filter(user=account.user).first()
+                    # try:
+                    #     clan=Clan.objects.filter(member=account.user).first()
+                    # except Clan.DoesNotExist:
+                    #     clan=Clan.objects.get(clan_admin=account.user)
+                    # print(clan)
+                    # user_portfolio = portfolio.filter(user=account.user).first()
                     # print(user_portfolio.competition.title)
-                    profit = getProfit(user_portfolio)
+                    profit = getProfit(account)
                     percent= round((profit/1000000)*100,2)
                     profile= Profile.objects.get(user=account.user)
                     data= {
-                        'name':user_portfolio.user.fullname,
+                        'name':account.user.fullname,
                         'profit':percent,
                         'country':profile.country,
-                        'clan':clan.clan_name
+                        'clan':account.user.clans
                     }
                     if percent != 0:
                         leaderboard_list.append(data)
