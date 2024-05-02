@@ -815,7 +815,7 @@ class LeaderBoardView(APIView):
                     else:
                         zero_profit_list.append(data)
                 sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
-                sorted_data += zero_profit_list
+                # sorted_data += zero_profit_list
 
                 return Response(sorted_data)
             else:
