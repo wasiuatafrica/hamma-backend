@@ -18,6 +18,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 
+import portfolio
+
 from . import serializers
 from .tasks import create_returns
 from .models import (
@@ -1679,6 +1681,32 @@ class GetAndUpdateUserNotifications(APIView):
 class TopClans(APIView):
     permission_classes = (AllowAny,)
     def get(self, request):
+        # competition =  Competition.objects.filter(status='current')
+        # if competition.exists() and  timezone.now() > competition.first().start_date:
+        #         portfolio = CompetitionPortfolio.objects.filter(competition=competition.first(), active=True)
+                
+        #         leaderboard_list=[]
+        #         for account in portfolio:
+                    
+        #             profit,status = getProfit(account)
+        #             if status:
+        #                 percent= round((profit/1000000)*100,2)
+        #                 profile= Profile.objects.get(user=account.user)
+        #                 data= {
+        #                     'name':account.user.firstname,
+        #                     'profit':percent,
+        #                     'profit_naira':profit,
+        #                     'country':profile.country,
+        #                     'clan':account.user.clans
+        #                 }
+        #                 leaderboard_list.append(data)
+        #         sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
+
+        # else:
+        #     competition = Competition.objects.filter(status='closed').order_by('id').last()
+        #     clans= ClanCompetitionSummary.objects.filter(competition=competition).order_by('position')[:3]
+        #     data=[{'clan_id':comp.clan.id,'clan_name':comp.clan.clan_name,'community_link':comp.clan.community_link,'clan_logo':comp.clan.clan_logo.url,'description':comp.clan.description, 'profit':comp.profit, 'position':comp.position, 'top_3_count':comp.clan.top_3_count,'profit_comparison':comp.clan.profit_comparison,'members_count':comp.clan.members_count} for comp in clans ]
+        #     return Response(data)
         competition = Competition.objects.filter(status='closed').order_by('id').last()
         clans= ClanCompetitionSummary.objects.filter(competition=competition).order_by('position')[:3]
         data=[{'clan_id':comp.clan.id,'clan_name':comp.clan.clan_name,'community_link':comp.clan.community_link,'clan_logo':comp.clan.clan_logo.url,'description':comp.clan.description, 'profit':comp.profit, 'position':comp.position, 'top_3_count':comp.clan.top_3_count,'profit_comparison':comp.clan.profit_comparison,'members_count':comp.clan.members_count} for comp in clans ]

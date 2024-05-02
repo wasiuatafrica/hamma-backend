@@ -631,6 +631,7 @@ class Home(APIView):
                 ]
                 data = {
                     'balance':round(balance,2),
+                    'starting_balance':1000000,
                     'equity':equity,
                     'floating_pl' : profit_loss,
                     'closed_pl' : profit_loss2,
@@ -1244,7 +1245,7 @@ class DemoHolding(APIView):
                 open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
                 closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
                 # wallet_balance = portfolio.balance
-                balance = open_trade_sum + closed_trade_sum + closed_pl 
+                # balance = open_trade_sum + closed_trade_sum + closed_pl 
                 
                 hold_data ={
                     'balance':balance,
@@ -1321,7 +1322,7 @@ class DemoHolding(APIView):
                 open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
                 closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
                 # wallet_balance = portfolio.balance
-                balance = open_trade_sum + closed_trade_sum + closed_pl 
+                # balance = open_trade_sum + closed_trade_sum + closed_pl 
                 
                 hold_data ={
                     'balance':balance,
