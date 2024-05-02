@@ -627,7 +627,7 @@ class Home(APIView):
                     {
                         'date':daily.created.date(),
                         'return':daily.portfolio_returns,
-                    } for daily in daily_profitloss
+                    } for daily in daily_profitloss if daily_profitloss.count() > 1 and daily.created > competition.start_date
                 ]
                 data = {
                     'balance':round(balance,2),
