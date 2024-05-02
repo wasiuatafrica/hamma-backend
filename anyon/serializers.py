@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from competition.models import CompetitionPosition
 from portfolio import models
 from accounts import serializers as acc_serializers
 from execution.models import WithdrawalRequest, DemoPosition, Position
@@ -163,3 +164,43 @@ class DemoPositionSerializer(serializers.ModelSerializer):
     
     def get_type(self, obj):
         return "Demo"
+    
+    
+class CompeitionPositionSerializer(serializers.ModelSerializer):
+    fullname = serializers.SerializerMethodField()
+    user_id = serializers.SerializerMethodField()
+    symbol = serializers.SerializerMethodField()
+    type =  serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CompetitionPosition
+        fields = (
+            'id',
+            'symbol',
+            'action',
+            'quantity',
+            'open_price',
+            'status',
+            'updated',
+            'fullname',
+            'user_id',
+            'order_id',
+            'order_type',
+            'created',
+            'type'
+            
+        )
+        
+    def get_fullname(self, obj):
+        user = obj.portfolio.user
+        if user:
+            return f"{user.firstname.title()} {user.lastname.title()}"
+        
+    def get_user_id(self,obj):
+        return obj.portfolio.user.id
+    
+    def get_symbol(self,obj):
+        return obj.stock.symbol
+    
+    def get_type(self, obj):
+        return "Competition"

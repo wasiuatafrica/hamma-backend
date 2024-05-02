@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from accounts.models import Referral as acc_Referral, UserActivityLog 
 # from accounts import models 
 from accounts import serializers as acc_serializers
+from competition.models import CompetitionPosition
 from . import serializers
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
@@ -428,9 +429,17 @@ class AdminTradeView(APIView):
     def get(self, request):
         # trades = models.Trade.objects.all().order_by('-id')
         trades = exec_models.DemoPosition.objects.all().order_by('-updated')
+        comp_trades = CompetitionPosition.objects.all().order_by('-updated')
+        
         serializer = self.serializer_class(data=trades, many=True)
+        serializer2 = serializers.CompeitionPositionSerializer(data=comp_trades, many=True)
         serializer.is_valid()
-        return Response(serializer.data)
+        serializer2.is_valid()
+        
+        data = serializer.data + serializer2.data
+        sorted_data = sorted(data, key=lambda x: x['updated'], reverse=True)
+
+        return Response(sorted_data)
         
 
 
