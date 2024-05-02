@@ -128,6 +128,7 @@ class PositionSerializer(serializers.ModelSerializer):
     
 class DemoPositionSerializer(serializers.ModelSerializer):
     fullname = serializers.SerializerMethodField()
+    email = serializers.SerializerMethodField()
     user_id = serializers.SerializerMethodField()
     symbol = serializers.SerializerMethodField()
     type =  serializers.SerializerMethodField()
@@ -136,6 +137,7 @@ class DemoPositionSerializer(serializers.ModelSerializer):
         model = DemoPosition
         fields = (
             'id',
+            'email',
             'symbol',
             'action',
             'quantity',
@@ -155,6 +157,11 @@ class DemoPositionSerializer(serializers.ModelSerializer):
         user = obj.portfolio.user
         if user:
             return f"{user.firstname.title()} {user.lastname.title()}"
+    
+    def get_email(self, obj):
+        user = obj.portfolio.user
+        if user:
+            return user.email
         
     def get_user_id(self,obj):
         return obj.portfolio.user.id
@@ -168,6 +175,7 @@ class DemoPositionSerializer(serializers.ModelSerializer):
     
 class CompeitionPositionSerializer(serializers.ModelSerializer):
     fullname = serializers.SerializerMethodField()
+    email = serializers.SerializerMethodField()
     user_id = serializers.SerializerMethodField()
     symbol = serializers.SerializerMethodField()
     type =  serializers.SerializerMethodField()
@@ -177,6 +185,7 @@ class CompeitionPositionSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'symbol',
+            'email',
             'action',
             'quantity',
             'open_price',
@@ -195,7 +204,12 @@ class CompeitionPositionSerializer(serializers.ModelSerializer):
         user = obj.portfolio.user
         if user:
             return f"{user.firstname.title()} {user.lastname.title()}"
-        
+    
+    def get_email(self, obj):
+        user = obj.portfolio.user
+        if user:
+            return user.email
+       
     def get_user_id(self,obj):
         return obj.portfolio.user.id
     

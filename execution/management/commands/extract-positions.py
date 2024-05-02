@@ -1,6 +1,7 @@
 # Import necessary modules
 import pandas as pd
 from django.core.management.base import BaseCommand
+from competition.models import CompetitionPosition
 from execution.models import DemoPosition
 from django.utils import timezone
 
@@ -9,7 +10,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         # Query DemoPosition data
-        positions = DemoPosition.objects.filter(status='close')
+        # positions = DemoPosition.objects.filter(status='close')
+        positions = CompetitionPosition.objects.filter(status='close')
 
         # Create a DataFrame from the queryset
         data = {

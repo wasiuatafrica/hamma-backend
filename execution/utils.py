@@ -431,6 +431,7 @@ def competition_daily_returns4():
             df = pd.DataFrame(data)
             
             df["Balance"]= df['Amount_Invested'] + df['Profit_Loss']
+            # df["Balance"]= 1000000 + df['Profit_Loss']
             df['Closedate'] = df['closedatetime'].dt.date
             
             df = df[["Stock", "Balance", "Amount_Invested", "Closedate", "closedatetime"]]
