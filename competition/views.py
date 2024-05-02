@@ -668,7 +668,7 @@ class ClanMembers(APIView):
         portfolio = CompetitionPortfolio.objects.filter(competition__status='current', user=clan.clan_admin).first()
         profile=Profile.objects.get(user=clan.clan_admin)
         if portfolio:
-            profit = getProfit(portfolio)
+            profit,status = getProfit(portfolio)
             percent= round(profit/1000000 *100,2)
             
             
@@ -692,7 +692,7 @@ class ClanMembers(APIView):
                 portfolio = CompetitionPortfolio.objects.filter(competition__status='current',user=member).first()
                 profile1=Profile.objects.get(user=member)
                 if portfolio:
-                    profit = getProfit(portfolio)
+                    profit,status = getProfit(portfolio)
                     percent= round(profit/1000000 *100,2)
                     
                     data= {
@@ -749,10 +749,12 @@ class ClanMembers(APIView):
 def getProfit(portfolio):
     positions = CompetitionPosition.objects.filter(portfolio=portfolio, status='close')
     # print(len(positions))
-    
-    profit = sum([position.profit_loss for position in positions if positions])
-    # print(profit)
-    return profit
+    if positions:
+        profit = sum([position.profit_loss for position in positions])
+        # print(profit)
+        return profit, True
+    else:
+        return 0, False
 
 
 # def calc_profit_days(number,days, acc_size):
@@ -793,7 +795,7 @@ class LeaderBoardView(APIView):
                 leaderboard_list=[]
                 zero_profit_list = []
                 for account in portfolio:
-                    print(account.user)
+                    # print(account.user)
                     # try:
                     #     clan=Clan.objects.filter(member=account.user).first()
                     # except Clan.DoesNotExist:
@@ -801,19 +803,17 @@ class LeaderBoardView(APIView):
                     # print(clan)
                     # user_portfolio = portfolio.filter(user=account.user).first()
                     # print(user_portfolio.competition.title)
-                    profit = getProfit(account)
-                    percent= round((profit/1000000)*100,2)
-                    profile= Profile.objects.get(user=account.user)
-                    data= {
-                        'name':account.user.fullname,
-                        'profit':percent,
-                        'country':profile.country,
-                        'clan':account.user.clans
-                    }
-                    if percent != 0:
+                    profit,status = getProfit(account)
+                    if status:
+                        percent= round((profit/1000000)*100,2)
+                        profile= Profile.objects.get(user=account.user)
+                        data= {
+                            'name':account.user.fullname,
+                            'profit':percent,
+                            'country':profile.country,
+                            'clan':account.user.clans
+                        }
                         leaderboard_list.append(data)
-                    else:
-                        zero_profit_list.append(data)
                 sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
                 # sorted_data += zero_profit_list
 
@@ -888,23 +888,24 @@ def leaderboard_view(request):
             clan=clan.first()
             user_portfolio = base_query.filter(user=account.user).first()
             # print(user_portfolio.competition.title)
-            profit = getProfit(user_portfolio)
-            percent= round((profit/1000000)*100,2)
-            profile= Profile.objects.get(user=account.user)
-            data= {
-                'id':user_portfolio.id,
-                'active':user_portfolio.active,
-                'name':user_portfolio.user.fullname,
-                'profit':percent,
-                'country':profile.country,
-                'clan':clan.clan_name
-            }
-            if percent != 0:
+            profit,status = getProfit(user_portfolio)
+            if status:
+                
+                percent= round((profit/1000000)*100,2)
+                profile= Profile.objects.get(user=account.user)
+                data= {
+                    'id':user_portfolio.id,
+                    'active':user_portfolio.active,
+                    'name':user_portfolio.user.fullname,
+                    'profit':percent,
+                    'country':profile.country,
+                    'clan':clan.clan_name
+                }
+            
                 leaderboard_list.append(data)
-            else:
-                zero_profit_list.append(data)
+                
     sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
-    sorted_data += zero_profit_list
+    # sorted_data += zero_profit_list
     
     leaderboard="show"
     pastLeaderboard="hide"
@@ -1580,11 +1581,12 @@ def Create_competiton_summary(competition):
         except Clan.DoesNotExist:
             clan = Clan.objects.filter(clan_admin=portfolio.user).first()
         
-        profit = getProfit(portfolio)
-        percent = round(profit / 1000000 * 100, 2)
-        
-        # Use the single `portfolio` instance here
-        CompetitionSummary.objects.create(portfolio=portfolio, clan=clan, user=portfolio.user, profit=percent, competition=competition)
+        profit,status = getProfit(portfolio)
+        if status:
+            percent = round(profit / 1000000 * 100, 2)
+            
+            # Use the single `portfolio` instance here
+            CompetitionSummary.objects.create(portfolio=portfolio, clan=clan, user=portfolio.user, profit=percent, competition=competition)
     
     # close the competition after the loop is completed
     competition.status = "closed"
