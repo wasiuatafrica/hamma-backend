@@ -33,11 +33,15 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     @property
     def clans(self):
         clan = self.clan.all()
-        print(clan)
+        # print(clan)
         if clan:
             return clan[0].clan_name
         else:
-            return None
+            clan = self.clan_admin.all()
+            if clan:
+                return clan[0].clan_name
+            else:
+                return None
     
     @property
     def profile_phone(self):
