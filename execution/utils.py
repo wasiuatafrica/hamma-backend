@@ -3,7 +3,7 @@ from calendar import c
 from re import M
 
 from competition.models import Competition, CompetitionCumulativeReturns2, CompetitionDailyReturns2, CompetitionPortfolio, CompetitionPosition
-from .models import DemoPosition, DemoPortfolio, DemoCumulativeReturns, DemoDailyReturns, DemoDailyReturns2, MarketReturns, CumulativeMarketReturns
+from .models import CompetitionCumulativeMarketReturns, CompetitionMarketReturns, DemoPosition, DemoPortfolio, DemoCumulativeReturns, DemoDailyReturns, DemoDailyReturns2, MarketReturns, CumulativeMarketReturns
 from rest_framework import serializers
 import pandas as pd
 import pytz
@@ -501,6 +501,55 @@ def competition_daily_returns4():
                 created=timezone.now(),
                 first_entry=False)
                 
+    tv = TvDatafeed()
+    
+    days_passed = days_since_date('2024-05-1')
+    # print('days',days_passed)
+    n_bars=1 + days_passed 
+    df2 = tv.get_hist(symbol="ASI", exchange='NSENG', interval=Interval.in_daily, n_bars=n_bars)
+    ASI_daily_selected = df2.reset_index()
+    ASI_daily_selected['ASI_daily_retuns'] = ASI_daily_selected['close'].pct_change() * 100
+    ASI_daily_selected['Date'] = ASI_daily_selected['datetime'].dt.strftime('%Y-%m-%d')
+
+    print(ASI_daily_selected)
+    # # Save the last row to the database
+    last_row_market = ASI_daily_selected.iloc[-1]
+    # # print(last_row_market)
+    
+    market_returns = last_row_market['ASI_daily_retuns']
+    if np.isnan(market_returns):
+        market_returns = 0
+        
+    comp_market = CompetitionMarketReturns.objects.filter(created__date=timezone.now().date())
+    if comp_market.exists():
+        comp_market2 = comp_market.first()
+    else:
+        comp_market2 = CompetitionMarketReturns.objects.create(created=timezone.now())
+    
+    comp_market2.market_returns = round(market_returns, 2)
+    comp_market2.save()
+
+    cum_mark_table = ASI_daily_selected[['Date', 'ASI_daily_retuns']]
+    cum_mark_table['cum_ASI_daily_retuns'] = (1 + cum_mark_table.ASI_daily_retuns / 100).cumprod() - 1
+    cum_mark_table['cum_ASI_daily_retuns'] = cum_mark_table.cum_ASI_daily_retuns * 100
+
+    print(cum_mark_table)
+    # Save the last row to the database
+    last_row_cum_market = cum_mark_table.iloc[-1]
+    # print(last_row_cum_market)
+    cum_market_returns = last_row_cum_market['cum_ASI_daily_retuns']
+    if np.isnan(cum_market_returns):
+        cum_market_returns = 0
+    # CompetitionCumulativeMarketReturns.objects.create(market_returns=round(cum_market_returns, 2), created=timezone.now())  
+    comp_market_cum = CompetitionCumulativeMarketReturns.objects.filter(created__date=timezone.now().date())
+    if comp_market_cum.exists():
+        comp_market_cum2 = comp_market_cum.first()
+    else:
+        comp_market_cum2 = CompetitionCumulativeMarketReturns.objects.create(created=timezone.now())
+    
+    comp_market_cum2.market_returns = round(market_returns, 2)
+    comp_market_cum2.save()   
+    
     print('all')
             
         

@@ -1,4 +1,5 @@
 from django.contrib import admin
+from execution.models import CompetitionCumulativeMarketReturns, CompetitionMarketReturns
 from .models import (
     Clan,
 JoinClanRequest,
@@ -19,7 +20,9 @@ CompetitionTransaction,
 ClanNameChangeRequest,
 ClanMemeberRemoverRequest,
 CompetitionCumulativeReturns2,
-CompetitionDailyReturns2
+CompetitionDailyReturns2,
+CompetitionCumulativeReturns,
+CompetitionDailyReturns,
 )
 # Register your models here.
 admin.site.register(ClanNameChangeRequest)
@@ -54,3 +57,5 @@ admin.site.register(CompetitionPosition)
 admin.site.register(CompetitionTransaction)
 admin.site.register(CompetitionCumulativeReturns2)
 admin.site.register(CompetitionDailyReturns2)
+admin.site.register(CompetitionCumulativeMarketReturns)
+admin.site.register(CompetitionMarketReturns)

@@ -22,7 +22,7 @@ import json
 from django.utils import timezone
 from accounts.models import  UserActivityLog 
 
-from .models import DemoCumulativeReturns, DemoPosition, DemoPortfolio, DemoDailyReturns, DemoDailyReturns2, MarketReturns, CumulativeMarketReturns
+from .models import CompetitionCumulativeMarketReturns, CompetitionMarketReturns, DemoCumulativeReturns, DemoPosition, DemoPortfolio, DemoDailyReturns, DemoDailyReturns2, MarketReturns, CumulativeMarketReturns
 from  competition.models import Competition, CompetitionCumulativeReturns, CompetitionCumulativeReturns2, CompetitionDailyReturns2, CompetitionPosition,CompetitionDailyReturns,CompetitionPortfolio,CompetitionTransaction
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -575,8 +575,8 @@ class Home(APIView):
                 daily_profitloss= CompetitionDailyReturns2 .objects.filter(portfolio=in_competition)
                 cumulative_profitloss= CompetitionCumulativeReturns2.objects.filter(portfolio=in_competition)
                 
-                market= MarketReturns.objects.all()
-                cumulative_market = CumulativeMarketReturns.objects.all()
+                market= CompetitionMarketReturns.objects.all()
+                cumulative_market = CompetitionCumulativeMarketReturns.objects.all()
                 
                 overview = []
                 cumulative_overview = []
