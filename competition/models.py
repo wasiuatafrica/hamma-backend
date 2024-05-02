@@ -51,7 +51,8 @@ class CompetitionPortfolio(auto_prefetch.Model):
     active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.competition.title} {self.user}"
+        print(self.user.clan)
+        return f"{self.competition.title} {self.user}|clan= {self.user.clans}"
     
     @property
     def profit(self):
@@ -174,7 +175,7 @@ class Clan(auto_prefetch.Model):
     clan_admin=auto_prefetch.ForeignKey(User, on_delete=models.CASCADE,related_name='clan_admin', blank=True, null=True)
     clan_name=models.CharField(max_length=200, unique=True,blank=True)
     community_link=models.URLField(blank=True)
-    member=models.ManyToManyField(User, blank=True)
+    member=models.ManyToManyField(User, blank=True,related_name='clan')
     description = models.TextField(blank=True, null=True)
     clan_logo=models.ImageField(upload_to='clan_logos', null=True, blank=True)
     date_request=models.DateTimeField(auto_now_add=True)

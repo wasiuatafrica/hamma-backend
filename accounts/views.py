@@ -55,16 +55,33 @@ class VerifyToken(APIView):
             return Response({"detail":"Token or user_email is invalid"}, status=status.HTTP_400_BAD_REQUEST)
         
         user=User.objects.get(email=user_email)
+                
+        # Portfolio.objects.create(user=user)
+        # ReferralWallet.objects.create(user=user)
+        # DemoPortfolio.objects.create(user=user)
+        # send_welcome_email.delay(user.id)
+        # # set_up_user.delay(user_email)
+        # activity=models.UserActivityLog.objects.create(user=user, action_type="verified_account",description="User verified their account.")
         
-        # Wallet.objects.create(user=user)
-        
+        # return Response({"detail":"Account verifed."})
+                
         Portfolio.objects.create(user=user)
         ReferralWallet.objects.create(user=user)
         DemoPortfolio.objects.create(user=user)
         send_welcome_email.delay(user.id)
-        # set_up_user.delay(user_email)
         activity=models.UserActivityLog.objects.create(user=user, action_type="verified_account",description="User verified their account.")
-        return Response({"detail":"Account verifed."})
+        
+        refresh = RefreshToken.for_user(user)
+        user_data =serializers.CustomUserSerializer(user, many=False).data
+        user.last_login=timezone.now()
+        user.save()
+        token_data = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            "user": user_data
+        }
+        activity=models.UserActivityLog.objects.create(user=user, action_type="login",description="User logged into their account")
+        return Response(token_data, status=status.HTTP_200_OK)
 
 class ProfileView(APIView):
     queryset = models.Profile.objects.all()

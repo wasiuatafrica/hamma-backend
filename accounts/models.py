@@ -29,6 +29,16 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+    
+    @property
+    def clans(self):
+        clan = self.clan.all()
+        print(clan)
+        if clan:
+            return clan[0].clan_name
+        else:
+            return None
+    
     @property
     def profile_phone(self):
         profile=Profile.objects.get(user__email=self.email)

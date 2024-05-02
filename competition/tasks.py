@@ -194,7 +194,7 @@ def saturday_evening(): #3
             html_message = render_to_string('competition/saturday_evening.html', context)
             plain_message = ""
             
-            subject = "DO THIS IF YOU DON'T WANT TO WIN"
+            subject = " GET TO THE TOP OF THE LEADERBOARD WITH THESE PRO TIPS!"
             from_email = "teamgohamma@gmail.com"
             recipient_list = [user.email]
             send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)

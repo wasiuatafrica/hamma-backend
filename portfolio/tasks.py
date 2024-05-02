@@ -66,7 +66,7 @@ def check_alert(id):
     
     try:
         alert=Alert.objects.get(id=id)
-        print(f"{alert.id} object gotten")
+        print(f"{alert.alert_name} object gotten")
     except Alert.DoesNotExist:
         alert=None
     # print(alert.created.month )
