@@ -761,6 +761,8 @@ class Home(APIView):
                 ]
                 data = {
                     'balance':round(balance,2),
+                    'starting_balance': None,
+                    
                     'equity':equity,
                     'floating_pl' : profit_loss,
                     'closed_pl' : profit_loss2,
