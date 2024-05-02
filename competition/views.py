@@ -1711,6 +1711,15 @@ class TopClans(APIView):
                     for clan, total_profit in sorted(clan_profits.items(), key=lambda x: x[1], reverse=True)
                 ][:3]
 
+                for data in ranked_clans:
+                    clan_name = data['clan_name']
+                    clan = Clan.objects.get(clan_name=clan_name)
+                    data['clan_logo'] = clan.clan_logo.url
+                    data['clan_id'] = clan.id
+                    data['community_link'] = clan.community_link
+                    data['description'] = clan.description
+                    data['members_count'] = clan.member.count() + 1
+                    data['profit_comparison'] = clan.profit_comparison
                 # Return the ranked list of clans
                 return Response(ranked_clans)
 
