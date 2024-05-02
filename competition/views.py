@@ -1709,7 +1709,7 @@ class TopClans(APIView):
                 ranked_clans = [
                     {'clan_name': clan, 'profit': total_profit}
                     for clan, total_profit in sorted(clan_profits.items(), key=lambda x: x[1], reverse=True)
-                ]
+                ][:3]
 
                 # Return the ranked list of clans
                 return Response(ranked_clans)
