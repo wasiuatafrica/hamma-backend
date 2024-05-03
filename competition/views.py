@@ -671,7 +671,7 @@ class ClanMembers(APIView):
         profile=Profile.objects.get(user=clan.clan_admin)
         if portfolio:
             profit,status = getProfit(portfolio)
-            percent= round(profit/1000000 *100,2)
+            percent= round((profit/1000000) *100,2)
             
             
             data= {
@@ -795,16 +795,7 @@ class LeaderBoardView(APIView):
                 portfolio = CompetitionPortfolio.objects.filter(competition=competition, active=True)
                 
                 leaderboard_list=[]
-                zero_profit_list = []
                 for account in portfolio:
-                    # print(account.user)
-                    # try:
-                    #     clan=Clan.objects.filter(member=account.user).first()
-                    # except Clan.DoesNotExist:
-                    #     clan=Clan.objects.get(clan_admin=account.user)
-                    # print(clan)
-                    # user_portfolio = portfolio.filter(user=account.user).first()
-                    # print(user_portfolio.competition.title)
                     profit,status = getProfit(account)
                     if status:
                         percent= round((profit/1000000)*100,2)
@@ -818,7 +809,6 @@ class LeaderBoardView(APIView):
                         }
                         leaderboard_list.append(data)
                 sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
-                # sorted_data += zero_profit_list
 
                 return Response(sorted_data)
             else:

@@ -216,6 +216,7 @@ def four_days_before_end(): #4
         send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
 
 def get_top():
+    from collections import defaultdict
     base_query = CompetitionPortfolio.objects.filter(competition__status='current',active=True)
     
     leaderboard_list=[]
@@ -230,26 +231,38 @@ def get_top():
             clan=clan.first()
             user_portfolio = base_query.filter(user=account.user).first()
             # print(user_portfolio.competition.title)
-            profit = getProfit(user_portfolio)
-            percent= round((profit/1000000)*100,2)
-            profile= Profile.objects.get(user=account.user)
-            data= {
-                'id':user_portfolio.id,
-                'active':user_portfolio.active,
-                'name':user_portfolio.user.fullname.title(),
-                'profit':percent,
-                'country':profile.country,
-                'clan':clan.clan_name.title(),
-            }
-            if percent != 0:
+            profit,status = getProfit(user_portfolio)
+            if status:
+                percent= round((profit/1000000)*100,2)
+                profile= Profile.objects.get(user=account.user)
+                data= {
+                    'id':user_portfolio.id,
+                    'active':user_portfolio.active,
+                    'name':user_portfolio.user.firstname.title(),
+                    'profit':percent,
+                    'country':profile.country,
+                    'clan':clan.clan_name.title(),
+                }
+           
                 leaderboard_list.append(data)
-            else:
-                zero_profit_list.append(data)
+            
     sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
-    sorted_data += zero_profit_list
+    
     first = sorted_data[0]
-    trader,clan = first['name'],first['clan']
+    trader = first['name']
+    
+    clan_profits = defaultdict(float)
+    for entry in sorted_data:
+        clan_profits[entry['clan']] += entry['profit']
+
+    ranked_clans = [
+        {'clan_name': clan, 'profit': total_profit}
+        for clan, total_profit in sorted(clan_profits.items(), key=lambda x: x[1], reverse=True)
+    ][:3]
+    clan = ranked_clans[0]['clan_name']
     return trader,clan
+  
+
    
 @shared_task
 def friday_evening(): #5

@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import Sum
 from django.contrib.auth import get_user_model
-from datetime import date
+from datetime import date, timedelta
 from accounts.models import Profile
 from django.utils import timezone
 import auto_prefetch
@@ -168,7 +168,62 @@ class CompetitionTransaction(auto_prefetch.Model):
     status= models.CharField(max_length=20, default='unprocessed', blank=True,null=True)
     portfolio = auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE, related_name='transactions', blank=True, null=True)
 
+def getProfit(portfolio):
+    positions = CompetitionPosition.objects.filter(portfolio=portfolio, status='close')
+    # print(len(positions))
+    if positions:
+        profit = sum([position.profit_loss for position in positions])
+        # print(profit)
+        return profit, True
+    else:
+        return 0, False
   
+from collections import defaultdict
+
+def get_leaderboard():
+    # Base query to get all active competition portfolios
+    base_query = CompetitionPortfolio.objects.filter(competition__status='current', active=True)
+    # print(len(base_query))
+    # Lists to hold leaderboard data and those with zero profit
+    leaderboard_list = []
+   
+    clan_profits = defaultdict(float)
+    clan_member_counts = defaultdict(int)
+    
+    # Iterate over each account in the base query
+    for account in base_query:
+        # print(account.user)
+        profit,status = getProfit(account)
+        # print(profit,status)
+        if status:
+            percent= round((profit/1000000)*100,2)
+            profile= Profile.objects.get(user=account.user)
+            clan=account.user.clans
+            data= {
+                'name':account.user.firstname,
+                'profit':percent,
+                'profit_naira':profit,
+                'country':profile.country,
+                'clan':clan
+            }
+            leaderboard_list.append(data)
+                
+            # Increment the clan's total profit and member count
+            clan_profits[clan] += percent
+            clan_member_counts[clan] += 1
+    # print(leaderboard_list)
+    # print(clan_member_counts.items())
+    # Now calculate the average profit for each clan
+    ranked_clans = [
+        {
+            'clan_name': clan,
+            'average_profit': clan_profits[clan] / clan_member_counts[clan],  # Average profit
+        }
+        for clan in sorted(clan_profits.keys(), key=lambda c: clan_profits[c] / clan_member_counts[c], reverse=True)
+    ]
+    
+    return ranked_clans  
+
 
 class Clan(auto_prefetch.Model):
     
@@ -213,24 +268,36 @@ class Clan(auto_prefetch.Model):
     
     @property
     def profit_comparison(self):
-        profit_records = ClanCompetitionSummary.objects.filter(clan=self).order_by('id')
-        num_records = profit_records.count()
+        competition = Competition.objects.filter(status='current').first()
+        if competition and timezone.now() > competition.start_date :
+            leaderboard = get_leaderboard()
+            clan_profit = [entry['average_profit'] for entry in leaderboard if entry['clan_name']==self.clan_name]
+            if clan_profit:
+                avg_profit = round(clan_profit[0],2)
+            else:
+                avg_profit = 0
+            
+            return (avg_profit, 'equal')
+        
+        else:
+            profit_records = ClanCompetitionSummary.objects.filter(clan=self).order_by('id')
+            num_records = profit_records.count()
 
-        if num_records == 1:
-            last_profit_value = round(profit_records[0].profit,2)
-            return (last_profit_value, 'equal')
+            if num_records == 1:
+                last_profit_value = round(profit_records[0].profit,2)
+                return (last_profit_value, 'equal')
 
-        if num_records >= 2:
-            last_profit_value = round(profit_records.last().profit,2)
-            second_last_profit_value = round(profit_records[num_records - 2].profit,2)
+            if num_records >= 2:
+                last_profit_value = round(profit_records.last().profit,2)
+                second_last_profit_value = round(profit_records[num_records - 2].profit,2)
 
-            if last_profit_value > second_last_profit_value:
-                return (last_profit_value, 'up')
-            elif last_profit_value < second_last_profit_value:
-                return (last_profit_value, 'down')
+                if last_profit_value > second_last_profit_value:
+                    return (last_profit_value, 'up')
+                elif last_profit_value < second_last_profit_value:
+                    return (last_profit_value, 'down')
 
-        # Handle the case where there are no profit records or other exceptional cases
-        return (0, 'no_data')
+            # Handle the case where there are no profit records or other exceptional cases
+            return (0, 'no_data')
 
 class ClanNameChangeRequest(auto_prefetch.Model):
     clan_owner=auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='clan_owner_name',null=True, blank=True)
