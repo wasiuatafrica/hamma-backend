@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from numpy import half
 from notifications.utils import save_and_send_notification
 from decimal import Decimal
+
+import portfolio
 from .models import (Competition, CompetitionCumulativeReturns2, CompetitionDailyReturns2, CompetitionPortfolio, JoinClanRequest, get_price, CompetitionDailyReturns, ClanCompetitionSummary, CompetitionSummary, Clan, 
                      CompetitionPosition, CompetitionTransaction, CompetitionCumulativeReturns)
 
@@ -184,7 +186,9 @@ def two_days_before_start(): #2
 def saturday_evening(): #3
     competition = Competition.objects.filter(status='current')
     if competition.exists() and timezone.now() > competition.first().start_date:
-        users = User.objects.all()
+        portfolios = CompetitionPortfolio.objects.filter(competition=competition.first(), active=True)
+        users = [portfolio.user for portfolio in portfolios] 
+        # users = User.objects.all()
         
         for user in users:
             context={
@@ -288,7 +292,10 @@ def friday_evening(): #5
     
 @shared_task
 def mid_competition(): #7
-    users = User.objects.all()
+    competition = Competition.objects.filter(status='current')
+    
+    portfolios = CompetitionPortfolio.objects.filter(competition=competition.first(), active=True)
+    users = [portfolio.user for portfolio in portfolios] 
     for user in users:
         context={
         "firstname":user.firstname.title(),
@@ -304,7 +311,11 @@ def mid_competition(): #7
         
 @shared_task
 def last_day(): #8
-    users = User.objects.all()
+    competition = Competition.objects.filter(status='current')
+    
+    portfolios = CompetitionPortfolio.objects.filter(competition=competition.first(), active=True)
+    users = [portfolio.user for portfolio in portfolios]
+    
     for user in users:
         context={
         "firstname":user.firstname.title(),
@@ -319,7 +330,11 @@ def last_day(): #8
         
 @shared_task
 def two_days_before_end(): #9
-    users = User.objects.all()
+    competition = Competition.objects.filter(status='current')
+    
+    portfolios = CompetitionPortfolio.objects.filter(competition=competition.first(), active=True)
+    users = [portfolio.user for portfolio in portfolios]
+    
     for user in users:
         context={
         
