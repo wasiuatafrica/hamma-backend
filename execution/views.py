@@ -629,8 +629,9 @@ class Home(APIView):
                         'return':daily.portfolio_returns,
                     } for daily in daily_profitloss if daily_profitloss.count() > 1 and daily.created > competition.start_date
                 ]
+                open_balance = sum([position.amount_invested for position in positions])
                 data = {
-                    'balance':round(balance,2),
+                    'balance':round(balance + open_balance,2),
                     'starting_balance':1000000,
                     'equity':equity,
                     'floating_pl' : profit_loss,
@@ -759,8 +760,9 @@ class Home(APIView):
                         'return':daily.portfolio_returns,
                     } for daily in daily_profitloss
                 ]
+                open_balance = sum([position.amount_invested for position in positions])
                 data = {
-                    'balance':round(balance,2),
+                    'balance':round(balance + open_balance,2),
                     'starting_balance': None,
                     
                     'equity':equity,
@@ -1249,10 +1251,10 @@ class DemoHolding(APIView):
                 open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
                 closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
                 # wallet_balance = portfolio.balance
-                # balance = open_trade_sum + closed_trade_sum + closed_pl 
+                open_balance = open_trade_sum
                 
                 hold_data ={
-                    'balance':balance,
+                    'balance':balance +open_balance,
                     'floating_pl':floating_pl,
                     'closed_pl':closed_pl,
                     'equity':balance  + floating_pl,
@@ -1326,10 +1328,10 @@ class DemoHolding(APIView):
                 open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
                 closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
                 # wallet_balance = portfolio.balance
-                # balance = open_trade_sum + closed_trade_sum + closed_pl 
+                open_balance = open_trade_sum
                 
                 hold_data ={
-                    'balance':balance,
+                    'balance':balance +open_balance,
                     'floating_pl':floating_pl,
                     'closed_pl':closed_pl,
                     'equity':balance  + floating_pl,

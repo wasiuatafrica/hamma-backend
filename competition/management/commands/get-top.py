@@ -10,7 +10,6 @@ class Command (BaseCommand):
     help = ''
 
     def handle (self, *args, **options):
-        from competition.tasks import get_top
+        from competition.tasks import get_top, friday_evening
         
-        top = get_top()
-        print(top)
+        friday_evening()
