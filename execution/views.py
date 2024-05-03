@@ -633,7 +633,7 @@ class Home(APIView):
                 data = {
                     'balance':round(balance + open_balance,2),
                     'starting_balance':1000000,
-                    'equity':equity,
+                    'equity':equity + open_balance,
                     'floating_pl' : profit_loss,
                     'closed_pl' : profit_loss2,
                     # 'positions': position_data_list2,
@@ -765,7 +765,7 @@ class Home(APIView):
                     'balance':round(balance + open_balance,2),
                     'starting_balance': None,
                     
-                    'equity':equity,
+                    'equity':equity + open_balance ,
                     'floating_pl' : profit_loss,
                     'closed_pl' : profit_loss2,
                     # 'positions': position_data_list2,
@@ -1257,7 +1257,7 @@ class DemoHolding(APIView):
                     'balance':balance +open_balance,
                     'floating_pl':floating_pl,
                     'closed_pl':closed_pl,
-                    'equity':balance  + floating_pl,
+                    'equity':balance  + floating_pl + open_balance,
                     'holdings':positions_data
                     
                 }
@@ -1334,7 +1334,7 @@ class DemoHolding(APIView):
                     'balance':balance +open_balance,
                     'floating_pl':floating_pl,
                     'closed_pl':closed_pl,
-                    'equity':balance  + floating_pl,
+                    'equity':balance  + floating_pl + open_balance,
                     'holdings':positions_data
                     
                 }
