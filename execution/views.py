@@ -846,8 +846,8 @@ class SupportHome(APIView):
                 daily_profitloss= CompetitionDailyReturns2 .objects.filter(portfolio=in_competition)
                 cumulative_profitloss= CompetitionCumulativeReturns2.objects.filter(portfolio=in_competition)
                 
-                market= MarketReturns.objects.all()
-                cumulative_market = CumulativeMarketReturns.objects.all()
+                market= CompetitionMarketReturns.objects.all()
+                cumulative_market = CompetitionCumulativeMarketReturns.objects.all()
                 
                 overview = []
                 cumulative_overview = []
@@ -902,6 +902,7 @@ class SupportHome(APIView):
                 ]
                 data = {
                     'balance':round(balance,2),
+                    'starting_balance': 1000000,
                     'equity':equity,
                     'floating_pl' : profit_loss,
                     'closed_pl' : profit_loss2,
@@ -1031,6 +1032,7 @@ class SupportHome(APIView):
                 ]
                 data = {
                     'balance':round(balance,2),
+                    'starting_balance': None,
                     'equity':equity,
                     'floating_pl' : profit_loss,
                     'closed_pl' : profit_loss2,
