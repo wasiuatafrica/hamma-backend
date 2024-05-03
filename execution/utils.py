@@ -533,13 +533,11 @@ def competition_daily_returns4():
         cum_mark_table['cum_ASI_daily_retuns'] = cum_mark_table.cum_ASI_daily_retuns * 100
 
         print(cum_mark_table)
-        # Save the last row to the database
         last_row_cum_market = cum_mark_table.iloc[-1]
         # print(last_row_cum_market)
         cum_market_returns = last_row_cum_market['cum_ASI_daily_retuns']
         if np.isnan(cum_market_returns):
-            cum_market_returns = 0
-        # CompetitionCumulativeMarketReturns.objects.create(market_returns=round(cum_market_returns, 2), created=timezone.now())  
+            cum_market_returns = 0 
         comp_market_cum = CompetitionCumulativeMarketReturns.objects.filter(created__date=timezone.now().date())
         if comp_market_cum.exists():
             comp_market_cum2 = comp_market_cum.first()

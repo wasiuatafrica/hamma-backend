@@ -572,8 +572,8 @@ class Home(APIView):
                 
                 
                 # daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
-                daily_profitloss= CompetitionDailyReturns2 .objects.filter(portfolio=in_competition)
-                cumulative_profitloss= CompetitionCumulativeReturns2.objects.filter(portfolio=in_competition)
+                daily_profitloss= CompetitionDailyReturns2 .objects.filter(portfolio=in_competition).order_by('created')
+                cumulative_profitloss= CompetitionCumulativeReturns2.objects.filter(portfolio=in_competition).order_by('created')
                 
                 market= CompetitionMarketReturns.objects.all()
                 cumulative_market = CompetitionCumulativeMarketReturns.objects.all()
@@ -703,8 +703,8 @@ class Home(APIView):
                 
                 
                 # daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
-                daily_profitloss= DemoDailyReturns2.objects.filter(user=request.user)
-                cumulative_profitloss= DemoCumulativeReturns.objects.filter(user=request.user)
+                daily_profitloss= DemoDailyReturns2.objects.filter(user=request.user).order_by('created')
+                cumulative_profitloss= DemoCumulativeReturns.objects.filter(user=request.user).order_by('created')
                 
                 market= MarketReturns.objects.all()
                 cumulative_market = CumulativeMarketReturns.objects.all()
@@ -845,8 +845,8 @@ class SupportHome(APIView):
                 profit_loss = sum(profit_loss_list) if profit_loss_list else 0
                 
                 
-                daily_profitloss= CompetitionDailyReturns2 .objects.filter(portfolio=in_competition)
-                cumulative_profitloss= CompetitionCumulativeReturns2.objects.filter(portfolio=in_competition)
+                daily_profitloss= CompetitionDailyReturns2 .objects.filter(portfolio=in_competition).order_by('created')
+                cumulative_profitloss= CompetitionCumulativeReturns2.objects.filter(portfolio=in_competition).order_by('created')
                 
                 market= CompetitionMarketReturns.objects.all()
                 cumulative_market = CompetitionCumulativeMarketReturns.objects.all()
@@ -902,10 +902,12 @@ class SupportHome(APIView):
                         'return':daily.portfolio_returns,
                     } for daily in daily_profitloss
                 ]
+                open_balance = sum([position.amount_invested for position in positions])
                 data = {
-                    'balance':round(balance,2),
+                    'balance':round(balance + open_balance,2),
                     'starting_balance': 1000000,
-                    'equity':equity,
+                    
+                    'equity':equity + open_balance ,
                     'floating_pl' : profit_loss,
                     'closed_pl' : profit_loss2,
                     # 'positions': position_data_list2,
@@ -1032,10 +1034,12 @@ class SupportHome(APIView):
                         'return':daily.portfolio_returns,
                     } for daily in daily_profitloss
                 ]
+                open_balance = sum([position.amount_invested for position in positions])
                 data = {
-                    'balance':round(balance,2),
+                    'balance':round(balance + open_balance,2),
                     'starting_balance': None,
-                    'equity':equity,
+                    
+                    'equity':equity + open_balance ,
                     'floating_pl' : profit_loss,
                     'closed_pl' : profit_loss2,
                     # 'positions': position_data_list2,
