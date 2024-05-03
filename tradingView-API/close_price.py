@@ -64,11 +64,13 @@ def get_data(symbol):
             entry['datetime'] = entry['datetime'].strftime('%Y-%m-%d %H:%M:%S')
         
         data2 = last_data_dicts[-1]
-        if isinstance(data2, dict):
-            write_to_mongodb(symbol,data2)
+        # if isinstance(data2, dict):
+            # write_to_mongodb(symbol,data2)
 
         print(data2)
 
-while True:
-    for symbol in symbols:
-        get_data(symbol)
+# while True:
+#     for symbol in symbols:
+#         get_data(symbol)
+
+get_data("CUTIX")

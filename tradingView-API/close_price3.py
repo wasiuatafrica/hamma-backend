@@ -149,7 +149,7 @@ while True:
         print("all data saved")
     else:
         print("Market closed")
-    module_time.sleep(300)
+    module_time.sleep(120)
 
 
 

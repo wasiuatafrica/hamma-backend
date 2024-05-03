@@ -1676,31 +1676,35 @@ class TopClans(APIView):
                 portfolio = CompetitionPortfolio.objects.filter(competition=competition.first(), active=True)
                 
                 leaderboard_list=[]
+                
+                clan_profits = defaultdict(float)
+                clan_member_counts = defaultdict(int)
+                
                 for account in portfolio:
                     
                     profit,status = getProfit(account)
                     if status:
                         percent= round((profit/1000000)*100,2)
                         profile= Profile.objects.get(user=account.user)
+                        clan=account.user.clans
                         data= {
                             'name':account.user.firstname,
                             'profit':percent,
                             'profit_naira':profit,
                             'country':profile.country,
-                            'clan':account.user.clans
+                            'clan':clan
                         }
                         leaderboard_list.append(data)
-                sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
-                clan_profits = defaultdict(float)
-                for entry in sorted_data:
-                    clan_profits[entry['clan']] += entry['profit']
-
-                # Create a new list of clans ranked by total profit
+                        clan_profits[clan] += percent
+                        clan_member_counts[clan] += 1
+                        
                 ranked_clans = [
-                    {'clan_name': clan, 'profit': total_profit}
-                    for clan, total_profit in sorted(clan_profits.items(), key=lambda x: x[1], reverse=True)
-                ][:3]
-
+                    {
+                        'clan_name': clan,
+                        'average_profit': clan_profits[clan] / clan_member_counts[clan],  # Average profit
+                    }
+                    for clan in sorted(clan_profits.keys(), key=lambda c: clan_profits[c] / clan_member_counts[c], reverse=True)
+                ]
                 for data in ranked_clans:
                     clan_name = data['clan_name']
                     clan = Clan.objects.get(clan_name=clan_name)
