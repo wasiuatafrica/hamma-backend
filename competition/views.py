@@ -1701,7 +1701,7 @@ class TopClans(APIView):
                 ranked_clans = [
                     {
                         'clan_name': clan,
-                        'profit': clan_profits[clan] / clan_member_counts[clan],  # Average profit
+                        'profit': round(clan_profits[clan] / clan_member_counts[clan], 2) # Average profit
                     }
                     for clan in sorted(clan_profits.keys(), key=lambda c: clan_profits[c] / clan_member_counts[c], reverse=True)
                 ]
