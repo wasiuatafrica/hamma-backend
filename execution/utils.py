@@ -546,7 +546,7 @@ def competition_daily_returns4():
         else:
             comp_market_cum2 = CompetitionCumulativeMarketReturns.objects.create(created=timezone.now())
         
-        comp_market_cum2.market_returns = round(market_returns, 2)
+        comp_market_cum2.market_returns = round(cum_market_returns, 2)
         comp_market_cum2.save()   
         
         print('all')

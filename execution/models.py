@@ -12,6 +12,7 @@ import websockets
 import asyncio
 from django.db import close_old_connections
 from concurrent.futures import ThreadPoolExecutor
+import competition
 from portfolio.models import  Stock
 from portfolio.utils import connect_to_mongodb
 
@@ -303,3 +304,25 @@ class WithdrawalRequest(auto_prefetch.Model):
     updated = models.DateTimeField(auto_now=True)
     status= models.CharField(max_length=20, default='Unprocessed', blank=True,null=True)
     flag=models.BooleanField(default=False, null=True, blank=True)
+    
+class DemoAdminTransaction(auto_prefetch.Model):
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    created =models.DateTimeField(auto_now_add=True)
+    position = auto_prefetch.ForeignKey(DemoPosition, on_delete=models.CASCADE, related_name='demo_admin_transaction')
+    
+ 
+    
+class AdminTransaction(auto_prefetch.Model):
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    created =models.DateTimeField(auto_now_add=True)
+    position = auto_prefetch.ForeignKey(Position, on_delete=models.CASCADE, related_name='admin_transaction')
+    
+class DemoAdminWallet(auto_prefetch.Model):
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    created =models.DateTimeField(auto_now_add=True)
+    
+
+    
+class AdminWallet(auto_prefetch.Model):
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    created =models.DateTimeField(auto_now_add=True)

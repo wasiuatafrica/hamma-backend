@@ -523,3 +523,14 @@ class CompetitionCumulativeReturns2(auto_prefetch.Model):
             return f"{self.portfolio.user} {self.portfolio_returns} - {self.created.date()}"
         else:
             return f"{self.portfolio_returns}"
+        
+class CompetitionAdminTransaction(auto_prefetch.Model):
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    created =models.DateTimeField(auto_now_add=True)
+    position = auto_prefetch.ForeignKey(CompetitionPosition, on_delete=models.CASCADE, related_name='competition_admin_transaction')
+    competition=auto_prefetch.ForeignKey(Competition, on_delete=models.CASCADE, )
+
+class CompetitionAdminWallet(auto_prefetch.Model):
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    created =models.DateTimeField(auto_now_add=True)
+    competition=auto_prefetch.ForeignKey(Competition, on_delete=models.CASCADE)  
