@@ -1255,7 +1255,9 @@ class DemoHolding(APIView):
                 open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
                 closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
                 # wallet_balance = portfolio.balance
-                open_balance = open_trade_sum
+                # open_balance = open_trade_sum
+                positions_close = CompetitionPosition.objects.filter(portfolio=portfolio, status='close')
+                open_balance = sum([position.amount_invested for position in positions_close])
                 
                 hold_data ={
                     'balance':balance +open_balance,
