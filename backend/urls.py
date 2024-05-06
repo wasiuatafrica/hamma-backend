@@ -14,7 +14,7 @@ from rest_framework_simplejwt.views import (
 
 urlpatterns =  (   [
         path("devadmin/", admin.site.urls),
-        path("home/", views.Home.as_view(), name="home"),
+        # path("home/", views.Home.as_view(), name="home"),
         path("", views.docuser,),
         path("docadmin/", views.docadmin,),
         path("marketsai/", views.testai,),
@@ -35,6 +35,7 @@ urlpatterns =  (   [
         path('leaderboard/',include("competition.urls")),
         path('',include("notifications.urls")),
         path('',include("waitlist.urls")),
+        path('chart-data/', views.ChartData.as_view(),)
     ]
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)  
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
