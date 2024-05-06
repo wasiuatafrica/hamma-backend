@@ -83,6 +83,6 @@ class ChartData(APIView):
         data = list(get_price(symbol))
         
         # Convert ObjectId to string for all documents
-        serialized_data = [serialize_document(doc) for doc in data]
+        serialized_data = [serialize_document(doc) for doc in data] 
 
         return Response(serialized_data)
