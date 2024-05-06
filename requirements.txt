@@ -40,4 +40,3 @@ websockets
 openai
 judoscale[django,celery-redis]
 tradingview-datafeed
-bson
