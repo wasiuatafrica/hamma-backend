@@ -834,29 +834,17 @@ def leaderboard_view(request):
     # Filter by competition
     competitions=Competition.objects.filter(status='closed').order_by("-id")
     country = request.GET.get("country", None)
-    # number = request.GET.get("number", None)
     old_competition_id = request.GET.get("filter", None)
     email = request.GET.get("email", None)
-    # acc_size = request.GET.get('acc_size', None)
     clan_name = request.GET.get('clan_name', None)
-    # print(country,acc_size,clan_name)
     base_query = CompetitionPortfolio.objects.filter(competition__status='current',active=True)
-    # print(base_query)
-    # if acc_size:
-    #     base_query = base_query.filter(user_account__acc__acc_size=acc_size)
     if clan_name:
         clan=Clan.objects.filter(clan_name__icontains=clan_name).first()
-        # print(clan.clan_name)
-        # print(clan.clan_admin)
-        # print('all',clan.member.all())
         if clan:
-            # print('base',base_query)
             base_query = base_query.filter(Q(user__in=clan.member.all()) | Q(user=clan.clan_admin) )
             # print(base_query)
     if country:
         base_query = base_query.filter(user__profile__country__icontains=country)
-    # if number:
-    #     base_query = base_query.filter(user_account__acc__number__icontains=number)
     if email:
         base_query = base_query.filter(user__email__icontains=email)
         
@@ -867,14 +855,12 @@ def leaderboard_view(request):
     # print(len(accounts))
     leaderboard_list=[]
     zero_profit_list = []
-    # clans = Clan.objects.all()
-    # for clan in clans:
-    #     for memeber in clan.member.all():
-    #         # print(clan.clan_name, memeber)
     for account in base_query:
         try:
             # print(account.id)
             clan=Clan.objects.filter(member=account.user)
+            if not clan:
+                raise Clan.DoesNotExist
         except Clan.DoesNotExist:
             clan=Clan.objects.filter(clan_admin=account.user)
         if clan:
@@ -898,8 +884,7 @@ def leaderboard_view(request):
                 leaderboard_list.append(data)
                 
     sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
-    # sorted_data += zero_profit_list
-    
+    print(sorted_data)
     leaderboard="show"
     pastLeaderboard="hide"
     q=request.GET.get("filter")
