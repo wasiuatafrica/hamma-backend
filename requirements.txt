@@ -14,7 +14,7 @@ sendgrid
 django-sendgrid-v5
 psycopg2-binary
 PyJWT
-pymongo[srv]
+pymongo[srv]==4.6.1
 urllib3
 drf-yasg
 openpyxl
