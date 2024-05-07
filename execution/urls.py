@@ -12,5 +12,14 @@ urlpatterns = [
     path('home/<str:mode>/support/<str:email>/', views.SupportHome.as_view()),
     path('holding/demo/support/<str:email>/', views.SupportDemoHolding.as_view()),
     path('trade/demo/support/<str:email>/', views.SupportDemoTradeAPIView.as_view()),
+
+
+
+    ################ NEW demo account urls ########################
+    path("demo/accounts/", views.DemoPorfoliosAccounts.as_view()),
+    path("demo/account/<str:id>/", views.RetrieveSingleDemoPorfoliosAccounts.as_view()),
+    path('demo/trade/', views.SingleDemoTradeAPIView.as_view()),
+    
+
     
 ]

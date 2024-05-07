@@ -1,3 +1,4 @@
+from functools import partial
 from re import U
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -20,11 +21,13 @@ from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import shortuuid
 import json
 from django.utils import timezone
-from accounts.models import  UserActivityLog 
+from accounts.models import  UserActivityLog
+from waitlist import serializer 
 
 from .models import CompetitionCumulativeMarketReturns, CompetitionMarketReturns, DemoCumulativeReturns, DemoPosition, DemoPortfolio, DemoDailyReturns, DemoDailyReturns2, MarketReturns, CumulativeMarketReturns
 from  competition.models import Competition, CompetitionCumulativeReturns, CompetitionCumulativeReturns2, CompetitionDailyReturns2, CompetitionPosition,CompetitionDailyReturns,CompetitionPortfolio,CompetitionTransaction
 from django.contrib.auth import get_user_model
+from . import serializers as exec_serializer
 User = get_user_model()
 # class DemoTradeAPIView(APIView):
 #     permission_classes = [IsAuthenticated]
@@ -1693,3 +1696,428 @@ class DemoHolding2(APIView):
                 
                 return Response(hold_data)
             
+
+
+#############################################################################################
+class DemoPorfoliosAccounts(APIView):
+    serializer_class = exec_serializer.DemoPortfolioSerializer
+    account_create_serializer = exec_serializer.DemoPortfolioCreateSerializer
+    
+    def get(self,request):
+        demo_accounts = DemoPortfolio.objects.filter(user=request.user)
+        serializer = self.serializer_class(demo_accounts, many=True)
+        return Response(serializer.data)
+    
+    def post(self,request):
+        demo_accounts = DemoPortfolio.objects.filter(user=request.user).count()
+        if demo_accounts >=10 :
+            return Response("You can only have 10 demo acccounts",status.HTTP_400_BAD_REQUEST)
+        serializer = self.account_create_serializer(data=request.data)
+        account_exist= DemoPortfolio.objects.filter(account_name=request.data.get("account_name"), user=request.user).exists()
+        if account_exist:
+            return Response("Duplicate name not allowed.",status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data)
+        return Response(serializer.errors,status.HTTP_400_BAD_REQUEST)
+
+class RetrieveSingleDemoPorfoliosAccounts(APIView):
+    serializer_class = exec_serializer.DemoPortfolioSerializer
+    account_create_serializer = exec_serializer.DemoPortfolioCreateSerializer
+
+    def get_account(self, id):
+        demo_account = DemoPortfolio.objects.filter(id=id).first()
+        return demo_account if demo_account else None
+    
+    def get(self,request, *args, **kwargs):
+        id = kwargs.get("id")
+        demo_account = self.get_account(id)
+        if demo_account is None:
+            return Response("Account not found",status.HTTP_404_NOT_FOUND)
+        if demo_account.user != request.user:
+            return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+        
+        serializer = self.serializer_class(demo_account, many=False)
+        return Response(serializer.data)
+    
+    def put(self,request, *args, **kwargs):
+        id = kwargs.get("id")
+        demo_account = self.get_account(id)
+        if demo_account is None:
+            return Response("Account not found",status.HTTP_404_NOT_FOUND)
+        if demo_account.user != request.user:
+            return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+        
+        serializer = self.account_create_serializer(demo_account, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+        return Response(serializer.data)
+    
+    def delete(self,request, *args, **kwargs):
+        id = kwargs.get("id")
+        demo_account = self.get_account(id)
+        if demo_account is None:
+            return Response("Account not found",status.HTTP_404_NOT_FOUND)
+        if demo_account.user != request.user:
+            return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+        demo_account.delete()
+        return Response(None,status.HTTP_204_NO_CONTENT)
+
+
+
+class SingleDemoTradeAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_account(self, id):
+        demo_account = DemoPortfolio.objects.filter(id=id).first()
+        return demo_account if demo_account else None
+
+    def get(self,request):
+
+        
+        competition = Competition.objects.filter(status='current').first()
+        portfolio = None
+        
+        if competition:
+            portfolio = CompetitionPortfolio.objects.filter(user=request.user, competition=competition, active=True).first()
+            
+        if portfolio and timezone.now() > competition.start_date:
+            positions = CompetitionPosition.objects.filter(portfolio=portfolio, status='open')
+
+
+        else:
+
+            # GET THE PARTICULAR PORTFOLIO 
+            id = request.GET.get("demo_portfolio_id")
+            if not id:
+                return Response("demo_portfolio_id must be in the request params",status.HTTP_400_BAD_REQUEST)
+            demo_account = self.get_account(id)
+            if demo_account is None:
+                return Response("Account not found",status.HTTP_404_NOT_FOUND)
+            if demo_account.user != request.user:
+                return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+
+            positions = DemoPosition.objects.filter(portfolio=demo_account,status='open')
+        
+        def get_position(position):
+                # print(position.id)
+                pl, cur_val,price = position.calculate_profit_loss()
+                symbol=position.stock.symbol
+                
+                if position.amount_invested != 0:
+                    percent = round((pl/position.amount_invested) * 100,2)
+                    data1 = {
+                        'id':position.id,
+                        'symbol':symbol,
+                        'open_pl':round(pl,2),
+                        'pl_percent': percent,
+                        'created':position.created,
+                        'status':position.status,
+                        'open_price': position.open_price,
+                        'order_id':position.order_id,
+                    }
+                    
+                else:
+                    data1 = {
+                        'id':position.id,
+                        'symbol':symbol,
+                        'open_pl':0,
+                        'pl_percent': 0,
+                        'created':position.created,
+                        'status':position.status,
+                        'open_price': position.open_price,
+                        'order_id':position.order_id,
+                    }
+                return data1
+            
+        with ThreadPoolExecutor() as executor:
+            futures = executor.map(get_position, positions)
+            position_data_list = [result for result in futures if result]
+            
+            return Response(position_data_list)
+    
+    def post(self, request):
+        
+        
+        symbol = request.data.get('symbol')
+        order_id = request.data.get('order_id')
+        quantity = int(request.data.get('quantity'))
+        if request.data.get('price'):
+            price = float(request.data.get('price'))
+        action = request.data.get('action')
+        time_in_force = request.data.get('time_in_force', 'day')  # Default to Good 'Til Canceled
+        is_buy = action == 'buy'
+        order_type = request.data.get('order_type')
+        
+        # print(order_type)
+        
+        stock = get_object_or_404(Stock, symbol=symbol)
+        competition = Competition.objects.filter(status='current').first()
+        
+        in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
+        if in_competition and timezone.now() > competition.start_date:
+            portfolio = in_competition
+            if order_type == 'market':
+                market_price = round(Decimal(get_price(symbol)['current_price']), 2)
+                amount = quantity * market_price
+                
+                balance =  portfolio.balance
+                trade_commission = round(Decimal(0.00435) * amount, 2) + 200
+                
+                total= amount + trade_commission
+                if balance >= total:
+                    position = CompetitionPosition.objects.create(
+                        portfolio=portfolio,
+                        stock=stock,
+                        status=CompetitionPosition.OPEN, 
+                        open_price = market_price,
+                        quantity=quantity,
+                        amount_invested = amount,
+                        order_id=order_id
+                    )
+
+                    if not is_buy:
+                        position.action = 'sell'
+                        position.save()
+
+                    CompetitionTransaction.objects.create(
+                        user=request.user,
+                        transaction_type='open trade',
+                        amount=amount,
+                        status='completed'
+                    )
+                    CompetitionTransaction.objects.create(
+                        user=request.user,
+                        transaction_type='trade commission',
+                        amount=trade_commission,
+                        status='completed'
+                    )
+                    
+                    portfolio.balance -= total
+                    portfolio.save()
+                    
+                    
+                    activity=UserActivityLog.objects.create(user=request.user, action_type="competition_open_trade",description=f"User opened competition trade with amount {amount} on symbol {symbol}.")
+                    positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open')
+                    
+                    def get_position(position):
+                        pl, cur_val,price = position.calculate_profit_loss()
+                        symbol=position.stock.symbol
+                        
+                        percent = round((pl/position.amount_invested) * 100,2)
+                        data1 = {
+                            'id':position.id,
+                            'symbol':symbol,
+                            'open_pl':pl,
+                            'pl_percent': percent,
+                            'created':position.created
+                        }
+                        return data1
+                    
+                    # with ThreadPoolExecutor() as executor:
+                    #     futures = executor.map(get_position, positions)
+                    #     position_data_list = [result for result in futures if result]
+                    
+                        
+                    save_and_send_notification(request.user.id,f' COMPETITION: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ')
+                    
+                    return Response({'message': f'{action.title()} order placed successfully.'}, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({'error': 'Insufficient funds to trade.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            elif order_type == 'limit':
+                
+                position = CompetitionPosition.objects.create(
+                    portfolio=portfolio,
+                    stock=stock,
+                    status=CompetitionPosition.PENDING, 
+                    limit_price = price,
+                    quantity=quantity,
+                    alert_name = 'pending trade' + shortuuid.uuid(),
+                    time_in_force=time_in_force,
+                    order_id=order_id
+                    
+                    
+                )  
+                
+                schedule, created = IntervalSchedule.objects.get_or_create(
+                        every=3,
+                        period=IntervalSchedule.MINUTES,
+                    )
+                
+                if not is_buy:
+                    position.action = 'sell'
+                    position.save()
+                    
+                task = PeriodicTask.objects.create(
+                        interval=schedule,
+                        name=position.alert_name,
+                        task='execution.tasks.process_limit_order',
+                        args=json.dumps([position.id, True])
+                    )
+                
+                positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open',active=True)
+                
+                def get_position(position):
+                    pl, cur_val,price = position.calculate_profit_loss()
+                    symbol=position.stock.symbol
+                    
+                    percent = round((pl/position.amount_invested) * 100,2)
+                    data1 = {
+                        'id':position.id,
+                        'symbol':symbol,
+                        'open_pl':pl,
+                        'pl_percent': percent,
+                        'created':position.created,
+                        'order_id':position.order_id,
+                        
+                    }
+                    return data1
+                
+                # with ThreadPoolExecutor() as executor:
+                #     futures = executor.map(get_position, positions)
+                #     position_data_list = [result for result in futures if result]
+                    
+                save_and_send_notification(request.user.id,f' COMPETITION: Your limit order will be opened when the condition you set is met.')
+                
+                return Response({'message': f'{action.title()} order scheduled successfully.'}, status=status.HTTP_201_CREATED)
+
+        else:
+
+            # GET THE PARTICULAR PORTFOLIO 
+            id = request.GET.get("demo_portfolio_id")
+            if not id:
+                return Response("demo_portfolio_id must be in the request params",status.HTTP_400_BAD_REQUEST)
+            demo_account = self.get_account(id)
+            if demo_account is None:
+                return Response("Account not found",status.HTTP_404_NOT_FOUND)
+            if demo_account.user != request.user:
+                return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+            
+            portfolio = demo_account
+         
+            if order_type == 'market':
+                market_price = round(Decimal(get_price(symbol)['current_price']), 2)
+                amount = quantity * market_price
+                
+                position = DemoPosition.objects.create(
+                    portfolio=portfolio,
+                    stock=stock,
+                    status=DemoPosition.OPEN, 
+                    open_price = market_price,
+                    quantity=quantity,
+                    amount_invested = amount,
+                    order_id=order_id
+                )
+
+                if not is_buy:
+                    position.action = 'sell'
+                    position.save()
+
+                DemoTransaction.objects.create(
+                    user=request.user,
+                    transaction_type='open trade',
+                    amount=quantity * market_price,
+                    status='completed'
+                )
+                activity=UserActivityLog.objects.create(user=request.user, action_type="demo_open_trade",description=f"User opened demo trade with amount {amount} on symbol {symbol}.")
+                positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
+                
+                def get_position(position):
+                    pl, cur_val,price = position.calculate_profit_loss()
+                    symbol=position.stock.symbol
+                    if position.amount_invested != 0:
+                        percent = round((pl/position.amount_invested) * 100,2)
+                        data1 = {
+                            'id':position.id,
+                            'symbol':symbol,
+                            'open_pl':pl,
+                            'pl_percent': percent,
+                            'created':position.created
+                        }
+                    else:
+                        data1 = {
+                            'id':position.id,
+                            'symbol':symbol,
+                            'open_pl':0,
+                            'pl_percent': 0,
+                            'created':position.created
+                        }
+                    return data1
+                
+                # with ThreadPoolExecutor() as executor:
+                #     futures = executor.map(get_position, positions)
+                #     position_data_list = [result for result in futures if result]
+                
+                    
+                save_and_send_notification(request.user.id,f' DEMO: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ')
+                
+                return Response({'message': f'{action.title()} order placed successfully.'}, status=status.HTTP_201_CREATED)
+
+            elif order_type == 'limit':
+                
+                position = DemoPosition.objects.create(
+                    portfolio=portfolio,
+                    stock=stock,
+                    status=DemoPosition.PENDING, 
+                    limit_price = price,
+                    quantity=quantity,
+                    alert_name = shortuuid.uuid(),
+                    time_in_force=time_in_force,
+                    order_id=order_id
+                    
+                    
+                )  
+                
+                schedule, created = IntervalSchedule.objects.get_or_create(
+                        every=3,
+                        period=IntervalSchedule.MINUTES,
+                    )
+                
+                if not is_buy:
+                    position.action = 'sell'
+                    position.save()
+                    
+                task = PeriodicTask.objects.create(
+                        interval=schedule,
+                        name=position.alert_name,
+                        task='execution.tasks.process_limit_order',
+                        args=json.dumps([position.id])
+                    )
+                
+                positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
+                
+                def get_position(position):
+                    pl, cur_val,price = position.calculate_profit_loss()
+                    symbol=position.stock.symbol
+                    
+                    if position.amount_invested != 0:
+                        percent = round((pl/position.amount_invested) * 100,2)
+                        data1 = {
+                            'id':position.id,
+                            'symbol':symbol,
+                            'open_pl':pl,
+                            'pl_percent': percent,
+                            'created':position.created,
+                            'order_id':position.order_id,
+                            
+                        }
+                    else:
+                        data1 = {
+                            'id':position.id,
+                            'symbol':symbol,
+                            'open_pl':0,
+                            'pl_percent': 0,
+                            'created':position.created,
+                            'order_id':position.order_id,
+
+                        }
+                    return data1
+                
+                # with ThreadPoolExecutor() as executor:
+                #     futures = executor.map(get_position, positions)
+                #     position_data_list = [result for result in futures if result]
+                    
+                save_and_send_notification(request.user.id,f' DEMO: Your limit order will be opened when the condition you set is met.')
+                
+                return Response({'message': f'{action.title()} order scheduled successfully.'}, status=status.HTTP_201_CREATED)
