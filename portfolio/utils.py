@@ -118,11 +118,19 @@ def get_mini_data():
 # def get_price(stock):
 #     return asyncio.run(connect_to_websocket(stock))
 
+# def get_price(symbol):
+#     db = connect_to_mongodb("stock_prices")
+#     collection = db["price_combined"]
+#     last_item = collection.find_one(sort=[('_id', -1)])
+#     # print(last_item)
+#     return last_item[symbol]
+
 def get_price(symbol):
-    db = connect_to_mongodb("stock_prices")
-    collection = db["price_combined"]
+    from portfolio.utils import connect_to_mongodb
+    db = connect_to_mongodb("livelake3")
+    collection = db["merged_live_price"]
     last_item = collection.find_one(sort=[('_id', -1)])
-    # print(last_item)
+    # print(symbol)
     return last_item[symbol]
 
 def get_details(stock):
@@ -194,9 +202,16 @@ async def connect_to_websockets2(symbols):
 def get_stockdata(stocks):
     return asyncio.run(connect_to_websockets2(stocks))
 
+# def get_stockdata2():
+#     db = connect_to_mongodb("stock_prices")
+#     collection = db["price_combined"]
+#     last_item = collection.find_one(sort=[('_id', -1)])
+
+#     return last_item
+
 def get_stockdata2():
-    db = connect_to_mongodb("stock_prices")
-    collection = db["price_combined"]
+    db = connect_to_mongodb("livelake3")
+    collection = db["merged_live_price"]
     last_item = collection.find_one(sort=[('_id', -1)])
 
     return last_item
@@ -225,12 +240,18 @@ def get_details2(stock, stock_data):
             'company': stock.company,
             'symbol': stock.symbol,
             'sector': stock.sector,
-            'current_price': handle_special_values(data.get('current_price', 0)),
-            "percent_change": handle_special_values(data.get('percentage_change', 0)),
-            'change': handle_special_values(data.get("change", 0)),
-            'volume': handle_special_values(data.get("volume", 0)),
-            'momentum': handle_special_values(data.get("momentum", 0)),
-            'volatility': handle_special_values(data.get("volatility", 0)),
+            # 'current_price': handle_special_values(data.get('current_price', 0)),
+            # "percent_change": handle_special_values(data.get('percentage_change', 0)),
+            # 'change': handle_special_values(data.get("change", 0)),
+            # 'volume': handle_special_values(data.get("volume", 0)),
+            # 'momentum': handle_special_values(data.get("momentum", 0)),
+            # 'volatility': handle_special_values(data.get("volatility", 0)),
+            'current_price': data.get('current_price'),
+            "percent_change": data.get('percentage_change'),
+            'change': data.get("change"),
+            'volume': data.get("volume"),
+            'momentum': data.get("momentum"),
+            'volatility': data.get("volatility"),
         }
     else:
         # Handle the case when data is not available for the symbol
@@ -252,6 +273,7 @@ def handle_special_values(value):
 def get_details3(stocks):
     symbols =[stock.symbol for stock in stocks]
     stockdata= get_stockdata2()
+    print(stockdata)
     # return [get_details2(stock,stockdata) for stock in stocks]
     with ThreadPoolExecutor() as executor:
             futures = [executor.submit(get_details2, stock,stockdata) for stock in stocks]

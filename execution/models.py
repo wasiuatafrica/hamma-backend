@@ -40,10 +40,18 @@ async def connect_to_websocket(stock_symbol):
 # def get_price(stock):
 #     return asyncio.run(connect_to_websocket(stock))
 
+# def get_price(symbol):
+#     from portfolio.utils import connect_to_mongodb
+#     db = connect_to_mongodb("stock_prices")
+#     collection = db["price_combined"]
+#     last_item = collection.find_one(sort=[('_id', -1)])
+#     # print(symbol)
+#     return last_item[symbol]
+
 def get_price(symbol):
     from portfolio.utils import connect_to_mongodb
-    db = connect_to_mongodb("stock_prices")
-    collection = db["price_combined"]
+    db = connect_to_mongodb("livelake3")
+    collection = db["merged_live_price"]
     last_item = collection.find_one(sort=[('_id', -1)])
     # print(symbol)
     return last_item[symbol]
