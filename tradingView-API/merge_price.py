@@ -114,8 +114,8 @@ def is_market_open():
 
     if datetime.today().weekday() < 5:
         market_open_time = time(9, 55)
-        # market_close_time = time(18, 30)
-        market_close_time = time(14, 31)
+        market_close_time = time(18, 30)
+        # market_close_time = time(14, 31)
 
         if market_open_time <= current_time_lagos <= market_close_time:
             return True
@@ -125,7 +125,8 @@ def is_market_open():
 while True:
     if is_market_open():
         combined = get_combined()   
-        write_to_mongodb("livelake3", combined)
+        print(combined)
+        # write_to_mongodb("livelake3", combined)
         print("Live Price merged")
     else:
         print("Market closed")

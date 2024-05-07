@@ -41,8 +41,11 @@ def get_live_data()    :
     response = requests.request("GET", url, headers=headers, data=payload)
     symbol_list = response.json()
 
-    equity = [data for data in symbol_list if data['Asset']=='EQUITY' ]
     lagos_now = datetime.now(lagos_tz)
+    
+    equity = [data for data in symbol_list if data['Asset']=='EQUITY' and datetime.fromisoformat(data["TradeDate"]).date() ==  lagos_now.date() ]
+    
+    
 
     combined = {}
 
@@ -53,8 +56,8 @@ def get_live_data()    :
         data1= {'datetime': lagos_now.strftime("%Y-%m-%d %H:%M:%S"),  'open': data['Open'], 'high': data['High'], 'low': data['Low'], 'close': data['Close'], 'volume': data['Volume'], 'symbol': symbol}
         
         combined[symbol] = data1
-            
-    write_to_mongodb("livelake3", combined)
+          
+    # write_to_mongodb("livelake3", combined)
       
 def is_market_open():
     lagos_timezone = pytz.timezone('Africa/Lagos')
@@ -62,8 +65,8 @@ def is_market_open():
 
     if datetime.today().weekday() < 5:
         market_open_time = time(9, 55)
-        # market_close_time = time(18, 30)
-        market_close_time = time(14, 30)
+        market_close_time = time(18, 30)
+        # market_close_time = time(14, 30)
 
         if market_open_time <= current_time_lagos <= market_close_time:
             return True
