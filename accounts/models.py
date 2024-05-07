@@ -65,6 +65,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         return str(profile.profile_img.url)
     
+    @property
+    def bank_name(self):
+        profile=Profile.objects.get(user__email=self.email)
+        # print(profile, "jbabah")
+        return profile.bank_name
+
+    @property
+    def account_number(self):
+        profile=Profile.objects.get(user__email=self.email)
+        # print(profile, "jbabah")
+        return profile.account_number
+    
 
 
 class Profile(auto_prefetch.Model):

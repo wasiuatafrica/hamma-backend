@@ -161,6 +161,8 @@ class AdminCustomUserSerializer(serializers.ModelSerializer):
             "profile_image", 
             "profile_phone", 
             "fullname",
+            "bank_name",
+            "account_number"
         ]
         extra_kwargs={
             'has_2fa': {'read_only': True},
