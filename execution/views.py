@@ -296,23 +296,23 @@ class DemoTradeAPIView(APIView):
                         args=json.dumps([position.id, True])
                     )
                 
-                positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open',active=True)
+                # positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open',active=True)
                 
-                def get_position(position):
-                    pl, cur_val,price = position.calculate_profit_loss()
-                    symbol=position.stock.symbol
+                # def get_position(position):
+                #     pl, cur_val,price = position.calculate_profit_loss()
+                #     symbol=position.stock.symbol
                     
-                    percent = round((pl/position.amount_invested) * 100,2)
-                    data1 = {
-                        'id':position.id,
-                        'symbol':symbol,
-                        'open_pl':pl,
-                        'pl_percent': percent,
-                        'created':position.created,
-                        'order_id':position.order_id,
+                #     percent = round((pl/position.amount_invested) * 100,2)
+                #     data1 = {
+                #         'id':position.id,
+                #         'symbol':symbol,
+                #         'open_pl':pl,
+                #         'pl_percent': percent,
+                #         'created':position.created,
+                #         'order_id':position.order_id,
                         
-                    }
-                    return data1
+                #     }
+                #     return data1
                 
                 # with ThreadPoolExecutor() as executor:
                 #     futures = executor.map(get_position, positions)
