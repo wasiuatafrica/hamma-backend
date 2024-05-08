@@ -103,7 +103,9 @@ def process_limit_order(id, in_competition=False):
             
             expired = False
             
-            target_time = time(14, 30)  # 14 is the hour, 30 is the minute
+            target = time(14, 30)  # 14 is the hour, 30 is the minute
+            target_time = datetime.combine(current_time_lagos.date(), target).astimezone(lagos_timezone)
+            
             # target_time = datetime.combine(datetime.today(), datetime.strptime('14:30', '%H:%M').time())
             if position.status == 'pending':
             
