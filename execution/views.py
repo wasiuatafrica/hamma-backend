@@ -1699,14 +1699,115 @@ class DemoHolding2(APIView):
 
 
 #############################################################################################
+from competition import tasks as competition_task,  models as competion_models, serializers as competition_serializer_module
+from datetime import datetime,time, date, timedelta
+
+class CreatCompetitionAccount(APIView):
+    serializer_class = competition_serializer_module.CompetitionPortfolioCreateSerializers
+    
+    def post(self,request):
+        # get the correct competition
+        try:
+            competition = competion_models.Competition.objects.get(status='current')
+        except Competition.DoesNotExist:
+            return Response({"detail": "There is no ongoing competition"}, status=status.HTTP_404_NOT_FOUND)
+
+        clan_query= competion_models.Clan.objects.filter(clan_admin=request.user)
+        clan_query2= competion_models.Clan.objects.filter(member=request.user)
+        if not (clan_query2.exists()  or clan_query.exists()) :
+
+            # save_and_send_notification(request.user.id, "You need to be in a clan to join competition. Create or join one clan.")
+            return Response({"detail": "You need to be in a clan to join competition. Create or join one clan."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if competition.end_date - timezone.now() < timedelta(weeks=2):        
+            return Response({"detail": "You can only join the competition up to 2 weeks before the end"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        portfolio = CompetitionPortfolio.objects.filter(competition=competition,user=request.user).first()
+        if portfolio:
+            if portfolio.active:
+                return Response({"detail": "You are already  in this competition"}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"detail": "You have  already exited this competition"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            portfolio = serializer.save(user=request.user, competition=competition,  balance=1000000)
+            competition_task.create_returns.delay(portfolio.id)
+            save_and_send_notification(portfolio.user.id, "You have joined the ongoing competition. Goodluck!")
+            return Response({"detail": "You have successfully joined this competition", "data":serializer.data}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors,status.HTTP_400_BAD_REQUEST)
+
+class LeaveCompetion(APIView):
+
+    def post(self,request):
+        # get the correct competition
+        try:
+            competition = competion_models.Competition.objects.get(status='current')
+        except Competition.DoesNotExist:
+            return Response({"detail": "There is no ongoing competition"}, status=status.HTTP_404_NOT_FOUND)
+        
+        portfolio = CompetitionPortfolio.objects.filter(competition=competition,user=request.user).first()
+
+        if not portfolio:
+            return Response({"detail": "You are not in this competition"}, status=status.HTTP_400_BAD_REQUEST)
+        if portfolio.active:
+            portfolio.active = False
+            portfolio.save()
+            return Response({"detail": "You have successfully left this competition"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"detail": "You have  already exited this competition"}, status=status.HTTP_400_BAD_REQUEST)
+
+class RetrieveSIngleCompetitonAccount(APIView):
+    serializer_class = competition_serializer_module.CompetitionPortfolioCreateSerializers
+    
+    def get_competition_account(self, id):
+        portfolio = CompetitionPortfolio.objects.filter(id=id).first()
+        return portfolio if portfolio else None
+    
+    def get(self, request, *args, **kwargs):
+        id= kwargs.get("id")
+        account = self.get_competition_account(id)
+        if account is None:
+            return Response({"detail": "Competition account not found"}, status=status.HTTP_404_NOT_FOUND)
+        if account.user != request.user:
+            return Response({"detail": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+        serializer= self.serializer_class(account)
+        return Response(serializer.data)
+    def put(self, request, *args, **kwargs):
+        id= kwargs.get("id")
+        account = self.get_competition_account(id)
+        if account is None:
+            return Response({"detail": "Competition account not found"}, status=status.HTTP_404_NOT_FOUND)
+        if account.user != request.user:
+            return Response({"detail": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+        serializer= self.serializer_class(account, data=request.data,partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors,status.HTTP_400_BAD_REQUEST)
+        
+
 class DemoPorfoliosAccounts(APIView):
     serializer_class = exec_serializer.DemoPortfolioSerializer
     account_create_serializer = exec_serializer.DemoPortfolioCreateSerializer
+    competition_serializer = competition_serializer_module.CompetitionPortfolioCreateSerializers
     
     def get(self,request):
+        """_summary_
+
+        Get competition account for the current competition. if no competiton return empty
+        """
+        competition = competion_models.Competition.objects.filter(status='current').first()
+        if competion_models:
+            competition_account = CompetitionPortfolio.objects.filter(user=request.user,competition=competition).first()
+            competition_account_serializer = self.competition_serializer(competition_account).data if competition_account else None
+        else:  
+            competition_account_serializer = None
+
         demo_accounts = DemoPortfolio.objects.filter(user=request.user)
+        
         serializer = self.serializer_class(demo_accounts, many=True)
-        return Response(serializer.data)
+        return Response({"demo_accounts":serializer.data,"competition_account":competition_account_serializer})
     
     def post(self,request):
         demo_accounts = DemoPortfolio.objects.filter(user=request.user).count()
@@ -1772,25 +1873,19 @@ class SingleDemoTradeAPIView(APIView):
         demo_account = DemoPortfolio.objects.filter(id=id).first()
         return demo_account if demo_account else None
 
-    def get(self,request):
+    def get(self,request, *args, **kwargs):
 
-        
-        competition = Competition.objects.filter(status='current').first()
-        portfolio = None
-        
-        if competition:
-            portfolio = CompetitionPortfolio.objects.filter(user=request.user, competition=competition, active=True).first()
-            
-        if portfolio and timezone.now() > competition.start_date:
-            positions = CompetitionPosition.objects.filter(portfolio=portfolio, status='open')
+        account_type= kwargs.get("account_type")
+        valid_account_types= ["demo_position","competition_account"]
+
+        if not account_type in valid_account_types:
+            return Response(f"Account type should be {valid_account_types}.",status.HTTP_400_BAD_REQUEST)
 
 
-        else:
-
+        if account_type == "demo_position":
             # GET THE PARTICULAR PORTFOLIO 
-            id = request.GET.get("demo_portfolio_id")
-            if not id:
-                return Response("demo_portfolio_id must be in the request params",status.HTTP_400_BAD_REQUEST)
+            id = kwargs.get("id")
+
             demo_account = self.get_account(id)
             if demo_account is None:
                 return Response("Account not found",status.HTTP_404_NOT_FOUND)
@@ -1798,6 +1893,17 @@ class SingleDemoTradeAPIView(APIView):
                 return Response("Permission denied",status.HTTP_403_FORBIDDEN)
 
             positions = DemoPosition.objects.filter(portfolio=demo_account,status='open')
+
+        else:
+
+            competition = Competition.objects.filter(status='current').first()
+            portfolio = None
+            
+            if competition:
+                portfolio = CompetitionPortfolio.objects.filter(user=request.user, competition=competition, active=True).first()
+                
+            if portfolio and timezone.now() > competition.start_date:
+                positions = CompetitionPosition.objects.filter(portfolio=portfolio, status='open')
         
         def get_position(position):
                 # print(position.id)
@@ -1836,7 +1942,13 @@ class SingleDemoTradeAPIView(APIView):
             
             return Response(position_data_list)
     
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
+
+        account_type= kwargs.get("account_type")
+        valid_account_types= ["demo_position","competition_account"]
+
+        if not account_type in valid_account_types:
+            return Response(f"Account type should be {valid_account_types}.",status.HTTP_400_BAD_REQUEST)
         
         
         symbol = request.data.get('symbol')
@@ -1852,53 +1964,114 @@ class SingleDemoTradeAPIView(APIView):
         # print(order_type)
         
         stock = get_object_or_404(Stock, symbol=symbol)
-        competition = Competition.objects.filter(status='current').first()
-        
-        in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
-        if in_competition and timezone.now() > competition.start_date:
-            portfolio = in_competition
-            if order_type == 'market':
-                market_price = round(Decimal(get_price(symbol)['current_price']), 2)
-                amount = quantity * market_price
-                
-                balance =  portfolio.balance
-                trade_commission = round(Decimal(0.00435) * amount, 2) + 200
-                
-                total= amount + trade_commission
-                if balance >= total:
+
+        if account_type == "competition_account":
+
+            competition = Competition.objects.filter(status='current').first()
+            
+            in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
+            if in_competition and timezone.now() > competition.start_date:
+                portfolio = in_competition
+                if order_type == 'market':
+                    market_price = round(Decimal(get_price(symbol)['current_price']), 2)
+                    amount = quantity * market_price
+                    
+                    balance =  portfolio.balance
+                    trade_commission = round(Decimal(0.00435) * amount, 2) + 200
+                    
+                    total= amount + trade_commission
+                    if balance >= total:
+                        position = CompetitionPosition.objects.create(
+                            portfolio=portfolio,
+                            stock=stock,
+                            status=CompetitionPosition.OPEN, 
+                            open_price = market_price,
+                            quantity=quantity,
+                            amount_invested = amount,
+                            order_id=order_id
+                        )
+
+                        if not is_buy:
+                            position.action = 'sell'
+                            position.save()
+
+                        CompetitionTransaction.objects.create(
+                            user=request.user,
+                            transaction_type='open trade',
+                            amount=amount,
+                            status='completed'
+                        )
+                        CompetitionTransaction.objects.create(
+                            user=request.user,
+                            transaction_type='trade commission',
+                            amount=trade_commission,
+                            status='completed'
+                        )
+                        
+                        portfolio.balance -= total
+                        portfolio.save()
+                        
+                        
+                        activity=UserActivityLog.objects.create(user=request.user, action_type="competition_open_trade",description=f"User opened competition trade with amount {amount} on symbol {symbol}.")
+                        positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open')
+                        
+                        def get_position(position):
+                            pl, cur_val,price = position.calculate_profit_loss()
+                            symbol=position.stock.symbol
+                            
+                            percent = round((pl/position.amount_invested) * 100,2)
+                            data1 = {
+                                'id':position.id,
+                                'symbol':symbol,
+                                'open_pl':pl,
+                                'pl_percent': percent,
+                                'created':position.created
+                            }
+                            return data1
+                        
+                        # with ThreadPoolExecutor() as executor:
+                        #     futures = executor.map(get_position, positions)
+                        #     position_data_list = [result for result in futures if result]
+                        
+                            
+                        save_and_send_notification(request.user.id,f' COMPETITION: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ')
+                        
+                        return Response({'message': f'{action.title()} order placed successfully.'}, status=status.HTTP_201_CREATED)
+                    else:
+                        return Response({'error': 'Insufficient funds to trade.'}, status=status.HTTP_400_BAD_REQUEST)
+
+                elif order_type == 'limit':
+                    
                     position = CompetitionPosition.objects.create(
                         portfolio=portfolio,
                         stock=stock,
-                        status=CompetitionPosition.OPEN, 
-                        open_price = market_price,
+                        status=CompetitionPosition.PENDING, 
+                        limit_price = price,
                         quantity=quantity,
-                        amount_invested = amount,
+                        alert_name = 'pending trade' + shortuuid.uuid(),
+                        time_in_force=time_in_force,
                         order_id=order_id
-                    )
-
+                        
+                        
+                    )  
+                    
+                    schedule, created = IntervalSchedule.objects.get_or_create(
+                            every=3,
+                            period=IntervalSchedule.MINUTES,
+                        )
+                    
                     if not is_buy:
                         position.action = 'sell'
                         position.save()
-
-                    CompetitionTransaction.objects.create(
-                        user=request.user,
-                        transaction_type='open trade',
-                        amount=amount,
-                        status='completed'
-                    )
-                    CompetitionTransaction.objects.create(
-                        user=request.user,
-                        transaction_type='trade commission',
-                        amount=trade_commission,
-                        status='completed'
-                    )
+                        
+                    task = PeriodicTask.objects.create(
+                            interval=schedule,
+                            name=position.alert_name,
+                            task='execution.tasks.process_limit_order',
+                            args=json.dumps([position.id, True])
+                        )
                     
-                    portfolio.balance -= total
-                    portfolio.save()
-                    
-                    
-                    activity=UserActivityLog.objects.create(user=request.user, action_type="competition_open_trade",description=f"User opened competition trade with amount {amount} on symbol {symbol}.")
-                    positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open')
+                    positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open',active=True)
                     
                     def get_position(position):
                         pl, cur_val,price = position.calculate_profit_loss()
@@ -1910,90 +2083,31 @@ class SingleDemoTradeAPIView(APIView):
                             'symbol':symbol,
                             'open_pl':pl,
                             'pl_percent': percent,
-                            'created':position.created
+                            'created':position.created,
+                            'order_id':position.order_id,
+                            
                         }
                         return data1
                     
                     # with ThreadPoolExecutor() as executor:
                     #     futures = executor.map(get_position, positions)
                     #     position_data_list = [result for result in futures if result]
-                    
                         
-                    save_and_send_notification(request.user.id,f' COMPETITION: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ')
+                    save_and_send_notification(request.user.id,f' COMPETITION: Your limit order will be opened when the condition you set is met.')
                     
-                    return Response({'message': f'{action.title()} order placed successfully.'}, status=status.HTTP_201_CREATED)
-                else:
-                    return Response({'error': 'Insufficient funds to trade.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            elif order_type == 'limit':
-                
-                position = CompetitionPosition.objects.create(
-                    portfolio=portfolio,
-                    stock=stock,
-                    status=CompetitionPosition.PENDING, 
-                    limit_price = price,
-                    quantity=quantity,
-                    alert_name = 'pending trade' + shortuuid.uuid(),
-                    time_in_force=time_in_force,
-                    order_id=order_id
-                    
-                    
-                )  
-                
-                schedule, created = IntervalSchedule.objects.get_or_create(
-                        every=3,
-                        period=IntervalSchedule.MINUTES,
-                    )
-                
-                if not is_buy:
-                    position.action = 'sell'
-                    position.save()
-                    
-                task = PeriodicTask.objects.create(
-                        interval=schedule,
-                        name=position.alert_name,
-                        task='execution.tasks.process_limit_order',
-                        args=json.dumps([position.id, True])
-                    )
-                
-                positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open',active=True)
-                
-                def get_position(position):
-                    pl, cur_val,price = position.calculate_profit_loss()
-                    symbol=position.stock.symbol
-                    
-                    percent = round((pl/position.amount_invested) * 100,2)
-                    data1 = {
-                        'id':position.id,
-                        'symbol':symbol,
-                        'open_pl':pl,
-                        'pl_percent': percent,
-                        'created':position.created,
-                        'order_id':position.order_id,
-                        
-                    }
-                    return data1
-                
-                # with ThreadPoolExecutor() as executor:
-                #     futures = executor.map(get_position, positions)
-                #     position_data_list = [result for result in futures if result]
-                    
-                save_and_send_notification(request.user.id,f' COMPETITION: Your limit order will be opened when the condition you set is met.')
-                
-                return Response({'message': f'{action.title()} order scheduled successfully.'}, status=status.HTTP_201_CREATED)
-
+                    return Response({'message': f'{action.title()} order scheduled successfully.'}, status=status.HTTP_201_CREATED)
+        
+        # the acccount type is a demo portfolio
         else:
 
-            # GET THE PARTICULAR PORTFOLIO 
-            id = request.GET.get("demo_portfolio_id")
-            if not id:
-                return Response("demo_portfolio_id must be in the request params",status.HTTP_400_BAD_REQUEST)
+            id = kwargs.get("id")
+
             demo_account = self.get_account(id)
             if demo_account is None:
                 return Response("Account not found",status.HTTP_404_NOT_FOUND)
             if demo_account.user != request.user:
                 return Response("Permission denied",status.HTTP_403_FORBIDDEN)
-            
+
             portfolio = demo_account
          
             if order_type == 'market':

@@ -49,6 +49,7 @@ class CompetitionPortfolio(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     active = models.BooleanField(default=True)
+    account_name= models.CharField(max_length=20, default="competiton_account_1")
 
     def __str__(self):
         print(self.user.clan)
@@ -60,6 +61,10 @@ class CompetitionPortfolio(auto_prefetch.Model):
         profit = closed_positions.aggregate(Sum('profit_loss'))['profit_loss__sum'] or None
         percent= round((profit/1000000)*100,2)
         return percent
+
+    @property
+    def account_type(self):
+        return "competition_account"
 
 
 

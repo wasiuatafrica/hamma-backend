@@ -18,7 +18,12 @@ urlpatterns = [
     ################ NEW demo account urls ########################
     path("demo/accounts/", views.DemoPorfoliosAccounts.as_view()),
     path("demo/account/<str:id>/", views.RetrieveSingleDemoPorfoliosAccounts.as_view()),
-    path('demo/trade/', views.SingleDemoTradeAPIView.as_view()),
+    path('demo/trade/<account_type>/<str:id>/', views.SingleDemoTradeAPIView.as_view()),
+
+    # competition
+    path("create-competition-account/", views.CreatCompetitionAccount.as_view()),
+    path("leave-competition/", views.LeaveCompetion.as_view()),
+    path("competition/account/<str:id>/", views.RetrieveSIngleCompetitonAccount.as_view()),
     
 
     

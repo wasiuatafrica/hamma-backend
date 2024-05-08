@@ -15,7 +15,7 @@ class DemoPositionSerializer(serializers.ModelSerializer):
 class DemoPortfolioCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = DemoPortfolio
-        fields = ['account_name', "user"]
+        fields = ['account_name', "user","account_type"]
         extra_kwargs ={
             "user":{"read_only":True}
         }
@@ -23,7 +23,7 @@ class DemoPortfolioCreateSerializer(serializers.ModelSerializer):
 class DemoPortfolioSerializer(serializers.ModelSerializer):
     class Meta:
         model = DemoPortfolio
-        fields = "__all__"
+        fields =  ['account_name', "user","account_type","balance", "id",]
         extra_kwargs ={
             "user":{"read_only":True}
         }
