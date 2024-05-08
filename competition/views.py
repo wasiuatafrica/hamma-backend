@@ -1700,7 +1700,7 @@ class TopClans(APIView):
                     data['members_count'] = clan.member.count() + 1
                     data['profit_comparison'] = clan.profit_comparison
                 # Return the ranked list of clans
-                return Response(ranked_clans)
+                return Response(ranked_clans[:3])
 
         else:
             competition = Competition.objects.filter(status='closed').order_by('id').last()
