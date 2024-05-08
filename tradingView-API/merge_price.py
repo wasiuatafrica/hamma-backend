@@ -72,7 +72,7 @@ def get_combined():
 
             # Get the symbol-specific data as a DataFrame
             df = get_symbol_data(all_live_data, symbol)
-            print(df)
+            # print(df)
             # Convert 'datetime' to datetime objects and set as index
             df['datetime'] = pd.to_datetime(df['datetime'])
             df = df.set_index('datetime').sort_index()
@@ -143,7 +143,7 @@ def is_market_open():
 
     if datetime.today().weekday() < 5:
         market_open_time = time(10, 00)
-        market_close_time = time(14, 32)
+        market_close_time = time(14, 37)
         # market_open_time = time(7, 55)
         # market_close_time = time(18, 31)
 

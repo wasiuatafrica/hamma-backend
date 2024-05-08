@@ -141,7 +141,7 @@ while True:
                     data3['volatility'] = None
                     data3['momentum'] = None
             
-            print(data3)
+            # print(data3)
             data1[symbol] = data3
             
 
