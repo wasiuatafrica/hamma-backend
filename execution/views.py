@@ -274,7 +274,8 @@ class DemoTradeAPIView(APIView):
                     quantity=quantity,
                     alert_name = 'pending trade' + shortuuid.uuid(),
                     time_in_force=time_in_force,
-                    order_id=order_id
+                    order_id=order_id,
+                    order_type='limit'
                     
                     
                 )  
@@ -392,7 +393,8 @@ class DemoTradeAPIView(APIView):
                     quantity=quantity,
                     alert_name = shortuuid.uuid(),
                     time_in_force=time_in_force,
-                    order_id=order_id
+                    order_id=order_id,
+                    order_type='limit'
                     
                     
                 )  

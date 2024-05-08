@@ -74,7 +74,8 @@ def is_market_open():
     return False
 
 while True:
-    if is_market_open():
+    today = datetime.today().weekday()
+    if is_market_open() and today < 5:
         get_live_data()
         lagos_now = datetime.now(lagos_tz)
         print("Live Price Updated" , lagos_now.strftime("%Y-%m-%d %H:%M:%S"))

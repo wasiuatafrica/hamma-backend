@@ -72,7 +72,7 @@ def get_combined():
 
             # Get the symbol-specific data as a DataFrame
             df = get_symbol_data(all_live_data, symbol)
-
+            print(df)
             # Convert 'datetime' to datetime objects and set as index
             df['datetime'] = pd.to_datetime(df['datetime'])
             df = df.set_index('datetime').sort_index()
@@ -115,7 +115,20 @@ def get_combined():
 
             # Store the new data in combined
             combined[symbol] = new_data
-
+    combined['BAPLC'] = {
+        'datetime': live_data['BAPLC']['datetime'],
+        'symbol': 'BAPLC',
+        'open': live_data['BAPLC']['open'],
+        'high': live_data['BAPLC']['high'],
+        'low': live_data['BAPLC']['low'],
+        'close': live_data['BAPLC']['close'],
+        'volume': live_data['BAPLC']['volume'],
+        'change': 0,
+        'percentage_change': 0,
+        'current_price': live_data['BAPLC']['close'],
+        'volatility': 0,
+        'momentum': 0,
+    }
     return combined
 
 
@@ -129,9 +142,10 @@ def is_market_open():
     current_time_lagos = datetime.now(lagos_timezone).time()
 
     if datetime.today().weekday() < 5:
-        market_open_time = time(9, 55)
-        # market_close_time = time(18, 30)
-        market_close_time = time(14, 31)
+        market_open_time = time(10, 00)
+        market_close_time = time(14, 32)
+        # market_open_time = time(7, 55)
+        # market_close_time = time(18, 31)
 
         if market_open_time <= current_time_lagos <= market_close_time:
             return True
@@ -139,11 +153,12 @@ def is_market_open():
     return False
 
 while True:
-    if is_market_open():
+    today = datetime.today().weekday()
+    if is_market_open() and today < 5:
         combined = get_combined()   
-        print(combined)
+        # print(combined)
         write_to_mongodb("livelake3", combined)
         print("Live Price merged")
     else:
         print("Market closed")
-    module_time.sleep(60)
+    module_time.sleep(59)
