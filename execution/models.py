@@ -15,6 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 import competition
 from portfolio.models import  Stock
 from portfolio.utils import connect_to_mongodb
+from accounts.models import Profile
 
 User=get_user_model()
 
@@ -312,6 +313,21 @@ class WithdrawalRequest(auto_prefetch.Model):
     updated = models.DateTimeField(auto_now=True)
     status= models.CharField(max_length=20, default='Unprocessed', blank=True,null=True)
     flag=models.BooleanField(default=False, null=True, blank=True)
+
+    @property
+    def bank_name(self):
+        user = self.wallet.user
+        profile=Profile.objects.get(user__email=user.email)
+        # print(profile, "jbabah")
+        return profile.bank_name
+
+    @property
+    def account_number(self):
+        user = self.wallet.user
+        profile=Profile.objects.get(user__email=user.email)
+        # print(profile, "jbabah")
+        return profile.account_number
+    
     
 class DemoAdminTransaction(auto_prefetch.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
