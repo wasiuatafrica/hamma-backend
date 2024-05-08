@@ -44,7 +44,9 @@ class WithdrawalSerializer(serializers.ModelSerializer):
             'status',
             'created',
             "flag",
-            "type"
+            "type",
+            "bank_name",
+            "account_number",
         )
         
     
