@@ -426,7 +426,7 @@ class CheckBalance(APIView):
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
     
     
-    def get(self, request):
+    def post(self, request):
         id = request.data.get('id')
         type = request.data.get('type', None)
         
