@@ -902,14 +902,13 @@ class SupportHome(APIView):
                     {
                         'date':daily.created.date(),
                         'return':daily.portfolio_returns,
-                    } for daily in daily_profitloss
+                    } for daily in daily_profitloss if daily_profitloss.count() > 1 and daily.created > competition.start_date
                 ]
                 open_balance = sum([position.amount_invested for position in positions])
                 data = {
                     'balance':round(balance + open_balance,2),
-                    'starting_balance': 1000000,
-                    
-                    'equity':equity + open_balance ,
+                    'starting_balance':1000000,
+                    'equity':equity + open_balance,
                     'floating_pl' : profit_loss,
                     'closed_pl' : profit_loss2,
                     # 'positions': position_data_list2,
@@ -922,6 +921,8 @@ class SupportHome(APIView):
                 }
                 
                 return Response(data)
+                
+                
             else:
                 portfolio= DemoPortfolio.objects.get_or_create(user=user)[0]
                 positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
@@ -1034,14 +1035,13 @@ class SupportHome(APIView):
                     {
                         'date':daily.created.date(),
                         'return':daily.portfolio_returns,
-                    } for daily in daily_profitloss
+                    } for daily in daily_profitloss if daily_profitloss.count() > 1 and daily.created > competition.start_date
                 ]
                 open_balance = sum([position.amount_invested for position in positions])
                 data = {
                     'balance':round(balance + open_balance,2),
-                    'starting_balance': None,
-                    
-                    'equity':equity + open_balance ,
+                    'starting_balance':1000000,
+                    'equity':equity + open_balance,
                     'floating_pl' : profit_loss,
                     'closed_pl' : profit_loss2,
                     # 'positions': position_data_list2,
@@ -1426,13 +1426,14 @@ class SupportDemoHolding(APIView):
                 open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
                 closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
                 # wallet_balance = portfolio.balance
-                balance = open_trade_sum + closed_trade_sum + closed_pl 
+                positions_open = CompetitionPosition.objects.filter(portfolio=portfolio, status='open')
+                open_balance = sum([position.amount_invested for position in positions_open])
                 
                 hold_data ={
-                    'balance':balance,
+                    'balance':balance + open_balance,
                     'floating_pl':floating_pl,
                     'closed_pl':closed_pl,
-                    'equity':balance  + floating_pl,
+                    'equity':balance  + floating_pl + open_balance,
                     'holdings':positions_data
                     
                 }
@@ -1505,11 +1506,14 @@ class SupportDemoHolding(APIView):
                 # wallet_balance = portfolio.balance
                 balance = open_trade_sum + closed_trade_sum + closed_pl 
                 
+                positions_open = CompetitionPosition.objects.filter(portfolio=portfolio, status='open')
+                open_balance = sum([position.amount_invested for position in positions_open])
+                
                 hold_data ={
-                    'balance':balance,
+                    'balance':balance + open_balance,
                     'floating_pl':floating_pl,
                     'closed_pl':closed_pl,
-                    'equity':balance  + floating_pl,
+                    'equity':balance  + floating_pl + open_balance,
                     'holdings':positions_data
                     
                 }

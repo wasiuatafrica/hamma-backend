@@ -108,7 +108,6 @@ class CompetitionPosition(auto_prefetch.Model):
                 profit_loss = self.amount_invested - Decimal(current_value)
         elif self.status=='close':
             profit_loss =  self.profit_loss
-            current_value = self.quantity * self.close_price
         else:
             current_value = 0
             profit_loss = 0
