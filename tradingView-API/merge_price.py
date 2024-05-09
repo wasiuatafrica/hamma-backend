@@ -64,16 +64,10 @@ def get_combined():
     combined = {}
 
     # Process each symbol in volatile_data except '_id' and 'ASI'
-    for symbol, data in volatile_data.items():
-        if symbol != '_id' and symbol != 'ASI' and data:
-            data2 = live_data.get(symbol, None)  # Get live data for the symbol
-            if data2 is None:
-                continue  # Skip if there's no live data for this symbol
-
-            # Get the symbol-specific data as a DataFrame
+    for symbol, data in live_data.items():
+        if symbol != '_id':
+            data2 = volatile_data.get(symbol, None)  
             df = get_symbol_data(all_live_data, symbol)
-            # print(df)
-            # Convert 'datetime' to datetime objects and set as index
             df['datetime'] = pd.to_datetime(df['datetime'])
             df = df.set_index('datetime').sort_index()
 
@@ -93,42 +87,48 @@ def get_combined():
             # Replace any infinite values in 'pct_change' with a safe default
             df['pct_change'] = df['pct_change'].apply(safe_float)
             
-            # Find the last non-zero 'change' and 'pct_change'
-            last_non_zero_change = safe_float(df['change'].iloc[-1] if not df.empty else 0)
-            last_non_zero_pct_change = safe_float(df['pct_change'].iloc[-1] if not df.empty else 0)
+            last_non_zero_change = 0
+            last_non_zero_pct_change = 0
+
+            for idx in df.index[::-1]:  # Reverse iteration
+                change = df.loc[idx, 'change']  # Get the 'change' value at this index
+                if change != 0:  
+                    last_non_zero_change = safe_float(change)  
+                    last_non_zero_pct_change = safe_float(df.loc[idx, 'pct_change']) 
+                    break  
 
             # Prepare the new data with the last change and percentage change
-            new_data = {
-                'datetime': data2['datetime'],
-                'symbol': symbol,
-                'open': data2['open'],
-                'high': data2['high'],
-                'low': data2['low'],
-                'close': data2['close'],
-                'volume': data2['volume'],
-                'change': last_non_zero_change,
-                'percentage_change': last_non_zero_pct_change,
-                'current_price': data2['close'],
-                'volatility': data.get('volatility', None),
-                'momentum': data.get('momentum', None),
-            }
-
-            # Store the new data in combined
+            if data2:
+                new_data = {
+                    'datetime': data['datetime'],
+                    'symbol': symbol,
+                    'open': data['open'],
+                    'high': data['high'],
+                    'low': data['low'],
+                    'close': data['close'],
+                    'volume': data['volume'],
+                    'change': last_non_zero_change,
+                    'percentage_change': last_non_zero_pct_change,
+                    'current_price': data['close'],
+                    'volatility': data2.get('volatility', None),
+                    'momentum': data2.get('momentum', None),
+                }
+            else:
+                new_data = {
+                    'datetime': data['datetime'],
+                    'symbol': symbol,
+                    'open': data['open'],
+                    'high': data['high'],
+                    'low': data['low'],
+                    'close': data['close'],
+                    'volume': data['volume'],
+                    'change': last_non_zero_change,
+                    'percentage_change': last_non_zero_pct_change,
+                    'current_price': data['close'],
+                    'volatility': 0,
+                    'momentum': 0,
+                }
             combined[symbol] = new_data
-    combined['BAPLC'] = {
-        'datetime': live_data['BAPLC']['datetime'],
-        'symbol': 'BAPLC',
-        'open': live_data['BAPLC']['open'],
-        'high': live_data['BAPLC']['high'],
-        'low': live_data['BAPLC']['low'],
-        'close': live_data['BAPLC']['close'],
-        'volume': live_data['BAPLC']['volume'],
-        'change': 0,
-        'percentage_change': 0,
-        'current_price': live_data['BAPLC']['close'],
-        'volatility': 0,
-        'momentum': 0,
-    }
     return combined
 
 
@@ -142,9 +142,9 @@ def is_market_open():
     current_time_lagos = datetime.now(lagos_timezone).time()
 
     if datetime.today().weekday() < 5:
-        market_open_time = time(10, 00)
+        # market_open_time = time(10, 00)
         market_close_time = time(14, 37)
-        # market_open_time = time(7, 55)
+        market_open_time = time(7, 55)
         # market_close_time = time(18, 31)
 
         if market_open_time <= current_time_lagos <= market_close_time:
