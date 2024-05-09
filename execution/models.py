@@ -59,7 +59,7 @@ class DemoPortfolio(auto_prefetch.Model):
     
     @property
     def account_type(self):
-        return "demo_position"
+        return "demo_portfolio"
     
     class Meta(auto_prefetch.Model.Meta):
         unique_together = ('user', 'account_name')

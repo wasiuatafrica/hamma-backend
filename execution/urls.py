@@ -19,6 +19,14 @@ urlpatterns = [
     path("demo/accounts/", views.DemoPorfoliosAccounts.as_view()),
     path("demo/account/<str:id>/", views.RetrieveSingleDemoPorfoliosAccounts.as_view()),
     path('demo/trade/<account_type>/<str:id>/', views.SingleDemoTradeAPIView.as_view()),
+    # new home view
+    path('demo/home/trade/<account_type>/<str:id>/', views.NewHome.as_view()),
+    # new close trade view
+    path('demo/close/trade/<account_type>/<str:id>/', views.NewDemoCloseTrade.as_view()),
+    # new calcle demo pending trade
+    path('demo/cancel/trade/<account_type>/<str:id>/', views.NewDemoClosePendingTrade.as_view()),
+    # new demohoding view 
+    path('demo/holding/<account_type>/<str:id>/', views.NewDemoHolding.as_view()),
 
     # competition
     path("create-competition-account/", views.CreatCompetitionAccount.as_view()),
