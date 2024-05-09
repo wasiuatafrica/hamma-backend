@@ -80,6 +80,6 @@ while True:
         lagos_now = datetime.now(lagos_tz)
         print("Live Price Updated" , lagos_now.strftime("%Y-%m-%d %H:%M:%S"))
     else:
-        print("Market closed")
+        print("Market closed - Live")
     module_time.sleep(60)
         

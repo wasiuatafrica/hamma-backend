@@ -420,7 +420,36 @@ class WithdrawalView(APIView):
         
             else:
                 return Response("Insufficient fund")
+
+class CheckBalance(APIView):
+    
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+    
+    
+    def get(self, request):
+        id = request.data.get('id')
+        type = request.data.get('type', None)
         
+        if not type or type not in ['main', 'referral']:
+            return Response('type key must be present and it be either main or referral', status=status.HTTP_400_BAD_REQUEST)
+        
+        if type == 'main':
+            withdrawal= exec_models.WithdrawalRequest.objects.get(id=id)
+            wallet= exec_models.Portfolio.objects.get(user=withdrawal.wallet.user)
+            
+            
+            if wallet.balance > Decimal(withdrawal.amount):
+                return Response(True) 
+            else:
+                return Response(False)
+        elif type == 'referral':
+            withdrawal= aff_models.ReferralWithdrawalRequest.objects.get(id=id)
+            wallet = aff_models.ReferralWallet.objects.get(user=withdrawal.wallet.user)
+            if wallet.balance > Decimal(withdrawal.amount):
+                return Response(True)
+            else:
+                return Response(False)
+      
 class AdminTradeView(APIView):
     serializer_class = serializers.DemoPositionSerializer
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  

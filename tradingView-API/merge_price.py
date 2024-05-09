@@ -142,9 +142,9 @@ def is_market_open():
     current_time_lagos = datetime.now(lagos_timezone).time()
 
     if datetime.today().weekday() < 5:
-        # market_open_time = time(10, 00)
+        market_open_time = time(10, 2)
         market_close_time = time(14, 37)
-        market_open_time = time(7, 55)
+        # market_open_time = time(7, 55)
         # market_close_time = time(18, 31)
 
         if market_open_time <= current_time_lagos <= market_close_time:
@@ -160,5 +160,5 @@ while True:
         write_to_mongodb("livelake3", combined)
         print("Live Price merged")
     else:
-        print("Market closed")
+        print("Market closed - Merge")
     module_time.sleep(59)

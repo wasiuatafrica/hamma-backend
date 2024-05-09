@@ -8,6 +8,7 @@ urlpatterns = [
    path("manage-users/<user_id>/", views.AdminManageUser.as_view(), name="manage-users"),
    path('receipts/', views.AdminReceiptsView.as_view()),
    path('withdrawals/', views.WithdrawalView.as_view()),
+   path('check-balance/', views.CheckBalance.as_view()),
    path('trades/', views.AdminTradeView.as_view()),
    path("manage-referrals/", views.AdminApproveAndViewRewardActivities.as_view()),
    path("affilate-ranks/", views.AffilateManagement.as_view()),
