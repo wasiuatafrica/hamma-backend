@@ -18,8 +18,8 @@ from portfolio.models import  Stock
 
 def get_price(symbol):
     from portfolio.utils import connect_to_mongodb
-    db = connect_to_mongodb("stock_prices")
-    collection = db["price_combined"]
+    db = connect_to_mongodb("livelake3")
+    collection = db["merged_live_price"]
     last_item = collection.find_one(sort=[('_id', -1)])
 
     return last_item[symbol]
