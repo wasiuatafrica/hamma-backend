@@ -16,4 +16,4 @@ collection = db['merged_live_price']
 last_item = collection.find_one(sort=[('_id', -1)]) 
 print( last_item)
 
-client.close()
+client.close() 
