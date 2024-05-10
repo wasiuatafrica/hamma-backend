@@ -82,7 +82,9 @@ class ReferralWithdrawalRequestSerializer(serializers.ModelSerializer):
             'status',
             'created',
             "flag",
-            "type"
+            "type",
+            "bank_name",
+            "account_number",
         )
         
     def get_fullname(self, obj):
