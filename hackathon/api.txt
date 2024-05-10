@@ -1,0 +1,60 @@
+BASE_URL= http://maindashbe-june-b18731a0e161.herokuapp.com/leaderboard/
+
+1. Landing Page
+	1.	GET /currentcompetition/
+	2.	GET /leaderboard/
+	3.
+	4. 
+2. Login
+3. user dashboard
+	1. check if user is in clan 
+        send get request to user profile and GET /can-create-join/
+            if there is a clan_id, 
+                GET /clans/{clan_id} - return clan detail (populate clan detail page)
+            if no clan_id and 'can create/join':false, dont show show create clan or join clan page, means there pending request.
+            else show create clan or join clan page,
+                GET /clans/
+                POST /create-clan/ to create
+                    **Parameters:**
+                    - `clan_name` (string, required): Clan name.
+                    - `community_link` (string, optional): Link to the clan's community page.
+                    - clan_logo : image
+                    - description
+                POST /join-clan/ fields: clan_id
+
+
+	   
+    2. check if the user is in current competition
+        1. send request to endpoint that returns all accounts of the user
+        2. check if he has an active zuma account
+        3. check if zuma in competition  GET /in-competition/?number={number} return true or false
+        4. if account in competition, GET /leaderboard/
+        5. if not in competition, show list of eligible accounts, let user select and 
+            POST /join-competition/
+                **Parameters:**
+                    - `account_number` (string, required): User's trading account number.
+                    - competition_id 
+4. leaderboard
+    GET /leaderboard/
+5. Clans 
+    1. send get request to profile, if clan_id is null, show join clan or create clan
+    2. list all clans GET /clans/
+    3. clan detail GET /clans/{clan_id}
+    4. To join clan, POST /join-clan/. Pass clan_id in body
+    5. When join clan request is made, the request is put on a list where a clan_admin will see it to approve or reject.
+        To get all pending request list for clan admin, GET /join-clan/, will return if the user is admin and also list of pending requests.
+    6. on the request list page, to accept or reject request, PUT /join-clan/ pass {request_id}, {action} in body.
+        request_id is the id of the join request, action should be any of ['approved', 'rejected',].
+    7. for clan member to leave clan, PUT /leave-clan/{clan_id}, pass {action in body}. value of action is 'leave'
+
+6. Payout
+    1. call the profile endpoint to see if the person has set payment method, if not collect info and send to the api endpoint for collacting that data
+    2. if competition ongoing, disable all buttons
+    3. if weekend, disable all buttons
+    4. if competition ended and not weekend:
+        1. for top trader Payout, GET /request-top-trader-payout/competition_id/. Will return true or false.
+            if it return true POST /request-top-trader-payout/{competition_id}/
+        2. for top clan payout, GET /request-top-clan-payout/{competition_id}/. Will return true or false.
+            if it return true POST /request-top-clan-payout/{competition_id}/
+    5. payout history
+        GET /trader-payout-history/

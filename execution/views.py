@@ -1798,7 +1798,7 @@ class DemoPorfoliosAccounts(APIView):
         Get competition account for the current competition. if no competiton return empty
         """
         competition = competion_models.Competition.objects.filter(status='current').first()
-        if competion_models:
+        if competition:
             competition_account = CompetitionPortfolio.objects.filter(user=request.user,competition=competition).first()
             competition_account_serializer = self.competition_serializer(competition_account).data if competition_account else None
         else:  
@@ -1873,6 +1873,10 @@ class SingleDemoTradeAPIView(APIView):
         demo_account = DemoPortfolio.objects.filter(id=id).first()
         return demo_account if demo_account else None
 
+    def get_competion_account(self, id, competion):
+        competition_demo_account = CompetitionPortfolio.objects.filter(competition=competition,active=True, id=id).first()
+        return competition_demo_account if competition_demo_account else None
+
     def get(self,request, *args, **kwargs):
 
         account_type= kwargs.get("account_type")
@@ -1896,11 +1900,25 @@ class SingleDemoTradeAPIView(APIView):
 
         else:
 
+            # get competition portfoilo by id 
             competition = Competition.objects.filter(status='current').first()
-            portfolio = None
+
+            # get the competion account
+            id = kwargs.get("id")
+
+            demo_account = self.get_competion_account(id, competition)
+            if demo_account is None:
+                return Response("Account not found",status.HTTP_404_NOT_FOUND)
+            if demo_account.user != request.user:
+                return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+
+            in_competition = demo_account
+
+            # competition = Competition.objects.filter(status='current').first()
+            # portfolio = None
             
             if competition:
-                portfolio = CompetitionPortfolio.objects.filter(user=request.user, competition=competition, active=True).first()
+                portfolio = in_competition
                 
             if portfolio and timezone.now() > competition.start_date:
                 positions = CompetitionPosition.objects.filter(portfolio=portfolio, status='open')
@@ -1968,8 +1986,19 @@ class SingleDemoTradeAPIView(APIView):
         if account_type == "competition_account":
 
             competition = Competition.objects.filter(status='current').first()
+
+            # get the competion account
+            id = kwargs.get("id")
+
+            demo_account = self.get_competion_account(id, competition)
+            if demo_account is None:
+                return Response("Account not found",status.HTTP_404_NOT_FOUND)
+            if demo_account.user != request.user:
+                return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+
+            in_competition = demo_account
             
-            in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
+            # in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
             if in_competition and timezone.now() > competition.start_date:
                 portfolio = in_competition
                 if order_type == 'market':
@@ -2243,6 +2272,10 @@ class NewHome(APIView):
     def get_account(self, id):
         demo_account = DemoPortfolio.objects.filter(id=id).first()
         return demo_account if demo_account else None
+
+    def get_competion_account(self, id, competion):
+        competition_demo_account = CompetitionPortfolio.objects.filter(competition=competition,active=True, id=id).first()
+        return competition_demo_account if competition_demo_account else None
     
     def get(self, request, *args, **kwargs):
 
@@ -2255,11 +2288,20 @@ class NewHome(APIView):
 
         if account_type == "competition_account":
 
-        # mode = self.kwargs.get('mode')
-        # if mode == 'demo':
             competition = Competition.objects.filter(status='current').first()
+
+            # get the competion account
+            id = kwargs.get("id")
+
+            demo_account = self.get_competion_account(id, competition)
+            if demo_account is None:
+                return Response("Account not found",status.HTTP_404_NOT_FOUND)
+            if demo_account.user != request.user:
+                return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+
+            in_competition = demo_account
         
-            in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
+            # in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
             if in_competition and timezone.now() > competition.start_date:
                 portfolio = in_competition
                 
@@ -2543,6 +2585,10 @@ class NewDemoCloseTrade(APIView):
     def get_account(self, id):
         demo_account = DemoPortfolio.objects.filter(id=id).first()
         return demo_account if demo_account else None
+
+    def get_competion_account(self, id, competion):
+        competition_demo_account = CompetitionPortfolio.objects.filter(competition=competition,active=True, id=id).first()
+        return competition_demo_account if competition_demo_account else None
     
     def post(self, request, *args, **kwargs):
 
@@ -2555,12 +2601,23 @@ class NewDemoCloseTrade(APIView):
 
         if account_type == "competition_account":
 
-            # id= self.kwargs.get('id')
             competition = Competition.objects.filter(status='current').first()
+
+            # get the competion account
+            id = kwargs.get("id")
+
+            demo_account = self.get_competion_account(id, competition)
+            if demo_account is None:
+                return Response("Account not found",status.HTTP_404_NOT_FOUND)
+            if demo_account.user != request.user:
+                return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+
+            in_competition = demo_account
             
-            in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
+            # in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
             if in_competition and timezone.now() > competition.start_date:
-                position =  get_object_or_404(CompetitionPosition, id=id)
+                position = CompetitionPosition.objects.filter(portfolio=in_competition).first()
+
                 if position.status == 'open':
                     pl, cur_val,price = position.calculate_profit_loss()
                     
@@ -2648,6 +2705,10 @@ class NewDemoClosePendingTrade(APIView):
     def get_account(self, id):
         demo_account = DemoPortfolio.objects.filter(id=id).first()
         return demo_account if demo_account else None
+
+    def get_competion_account(self, id, competion):
+        competition_demo_account = CompetitionPortfolio.objects.filter(competition=competition,active=True, id=id).first()
+        return competition_demo_account if competition_demo_account else None
     
     def post(self, request, *args, **kwargs):
 
@@ -2659,13 +2720,23 @@ class NewDemoClosePendingTrade(APIView):
         
 
         if account_type == "competition_account":
-            
-            # id= self.kwargs.get('id')
+
             competition = Competition.objects.filter(status='current').first()
+
+            # get the competion account
+            id = kwargs.get("id")
+
+            demo_account = self.get_competion_account(id, competition)
+            if demo_account is None:
+                return Response("Account not found",status.HTTP_404_NOT_FOUND)
+            if demo_account.user != request.user:
+                return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+
+            in_competition = demo_account
             
-            in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
+            # in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
             if in_competition and timezone.now() > competition.start_date:
-                position =  get_object_or_404(CompetitionPosition, id=id)
+                position = CompetitionPosition.objects.filter(portfolio=in_competition).first()
                 if position.status == 'pending':
                     
                     
@@ -2747,8 +2818,11 @@ class NewDemoHolding(APIView):
         demo_account = DemoPortfolio.objects.filter(id=id).first()
         return demo_account if demo_account else None
     
-    def get(self,request, *args, **kwargs):
-
+    def get_competion_account(self, id, competion):
+        competition_demo_account = CompetitionPortfolio.objects.filter(competition=competition,active=True, id=id).first()
+        return competition_demo_account if competition_demo_account else None
+    
+    def get(self, request, *args, **kwargs):
 
         account_type= kwargs.get("account_type")
         valid_account_types= ["demo_portfolio","competition_account"]
@@ -2760,8 +2834,20 @@ class NewDemoHolding(APIView):
         if account_type == "competition_account":
 
             competition = Competition.objects.filter(status='current').first()
+
+            # get the competion account
+            id = kwargs.get("id")
+
+            demo_account = self.get_competion_account(id, competition)
+            if demo_account is None:
+                return Response("Account not found",status.HTTP_404_NOT_FOUND)
+            if demo_account.user != request.user:
+                return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+
+            in_competition = demo_account
+        
             
-            in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
+            # in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
             if in_competition and timezone.now() > competition.start_date:
                 portfolio = in_competition
                     
