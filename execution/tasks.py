@@ -27,6 +27,8 @@ import shortuuid
 import time as timer
 from competition.models import Competition, CompetitionPortfolio, CompetitionPosition, CompetitionTransaction, CompetitionDailyReturns, CompetitionCumulativeReturns
 import pandas as pd
+import os
+from pymongo import MongoClient
 
 logger = get_task_logger(__name__)
 channel_layer = get_channel_layer()
@@ -1002,3 +1004,146 @@ def competition_returns3():
 @shared_task                
 def competition_returns4():
     competition_daily_returns4()
+
+MONGO_URL = os.environ.get('MONGO_URL')
+
+def update_document(symbol,dbase, new_data):
+
+    client = MongoClient(MONGO_URL)
+    db = client[dbase]
+    if symbol not in db.list_collection_names():
+        db.create_collection(symbol)
+    
+    collection = db[symbol]
+
+    # Find the document to update
+    existing_document = collection.find_one()
+
+    if existing_document:
+        id = existing_document['_id']
+        # Update each list in the document with new values
+        for key in ['t', 'o', 'h', 'l', 'c', 'v']:
+            if key in new_data:
+                if key in existing_document:
+                    existing_document[key].extend(new_data[key])
+                else:
+                    existing_document[key] = new_data[key]
+
+        # Update the document in the collection
+        collection.update_one({"_id": id}, {"$set": existing_document})
+    else:
+        # If no existing document found, insert the new data
+        print('created',new_data)
+        collection.insert_one(new_data)
+
+    # Close the MongoDB connection
+    client.close()
+    
+def retrieve_today_live(symbol, interval):
+  
+    client = MongoClient(MONGO_URL, tls=True, tlsAllowInvalidCertificates=True)
+    db = client["livelake3"]
+    collection = db["merged_live_price"]
+
+    lagos_tz = pytz.timezone("Africa/Lagos")
+    today = datetime.now(lagos_tz).date()
+    reference_date_str = f"{today} 10:00:00"
+    # reference_date_str = "2024-05-10 10:00:00"
+    reference_date = datetime.strptime(reference_date_str, "%Y-%m-%d %H:%M:%S").timestamp()
+
+    data = list(collection.find({}))
+    extracted_data = [doc[symbol] for doc in data if symbol in doc]
+
+    df = pd.DataFrame(extracted_data)
+
+    df.drop(["change", "percentage_change", "current_price", "volatility", "momentum"], axis=1, inplace=True)
+
+    df['timestamp'] = pd.to_datetime(df['datetime']).apply(lambda dt: dt.timestamp())
+
+
+    df_filtered = df[df['timestamp'] >= reference_date]
+
+    df_filtered = df_filtered.sort_values(['symbol', 'timestamp'])
+    df_filtered['volume_diff'] = df_filtered['volume'].diff()
+    df_filtered = df_filtered[df_filtered['volume_diff'] != 0]
+    df_filtered.drop('volume_diff', axis=1, inplace=True)
+    
+    df_filtered.dropna(inplace=True)
+    
+    return df_filtered
+
+   
+@shared_task
+def update_live_1m():
+    stocks = [stock.symbol for stock in Stock.objects.all()]
+    for symbol in stocks:
+        df = retrieve_today_live(symbol,"1")
+        # print('df',df)
+        new_data = {
+            "t": df["timestamp"].tolist(), 
+            "o": df["open"].tolist(),  
+            "h": df["high"].tolist(),  
+            "l": df["low"].tolist(),  
+            "c": df["close"].tolist(),  
+            "v": df["volume"].tolist(), 
+        }
+
+
+        update_document(symbol,'chartdata_5', new_data) 
+        print('updated 1m', symbol)
+        
+@shared_task
+def update_live_1d():
+    stocks = [stock.symbol for stock in Stock.objects.all()]
+    for symbol in stocks:
+        df = retrieve_today_live(symbol,"1")
+        if df.empty:
+            print(f"No data available for {symbol} today")
+            continue
+        t=df["timestamp"].tolist()[-1]
+        o=df["open"].tolist()[-1]
+        h=df["high"].tolist()[-1]
+        l=df["low"].tolist()[-1] 
+        c=df["close"].tolist()[-1]  
+        v=df["volume"].tolist()[-1]
+
+        new_data = {
+            "t": [t], 
+            "o": [o],  
+            "h": [h],  
+            "l": [l],  
+            "c": [c],  
+            "v": [v], 
+        }
+
+
+        update_document(symbol,'chartdata_1D', new_data) 
+        print('updated 1D', symbol)
+        
+@shared_task
+def update_live_1W():
+    stocks = [stock.symbol for stock in Stock.objects.all()]
+    for symbol in stocks:
+        df = retrieve_today_live(symbol,"1")
+        if df.empty:
+            print(f"No data available for {symbol} today")
+            continue
+        t=df["timestamp"].tolist()[-1]
+        o=df["open"].tolist()[-1]
+        h=df["high"].tolist()[-1]
+        l=df["low"].tolist()[-1] 
+        c=df["close"].tolist()[-1]  
+        v=df["volume"].tolist()[-1]
+
+        new_data = {
+            "t": [t], 
+            "o": [o],  
+            "h": [h],  
+            "l": [l],  
+            "c": [c],  
+            "v": [v], 
+        }
+
+
+        update_document(symbol,'chartdata_1W', new_data) 
+        print('updated 1W', symbol)

@@ -12,4 +12,4 @@ class Command (BaseCommand):
     def handle (self, *args, **options):
         from competition.tasks import get_top, friday_evening, saturday_evening
         
-        saturday_evening()
+        print(get_top())

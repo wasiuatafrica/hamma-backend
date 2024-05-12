@@ -64,7 +64,7 @@ def is_market_open():
     current_time_lagos = datetime.now(lagos_timezone).time()
 
     if datetime.today().weekday() < 5:
-        market_open_time = time(9, 59)
+        market_open_time = time(10, 0)
         # market_close_time = time(18, 30)
         market_close_time = time(14, 31)
 
