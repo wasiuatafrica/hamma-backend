@@ -1047,38 +1047,79 @@ def retrieve_today_live(symbol, interval):
 
     lagos_tz = pytz.timezone("Africa/Lagos")
     today = datetime.now(lagos_tz).date()
-    reference_date_str = f"{today} 10:00:00"
-    # reference_date_str = "2024-05-10 10:00:00"
-    reference_date = datetime.strptime(reference_date_str, "%Y-%m-%d %H:%M:%S").timestamp()
+    # date_string = "2024-05-10"
+    # today = datetime.strptime(date_string, "%Y-%m-%d").date()
 
-    data = list(collection.find({}))
-    extracted_data = [doc[symbol] for doc in data if symbol in doc]
+    pipeline = [
+        {
+            "$project": {
+                "_id": 0,
+                "documents": {
+                    "$objectToArray": "$$ROOT"
+                }
+            }
+        },
+        {
+            "$unwind": "$documents"
+        },
+        {
+            "$match": {
+                "$expr": {
+                    "$eq": [
+                        {
+                            "$dateToString": {
+                                "format": "%Y-%m-%d",
+                                "date": {
+                                    "$toDate": "$documents.v.datetime"
+                                },
+                                "timezone": "Africa/Lagos"
+                            }
+                        },
+                        today.strftime("%Y-%m-%d")
+                    ]
+                },
+                "documents.k": symbol  # Match documents for the given symbol only
+            }
+        },
+        {
+            "$replaceRoot": {
+                "newRoot": "$documents.v"
+            }
+        }
+    ]
 
-    df = pd.DataFrame(extracted_data)
 
-    df.drop(["change", "percentage_change", "current_price", "volatility", "momentum"], axis=1, inplace=True)
+    cursor = collection.aggregate(pipeline)
 
-    df['timestamp'] = pd.to_datetime(df['datetime']).apply(lambda dt: dt.timestamp())
-
-
-    df_filtered = df[df['timestamp'] >= reference_date]
-
-    df_filtered = df_filtered.sort_values(['symbol', 'timestamp'])
-    df_filtered['volume_diff'] = df_filtered['volume'].diff()
-    df_filtered = df_filtered[df_filtered['volume_diff'] != 0]
-    df_filtered.drop('volume_diff', axis=1, inplace=True)
+    data = list(cursor)
     
-    df_filtered.dropna(inplace=True)
-    
-    return df_filtered
+    if data:  
+        df = pd.DataFrame(data)
 
-   
+        df.drop(["change", "percentage_change", "current_price", "volatility", "momentum"], axis=1, inplace=True)
+
+        df['timestamp'] = pd.to_datetime(df['datetime']).apply(lambda dt: dt.timestamp())
+
+        df_filtered = df.sort_values(['symbol', 'timestamp'])
+        df_filtered['volume_diff'] = df_filtered['volume'].diff()
+        df_filtered = df_filtered[df_filtered['volume_diff'] != 0]
+        df_filtered.drop('volume_diff', axis=1, inplace=True)
+        
+        df_filtered.dropna(inplace=True)
+        
+        return df_filtered
+    else:
+        return pd.DataFrame()
+       
 @shared_task
 def update_live_1m():
     stocks = [stock.symbol for stock in Stock.objects.all()]
     for symbol in stocks:
         df = retrieve_today_live(symbol,"1")
         # print('df',df)
+        if  df.empty:
+            continue
+        
         new_data = {
             "t": df["timestamp"].tolist(), 
             "o": df["open"].tolist(),  
