@@ -1005,7 +1005,7 @@ def competition_returns3():
 def competition_returns4():
     competition_daily_returns4()
 
-MONGO_URL = os.environ.get('MONGO_URL')
+MONGO_URL = os.environ.get('MONGO_STRING')
 
 def update_document(symbol,dbase, new_data):
 
@@ -1115,6 +1115,7 @@ def retrieve_today_live(symbol, interval):
 def update_live_1m():
     stocks = [stock.symbol for stock in Stock.objects.all()]
     for symbol in stocks:
+        print(symbol)
         df = retrieve_today_live(symbol,"1")
         # print('df',df)
         if  df.empty:

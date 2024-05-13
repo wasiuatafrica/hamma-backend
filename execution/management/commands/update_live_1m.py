@@ -5,6 +5,7 @@ import os
 import pandas as pd
 import pytz
 from datetime import datetime, timedelta
+from execution.tasks import update_live_1d, update_live_1m, update_live_1W
 
 MONGO_URL = os.environ.get('MONGO_URL')
 
@@ -67,18 +68,4 @@ class Command(BaseCommand):
     help = 'get historical data'
 
     def handle(self, *args, **options):
-        stocks = [stock.symbol for stock in Stock.objects.all()]
-        for symbol in stocks:
-            df = retrieve_today_live(symbol,"1")
-            print('df',df)
-            new_data = {
-                "t": df["timestamp"].tolist(), 
-                "o": df["open"].tolist(),  
-                "h": df["high"].tolist(),  
-                "l": df["low"].tolist(),  
-                "c": df["close"].tolist(),  
-                "v": df["volume"].tolist(), 
-            }
-
-
-            update_document(symbol, new_data)
+        update_live_1m()
