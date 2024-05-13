@@ -409,8 +409,8 @@ def competition_daily_returns4():
     
     lagos_timezone = pytz.timezone('Africa/Lagos')
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
-    print(current_time_lagos)
-    if current_time_lagos.time() >= datetime.strptime('10:16 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:30 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
+    # print(current_time_lagos)
+    if current_time_lagos.time() >= datetime.strptime('10:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:31 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
         
         portfolios = CompetitionPortfolio.objects.filter(competition__status='current', active=True)
         for portfolio in portfolios:
@@ -442,10 +442,10 @@ def competition_daily_returns4():
                 df = df.sort_values(by='closedatetime')
                 df['Sum_Profit_Loss'] = df.groupby('Closedate')['Profit_Loss'].cumsum()
                 df['Daily_PortfolioReturns'] = df['Sum_Profit_Loss']/ df['Balance'] * 100
-                print(df)
+                # print(df)
                             
                 df_final = df.groupby('Closedate').tail(1).reset_index(drop=True)
-                print(df_final)
+                # print(df_final)
                 
                 # Save the last row to the database
                 last_row = df_final.iloc[-1]
@@ -532,7 +532,7 @@ def competition_daily_returns4():
         cum_mark_table['cum_ASI_daily_retuns'] = (1 + cum_mark_table.ASI_daily_retuns / 100).cumprod() - 1
         cum_mark_table['cum_ASI_daily_retuns'] = cum_mark_table.cum_ASI_daily_retuns * 100
 
-        print(cum_mark_table)
+        # print(cum_mark_table)
         last_row_cum_market = cum_mark_table.iloc[-1]
         # print(last_row_cum_market)
         cum_market_returns = last_row_cum_market['cum_ASI_daily_retuns']
@@ -547,7 +547,7 @@ def competition_daily_returns4():
         comp_market_cum2.market_returns = round(cum_market_returns, 2)
         comp_market_cum2.save()   
         
-        print('all')
+        print('all calculated')
                 
         
     
