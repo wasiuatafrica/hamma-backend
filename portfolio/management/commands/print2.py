@@ -8,8 +8,13 @@ class Command(BaseCommand):
     help = 'Prints company:symbol dictionary of all stocks'
 
     def handle(self, *args, **options):
-       stocks = Stock.objects.filter(active=True)
-       for stock in stocks:
-           stock.logo_url = ICON_LINKS[stock.symbol]
-           stock.save()
-           print(stock.logo_url)
+        stocks = Stock.objects.filter(active=True)
+        for stock in stocks:
+            url = ICON_LINKS.get(stock.symbol)
+            if url:
+                stock.logo_url = url
+                stock.save()
+                print(stock.logo_url)
+            else:
+                print(f"No link for {stock.symbol}")
+            
