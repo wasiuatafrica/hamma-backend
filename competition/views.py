@@ -799,15 +799,16 @@ class LeaderBoardView(APIView):
                     profit,status = getProfit(account)
                     if status:
                         percent= round((profit/1000000)*100,2)
-                        profile= Profile.objects.get(user=account.user)
-                        data= {
-                            'name':account.user.firstname,
-                            'profit':percent,
-                            'profit_naira':profit,
-                            'country':profile.country,
-                            'clan':account.user.clans
-                        }
-                        leaderboard_list.append(data)
+                        if percent <= -5:
+                            profile= Profile.objects.get(user=account.user)
+                            data= {
+                                'name':account.user.firstname,
+                                'profit':percent,
+                                'profit_naira':profit,
+                                'country':profile.country,
+                                'clan':account.user.clans
+                            }
+                            leaderboard_list.append(data)
                 sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
 
                 return Response(sorted_data)
