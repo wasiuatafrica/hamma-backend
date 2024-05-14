@@ -1106,10 +1106,35 @@ def retrieve_today_live(symbol, interval):
         df_filtered.drop('volume_diff', axis=1, inplace=True)
         
         df_filtered.dropna(inplace=True)
-        
-        return df_filtered
-    else:
-        return pd.DataFrame()
+        if not df_filtered.empty:
+            return df_filtered
+        else:
+            date_string = f"{today} 14:30"
+            dt = datetime.strptime(date_string, "%Y-%m-%d %H:%M")
+            
+            last_item = collection.find_one(sort=[('_id', -1)])
+            
+    
+            symbol_data = last_item[symbol]
+            timestamp = dt.timestamp()
+            open_value = symbol_data['open']
+            high_value = symbol_data['high'] if symbol_data.get('high') else 0
+            low_value = symbol_data['low'] if symbol_data.get('low') else 0
+            close_value = symbol_data['close']
+            volume_value = symbol_data['volume']
+
+            new_data = {
+                "timestamp": [timestamp], 
+                "open": [open_value],  
+                "high": [high_value],  
+                "low": [low_value],  
+                "close": [close_value],  
+                "volume": [volume_value], 
+            }
+
+
+    
+            return pd.DataFrame(new_data)
        
 @shared_task
 def update_live_1m():
@@ -1189,3 +1214,41 @@ def update_live_1W():
 
         update_document(symbol,'chartdata_1W', new_data) 
         print('updated 1W', symbol)
+        
+@shared_task
+def last_today_live(symbols):
+  
+    client = MongoClient(MONGO_URL, tls=True, tlsAllowInvalidCertificates=True)
+    db = client["livelake3"]
+    collection = db["live_price_combined"]
+
+    lagos_tz = pytz.timezone("Africa/Lagos")
+    today = datetime.now(lagos_tz).date()
+    # date_string = f"{today} 14:30"
+    date_string = "2024-05-13 14:30"
+    dt = datetime.strptime(date_string, "%Y-%m-%d %H:%M")
+    
+    last_item = collection.find_one(sort=[('_id', -1)])
+    
+    for symbol in symbols:
+        symbol_data = last_item[symbol]
+        timestamp = dt.timestamp()
+        open_value = symbol_data['open']
+        high_value = symbol_data['high'] if symbol_data.get('high') else 0
+        low_value = symbol_data['low'] if symbol_data.get('low') else 0
+        close_value = symbol_data['close']
+        volume_value = symbol_data['volume']
+
+        new_data = {
+            "timestamp": [timestamp], 
+            "open": [open_value],  
+            "high": [high_value],  
+            "low": [low_value],  
+            "close": [close_value],  
+            "volume": [volume_value], 
+        }
+
+
+    
+        print(pd.DataFrame(new_data))
+        break

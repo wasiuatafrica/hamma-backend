@@ -53,7 +53,7 @@ def get_live_data()    :
         
         symbol=data['Symbol'].split(' ')[0]
         
-        data1= {'datetime': lagos_now.strftime("%Y-%m-%d %H:%M:%S"),  'open': data['Open'], 'high': data['High'], 'low': data['Low'], 'close': data['Close'], 'volume': data['Volume'], 'symbol': symbol}
+        data1= {'datetime': lagos_now.strftime("%Y-%m-%d %H:%M"),  'open': data['Open'], 'high': data['High'], 'low': data['Low'], 'close': data['Close'], 'volume': data['Volume'], 'symbol': symbol}
         
         combined[symbol] = data1
           
