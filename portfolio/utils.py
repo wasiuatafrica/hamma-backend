@@ -240,6 +240,7 @@ def get_details2(stock, stock_data):
             'company': stock.company,
             'symbol': stock.symbol,
             'sector': stock.sector,
+            "logo_url": stock.logo_url,
             # 'current_price': handle_special_values(data.get('current_price', 0)),
             # "percent_change": handle_special_values(data.get('percentage_change', 0)),
             # 'change': handle_special_values(data.get("change", 0)),
