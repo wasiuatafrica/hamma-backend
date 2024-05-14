@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 import auto_prefetch
 from datetime import datetime, timedelta
 from execution.models import Position
+from accounts.models import Profile
 # Create your models here.
 
 User=get_user_model()
@@ -124,3 +125,16 @@ class ReferralWithdrawalRequest(auto_prefetch.Model):
     status= models.CharField(max_length=20, default='Unprocessed', blank=True,null=True)
     flag=models.BooleanField(default=False, null=True, blank=True)
     
+    @property
+    def bank_name(self):
+        user = self.wallet.user
+        profile=Profile.objects.get(user__email=user.email)
+        # print(profile, "jbabah")
+        return profile.bank_name
+
+    @property
+    def account_number(self):
+        user = self.wallet.user
+        profile=Profile.objects.get(user__email=user.email)
+        # print(profile, "jbabah")
+        return profile.account_number

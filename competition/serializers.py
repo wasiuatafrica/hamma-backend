@@ -27,6 +27,18 @@ class CompetitionPortfolioSerializers(serializers.ModelSerializer):
         'email',
         'fullname',
     ]
+
+class CompetitionPortfolioCreateSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = CompetitionPortfolio
+        fields=[
+            "id",
+            'account_name',
+            "account_type",
+            "balance",
+            "user"
+        ]
+        
     
 
 class ClanSerializer(serializers.ModelSerializer):

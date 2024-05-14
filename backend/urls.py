@@ -33,6 +33,7 @@ urlpatterns =  (   [
         path('affilate/',include("affilate.urls")),
         path('lock/',include("lock.urls")),
         path('leaderboard/',include("competition.urls")),
+        # path('hackathon/',include("hackathon.urls")),
         path('',include("notifications.urls")),
         path('',include("waitlist.urls")),
         path('chart-data/', views.ChartData.as_view(),)
