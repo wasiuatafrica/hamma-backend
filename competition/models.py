@@ -49,7 +49,7 @@ class CompetitionPortfolio(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     active = models.BooleanField(default=True)
-    account_name= models.CharField(max_length=20, default="competiton_account_1")
+    account_name= models.CharField(max_length=20, default="Competition Account 1")
 
     def __str__(self):
         print(self.user.clan)

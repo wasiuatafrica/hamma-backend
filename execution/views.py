@@ -1509,7 +1509,7 @@ class SupportDemoHolding(APIView):
                 # wallet_balance = portfolio.balance
                 balance = open_trade_sum + closed_trade_sum + closed_pl 
                 
-                positions_open = CompetitionPosition.objects.filter(portfolio=portfolio, status='open')
+                positions_open = DemoPosition.objects.filter(portfolio=portfolio, status='open')
                 open_balance = sum([position.amount_invested for position in positions_open])
                 
                 hold_data ={
@@ -2085,7 +2085,8 @@ class SingleDemoTradeAPIView(APIView):
                         quantity=quantity,
                         alert_name = 'pending trade' + shortuuid.uuid(),
                         time_in_force=time_in_force,
-                        order_id=order_id
+                        order_id=order_id,
+                        order_type = order_type
                         
                         
                     )  
@@ -2149,26 +2150,41 @@ class SingleDemoTradeAPIView(APIView):
                 market_price = round(Decimal(get_price(symbol)['current_price']), 2)
                 amount = quantity * market_price
                 
-                position = DemoPosition.objects.create(
-                    portfolio=portfolio,
-                    stock=stock,
-                    status=DemoPosition.OPEN, 
-                    open_price = market_price,
-                    quantity=quantity,
-                    amount_invested = amount,
-                    order_id=order_id
-                )
+                balance =  portfolio.balance
+                trade_commission = round(Decimal(0.00435) * amount, 2) + 200
+                
+                total= amount + trade_commission
+                if balance >= total:
+                    position = DemoPosition.objects.create(
+                        portfolio=portfolio,
+                        stock=stock,
+                        status=CompetitionPosition.OPEN, 
+                        open_price = market_price,
+                        quantity=quantity,
+                        amount_invested = amount,
+                        order_id=order_id
+                    )
 
-                if not is_buy:
-                    position.action = 'sell'
-                    position.save()
+                    if not is_buy:
+                        position.action = 'sell'
+                        position.save()
 
-                DemoTransaction.objects.create(
-                    user=request.user,
-                    transaction_type='open trade',
-                    amount=quantity * market_price,
-                    status='completed'
-                )
+                    DemoTransaction.objects.create(
+                        user=request.user,
+                        transaction_type='open trade',
+                        amount=amount,
+                        status='completed'
+                    )
+                    DemoTransaction.objects.create(
+                        user=request.user,
+                        transaction_type='trade commission',
+                        amount=trade_commission,
+                        status='completed'
+                    )
+                    
+                    portfolio.balance -= total
+                    portfolio.save()
+                    
                 activity=UserActivityLog.objects.create(user=request.user, action_type="demo_open_trade",description=f"User opened demo trade with amount {amount} on symbol {symbol}.")
                 positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
                 
@@ -2213,7 +2229,8 @@ class SingleDemoTradeAPIView(APIView):
                     quantity=quantity,
                     alert_name = shortuuid.uuid(),
                     time_in_force=time_in_force,
-                    order_id=order_id
+                    order_id=order_id,
+                    order_type = order_type
                     
                     
                 )  

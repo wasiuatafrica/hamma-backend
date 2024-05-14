@@ -1106,35 +1106,38 @@ def retrieve_today_live(symbol, interval):
         df_filtered.drop('volume_diff', axis=1, inplace=True)
         
         df_filtered.dropna(inplace=True)
-        if not df_filtered.empty:
-            return df_filtered
-        else:
-            date_string = f"{today} 14:30"
-            dt = datetime.strptime(date_string, "%Y-%m-%d %H:%M")
+        
+        return df_filtered
+    
+        # if not df_filtered.empty:
+        #     return df_filtered
+        # else:
+        #     date_string = f"{today} 14:30"
+        #     dt = datetime.strptime(date_string, "%Y-%m-%d %H:%M")
             
-            last_item = collection.find_one(sort=[('_id', -1)])
+        #     last_item = collection.find_one(sort=[('_id', -1)])
             
     
-            symbol_data = last_item[symbol]
-            timestamp = dt.timestamp()
-            open_value = symbol_data['open']
-            high_value = symbol_data['high'] if symbol_data.get('high') else 0
-            low_value = symbol_data['low'] if symbol_data.get('low') else 0
-            close_value = symbol_data['close']
-            volume_value = symbol_data['volume']
+        #     symbol_data = last_item[symbol]
+        #     timestamp = dt.timestamp()
+        #     open_value = symbol_data['open']
+        #     high_value = symbol_data['high'] if symbol_data.get('high') else 0
+        #     low_value = symbol_data['low'] if symbol_data.get('low') else 0
+        #     close_value = symbol_data['close']
+        #     volume_value = symbol_data['volume']
 
-            new_data = {
-                "timestamp": [timestamp], 
-                "open": [open_value],  
-                "high": [high_value],  
-                "low": [low_value],  
-                "close": [close_value],  
-                "volume": [volume_value], 
-            }
+        #     new_data = {
+        #         "timestamp": [timestamp], 
+        #         "open": [open_value],  
+        #         "high": [high_value],  
+        #         "low": [low_value],  
+        #         "close": [close_value],  
+        #         "volume": [volume_value], 
+        #     }
 
 
     
-            return pd.DataFrame(new_data)
+        #     return pd.DataFrame(new_data)
        
 @shared_task
 def update_live_1m():
@@ -1158,97 +1161,137 @@ def update_live_1m():
 
         update_document(symbol,'chartdata_5', new_data) 
         print('updated 1m', symbol)
+
+def last_data(last_item,symbol):
+    
+    
+    lagos_tz = pytz.timezone("Africa/Lagos")
+    today = datetime.now(lagos_tz).date()
+    date_string = f"{today} 14:30"
+    dt = datetime.strptime(date_string, "%Y-%m-%d %H:%M")
+
+    symbol_data = last_item[symbol]
+    timestamp = dt.timestamp()
+    open_value = symbol_data['open']
+    high_value = symbol_data['high'] if symbol_data.get('high') else 0
+    low_value = symbol_data['low'] if symbol_data.get('low') else 0
+    close_value = symbol_data['close']
+    volume_value = symbol_data['volume']
+
+    new_data = {
+        "timestamp": [timestamp], 
+        "open": [open_value],  
+        "high": [high_value],  
+        "low": [low_value],  
+        "close": [close_value],  
+        "volume": [volume_value], 
+    }
+
+    return pd.DataFrame(new_data)
+       
+# @shared_task
+# def update_live_1d():
+#     stocks = [stock.symbol for stock in Stock.objects.all()]
+    
+#     client = MongoClient(MONGO_URL, tls=True, tlsAllowInvalidCertificates=True)
+#     db = client["livelake3"]
+#     collection = db["merged_live_price"]
+#     last_item = collection.find_one(sort=[('_id', -1)])
+    
+#     for symbol in stocks:
+#         df = retrieve_today_live(symbol,"1")
+#         if df.empty:
+#             print(f"No data available for {symbol} today")
+#             continue
+#         t=df["timestamp"].tolist()[-1]
+#         o=df["open"].tolist()[-1]
+#         h=df["high"].tolist()[-1]
+#         l=df["low"].tolist()[-1] 
+#         c=df["close"].tolist()[-1]  
+#         v=df["volume"].tolist()[-1]
+
+#         new_data = {
+#             "t": [t], 
+#             "o": [o],  
+#             "h": [h],  
+#             "l": [l],  
+#             "c": [c],  
+#             "v": [v], 
+#         }
+
+
+#         update_document(symbol,'chartdata_1D', new_data) 
+#         print('updated 1D', symbol)
         
+# @shared_task
+# def update_live_1W():
+#     stocks = [stock.symbol for stock in Stock.objects.all()]
+#     for symbol in stocks:
+#         df = retrieve_today_live(symbol,"1")
+#         if df.empty:
+#             print(f"No data available for {symbol} today")
+#             continue
+#         t=df["timestamp"].tolist()[-1]
+#         o=df["open"].tolist()[-1]
+#         h=df["high"].tolist()[-1]
+#         l=df["low"].tolist()[-1] 
+#         c=df["close"].tolist()[-1]  
+#         v=df["volume"].tolist()[-1]
+
+#         new_data = {
+#             "t": [t], 
+#             "o": [o],  
+#             "h": [h],  
+#             "l": [l],  
+#             "c": [c],  
+#             "v": [v], 
+#         }
+
+
+#         update_document(symbol,'chartdata_1W', new_data) 
+#         print('updated 1W', symbol)
+        
+
 @shared_task
 def update_live_1d():
     stocks = [stock.symbol for stock in Stock.objects.all()]
-    for symbol in stocks:
-        df = retrieve_today_live(symbol,"1")
-        if df.empty:
-            print(f"No data available for {symbol} today")
-            continue
-        t=df["timestamp"].tolist()[-1]
-        o=df["open"].tolist()[-1]
-        h=df["high"].tolist()[-1]
-        l=df["low"].tolist()[-1] 
-        c=df["close"].tolist()[-1]  
-        v=df["volume"].tolist()[-1]
-
-        new_data = {
-            "t": [t], 
-            "o": [o],  
-            "h": [h],  
-            "l": [l],  
-            "c": [c],  
-            "v": [v], 
-        }
-
-
-        update_document(symbol,'chartdata_1D', new_data) 
-        print('updated 1D', symbol)
-        
-@shared_task
-def update_live_1W():
-    stocks = [stock.symbol for stock in Stock.objects.all()]
-    for symbol in stocks:
-        df = retrieve_today_live(symbol,"1")
-        if df.empty:
-            print(f"No data available for {symbol} today")
-            continue
-        t=df["timestamp"].tolist()[-1]
-        o=df["open"].tolist()[-1]
-        h=df["high"].tolist()[-1]
-        l=df["low"].tolist()[-1] 
-        c=df["close"].tolist()[-1]  
-        v=df["volume"].tolist()[-1]
-
-        new_data = {
-            "t": [t], 
-            "o": [o],  
-            "h": [h],  
-            "l": [l],  
-            "c": [c],  
-            "v": [v], 
-        }
-
-
-        update_document(symbol,'chartdata_1W', new_data) 
-        print('updated 1W', symbol)
-        
-@shared_task
-def last_today_live(symbols):
-  
+    today = timezone.now()
+    
     client = MongoClient(MONGO_URL, tls=True, tlsAllowInvalidCertificates=True)
     db = client["livelake3"]
-    collection = db["live_price_combined"]
-
-    lagos_tz = pytz.timezone("Africa/Lagos")
-    today = datetime.now(lagos_tz).date()
-    # date_string = f"{today} 14:30"
-    date_string = "2024-05-13 14:30"
-    dt = datetime.strptime(date_string, "%Y-%m-%d %H:%M")
-    
+    collection = db["merged_live_price"]
     last_item = collection.find_one(sort=[('_id', -1)])
     
-    for symbol in symbols:
-        symbol_data = last_item[symbol]
-        timestamp = dt.timestamp()
-        open_value = symbol_data['open']
-        high_value = symbol_data['high'] if symbol_data.get('high') else 0
-        low_value = symbol_data['low'] if symbol_data.get('low') else 0
-        close_value = symbol_data['close']
-        volume_value = symbol_data['volume']
+    for symbol in stocks:
+        df = last_data(last_item, symbol)
+        if df.empty:
+            print(f"No data available for {symbol} today")
+            continue
+
+        t = df["timestamp"].tolist()[-1]
+        o = df["open"].tolist()[-1]
+        h = df["high"].tolist()[-1]
+        l = df["low"].tolist()[-1] 
+        c = df["close"].tolist()[-1]  
+        v = df["volume"].tolist()[-1]
 
         new_data = {
-            "timestamp": [timestamp], 
-            "open": [open_value],  
-            "high": [high_value],  
-            "low": [low_value],  
-            "close": [close_value],  
-            "volume": [volume_value], 
+            "t": [t], 
+            "o": [o],  
+            "h": [h],  
+            "l": [l],  
+            "c": [c],  
+            "v": [v], 
         }
 
+        print(new_data)
 
-    
-        print(pd.DataFrame(new_data))
-        break
+        update_document(symbol, 'chartdata_5', new_data) 
+        print('updated 5m', symbol)
+        update_document(symbol, 'chartdata_1D', new_data) 
+        print('updated 1D', symbol)
+        if today.weekday() == 0:  # Monday
+            update_document(symbol, 'chartdata_1W', new_data)
+            print('updated 1W', symbol)
+        print('updated', symbol)
+        

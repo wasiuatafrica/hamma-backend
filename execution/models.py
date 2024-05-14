@@ -61,7 +61,7 @@ class DemoPortfolio(auto_prefetch.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='demoportfolio2')
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=1000000.0)
-    account_name= models.CharField(max_length=20, default="demo_account_1")
+    account_name= models.CharField(max_length=20, default="Demo Account 1")
 
     def __str__(self):
         return f"{self.user}"
