@@ -1731,7 +1731,7 @@ class CreatCompetitionAccount(APIView):
         portfolio = CompetitionPortfolio.objects.filter(competition=competition,user=request.user).first()
         if portfolio:
             if portfolio.active:
-                return Response({"detail": "You are already  in this competition"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": "You are already  have account in this competition."}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({"detail": "You have  already exited this competition"}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.serializer_class(data=request.data)

@@ -130,6 +130,7 @@ class Stock(auto_prefetch.Model):
     incorporation_date = models.DateField(_('Incorporation Date'), null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     active = models.BooleanField(default=True)
+    logo_url = models.CharField(max_length=200, default='')
     
     def __str__(self):
         return  self.symbol

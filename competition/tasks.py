@@ -1,5 +1,4 @@
-from shlex import join
-import time
+
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.contrib.auth import get_user_model
@@ -7,7 +6,6 @@ from numpy import half
 from notifications.utils import save_and_send_notification
 from decimal import Decimal
 
-import portfolio
 from .models import (Competition, CompetitionCumulativeReturns2, CompetitionDailyReturns2, CompetitionPortfolio, JoinClanRequest, get_price, CompetitionDailyReturns, ClanCompetitionSummary, CompetitionSummary, Clan, 
                      CompetitionPosition, CompetitionTransaction, CompetitionCumulativeReturns)
 

@@ -242,7 +242,7 @@ def daily_returns3():
     
     users = User.objects.all()
     for user in users:
-        print(user)
+        # print(user)
         positions_today = DemoPosition.objects.filter(portfolio__user=user, status='close', updated__date=today)
         if positions_today.exists():
             positions = DemoPosition.objects.filter(portfolio__user=user, status='close')
@@ -333,7 +333,110 @@ def daily_returns3():
     if np.isnan(cum_market_returns):
         cum_market_returns = 0
     CumulativeMarketReturns.objects.create(market_returns=round(cum_market_returns, 2), created=timezone.now())     
-        
+
+def daily_returns5():
+    from tvDatafeed import TvDatafeed, Interval
+    
+    today = timezone.now().date()
+    
+    users = User.objects.all()
+    for user in users:
+        # print(user)
+        portfolios = DemoPortfolio.objects.filter(user=user)
+        if portfolios.exists():
+            for portfolio in portfolios:
+                positions_today = DemoPosition.objects.filter(portfolio=portfolio, status='close', updated__date=today)
+                if positions_today.exists():
+                    positions = DemoPosition.objects.filter(portfolio=portfolio, status='close')
+                
+                    
+                    data = {
+                    'email': [position.portfolio.user.email for position in positions],
+                    'Stock': [position.stock.symbol for position in positions],
+                    'Quantity': [position.quantity for position in positions],
+                    'Open_Price': [position.open_price for position in positions],
+                    'Close_Price': [position.close_price for position in positions],
+                    'Status': [position.get_status_display() for position in positions],
+                    'closedatetime': [timezone.localtime(position.updated).replace(tzinfo=None) for position in positions],
+                    'Amount_Invested': [float(position.amount_invested) for position in positions],
+                    
+                    'Profit_Loss': [float(position.profit_loss) for position in positions],
+                }
+                    df = pd.DataFrame(data)
+                    
+                    df["Balance"]= df['Amount_Invested'] + df['Profit_Loss']
+                    df['Closedate'] = df['closedatetime'].dt.date
+                    
+                    df = df[["Stock", "Balance", "Amount_Invested", "Closedate", "closedatetime"]]
+                    df = df.reset_index(drop=True)
+                    df = df.sort_values(by='closedatetime')
+                    
+                    df['Sum_Balance'] = df.groupby('Closedate')['Balance'].cumsum()
+                    df['Sum_Invested'] = df.groupby('Closedate')['Amount_Invested'].cumsum()
+                    
+                    df['Daily_PortfolioReturns'] = ((df['Sum_Balance']/df['Sum_Invested'])-1)*100
+                    
+                    idx_max_time = df.groupby('Closedate')['closedatetime'].idxmax()
+
+                    max_time = df.loc[idx_max_time].reset_index(drop=True).sort_values(by='closedatetime')
+                    
+                    # Save the last row to the database
+                    last_row = max_time.iloc[-1]
+                    DemoDailyReturns2.objects.create(
+                        user=user,
+                        portfolio_returns=round(last_row['Daily_PortfolioReturns'],2),
+                        created=timezone.now()
+                    )
+                    
+                    # Save the last row of the cumulative table to the database
+                    cum_table = max_time[['closedatetime', 'Sum_Balance','Sum_Invested']]
+                    cum_table = cum_table.reset_index(drop=True)
+                    
+                    cum_table['running_Balance'] = cum_table['Sum_Balance'].cumsum()
+                    cum_table['running_Invested'] = cum_table['Sum_Invested'].cumsum()
+                    cum_table['cum_returns'] = ((cum_table.running_Balance/cum_table.running_Invested)-1)*100
+                    
+                    last_row_cum = cum_table.iloc[-1]
+                    DemoCumulativeReturns.objects.create(
+                        user=user,
+                        portfolio_returns=round(last_row_cum['cum_returns'],2),
+                        created=timezone.now()
+                    )
+                
+                    
+            tv = TvDatafeed()
+            
+            days_passed = days_since_date('2024-04-16')
+            # print('days',days_passed)
+            n_bars=65 + days_passed 
+            df2 = tv.get_hist(symbol="ASI", exchange='NSENG', interval=Interval.in_daily, n_bars=n_bars)
+            ASI_daily_selected = df2.reset_index()
+            ASI_daily_selected['ASI_daily_retuns'] = ASI_daily_selected['close'].pct_change() * 100
+            ASI_daily_selected['Date'] = ASI_daily_selected['datetime'].dt.strftime('%Y-%m-%d')
+
+            # Save the last row to the database
+            last_row_market = ASI_daily_selected.iloc[-1]
+            # print(last_row_market)
+            
+            market_returns = last_row_market['ASI_daily_retuns']
+            if np.isnan(market_returns):
+                market_returns = 0
+            MarketReturns.objects.create(market_returns=round(market_returns, 2), created=timezone.now())
+
+            cum_mark_table = ASI_daily_selected[['Date', 'ASI_daily_retuns']]
+            cum_mark_table['cum_ASI_daily_retuns'] = (1 + cum_mark_table.ASI_daily_retuns / 100).cumprod() - 1
+            cum_mark_table['cum_ASI_daily_retuns'] = cum_mark_table.cum_ASI_daily_retuns * 100
+
+            # print(cum_mark_table)
+            # Save the last row to the database
+            last_row_cum_market = cum_mark_table.iloc[-1]
+            # print(last_row_cum_market)
+            cum_market_returns = last_row_cum_market['cum_ASI_daily_retuns']
+            if np.isnan(cum_market_returns):
+                cum_market_returns = 0
+            CumulativeMarketReturns.objects.create(market_returns=round(cum_market_returns, 2), created=timezone.now())     
+ 
+     
 def competition_daily_returns3():
     from tvDatafeed import TvDatafeed, Interval
     
