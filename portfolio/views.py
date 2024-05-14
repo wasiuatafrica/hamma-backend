@@ -270,7 +270,7 @@ class ResendWithdrawalOtp(APIView):
 
             
 class StockList(generics.ListAPIView):
-    queryset = Stock.objects.filter(active=True)
+    queryset = Stock.objects.filter(active=True). order_by('symbol')
     permission_classes =[AllowAny,]
     
     def get(self, request, *args, **kwargs):
