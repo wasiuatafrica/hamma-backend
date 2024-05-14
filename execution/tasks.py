@@ -1141,7 +1141,7 @@ def retrieve_today_live(symbol, interval):
        
 @shared_task
 def update_live_1m():
-    stocks = [stock.symbol for stock in Stock.objects.all()]
+    stocks = [stock.symbol for stock in Stock.objects.filter(active=True)]
     for symbol in stocks:
         print(symbol)
         df = retrieve_today_live(symbol,"1")
@@ -1254,7 +1254,7 @@ def last_data(last_item,symbol):
 
 @shared_task
 def update_live_1d():
-    stocks = [stock.symbol for stock in Stock.objects.all()]
+    stocks = [stock.symbol for stock in Stock.objects.filter(active=True)]
     today = timezone.now()
     
     client = MongoClient(MONGO_URL, tls=True, tlsAllowInvalidCertificates=True)
