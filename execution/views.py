@@ -2605,6 +2605,7 @@ class NewDemoCloseTrade(APIView):
 
             # get the competion account
             id = kwargs.get("id")
+            position_id = kwargs.get("position_id")
 
             demo_account = self.get_competion_account(id, competition)
             if demo_account is None:
@@ -2616,7 +2617,7 @@ class NewDemoCloseTrade(APIView):
             
             # in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
             if in_competition and timezone.now() > competition.start_date:
-                position = CompetitionPosition.objects.filter(portfolio=in_competition).first()
+                position = CompetitionPosition.objects.filter(portfolio=in_competition, id=position_id).first()
 
                 if position.status == 'open':
                     pl, cur_val,price = position.calculate_profit_loss()
@@ -2653,6 +2654,7 @@ class NewDemoCloseTrade(APIView):
         else:
 
             id = kwargs.get("id")
+            position_id = kwargs.get("position_id")
 
             demo_account = self.get_account(id)
             if demo_account is None:
@@ -2661,7 +2663,7 @@ class NewDemoCloseTrade(APIView):
                 return Response("Permission denied",status.HTTP_403_FORBIDDEN)
 
             portfolio = demo_account
-            position = DemoPosition.objects.filter(portfolio=portfolio).first()
+            position = DemoPosition.objects.filter(portfolio=portfolio, id=position_id).first()
 
             if not position:
                 return Response("Position not found",status.HTTP_404_NOT_FOUND)
@@ -2725,6 +2727,7 @@ class NewDemoClosePendingTrade(APIView):
 
             # get the competion account
             id = kwargs.get("id")
+            position_id = kwargs.get("position_id")
 
             demo_account = self.get_competion_account(id, competition)
             if demo_account is None:
@@ -2736,7 +2739,7 @@ class NewDemoClosePendingTrade(APIView):
             
             # in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
             if in_competition and timezone.now() > competition.start_date:
-                position = CompetitionPosition.objects.filter(portfolio=in_competition).first()
+                position = CompetitionPosition.objects.filter(portfolio=in_competition, id=position_id).first()
                 if position.status == 'pending':
                     
                     
@@ -2766,6 +2769,7 @@ class NewDemoClosePendingTrade(APIView):
         else:
 
             id = kwargs.get("id")
+            position_id = kwargs.get("position_id")
 
             demo_account = self.get_account(id)
             if demo_account is None:
@@ -2774,7 +2778,7 @@ class NewDemoClosePendingTrade(APIView):
                 return Response("Permission denied",status.HTTP_403_FORBIDDEN)
 
             portfolio = demo_account
-            position = DemoPosition.objects.filter(portfolio=portfolio).first()
+            position = DemoPosition.objects.filter(portfolio=portfolio, id=position_id).first()
 
             if not position:
                 return Response("Position not found",status.HTTP_404_NOT_FOUND)

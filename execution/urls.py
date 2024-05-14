@@ -18,15 +18,15 @@ urlpatterns = [
     ################ NEW demo account urls ########################
     path("demo/accounts/", views.DemoPorfoliosAccounts.as_view()),
     path("demo/account/<str:id>/", views.RetrieveSingleDemoPorfoliosAccounts.as_view()),
-    path('demo/trade/<account_type>/<str:id>/', views.SingleDemoTradeAPIView.as_view()),
+    path('demo/trade/<str:account_type>/<str:id>/', views.SingleDemoTradeAPIView.as_view()), #DONE
     # new home view
-    path('demo/home/trade/<account_type>/<str:id>/', views.NewHome.as_view()),
+    path('demo/home/trade/<str:account_type>/<str:id>/', views.NewHome.as_view()), #done
     # new close trade view
-    path('demo/close/trade/<account_type>/<str:id>/', views.NewDemoCloseTrade.as_view()),
+    path('demo/close/trade/<str:account_type>/<str:id>/<str:position_id>/', views.NewDemoCloseTrade.as_view()), #DONE
     # new calcle demo pending trade
-    path('demo/cancel/trade/<account_type>/<str:id>/', views.NewDemoClosePendingTrade.as_view()),
+    path('demo/cancel/trade/<str:account_type>/<str:id>/<str:position_id>/', views.NewDemoClosePendingTrade.as_view()),
     # new demohoding view 
-    path('demo/holding/<account_type>/<str:id>/', views.NewDemoHolding.as_view()),
+    path('demo/holding/<str:account_type>/<str:id>/', views.NewDemoHolding.as_view()), #DONE
 
     # competition
     path("create-competition-account/", views.CreatCompetitionAccount.as_view()),

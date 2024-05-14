@@ -1631,6 +1631,372 @@
         </div> 
     </div>
 
+    <h2>This doc is for new changes to cover the multiple demo accounts</h2>
+    <p>Due to the new changes in account types, the account id is to be passed along.</p>
+
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#home_LATEST">18. HOME [LATEST] 13/05/2024</h3>
+        <div id="home_LATEST" class="collapse">
+    
+            <!-- Previous content -->
+    
+            
+            <p>Endpoint:GET /executiondemo/home/trade/<account_type>/:id/</p>
+            <p>Where:
+                <p>account_type = [competion_account, demo_portfoilo]</p>
+                <p>id = Id of the portfolio account</p>
+            </p>
+            <!-- <p>Endpoint:GET /execution/trade/live/</p> -->
+    
+            <ol>
+                <pre>
+                    RESPONSE:
+                    {
+                        "balance": 0.0,
+                        "equity": 13430.0,
+                        "floating_pl": 13430.0,
+                        "positions": [
+                            {
+                                "profit_loss": 2320,
+                                "date": "2024-01-18",
+                            },
+                            
+                        ],
+                        "current_value": [
+                            {
+                                "stock": "JAIZBANK",
+                                "current_value": 302670.0
+                            },
+                            {
+                                "stock": "JAIZBANK",
+                                "current_value": 304110.0
+                            },
+                            
+                        ],
+                        "overview": [
+                            {
+                                "date": "2024-01-12",
+                                "portfolio_returns": 2790390.99,
+                                "market_returns": 1395194.99
+                            },
+                            {
+                                "date": "2024-01-13",
+                                "portfolio_returns": 2790390.92,
+                                "market_returns": 1395194.92
+                            },
+                            {
+                                "date": "2024-01-14",
+                                "portfolio_returns": 2790391.09,
+                                "market_returns": 1395195.09
+                            },
+                            {
+                                "date": "2024-01-15",
+                                "portfolio_returns": 2790390.95,
+                                "market_returns": 1395194.95
+                            },
+                            {
+                                "date": "2024-01-16",
+                                "portfolio_returns": 2790391.07,
+                                "market_returns": 1395195.07
+                            },
+                            {
+                                "date": "2024-01-17",
+                                "portfolio_returns": 2790391.01,
+                                "market_returns": 1395195.01
+                            },
+                            {
+                                "date": "2024-01-18",
+                                "portfolio_returns": 2790391.03,
+                                "market_returns": 1395195.03
+                            }
+                        ]
+                    }
+                    
+                </pre>                    
+            </ol>
+    
+                </div>
+    </div>
+
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#trade-execution_LATEST">19. Demo and Live Trade Execution [LATEST] 13/05/2024</h3>
+        <div id="trade-execution_LATEST" class="collapse">
+    
+            <!-- Previous content -->
+    
+            <h4>15a. API Endpoint for Demo Trade Execution</h4>
+            <p>Trade execution endpoint for placing demo and live trades.</p>
+            
+            <p>Endpoint:POST /execution/demo/trade/<account_type>/<id></id>/</p>
+                <p>Where:
+                    <p>account_type = [competion_account, demo_portfoilo]</p>
+                    <p>id = Id of the portfolio account</p>
+                </p>
+            <!-- <p>Endpoint:POST /execution/trade/live/</p> -->
+    
+            <h5>Execution Steps:</h5>
+            <ol>
+                <li>Sends a POST request with trade details, including symbol, quantity, price, action, etc.</li>
+                <pre>
+                    for market type
+                    {
+                        "symbol": "AAPL",
+                        "quantity": 10,
+                        "action": "buy",
+                        "order_type": "market" 
+                    }
+
+                    for limit type:
+                    {
+                        "symbol": "AAPL",
+                        "quantity": 8,
+                        "price": 150.0,
+                        "action": "buy",
+                        "time_in_force": "GTC",
+                        "order_type": "limit"
+                    }
+                    
+                    Response:
+
+                    if success:
+                    <pre>
+                        {
+                            "message": "Buy order placed successfully.",
+                            "positions": [
+                                {
+                                    "id": 2,
+                                    "symbol": "JAIZBANK",
+                                    "open_pl": -32700.0,
+                                    "pl_percent": -10.71,
+                                    "created": "2024-01-18T09:10:51.450245Z"
+                                },
+                                {
+                                    "id": 4,
+                                    "symbol": "UBA",
+                                    "open_pl": -101010.0,
+                                    "pl_percent": -26.6,
+                                    "created": "2024-01-18T09:12:53.755619Z"
+                                },
+                                {
+                                    "id": 5,
+                                    "symbol": "ZENITHBANK",
+                                    "open_pl": -1160.0,
+                                    "pl_percent": -11.18,
+                                    "created": "2024-01-18T09:19:11.504120Z"
+                                }
+                            ]
+                        }
+                    </pre>
+                    else:
+                    {
+                        "error": "Invalid time in force."
+                    }
+                    
+                </pre>                    
+            </ol>
+    
+            <h4>19b. Close Trade</h4>
+            
+            <p>Endpoint:POST /execution/demo/close/trade/<account_type>/<id>/<position_id>/</p>
+
+
+            <pre>
+                <p>Where:
+                    <p>account_type = [competion_account, demo_portfoilo]</p>
+                    <p>id =  Id of the portfolio account</p>
+                    <p>position_id =  Id of the position</p>
+                </p>
+                <!-- where id =position_id -->
+
+                response:
+                {
+                    "id": 3,
+                    "stock": "UBA",
+                    "quantity": 3000,
+                    "open_price": null,
+                    "close_price": 127.87,
+                    "open_time": "2024-01-18T09:11:58.721089+00:00",
+                    "close_time": "2024-01-18T10:31:57.989116+00:00",
+                    "profit_loss": 3450.0
+                }
+            </p>
+            <h4>19c. Live Trade Execution (Under Construction)</h4>
+            <p>The live trade execution logic is currently under construction.</p>
+    
+        </div>
+    </div>
+    
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#holdings_LATEST">9. Holdings [LATEST] 13/05/2024</h3>
+        <div id="holdings_LATEST" class="collapse">
+    
+            <h4>20a. Get Portfolio Details with Holdings</h4>
+            <p>GET /execution/demo/holding/<account_type>/<id>/</p>
+            <!-- <p>GET /execution/holding/live/</p> -->
+            
+            <p>Where:
+                <p>account_type =  [competion_account, demo_portfoilo]</p>
+                <p>id = Id of the portfolio account</p>
+            </p>
+
+            <h5>Response:</h5>
+            <pre>
+               X
+
+                Retrieve the portfolio details along with a list of holdings for the authenticated user.
+                {
+                    "balance": 9600.0,
+                    "floating_pl": -393225.0,
+                    "closed_pl": -299940,
+                    "equity": -383625.0,
+                    "holdings": [
+                        
+                        {
+                            "id": 1,
+                            "stock": "JAIZBANK",
+                            "shares": 3000,
+                            "avg_cost": null,
+                            "close_price": 99.49,
+                            "ltp": 84.46,
+                            "open_time": "2024-01-18T09:07:17.379022+00:00",
+                            "close_time": "2024-01-18T10:31:19.520098+00:00",
+                            "change": -7680,
+                            "percent_change": -2.51,
+                            "cur_val": 298470.0,
+                            "avg_volume": "3300",
+                            "volume": "66000",
+                            "status": "close",
+                            "invested": 306150.0
+                        },
+                        {
+                            "id": 5,
+                            "stock": "ZENITHBANK",
+                            "shares": 500,
+                            "avg_cost": null,
+                            "close_price": 20.75,
+                            "ltp": 22.95,
+                            "open_time": "2024-01-18T09:19:11.504120+00:00",
+                            "close_time": "2024-01-18T09:19:11.504337+00:00",
+                            "change": 1100.0,
+                            "percent_change": 10.6,
+                            "cur_val": 11475.0,
+                            "avg_volume": "3300",
+                            "volume": "66000",
+                            "status": "open",
+                            "invested": 10375.0
+                        },
+                    ]
+                }
+            </pre>
+    
+            <h6>Notes:</h6>
+            <ul>
+                <li>1. "portfolio" contains overall portfolio details.</li>
+                <li>2. "holdings" is an array containing details of individual holdings.</li>
+            </ul>
+    
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#all_accounts">17. Get all trade accounts [LATEST] 13/5/2024</h3>
+        <div id="all_accounts" class="collapse">
+            <p> GET /execution/demo/accounts/</p>
+            <p>Response.</p>
+            <pre>
+                {
+                    "demo_accounts": [
+                      {
+                        "account_name": "",
+                        "user": 1,
+                        "account_type": "demo_portfolio",
+                        "balance": "1000000.00",
+                        "id": 1
+                      },
+
+                      {
+                        "account_name": "mee",
+                        "user": 1,
+                        "account_type": "demo_portfolio",
+                        "balance": "1000000.00",
+                        "id": 11
+                      }
+                    ],
+                    "competition_account": {
+                      "id": 4,
+                      "account_name": "my_competiti",
+                      "account_type": "competition_account",
+                      "balance": "1000000.00",
+                      "user": 1
+                    }
+                  }
+            </pre>
+
+            <p> POST /execution/demo/accounts/</p>
+            <p>REQUEST BODY.</p>
+            <pre>
+                {
+                    "account_name":"string"
+                  }
+            </pre>
+            <p>Response.</p>
+            <pre>
+                {
+                    "account_name": "",
+                    "user": 1,
+                    "account_type": "demo_portfolio",
+                    "balance": "1000000.00",
+                    "id": 1
+                  }
+
+            </pre>
+
+            <p> GET /execution/demo/account/{id}</p>
+
+            <p>Response.</p>
+            <pre>
+                {
+                    "account_name": "",
+                    "user": 1,
+                    "account_type": "demo_portfolio",
+                    "balance": "1000000.00",
+                    "id": 1
+                  }
+
+            </pre>
+
+            <p> PUT /execution/demo/account/{id}</p>
+            <p>REQUEST BODY.</p>
+            <pre>
+                {
+                    "account_name":"string"
+                  }
+            </pre>
+            <p>Response.</p>
+            <pre>
+                {
+                    "account_name": "",
+                    "user": 1,
+                    "account_type": "demo_portfolio",
+                    "balance": "1000000.00",
+                    "id": 1
+                  }
+
+            </pre>
+
+            <p> DELETE /execution/demo/account/{id}</p>
+
+            <p>Response.</p>
+            <P>204 NO CONTENT</P>
+
+
+            
+    
+    
+        </div>         
+    </div>
+
+
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
