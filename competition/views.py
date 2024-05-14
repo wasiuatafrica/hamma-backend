@@ -799,7 +799,7 @@ class LeaderBoardView(APIView):
                     profit,status = getProfit(account)
                     if status:
                         percent= round((profit/1000000)*100,2)
-                        if percent <= -5:
+                        if percent >= -5:
                             profile= Profile.objects.get(user=account.user)
                             data= {
                                 'name':account.user.firstname,
