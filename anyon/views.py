@@ -690,6 +690,121 @@ class UserAssetBreakDown(APIView):
 
     
 
+# class AnalyticsView(APIView):
+#     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+    
+#     def get(self, request):
+#         def calculate_percentage_change(old_value, new_value):
+#             return round(((new_value - old_value) / old_value) * 100,2) if old_value != 0 else 0
+        
+#         #users
+#         users = User.objects.all()
+        
+#         active_users= users.filter(is_active=True).count()
+        
+#         current_month = datetime.now().month
+#         current_year = datetime.now().year
+
+
+#         last_month = datetime(current_year, current_month, 1)
+#         users_last_month = User.objects.filter(is_active=True, date_joined__lt=last_month).count()
+
+#         user_percentage_change = calculate_percentage_change(users_last_month, active_users)
+#         print(active_users, user_percentage_change)
+        
+        
+#         #Assets        
+        
+#         positions =exec_models.DemoPosition.objects.all()
+        
+#         positions_open = positions.filter(status='open')
+#         positions_close = positions.filter(status='close')
+#         total_portfolio_value = round(sum([position.amount_invested for position in positions_close]),2)
+        
+#         portfolio_before = positions_close.filter(created__lt=datetime(current_year, current_month, 1))
+        
+#         portfolios_before_this_month = sum([position.amount_invested for position in portfolio_before]) if portfolio_before else 0
+#         percentage_of_total_assets = round(calculate_percentage_change(portfolios_before_this_month, total_portfolio_value),2)
+        
+        
+#         #Transactions
+#         transactions = models.DemoTransaction.objects.all()
+#         total_transactions = transactions.count()
+#         transactions_before = transactions.filter(date__lt=datetime(current_year, current_month, 1)).count()
+#         transaction_change = calculate_percentage_change(transactions_before,total_transactions )
+        
+#         print('transactions', total_transactions, transaction_change)
+        
+#         # Calculate average daily active users
+#         users_activity = UserActivityLog.objects.values('user', 'timestamp__date').annotate(daily_activity=Count('id'))
+#         total_daily_active_users = users_activity.values('timestamp__date').annotate(total_activity=Count('user')).aggregate(total_users=Sum('total_activity'))['total_users']
+#         average_daily_users = total_daily_active_users / users_activity.values('timestamp__date').count() if users_activity.values('timestamp__date').count() != 0 else 0
+        
+#         users_activity_before_this_month = UserActivityLog.objects.filter(timestamp__date__lt=datetime(current_year, current_month, 1)).values('user', 'timestamp__date').annotate(daily_activity=Count('id'))
+#         total_daily_active_users_before_this_month = users_activity_before_this_month.values('timestamp__date').annotate(total_activity=Count('user')).aggregate(total_users=Sum('total_activity'))['total_users']
+#         average_daily_users_before_this_month = total_daily_active_users_before_this_month / users_activity_before_this_month.values('timestamp__date').count() if users_activity_before_this_month.values('timestamp__date').count() != 0 else 0
+
+#         percentage_change_average_daily_users = calculate_percentage_change(average_daily_users_before_this_month,average_daily_users)
+
+#         print('activities',average_daily_users,percentage_change_average_daily_users)
+        
+       
+        
+#         positions_closed = positions.filter(status='close')
+#         top_10 = positions_closed.order_by("-profit_loss")[:10]
+#         top_performing = [
+#             {   'user':position.portfolio.user.fullname,
+#                 'profit':position.profit_loss,
+#                 'symbol':position.stock.symbol,
+#                 }
+#             for position in top_10
+#         ]
+        
+        
+#         # most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2')).filter(num_positions__gt=0).order_by('-num_positions')
+#         most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2', filter=Q(demopositions2__status='open'))).filter(num_positions__gt=0).order_by('-num_positions')
+
+#         # print(most_traded_stock)
+        
+#         def get_stock(stock):
+#             data=get_price(stock.symbol)
+#             if data:
+#                 price= data.get('current_price')
+#                 change = data.get('percentage_change',0)
+#                 unique_users_count = positions_open.filter(stock=stock).values('portfolio__user').distinct().count()
+                
+#                 data = {
+#                     'symbol':stock.symbol,
+#                     'current_price':price,
+#                     'percentage_change':change,
+#                     'num_positions': stock.num_positions,
+#                     'num_users': unique_users_count
+#                 }
+#                 return data
+        
+#         with ThreadPoolExecutor() as executor:
+#                 futures = executor.map(get_stock, most_traded_stock)
+#                 traded_stock = [result for result in futures if result]
+                
+#         traded_stock = sorted(traded_stock, key=lambda x: x['num_users'], reverse=True)
+            
+#         data = {
+#             'total_registered_users': active_users,
+#             'percentage_change_registered_users': user_percentage_change,  
+#             'total_assets_under_mgmt': total_portfolio_value,
+#             'percentage_change_assets_under_mgmt': percentage_of_total_assets,  
+#             'total_transactions': total_transactions,
+#             'percentage_change_total_transactions': transaction_change,  
+#             'average_daily_active_users': int(average_daily_users),
+#             'percentage_change_daily_active_users': percentage_change_average_daily_users, 
+#             "top_performing_stock":top_performing,
+#             "most_traded_stock":traded_stock
+             
+#             # Add other metrics as needed
+#         }
+
+#         return Response(data)
+
 class AnalyticsView(APIView):
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
     
@@ -715,23 +830,30 @@ class AnalyticsView(APIView):
         
         #Assets        
         
-        positions =exec_models.DemoPosition.objects.all()
+        positions = exec_models.DemoPosition.objects.all()
+        comp_positions = CompetitionPosition.objects.all()
         
         positions_open = positions.filter(status='open')
         positions_close = positions.filter(status='close')
-        total_portfolio_value = round(sum([position.amount_invested for position in positions_close]),2)
+        comp_positions_open = comp_positions.filter(status='open')
+        comp_positions_close = comp_positions.filter(status='close')
+        
+        total_portfolio_value = round(sum([position.amount_invested for position in positions_close]) + sum([position.amount_invested for position in comp_positions_close]), 2)
         
         portfolio_before = positions_close.filter(created__lt=datetime(current_year, current_month, 1))
+        comp_portfolio_before = comp_positions_close.filter(created__lt=datetime(current_year, current_month, 1))
         
-        portfolios_before_this_month = sum([position.amount_invested for position in portfolio_before]) if portfolio_before else 0
+        portfolios_before_this_month = sum([position.amount_invested for position in portfolio_before]) + sum([position.amount_invested for position in comp_portfolio_before]) if portfolio_before or comp_portfolio_before else 0
         percentage_of_total_assets = round(calculate_percentage_change(portfolios_before_this_month, total_portfolio_value),2)
         
         
         #Transactions
         transactions = models.DemoTransaction.objects.all()
-        total_transactions = transactions.count()
+        comp_transactions = CompetitionTransaction.objects.all()
+        total_transactions = transactions.count() + comp_transactions.count()
         transactions_before = transactions.filter(date__lt=datetime(current_year, current_month, 1)).count()
-        transaction_change = calculate_percentage_change(transactions_before,total_transactions )
+        comp_transactions_before = comp_transactions.filter(date__lt=datetime(current_year, current_month, 1)).count()
+        transaction_change = calculate_percentage_change(transactions_before + comp_transactions_before, total_transactions)
         
         print('transactions', total_transactions, transaction_change)
         
@@ -751,7 +873,12 @@ class AnalyticsView(APIView):
        
         
         positions_closed = positions.filter(status='close')
-        top_10 = positions_closed.order_by("-profit_loss")[:10]
+        comp_positions_closed = comp_positions.filter(status='close')
+        # top_10 = list(positions_closed.order_by("-profit_loss")[:10]) + list(comp_positions_closed.order_by("-profit_loss")[:10])
+        top_10 = list(positions_closed) + list(comp_positions_closed)
+        top_10.sort(key=lambda x: x.profit_loss, reverse=True)
+        top_10 = top_10[:10]
+        
         top_performing = [
             {   'user':position.portfolio.user.fullname,
                 'profit':position.profit_loss,
@@ -762,7 +889,7 @@ class AnalyticsView(APIView):
         
         
         # most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2')).filter(num_positions__gt=0).order_by('-num_positions')
-        most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2', filter=Q(demopositions2__status='open'))).filter(num_positions__gt=0).order_by('-num_positions')
+        most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2', filter=Q(demopositions2__status='open')) + Count('composition', filter=Q(composition__status ='open'))).filter(num_positions__gt=0).order_by('-num_positions')
 
         # print(most_traded_stock)
         
@@ -771,7 +898,7 @@ class AnalyticsView(APIView):
             if data:
                 price= data.get('current_price')
                 change = data.get('percentage_change',0)
-                unique_users_count = positions_open.filter(stock=stock).values('portfolio__user').distinct().count()
+                unique_users_count = positions_open.filter(stock=stock).values('portfolio__user').distinct().count() + comp_positions_open.filter(stock=stock).values('portfolio__user').distinct().count()
                 
                 data = {
                     'symbol':stock.symbol,
@@ -804,6 +931,7 @@ class AnalyticsView(APIView):
         }
 
         return Response(data)
+
 
 class DeactivateAccount(APIView):
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
