@@ -1825,6 +1825,13 @@ class DemoPorfoliosAccounts(APIView):
             return Response("Duplicate name not allowed.",status.HTTP_400_BAD_REQUEST)
         if serializer.is_valid():
             serializer.save(user=request.user)
+            
+            portfolio = serializer.instance
+            DemoDailyReturns2.objects.create(portfolio=portfolio, user=request.user,created=timezone.now() )
+            DemoCumulativeReturns.objects.create(portfolio=portfolio, user=request.user,created=timezone.now() )
+            MarketReturns.objects.create(portfolio=portfolio,created=timezone.now())
+            CumulativeMarketReturns.objects.create(portfolio=portfolio, created=timezone.now())
+            
             return Response(serializer.data)
         return Response(serializer.errors,status.HTTP_400_BAD_REQUEST)
 
@@ -2527,11 +2534,11 @@ class NewHome(APIView):
             
             
             # daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
-            daily_profitloss= DemoDailyReturns2.objects.filter(user=request.user).order_by('created')
-            cumulative_profitloss= DemoCumulativeReturns.objects.filter(user=request.user).order_by('created')
+            daily_profitloss= DemoDailyReturns2.objects.filter(portfolio=portfolio).order_by('created')
+            cumulative_profitloss= DemoCumulativeReturns.objects.filter(portfolio=portfolio).order_by('created')
             
-            market= MarketReturns.objects.all()
-            cumulative_market = CumulativeMarketReturns.objects.all()
+            market= MarketReturns.objects.filter(portfolio=portfolio)
+            cumulative_market = CumulativeMarketReturns.objects.filter(portfolio=portfolio)
             
             overview = []
             cumulative_overview = []

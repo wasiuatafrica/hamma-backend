@@ -16,6 +16,7 @@ import competition
 from portfolio.models import  Stock
 from portfolio.utils import connect_to_mongodb
 from accounts.models import Profile
+from competition.models import CompetitionPortfolio
 
 User=get_user_model()
 
@@ -176,6 +177,8 @@ class DemoDailyReturns(auto_prefetch.Model):
 
 class DemoDailyReturns2(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='demoreturns2')
+    portfolio = auto_prefetch.ForeignKey(DemoPortfolio, on_delete=models.CASCADE, blank=True,null=True )
+    first_entry=models.BooleanField(default=True)
     portfolio_returns = models.FloatField(default=0.0)
     created =models.DateTimeField(null=True, blank=True)
 
@@ -186,6 +189,7 @@ class MarketReturns(auto_prefetch.Model):
     market_returns = models.FloatField(default=0.0)
     ngx_price = models.FloatField(default=0.0)
     created =models.DateTimeField(null=True, blank=True)
+    portfolio = auto_prefetch.ForeignKey(DemoPortfolio, on_delete=models.CASCADE, blank=True,null=True )
     
 
     def __str__(self):
@@ -195,6 +199,7 @@ class CompetitionMarketReturns(auto_prefetch.Model):
     market_returns = models.FloatField(default=0.0)
     ngx_price = models.FloatField(default=0.0)
     created =models.DateTimeField(null=True, blank=True)
+    portfolio=auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE, blank=True, null=True)
     
 
     def __str__(self):
@@ -204,6 +209,7 @@ class CumulativeMarketReturns(auto_prefetch.Model):
     market_returns = models.FloatField(default=0.0)
     ngx_price = models.FloatField(default=0.0)
     created =models.DateTimeField(null=True, blank=True)
+    portfolio = auto_prefetch.ForeignKey(DemoPortfolio, on_delete=models.CASCADE, blank=True,null=True )
     
 
     def __str__(self):
@@ -213,6 +219,7 @@ class CompetitionCumulativeMarketReturns(auto_prefetch.Model):
     market_returns = models.FloatField(default=0.0)
     ngx_price = models.FloatField(default=0.0)
     created =models.DateTimeField(null=True, blank=True)
+    portfolio=auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE, blank=True, null=True)
     
 
     def __str__(self):
@@ -220,6 +227,8 @@ class CompetitionCumulativeMarketReturns(auto_prefetch.Model):
 
 class DemoCumulativeReturns(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='democumureturns')
+    portfolio = auto_prefetch.ForeignKey(DemoPortfolio, on_delete=models.CASCADE, blank=True,null=True )
+    first_entry=models.BooleanField(default=True)
     portfolio_returns = models.FloatField(default=0.0)
     created =models.DateTimeField(null=True, blank=True)
 

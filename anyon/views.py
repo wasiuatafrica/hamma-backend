@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from accounts.models import Referral as acc_Referral, UserActivityLog 
 # from accounts import models 
 from accounts import serializers as acc_serializers
-from competition.models import CompetitionPosition
+import competition
+from competition.models import CompetitionPosition, CompetitionTransaction
 from . import serializers
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
@@ -1038,39 +1039,66 @@ class AnalyticsGraphView(APIView):
 
         # For the last 1 week in daily points
         transactions = models.DemoTransaction.objects.all()
-        last_week_data2 = transactions.filter(date__gte=timezone.now() - timedelta(days=7)).annotate(
+        last_week_data21 = transactions.filter(date__gte=timezone.now() - timedelta(days=7)).annotate(
             transaction_date=Trunc('date', 'day', output_field=DateField())
         ).values('transaction_date').annotate(count=Count('id')).order_by('transaction_date')
 
         # For the last 1 month in daily points
-        last_month_data2 = transactions.filter(date__gte=timezone.now() - timedelta(days=30)).annotate(
+        last_month_data21 = transactions.filter(date__gte=timezone.now() - timedelta(days=30)).annotate(
             transaction_date=Trunc('date', 'day', output_field=DateField())
         ).values('transaction_date').annotate(count=Count('id')).order_by('transaction_date')
 
         # For the last 3 months in weekly points
-        last_3_months_data2 = transactions.filter(date__gte=timezone.now() - timedelta(days=90)).annotate(
+        last_3_months_data21 = transactions.filter(date__gte=timezone.now() - timedelta(days=90)).annotate(
             transaction_date=Trunc('date', 'week', output_field=DateField())
         ).values('transaction_date').annotate(count=Count('id')).order_by('transaction_date')
 
         # For the last 1 year in monthly points
-        last_year_data2 = transactions.filter(date__gte=timezone.now() - timedelta(days=365)).annotate(
+        last_year_data21 = transactions.filter(date__gte=timezone.now() - timedelta(days=365)).annotate(
             transaction_date=Trunc('date', 'month', output_field=DateField())
         ).values('transaction_date').annotate(count=Count('id')).order_by('transaction_date')
 
         # Total transactions in monthly points
-        total_transactions_data2 = transactions.annotate(
+        total_transactions_data21 = transactions.annotate(
             transaction_date=Trunc('date', 'month', output_field=DateField())
         ).values('transaction_date').annotate(count=Count('id')).order_by('transaction_date')
 
-        # Format the data as per your requirement
-        # transaction_data = {
-        #     'last_week_data': list(last_week_data2),
-        #     'last_month_data': list(last_month_data),
-        #     'last_3_months_data': list(last_3_months_data),
-        #     'last_year_data': list(last_year_data),
-        #     'total_transactions_data': list(total_transactions_data),
-        # }
 
+
+        #####Competition transactions
+        # For the last 1 week in daily points
+        last_week_data5 = CompetitionTransaction.objects.filter(date__gte=timezone.now() - timedelta(days=7)).annotate(
+            transaction_date=Trunc('date', 'day', output_field=DateField())
+        ).values('transaction_date').annotate(count=Count('id')).order_by('transaction_date')
+
+        # For the last 1 month in daily points
+        last_month_data5 = CompetitionTransaction.objects.filter(date__gte=timezone.now() - timedelta(days=30)).annotate(
+            transaction_date=Trunc('date', 'day', output_field=DateField())
+        ).values('transaction_date').annotate(count=Count('id')).order_by('transaction_date')
+
+        # For the last 3 months in weekly points
+        last_3_months_data5 = CompetitionTransaction.objects.filter(date__gte=timezone.now() - timedelta(days=90)).annotate(
+            transaction_date=Trunc('date', 'week', output_field=DateField())
+        ).values('transaction_date').annotate(count=Count('id')).order_by('transaction_date')
+
+        # For the last 1 year in monthly points
+        last_year_data5 = CompetitionTransaction.objects.filter(date__gte=timezone.now() - timedelta(days=365)).annotate(
+            transaction_date=Trunc('date', 'month', output_field=DateField())
+        ).values('transaction_date').annotate(count=Count('id')).order_by('transaction_date')
+
+        # Total competition transactions in monthly points
+        total_competition_transactions_data5 = CompetitionTransaction .objects.annotate(
+            transaction_date=Trunc('date', 'month', output_field=DateField())
+        ).values('transaction_date').annotate(count=Count('id')).order_by('transaction_date')
+        
+        # print('demo',last_week_data21)
+        # print('comp',last_week_data5)
+        last_week_data2 = self.merge_transaction_data(last_week_data21,last_week_data5)
+        last_month_data2 = self.merge_transaction_data(last_month_data21,last_month_data5)
+        last_3_months_data2 = self.merge_transaction_data(last_3_months_data21,last_3_months_data5)
+        last_year_data2 = self.merge_transaction_data(last_year_data21,last_year_data5)
+        total_transactions_data2 = self.merge_transaction_data(total_transactions_data21,total_competition_transactions_data5)
+                
         # For the last 1 week in daily points
         useractivity = UserActivityLog.objects.all()
         last_week_data3 = useractivity.filter(timestamp__gte=timezone.now() - timedelta(days=7)).annotate(
@@ -1097,52 +1125,87 @@ class AnalyticsGraphView(APIView):
             date=Trunc('timestamp', 'month', output_field=DateField())
         ).values('date').annotate(count=Count('user', distinct=True)).order_by('date')
 
-        # Format the data as per your requirement
-        # user_activity_data = {
-        #     'last_week_data': list(last_week_data),
-        #     'last_month_data': list(last_month_data),
-        #     'last_3_months_data': list(last_3_months_data),
-        #     'last_year_data': list(last_year_data),
-        #     'total_active_users_data': list(total_active_users_data),
-        # }
-
+        
         positions =exec_models.DemoPosition.objects.filter(status='close')
         
         # For the last 1 week in daily points
-        last_week_data4 = positions.filter(created__gte=timezone.now() - timedelta(days=7)).annotate(
+        last_week_data41 = positions.filter(created__gte=timezone.now() - timedelta(days=7)).annotate(
             date=Trunc('created', 'day', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # For the last 1 month in daily points
-        last_month_data4 = positions.filter(created__gte=timezone.now() - timedelta(days=30)).annotate(
+        last_month_data41 = positions.filter(created__gte=timezone.now() - timedelta(days=30)).annotate(
             date=Trunc('created', 'day', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # For the last 3 months in weekly points
-        last_3_months_data4 = positions.filter(created__gte=timezone.now() - timedelta(days=90)).annotate(
+        last_3_months_data41 = positions.filter(created__gte=timezone.now() - timedelta(days=90)).annotate(
             date=Trunc('created', 'week', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # For the last 1 year in monthly points
-        last_year_data4 = positions.filter(created__gte=timezone.now() - timedelta(days=365)).annotate(
+        last_year_data41 = positions.filter(created__gte=timezone.now() - timedelta(days=365)).annotate(
             date=Trunc('created', 'month', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # Total positions created in monthly points
-        total_positions_data4 = positions.annotate(
+        total_positions_data41 = positions.annotate(
             date=Trunc('created', 'month', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
+        ####Competitionpositions
+        competitionpositions = CompetitionPosition.objects.filter(status='close')
+        # For the last 1 week in daily points
+        last_week_data61 = competitionpositions.filter(created__gte=timezone.now() - timedelta(days=7)).annotate(
+            date=Trunc('created', 'day', output_field=DateField())
+        ).values('date').annotate(count=Count('id')).order_by('date')
+
+        # For the last 1 month in daily points
+        last_month_data61 = competitionpositions.filter(created__gte=timezone.now() - timedelta(days=30)).annotate(
+            date=Trunc('created', 'day', output_field=DateField())
+        ).values('date').annotate(count=Count('id')).order_by('date')
+
+        # For the last 3 months in weekly points
+        last_3_months_data61 = competitionpositions.filter(created__gte=timezone.now() - timedelta(days=90)).annotate(
+            date=Trunc('created', 'week', output_field=DateField())
+        ).values('date').annotate(count=Count('id')).order_by('date')
+
+        # For the last 1 year in monthly points
+        last_year_data61 = competitionpositions.filter(created__gte=timezone.now() - timedelta(days=365)).annotate(
+            date=Trunc('created', 'month', output_field=DateField())
+        ).values('date').annotate(count=Count('id')).order_by('date')
+
+        # Total competition positions created in monthly points
+        total_competition_positions_data61 = competitionpositions.annotate(
+            date=Trunc('created', 'month', output_field=DateField())
+        ).values('date').annotate(count=Count('id')).order_by('date')
+        
+        last_week_data4 = self.merge_position_data(last_week_data41,last_week_data61)
+        last_month_data4 = self.merge_position_data(last_month_data41,last_month_data61)
+        last_3_months_data4 = self.merge_position_data(last_3_months_data41,last_3_months_data61)
+        last_year_data4 = self.merge_position_data(last_year_data41,last_year_data61)
+        total_positions_data4 = self.merge_position_data(total_positions_data41,total_competition_positions_data61)
+        
         result = (
             positions.annotate(
                 truncated_created=TruncDate('created'),
-                stock_symbol=F('stock__symbol')  # Replace 'symbol' with the actual field name in Stock model
+                stock_symbol=F('stock__symbol')  
             )
             .values('truncated_created', 'stock_symbol')
             .annotate(total_quantity=Sum('quantity'))
             .order_by('truncated_created', 'stock_symbol')
         )
 
+        competition_positions_result = (
+            competitionpositions.annotate(
+                truncated_created=TruncDate('created'),
+                stock_symbol=F('stock__symbol')  
+            )
+            .values('truncated_created', 'stock_symbol')
+            .annotate(total_quantity=Sum('quantity'))
+            .order_by('truncated_created', 'stock_symbol')
+        )
+                
         weekday_mapping = {
             0: 'Monday',
             1: 'Tuesday',
@@ -1154,6 +1217,7 @@ class AnalyticsGraphView(APIView):
         }
 
         volume_data = {}
+        volume_data_competition = {}
 
         # Extract weekday for each date
         for entry in result:
@@ -1169,19 +1233,40 @@ class AnalyticsGraphView(APIView):
             data = {
                 'date': truncated_created,
                 'weekday': weekday,
-                'volume': volume
+                'volume': volume,
+                'type': 'demo'
             }
 
             volume_data[stock_symbol].append(data)
 
         
+        for entry in competition_positions_result:
+            truncated_created = entry['truncated_created']
+            weekday_digit = truncated_created.weekday()
+            weekday = weekday_mapping.get(weekday_digit, 'Unknown')
+            stock_symbol = entry['stock_symbol']
+            volume = entry['total_quantity']
+
+            if stock_symbol not in volume_data_competition:
+                volume_data_competition[stock_symbol] = []
+            
+            data = {
+                'date': truncated_created,
+                'weekday': weekday,
+                'volume': volume,
+                'type': 'competition'
+            }
+
+            volume_data_competition[stock_symbol].append(data)
+        # print(last_week_data2)
         grouped_data = {
             'last_week_data': self.organize_data(list(last_week_data1),list(last_week_data2),list(last_week_data3),list(last_week_data4)),
             'last_month_data': self.organize_data(list(last_month_data1),list(last_month_data2),list(last_month_data3),list(last_month_data4)),
             'last_3_months_data': self.organize_data(list(last_3_months_data1),list(last_3_months_data2),list(last_3_months_data3),list(last_3_months_data4)),
             'last_year_data': self.organize_data(list(last_year_data1),list(last_year_data2),list(last_year_data3),list(last_year_data4)),
             'total_users_data': self.organize_data(list(total_users_data1),list(total_transactions_data2), list(total_active_users_data3), list(total_positions_data4)),
-            "volume_data":volume_data
+            "volume_data":volume_data,
+            "volume_data_competition":volume_data_competition
         }
 
         return Response(grouped_data)
@@ -1208,6 +1293,7 @@ class AnalyticsGraphView(APIView):
             organized_data[date]['registered_users'] = data_point.get('count', 0)
             # Update other data types similarly
         for data_point2 in data_list2:
+            # print(data_point2)
             date = data_point2['transaction_date']
             
             # If the date is not present in the organized_data, add it with default values
@@ -1259,6 +1345,58 @@ class AnalyticsGraphView(APIView):
         result = sorted(result, key=lambda x: x['date'])
 
         return result
+    
+    
+
+    def merge_position_data(self,data_list1, data_list2):
+        from collections import defaultdict
+        # Convert query results to dictionaries for easier manipulation
+        positions_data1 = {entry['date']: entry['count'] for entry in data_list1}
+        positions_data2 = {entry['date']: entry['count'] for entry in data_list2}
+
+        # Merge the data using a defaultdict to aggregate counts for each date
+        merged_data = defaultdict(int)
+
+        # Add counts from the first list
+        for date, count in positions_data1.items():
+            merged_data[date] += count
+
+        # Add counts from the second list
+        for date, count in positions_data2.items():
+            merged_data[date] += count
+
+        # Convert defaultdict back to a list of dictionaries
+        merged_data_list = [{'date': date, 'count': count} for date, count in merged_data.items()]
+
+        # Sort the merged data by date
+        merged_data_list.sort(key=lambda x: x['date'])
+
+        return merged_data_list
+
+    def merge_transaction_data(self,data_list1, data_list2):
+        from collections import defaultdict
+        # Convert query results to dictionaries for easier manipulation
+        positions_data1 = {entry['transaction_date']: entry['count'] for entry in data_list1}
+        positions_data2 = {entry['transaction_date']: entry['count'] for entry in data_list2}
+
+        # Merge the data using a defaultdict to aggregate counts for each date
+        merged_data = defaultdict(int)
+
+        # Add counts from the first list
+        for date, count in positions_data1.items():
+            merged_data[date] += count
+
+        # Add counts from the second list
+        for date, count in positions_data2.items():
+            merged_data[date] += count
+
+        # Convert defaultdict back to a list of dictionaries
+        merged_data_list = [{'transaction_date': date, 'count': count} for date, count in merged_data.items()]
+
+        # Sort the merged data by date
+        merged_data_list.sort(key=lambda x: x['transaction_date'])
+
+        return merged_data_list
 
 
 class AllAdminUsersActivityLogView(APIView):

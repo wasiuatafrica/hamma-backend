@@ -70,6 +70,6 @@ def notify_all_users(instance, created, **kwargs):
         setup_competition_emails.delay(instance.id)
         
 @receiver(post_save, sender=JoinClanRequest)
-def notify_all_users(instance, created, **kwargs):
+def auto_accept(instance, created, **kwargs):
     if created:
         auto_approve_join_clan_requests.delay(instance.id)

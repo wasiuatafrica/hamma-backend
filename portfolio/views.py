@@ -288,35 +288,6 @@ class StockList(generics.ListAPIView):
             # 'historical_data':historical_data,
         }
         return Response(response_data)
-# class StockList(generics.ListAPIView):
-#     queryset = Stock.objects.all()
-#     permission_classes = [AllowAny]
-
-#     async def async_get_queryset(self):
-#         return await sync_to_async(lambda: list(self.queryset.all()))()
-
-#     async def get(self, request, *args, **kwargs):
-#         from .utils import get_details3, get_symbol_data, get_historical_data
-
-#         queryset = await self.async_get_queryset()
-#         details = await sync_to_async(get_details3)(queryset)
-
-#         # Assume that get_symbol_data and get_historical_data are already async or being converted
-#         first_symbol = queryset[0].symbol if queryset else None
-
-#         if first_symbol:
-#             symbol_data = await get_symbol_data(first_symbol)
-#             historical_data = await get_historical_data(first_symbol)
-#         else:
-#             symbol_data = historical_data = None  # Handle case with no data
-
-#         response_data = {
-#             'stock_list': details,
-#             'first_symbol_order_book': symbol_data,
-#             'historical_data': historical_data,
-#         }
-
-#         return Response(response_data)
 
 class MiniData(APIView):
     def get(self, request):
@@ -332,9 +303,7 @@ class GetSingleStock(APIView):
         # queryset = Stock.objects.get(symbol=symbol)
         queryset = get_object_or_404(Stock, symbol=symbol)
         symbol_data = get_symbol_data(symbol)
-        # historical_data=get_historical_data(symbol)
         
-        # serializer = self.serializer_class(queryset)
         details = get_details3([queryset])
         
         response_data = {
