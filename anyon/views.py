@@ -889,7 +889,7 @@ class AnalyticsView(APIView):
         
         
         # most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2')).filter(num_positions__gt=0).order_by('-num_positions')
-        most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2', filter=Q(demopositions2__status='open')) + Count('composition', filter=Q(composition__status ='open'))).filter(num_positions__gt=0).order_by('-num_positions')
+        most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2', filter=Q(demopositions2__status='open')) + Count('composition', filter=Q(composition__status ='open'))).filter(num_positions__gt=1).order_by('-num_positions')
 
         # print(most_traded_stock)
         
