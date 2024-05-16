@@ -848,7 +848,7 @@ def get_user_activity_stats(query):
     else:
         percentage_change = 0
 
-    return daily_average_users, percentage_change
+    return daily_average_users, int(percentage_change)
 
 class AnalyticsView(APIView):
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
