@@ -1321,54 +1321,55 @@ class AnalyticsGraphView(APIView):
         
         # For the last 1 week in daily points
         last_week_data41 = positions.filter(created__gte=timezone.now() - timedelta(days=7)).annotate(
-            date=Trunc('created', 'day', output_field=DateField())
+            date=Trunc('updated', 'day', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # For the last 1 month in daily points
         last_month_data41 = positions.filter(created__gte=timezone.now() - timedelta(days=30)).annotate(
-            date=Trunc('created', 'day', output_field=DateField())
+            date=Trunc('updated', 'day', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # For the last 3 months in weekly points
         last_3_months_data41 = positions.filter(created__gte=timezone.now() - timedelta(days=90)).annotate(
-            date=Trunc('created', 'week', output_field=DateField())
+            date=Trunc('updated', 'week', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # For the last 1 year in monthly points
         last_year_data41 = positions.filter(created__gte=timezone.now() - timedelta(days=365)).annotate(
-            date=Trunc('created', 'month', output_field=DateField())
+            date=Trunc('updated', 'month', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # Total positions created in monthly points
         total_positions_data41 = positions.annotate(
-            date=Trunc('created', 'month', output_field=DateField())
+            date=Trunc('updated', 'month', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         ####Competitionpositions
         competitionpositions = CompetitionPosition.objects.filter(status='close')
+        
         # For the last 1 week in daily points
         last_week_data61 = competitionpositions.filter(created__gte=timezone.now() - timedelta(days=7)).annotate(
-            date=Trunc('created', 'day', output_field=DateField())
+            date=Trunc('updated', 'day', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # For the last 1 month in daily points
         last_month_data61 = competitionpositions.filter(created__gte=timezone.now() - timedelta(days=30)).annotate(
-            date=Trunc('created', 'day', output_field=DateField())
+            date=Trunc('updated', 'day', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # For the last 3 months in weekly points
         last_3_months_data61 = competitionpositions.filter(created__gte=timezone.now() - timedelta(days=90)).annotate(
-            date=Trunc('created', 'week', output_field=DateField())
+            date=Trunc('updated', 'week', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # For the last 1 year in monthly points
         last_year_data61 = competitionpositions.filter(created__gte=timezone.now() - timedelta(days=365)).annotate(
-            date=Trunc('created', 'month', output_field=DateField())
+            date=Trunc('updated', 'month', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
 
         # Total competition positions created in monthly points
         total_competition_positions_data61 = competitionpositions.annotate(
-            date=Trunc('created', 'month', output_field=DateField())
+            date=Trunc('updated', 'month', output_field=DateField())
         ).values('date').annotate(count=Count('id')).order_by('date')
         
         last_week_data4 = self.merge_position_data(last_week_data41,last_week_data61)
