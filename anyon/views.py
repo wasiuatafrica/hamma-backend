@@ -1202,7 +1202,7 @@ from django.db.models.functions import Trunc,ExtractWeekDay,ExtractWeek, TruncDa
 
 class AnalyticsGraphView(APIView):
     def get(self, request):
-        users = User.objects.all()
+        users = User.objects.filter(is_active=True)
         # For the last 1 week in daily points
         last_week_data1 = users.filter(date_joined__gte=timezone.now() - timedelta(days=7)).annotate(
             date=Trunc('date_joined', 'day', output_field=DateField())
