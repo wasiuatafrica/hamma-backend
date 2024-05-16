@@ -326,7 +326,7 @@ class DemoTradeAPIView(APIView):
                 return Response({'message': f'{action.title()} order scheduled successfully.'}, status=status.HTTP_201_CREATED)
 
         else:
-            portfolio = DemoPortfolio.objects.get_or_create(user=request.user)[0]
+            portfolio = DemoPortfolio.objects.filter(user=request.user).first()
          
             if order_type == 'market':
                 market_price = round(Decimal(get_price(symbol)['current_price']), 2)
@@ -652,7 +652,7 @@ class Home(APIView):
                 
                 return Response(data)
             else:
-                portfolio= DemoPortfolio.objects.get_or_create(user=request.user)[0]
+                portfolio= DemoPortfolio.objects.filter(user=request.user).first()
                 positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
                 positions2 = DemoPosition.objects.filter(portfolio=portfolio,status='close')
                 
@@ -927,7 +927,7 @@ class SupportHome(APIView):
                 
                 
             else:
-                portfolio= DemoPortfolio.objects.get_or_create(user=user)[0]
+                portfolio= DemoPortfolio.objects.filter(user=user).first()
                 positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
                 positions2 = DemoPosition.objects.filter(portfolio=portfolio,status='close')
                 
@@ -1286,7 +1286,7 @@ class DemoHolding(APIView):
                 
                 return Response(hold_data)
         else:
-            portfolio= DemoPortfolio.objects.get_or_create(user=request.user)[0]
+            portfolio= DemoPortfolio.objects.filter(user=request.user).first()
             positions =  DemoPosition.objects.filter(portfolio=portfolio).order_by("-updated")
             balance =  portfolio.balance
             
@@ -1454,7 +1454,7 @@ class SupportDemoHolding(APIView):
                 
                 return Response(hold_data)
         else:
-            portfolio= DemoPortfolio.objects.get_or_create(user=user)[0]
+            portfolio= DemoPortfolio.objects.filter(user=user).first()
             positions =  DemoPosition.objects.filter(portfolio=portfolio).order_by("-updated")
             balance =  portfolio.balance
             
@@ -2393,6 +2393,7 @@ class NewHome(APIView):
                 daily_profitloss= CompetitionDailyReturns2 .objects.filter(portfolio=in_competition).order_by('created')
                 cumulative_profitloss= CompetitionCumulativeReturns2.objects.filter(portfolio=in_competition).order_by('created')
                 
+                
                 market= CompetitionMarketReturns.objects.all()
                 cumulative_market = CompetitionCumulativeMarketReturns.objects.all()
                 
@@ -2536,6 +2537,8 @@ class NewHome(APIView):
             # daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
             daily_profitloss= DemoDailyReturns2.objects.filter(portfolio=portfolio).order_by('created')
             cumulative_profitloss= DemoCumulativeReturns.objects.filter(portfolio=portfolio).order_by('created')
+            # print(daily_profitloss)
+            # print(cumulative_profitloss)
             
             market= MarketReturns.objects.filter(portfolio=portfolio)
             cumulative_market = CumulativeMarketReturns.objects.filter(portfolio=portfolio)
@@ -2556,10 +2559,10 @@ class NewHome(APIView):
                     }
                                 
                             )
-                if overview: 
-                    first = overview[0]
-                    if first['portfolio_returns'] == 0:
-                        first['market_returns'] = 0
+                # if overview: 
+                #     first = overview[0]
+                #     if first['portfolio_returns'] == 0:
+                #         first['market_returns'] = 0
                 
             if cumulative_profitloss and cumulative_profitloss.count() > 1:
                 # print('cpl', cumulative_profitloss)
@@ -2577,10 +2580,10 @@ class NewHome(APIView):
                                 
                             )
                 # print('cumu',cumulative_overview)
-                if cumulative_overview:
-                    first_ = cumulative_overview[0]
-                    if first_['portfolio_returns'] == 0:
-                        first_['market_returns'] = 0
+                # if cumulative_overview:
+                #     first_ = cumulative_overview[0]
+                #     if first_['portfolio_returns'] == 0:
+                #         first_['market_returns'] = 0
             
             equity1 = round(balance + profit_loss,2)
             equity = equity1 if equity1 >= 0 else 0

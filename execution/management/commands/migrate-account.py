@@ -16,12 +16,20 @@ class Command(BaseCommand):
         users = User.objects.all()
         for user in users:
             portfolio = DemoPortfolio.objects.filter(user=user)
-            competitions = CompetitionPortfolio.objects.filter(user=user)
-            daily_returns = DemoDailyReturns2.objects.filter(user=user)
-            print (user.email)
-            print (portfolio )
-            print(competitions)
-            print (daily_returns)
-       
+            if portfolio.exists():
+                print (portfolio )
+                portfolio = portfolio.first()
+                daily_returns = DemoDailyReturns2.objects.filter(user=user)
+                for returns in daily_returns:
+                    returns.portfolio = portfolio
+                    returns.save()
+                    
+                cum_returns = DemoCumulativeReturns.objects.filter(user=user)
+                for returns in cum_returns:
+                    returns.portfolio = portfolio
+                    returns.save()
+                
+               
+                
             
             

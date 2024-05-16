@@ -805,6 +805,51 @@ class UserAssetBreakDown(APIView):
 
 #         return Response(data)
 
+from django.db.models import Count, Avg
+from django.db.models.functions import TruncDay
+
+def get_user_activity_stats(query):
+    import datetime
+    # Get the start date (April 15, 2024)
+    start_date = datetime.date(2024, 4, 15)
+
+    # Get the current date
+    current_date = timezone.now().date()
+
+    # Get the last month's start and end dates
+    last_month_start = (current_date.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
+    last_month_end = current_date.replace(day=1) - datetime.timedelta(days=1)
+
+    # Get the daily average user count since April 15, 2024
+    daily_average_users = query.filter(
+        timestamp__date__gte=start_date
+    ).annotate(
+        day=TruncDay('timestamp')
+    ).values('day').annotate(
+        count=Count('user', distinct=True)
+    ).aggregate(
+        avg=Avg('count')
+    )['avg']
+
+    # Get the average user count for the last month
+    last_month_average_users = query.filter(
+        timestamp__date__range=(last_month_start, last_month_end)
+    ).annotate(
+        day=TruncDay('timestamp')
+    ).values('day').annotate(
+        count=Count('user', distinct=True)
+    ).aggregate(
+        avg=Avg('count')
+    )['avg']
+
+    # Calculate the percentage change
+    if last_month_average_users:
+        percentage_change = (daily_average_users - last_month_average_users) / last_month_average_users * 100
+    else:
+        percentage_change = 0
+
+    return daily_average_users, percentage_change
+
 class AnalyticsView(APIView):
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
     
@@ -857,18 +902,36 @@ class AnalyticsView(APIView):
         
         print('transactions', total_transactions, transaction_change)
         
-        # Calculate average daily active users
-        users_activity = UserActivityLog.objects.values('user', 'timestamp__date').annotate(daily_activity=Count('id'))
-        total_daily_active_users = users_activity.values('timestamp__date').annotate(total_activity=Count('user')).aggregate(total_users=Sum('total_activity'))['total_users']
-        average_daily_users = total_daily_active_users / users_activity.values('timestamp__date').count() if users_activity.values('timestamp__date').count() != 0 else 0
+        # # Calculate average daily active users
+        # users_activity = UserActivityLog.objects.values('user', 'timestamp__date').annotate(daily_activity=Count('id'))
+        # total_daily_active_users = users_activity.values('timestamp__date').annotate(total_activity=Count('user')).aggregate(total_users=Sum('total_activity'))['total_users']
+        # # average_daily_users = total_daily_active_users / users_activity.values('timestamp__date').count() if users_activity.values('timestamp__date').count() != 0 else 0
         
-        users_activity_before_this_month = UserActivityLog.objects.filter(timestamp__date__lt=datetime(current_year, current_month, 1)).values('user', 'timestamp__date').annotate(daily_activity=Count('id'))
-        total_daily_active_users_before_this_month = users_activity_before_this_month.values('timestamp__date').annotate(total_activity=Count('user')).aggregate(total_users=Sum('total_activity'))['total_users']
-        average_daily_users_before_this_month = total_daily_active_users_before_this_month / users_activity_before_this_month.values('timestamp__date').count() if users_activity_before_this_month.values('timestamp__date').count() != 0 else 0
+        # current_date = datetime.now()
+        # april_15_2024 = datetime(2024, 4, 15)
 
-        percentage_change_average_daily_users = calculate_percentage_change(average_daily_users_before_this_month,average_daily_users)
+        # # Calculate the number of days since April 15, 2024
+        # days_since_start = (current_date - april_15_2024).days
 
-        print('activities',average_daily_users,percentage_change_average_daily_users)
+        # # Query UserActivityLog since April 15, 2024
+        # # users_activity = UserActivityLog.objects.filter(timestamp__date__gte=april_15_2024).values('timestamp__date').annotate(total_activity=Count('user', distinct=True))
+
+        # # Calculate total active users since April 15, 2024
+        # # total_daily_active_users = sum(item['total_activity'] for item in users_activity)
+
+        # # Calculate average daily active users since April 15, 2024
+        # average_daily_users = total_daily_active_users / days_since_start if days_since_start != 0 else 0
+
+        # users_activity_before_this_month = UserActivityLog.objects.filter(timestamp__date__lt=datetime(current_year, current_month, 1)).values('user', 'timestamp__date').annotate(daily_activity=Count('id'))
+        # total_daily_active_users_before_this_month = users_activity_before_this_month.values('timestamp__date').annotate(total_activity=Count('user')).aggregate(total_users=Sum('total_activity'))['total_users']
+        # average_daily_users_before_this_month = total_daily_active_users_before_this_month / users_activity_before_this_month.values('timestamp__date').count() if users_activity_before_this_month.values('timestamp__date').count() != 0 else 0
+
+        # percentage_change_average_daily_users = calculate_percentage_change(average_daily_users_before_this_month,average_daily_users)
+
+        # print('activities',average_daily_users,percentage_change_average_daily_users)
+        
+        user_activity_queryset = UserActivityLog.objects.all()
+        daily_average_users, percentage_change_average_daily_users = get_user_activity_stats(user_activity_queryset)
         
        
         
@@ -922,7 +985,7 @@ class AnalyticsView(APIView):
             'percentage_change_assets_under_mgmt': percentage_of_total_assets,  
             'total_transactions': total_transactions,
             'percentage_change_total_transactions': transaction_change,  
-            'average_daily_active_users': int(average_daily_users),
+            'average_daily_active_users': int(daily_average_users),
             'percentage_change_daily_active_users': percentage_change_average_daily_users, 
             "top_performing_stock":top_performing,
             "most_traded_stock":traded_stock
