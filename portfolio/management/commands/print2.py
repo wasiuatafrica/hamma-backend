@@ -2,7 +2,7 @@
 from django.core.management.base import BaseCommand
 from portfolio.utils import get_stockdata2
 from portfolio.models import Stock
-from stock_icons import ICON_LINKS
+from stock_icons2 import ICON_LINKS
 
 class Command(BaseCommand):
     help = 'Prints company:symbol dictionary of all stocks'
