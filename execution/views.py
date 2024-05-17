@@ -1817,14 +1817,38 @@ class DemoPorfoliosAccounts(APIView):
         competition = competion_models.Competition.objects.filter(status='current').first()
         if competition:
             competition_account = CompetitionPortfolio.objects.filter(user=request.user,competition=competition).first()
-            competition_account_serializer = self.competition_serializer(competition_account).data if competition_account else None
+            compositions = CompetitionPosition.objects.filter(portfolio=competition_account, status='open')
+            com_open_balance = sum([position.amount_invested for position in compositions])
+            comdata = {
+                "id": competition_account.id,
+                'account_name':competition_account.account_name,
+                "account_type":competition_account.account_type,
+                "balance":competition_account.balance + com_open_balance,
+                "user":competition_account.user.id
+            }
+            
         else:  
-            competition_account_serializer = None
+            comdata = None
 
         demo_accounts = DemoPortfolio.objects.filter(user=request.user)
+        demo_data = []
+        for accounts in demo_accounts:
+            positions = DemoPosition.objects.filter(portfolio=accounts, status='open')
+            # print(accounts.user)
+            # print(positions)
+            open_balance = sum([position.amount_invested for position in positions])
+            data = {
+                "id": accounts.id,
+                'account_name':accounts.account_name,
+                "account_type":accounts.account_type,
+                "balance":accounts.balance + open_balance,
+                "user":accounts.user.id
+            }
+            demo_data.append(data)
+            
         
-        serializer = self.serializer_class(demo_accounts, many=True)
-        return Response({"demo_accounts":serializer.data,"competition_account":competition_account_serializer})
+        # serializer = self.serializer_class(demo_accounts, many=True)
+        return Response({"demo_accounts":demo_data,"competition_account":comdata})
     
     def post(self,request):
         demo_accounts = DemoPortfolio.objects.filter(user=request.user).count()

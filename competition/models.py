@@ -245,7 +245,7 @@ def get_leaderboard():
     ranked_clans = []
     for clan, returns in clan_returns.items():
         cumulative_return = (1 + pd.Series(returns)).cumprod() - 1
-        print(cumulative_return)
+        # print(cumulative_return)
         ranked_clans.append({
             'clan_name': clan,
             'cumulative_return': round(cumulative_return.iloc[-1] * 100, 2)

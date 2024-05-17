@@ -1728,7 +1728,7 @@ class TopClans(APIView):
                         clan = account.user.clans
                         clan_returns[clan].append(profit/1000000)  
 
-                print(clan_returns)
+                # print(clan_returns)
                 ranked_clans = []
                 for clan, returns in clan_returns.items():
                     cumulative_return = (1 + pd.Series(returns)).cumprod() - 1
