@@ -17,7 +17,7 @@ class Command(BaseCommand):
         for user in users:
             portfolio = DemoPortfolio.objects.filter(user=user)
             if portfolio.exists():
-                print (portfolio )
+                # print (portfolio )
                 portfolio = portfolio.first()
                 daily_returns = DemoDailyReturns2.objects.filter(user=user)
                 for returns in daily_returns:

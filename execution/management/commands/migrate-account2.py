@@ -16,21 +16,36 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         users = User.objects.all()
         for user in users:
+            print(user)
             portfolio = DemoPortfolio.objects.filter(user=user)
             
             if portfolio.exists():
                 portfolio = portfolio.first()
-                daily_returns=DemoDailyReturns2.objects.filter(portfolio=portfolio)
-                # daily_returns2 = daily_returns.filter(portfolio=portfolio)
-                market_returns = MarketReturns.objects.all()
-                for dr in daily_returns:
-                    # print(dr.created, dr.portfolio, dr.portfolio_returns, dr.market_returns)
-                    for market in market_returns:
-                        if market.created.date() == dr.created.date():
-                            print(market.created, market.market_returns)
-                            dr.market_returns = market.market_returns
-                            # dr.save()
-                            
                 
+                daily_returns=DemoDailyReturns2.objects.filter(portfolio=portfolio).order_by('created')  
+                market_returns = MarketReturns.objects.all()
+                print('daily')
+                for dr in daily_returns[1:]:
+                    # print(dr.created, dr.portfolio, dr.portfolio_returns, dr.market_returns)
+                    if dr.portfolio_returns !=0:
+                        for market in market_returns:
+                            if market.created.date() == dr.created.date():
+                                print(market.created, market.market_returns)
+                                dr.market_returns = market.market_returns
+                                # dr.save()
+                                break
+                print('cum')     
+                cum_returns  = DemoCumulativeReturns.objects.filter(portfolio=portfolio).order_by('created')           
+                cum_market_returns = CumulativeMarketReturns.objects.all()   
+                for dr in cum_returns[1:]:
+                    if dr.portfolio_returns !=0:
+                    # print(dr.created, dr.portfolio, dr.portfolio_returns, dr.market_returns)
+                        for market in cum_market_returns:
+                            if market.created.date() == dr.created.date():
+                                print(market.created, market.market_returns, dr.portfolio.user)
+                                dr.market_returns = market.market_returns     
+                                # dr.save()
+                                break
+                print('next')
             
             
