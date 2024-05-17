@@ -2705,7 +2705,13 @@ class NewDemoCloseTrade(APIView):
             id = kwargs.get("id")
             position_id = kwargs.get("position_id")
 
-            demo_account = self.get_competion_account(id, competition)
+            demo_account = CompetitionPortfolio.objects.filter(competition__status='current',active=True, id=id)
+            
+            if demo_account.exists:
+                demo_account = demo_account.first()
+            else:
+                demo_account = None
+            
             if demo_account is None:
                 return Response("Account not found",status.HTTP_404_NOT_FOUND)
             if demo_account.user != request.user:
@@ -2827,7 +2833,13 @@ class NewDemoClosePendingTrade(APIView):
             id = kwargs.get("id")
             position_id = kwargs.get("position_id")
 
-            demo_account = self.get_competion_account(id, competition)
+            demo_account = CompetitionPortfolio.objects.filter(competition__status='current',active=True, id=id)
+            
+            if demo_account.exists:
+                demo_account = demo_account.first()
+            else:
+                demo_account = None
+            
             if demo_account is None:
                 return Response("Account not found",status.HTTP_404_NOT_FOUND)
             if demo_account.user != request.user:
@@ -2940,7 +2952,13 @@ class NewDemoHolding(APIView):
             # get the competion account
             id = kwargs.get("id")
 
-            demo_account = self.get_competion_account(id, competition)
+            demo_account = CompetitionPortfolio.objects.filter(competition__status='current',active=True, id=id)
+            
+            if demo_account.exists:
+                demo_account = demo_account.first()
+            else:
+                demo_account = None
+            
             if demo_account is None:
                 return Response("Account not found",status.HTTP_404_NOT_FOUND)
             if demo_account.user != request.user:
