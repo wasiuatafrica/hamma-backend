@@ -20,12 +20,17 @@ class Command(BaseCommand):
             
             if portfolio.exists():
                 portfolio = portfolio.first()
-                daily_returns=DemoDailyReturns2.objects.exclude(portfolio__isnull=True)
-                daily_returns2 = daily_returns.filter(portfolio=portfolio)
-                # market_returns = MarketReturns.objects.all()
-                for dr in daily_returns2:
-                    print(dr.created, dr.portfolio, dr.portfolio_returns, dr.market_returns)
-                
+                daily_returns=DemoDailyReturns2.objects.filter(portfolio=portfolio)
+                # daily_returns2 = daily_returns.filter(portfolio=portfolio)
+                market_returns = MarketReturns.objects.all()
+                for dr in daily_returns:
+                    # print(dr.created, dr.portfolio, dr.portfolio_returns, dr.market_returns)
+                    for market in market_returns:
+                        if market.created.date() == dr.created.date():
+                            print(market.created, market.market_returns)
+                            dr.market_returns = market.market_returns
+                            # dr.save()
+                            
                 
             
             
