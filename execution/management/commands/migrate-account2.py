@@ -1,6 +1,7 @@
 # your_app/management/commands/print_stock_data.py
 from django.core.management.base import BaseCommand
 import competition
+from execution.tasks import daily_returns
 from hackathon.models import Competition
 from portfolio.utils import get_stockdata2
 from execution.models import DemoPortfolio, DemoDailyReturns2, DemoCumulativeReturns, CumulativeMarketReturns, MarketReturns, CompetitionMarketReturns, CompetitionCumulativeMarketReturns
@@ -19,15 +20,12 @@ class Command(BaseCommand):
             
             if portfolio.exists():
                 portfolio = portfolio.first()
-            market_returns = MarketReturns.objects.all()
-            print(market_returns)
-            # for returns in market_returns:
-            #     MarketReturns.objects.create(portfolio=portfolio, market_returns=returns.market_returns, created=returns.created)
-            
-            # cumulative_market_returns = CumulativeMarketReturns.objects.filter(portfolio=portfolio)
-            # print(cumulative_market_returns)
-            # for returns in cumulative_market_returns:
-            #     CumulativeMarketReturns.objects.create(portfolio=portfolio, market_returns=returns.market_returns, created=returns.created)
+                daily_returns=DemoDailyReturns2.objects.exclude(portfolio__isnull=True)
+                daily_returns2 = daily_returns.filter(portfolio=portfolio)
+                # market_returns = MarketReturns.objects.all()
+                for dr in daily_returns2:
+                    print(dr.created, dr.portfolio, dr.portfolio_returns, dr.market_returns)
+                
                 
             
             

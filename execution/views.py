@@ -1864,8 +1864,8 @@ class DemoPorfoliosAccounts(APIView):
             portfolio = serializer.instance
             DemoDailyReturns2.objects.create(portfolio=portfolio, user=request.user,created=timezone.now() )
             DemoCumulativeReturns.objects.create(portfolio=portfolio, user=request.user,created=timezone.now() )
-            MarketReturns.objects.create(portfolio=portfolio,created=timezone.now())
-            CumulativeMarketReturns.objects.create(portfolio=portfolio, created=timezone.now())
+            # NewMarketReturns .objects.create(portfolio=portfolio,created=timezone.now())
+            # NewCumulativeMarketReturns .objects.create(portfolio=portfolio, created=timezone.now())
             
             return Response(serializer.data)
         return Response(serializer.errors,status.HTTP_400_BAD_REQUEST)
@@ -2339,7 +2339,7 @@ class NewHome(APIView):
         return demo_account if demo_account else None
 
     def get_competion_account(self, id, competion):
-        competition_demo_account = CompetitionPortfolio.objects.filter(competition=competition,active=True, id=id).first()
+        competition_demo_account = CompetitionPortfolio.objects.filter(competition__status='current',active=True, id=id).first()
         return competition_demo_account if competition_demo_account else None
     
     def get(self, request, *args, **kwargs):
@@ -2358,7 +2358,15 @@ class NewHome(APIView):
             # get the competion account
             id = kwargs.get("id")
 
-            demo_account = self.get_competion_account(id, competition)
+            # demo_account = self.get_competion_account(id, competition)
+            
+            demo_account = CompetitionPortfolio.objects.filter(competition__status='current',active=True, id=id)
+            
+            if demo_account.exists:
+                demo_account = demo_account.first()
+            else:
+                demo_account = None
+            
             if demo_account is None:
                 return Response("Account not found",status.HTTP_404_NOT_FOUND)
             if demo_account.user != request.user:
@@ -2572,48 +2580,70 @@ class NewHome(APIView):
             # daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
             daily_profitloss= DemoDailyReturns2.objects.filter(portfolio=portfolio).order_by('created')
             cumulative_profitloss= DemoCumulativeReturns.objects.filter(portfolio=portfolio).order_by('created')
-            # print(daily_profitloss)
-            # print(cumulative_profitloss)
+            print(daily_profitloss)
+            print(cumulative_profitloss)
             
-            market= MarketReturns.objects.filter(portfolio=portfolio)
-            cumulative_market = CumulativeMarketReturns.objects.filter(portfolio=portfolio)
+            # market= NewMarketReturns.objects.filter(portfolio=portfolio)
+            # cumulative_market = NewCumulativeMarketReturns.objects.filter(portfolio=portfolio)
             
             overview = []
             cumulative_overview = []
             
-            if daily_profitloss and daily_profitloss.count() > 1:
-                for daily in daily_profitloss:
-                    for daily2 in market:
-                        if daily.created.date() == daily2.created.date():
-                            overview.append(
-                                {
+            if daily_profitloss:
+                for returns in daily_profitloss:
+                    overview.append(
+                        {
+
+                    'portfolio_returns': returns.portfolio_returns,
+                    'market_returns': returns.market_returns,
+                    'date': returns.created.date()
+                }
+
+                    )
+            #     for daily in daily_profitloss:
+            #         for daily2 in market:
+            #             if daily.created.date() == daily2.created.date():
+            #                 overview.append(
+            #                     {
                                     
-                        'portfolio_returns': daily.portfolio_returns,
-                        'market_returns': daily2.market_returns,
-                        'date': daily.created.date()
-                    }
+            #             'portfolio_returns': daily.portfolio_returns,
+            #             'market_returns': daily2.market_returns,
+            #             'date': daily.created.date()
+            #         }
                                 
-                            )
-                # if overview: 
-                #     first = overview[0]
-                #     if first['portfolio_returns'] == 0:
-                #         first['market_returns'] = 0
+            #                 )
+            #     # if overview: 
+            #     #     first = overview[0]
+            #     #     if first['portfolio_returns'] == 0:
+            #     #         first['market_returns'] = 0
+            
                 
-            if cumulative_profitloss and cumulative_profitloss.count() > 1:
+                
+            if cumulative_profitloss:
+                for returns in cumulative_profitloss:
+                    cumulative_overview.append(
+                        {
+
+                    'portfolio_returns': returns.portfolio_returns,
+                    'market_returns': returns.market_returns,
+                    'date': returns.created.date()
+                }
+
+                    )
                 # print('cpl', cumulative_profitloss)
                                     
-                for daily in cumulative_profitloss:
-                    for daily2 in cumulative_market :
-                        if daily.created.date() == daily2.created.date():
-                            cumulative_overview.append(
-                                {
+                # for daily in cumulative_profitloss:
+                #     for daily2 in cumulative_market :
+                #         if daily.created.date() == daily2.created.date():
+                #             cumulative_overview.append(
+                #                 {
                                     
-                        'portfolio_returns': daily.portfolio_returns,
-                        'market_returns': daily2.market_returns,
-                        'date': daily.created.date()
-                    }
+                #         'portfolio_returns': daily.portfolio_returns,
+                #         'market_returns': daily2.market_returns,
+                #         'date': daily.created.date()
+                #     }
                                 
-                            )
+                #             )
                 # print('cumu',cumulative_overview)
                 # if cumulative_overview:
                 #     first_ = cumulative_overview[0]
