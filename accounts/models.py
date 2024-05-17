@@ -77,6 +77,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         # print(profile, "jbabah")
         return profile.account_number
     
+    @property
+    def proof_of_id(self):
+        profile=Profile.objects.get(user__email=self.email)
+        # print(profile, "jbabah")
+        return str(profile.proof_of_id)
+    @property
+    def proof_of_address(self):
+        profile=Profile.objects.get(user__email=self.email)
+        # print(profile, "jbabah")
+        return str(profile.proof_of_address)
+    
+    
 
 
 class Profile(auto_prefetch.Model):

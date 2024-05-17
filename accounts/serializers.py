@@ -162,7 +162,9 @@ class AdminCustomUserSerializer(serializers.ModelSerializer):
             "profile_phone", 
             "fullname",
             "bank_name",
-            "account_number"
+            "account_number",
+            "proof_of_id",
+            "proof_of_address"
         ]
         extra_kwargs={
             'has_2fa': {'read_only': True},
