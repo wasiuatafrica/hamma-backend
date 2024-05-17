@@ -217,12 +217,60 @@ def four_days_before_end(): #4
         recipient_list = [user.email]
         send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
 
+# def get_top():
+#     from collections import defaultdict
+#     base_query = CompetitionPortfolio.objects.filter(competition__status='current',active=True)
+    
+#     leaderboard_list=[]
+#     zero_profit_list = []
+    
+#     for account in base_query:
+#         try:
+#             clan=Clan.objects.filter(member=account.user)
+#         except Clan.DoesNotExist:
+#             clan=Clan.objects.filter(clan_admin=account.user)
+#         if clan:
+#             clan=clan.first()
+#             user_portfolio = base_query.filter(user=account.user).first()
+#             # print(user_portfolio.competition.title)
+#             profit,status = getProfit(user_portfolio)
+#             if status:
+#                 percent= round((profit/1000000)*100,2)
+#                 profile= Profile.objects.get(user=account.user)
+#                 data= {
+#                     'id':user_portfolio.id,
+#                     'active':user_portfolio.active,
+#                     'name':user_portfolio.user.firstname.title(),
+#                     'profit':percent,
+#                     'country':profile.country,
+#                     'clan':clan.clan_name.title(),
+#                 }
+           
+#                 leaderboard_list.append(data)
+            
+#     sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
+    
+#     first = sorted_data[0]
+#     trader = first['name']
+    
+#     clan_profits = defaultdict(float)
+#     for entry in sorted_data:
+#         clan_profits[entry['clan']] += entry['profit']
+
+#     ranked_clans = [
+#         {'clan_name': clan, 'profit': total_profit}
+#         for clan, total_profit in sorted(clan_profits.items(), key=lambda x: x[1], reverse=True)
+#     ][:3]
+#     clan = ranked_clans[0]['clan_name']
+#     return trader,clan
+  
 def get_top():
     from collections import defaultdict
-    base_query = CompetitionPortfolio.objects.filter(competition__status='current',active=True)
-    
+    import pandas as pd
+    base_query = CompetitionPortfolio.objects.filter(competition__status='current', active=True)
+
     leaderboard_list=[]
-    zero_profit_list = []
+    clan_returns = defaultdict(list)
     
     for account in base_query:
         try:
@@ -236,34 +284,37 @@ def get_top():
             profit,status = getProfit(user_portfolio)
             if status:
                 percent= round((profit/1000000)*100,2)
-                profile= Profile.objects.get(user=account.user)
                 data= {
                     'id':user_portfolio.id,
                     'active':user_portfolio.active,
                     'name':user_portfolio.user.firstname.title(),
                     'profit':percent,
-                    'country':profile.country,
-                    'clan':clan.clan_name.title(),
                 }
            
                 leaderboard_list.append(data)
+                
+                clan = account.user.clans
+                clan_returns[clan].append(profit/1000000)
             
     sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
     
     first = sorted_data[0]
     trader = first['name']
     
-    clan_profits = defaultdict(float)
-    for entry in sorted_data:
-        clan_profits[entry['clan']] += entry['profit']
+    
+    ranked_clans = []
+    for clan, returns in clan_returns.items():
+        cumulative_return = (1 + pd.Series(returns)).cumprod() - 1
+        # print(cumulative_return)
+        ranked_clans.append({
+            'clan_name': clan,
+            'cumulative_return': round(cumulative_return.iloc[-1] * 100, 2)
+        })
 
-    ranked_clans = [
-        {'clan_name': clan, 'profit': total_profit}
-        for clan, total_profit in sorted(clan_profits.items(), key=lambda x: x[1], reverse=True)
-    ][:3]
+    ranked_clans = sorted(ranked_clans, key=lambda x: x['cumulative_return'], reverse=True)
+
     clan = ranked_clans[0]['clan_name']
     return trader,clan
-  
 
    
 @shared_task

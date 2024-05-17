@@ -1,4 +1,3 @@
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from accounts.models import Referral as acc_Referral, UserActivityLog 
@@ -21,8 +20,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from affilate import models as aff_models, serializers as aff_serializers
 from affilate.utils import get_quarter_dates,get_rank_details
-from django.db.models import Sum, F, Count, Q, ExpressionWrapper, DecimalField
-from django.db.models.functions import Coalesce
+from django.db.models import Sum, F, Count, Q, ExpressionWrapper, DecimalField, Count, Subquery, Avg
+from django.db.models.functions import Coalesce, TruncDay, TruncWeek
 from datetime import datetime, timedelta
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
@@ -805,8 +804,7 @@ class UserAssetBreakDown(APIView):
 
 #         return Response(data)
 
-from django.db.models import Count, Avg
-from django.db.models.functions import TruncDay
+
 
 def get_user_activity_stats(query):
     import datetime
@@ -1567,6 +1565,7 @@ class AnalyticsGraphView(APIView):
 
     def merge_transaction_data(self,data_list1, data_list2):
         from collections import defaultdict
+
         # Convert query results to dictionaries for easier manipulation
         positions_data1 = {entry['transaction_date']: entry['count'] for entry in data_list1}
         positions_data2 = {entry['transaction_date']: entry['count'] for entry in data_list2}
@@ -1626,3 +1625,169 @@ class AllAdminUsersActivityLogView(APIView):
 #         serializer = self.serializer_class(clan_member_removal_requests, many=True)
 #         return Response(serializer.data)
         
+        
+
+
+
+
+# class UserActivityChartData(APIView):
+#     def get(self, request):
+#         # Define Friday as the start of the week
+#         def get_friday_of_week(date):
+#             days_to_friday = (4 - date.weekday() + 7) % 7
+#             friday_date = date + timedelta(days=days_to_friday)
+#             return friday_date
+
+#         active_users = UserActivityLog.objects.filter(
+#             action_type__in=["competition_open_trade", "demo_open_trade"]
+#         )
+
+#         # Group active_users by week (using Friday as the start of the week) and count number of users in each week
+#         weekly_active_users = active_users.annotate(
+#             week=TruncWeek('timestamp', output_field=DateField())
+#         ).values('week').annotate(total_users=Count('user', distinct=True))
+
+#         # Calculate number of key active users (opened 10 or more trades) in each week
+#         user_trade_counts = active_users.values('user').annotate(
+#             total_trades=Count('id')
+#         ).filter(total_trades__gte=10).values('user')
+
+#         key_active_users = active_users.annotate(
+#             week=TruncWeek('timestamp', output_field=DateField())
+#         ).filter(
+#             user__in=Subquery(user_trade_counts)
+#         ).values('week').annotate(
+#             key_active_users=Count('user', distinct=True)
+#         )
+
+#         # Prepare data for chart and table
+#         chart_data = [{'week': get_friday_of_week(item['week']), 'active_users': item['total_users']} for item in weekly_active_users]
+#         table_data = [{'week': get_friday_of_week(item['week']), 'active_users': item['total_users'], 'key_active_users': next((key_item['key_active_users'] for key_item in key_active_users if key_item['week'] == item['week']), 0)} for item in weekly_active_users]
+
+#         return Response({'chart_data': chart_data, 'table_data': table_data})
+
+
+
+
+# from django.db.models import Count, TruncWeek, Subquery
+# from rest_framework.response import Response
+# from rest_framework.views import APIView
+# from datetime import datetime, timedelta
+# from .models import UserActivityLog
+
+# class UserActivityChartData(APIView):
+#     def get(self, request):
+#         active_users = UserActivityLog.objects.filter(
+#             action_type__in=["competition_open_trade", "demo_open_trade"]
+#         )
+
+#         # Group active_users by week and count number of users in each week
+#         weekly_active_users = (
+#             active_users.annotate(
+#                 week=TruncWeek('timestamp')
+#             )
+#             .values('week')
+#             .annotate(total_users=Count('user', distinct=True))
+#             .order_by('week')
+#         )
+
+#         # Calculate number of key active users (opened 10 or more trades) in each week
+#         user_trade_counts = (
+#             active_users.values('user')
+#             .annotate(total_trades=Count('id'))
+#             .filter(total_trades__gte=10)
+#             .values('user')
+#         )
+
+#         key_active_users = (
+#             active_users.annotate(week=TruncWeek('timestamp'))
+#             .filter(user__in=Subquery(user_trade_counts))
+#             .values('week')
+#             .annotate(key_active_users=Count('user', distinct=True))
+#             .order_by('week')
+#         )
+
+#         data = []
+#         for week in weekly_active_users:
+#             week_start = week['week']
+#             week_end = week_start + timedelta(days=7)  # Monday of the next week
+#             key_active_user_count = next(
+#                 (item['key_active_users'] for item in key_active_users if item['week'] == week['week']),
+#                 0
+#             )
+#             # List of active users for the week
+#             active_user_list = list(
+#                 active_users.filter(
+#                     timestamp__date__gte=week_start, 
+#                     timestamp__date__lt=week_end
+#                 ).values_list('user', flat=True).distinct()
+#             )
+#             # List of key active users for the week
+#             key_active_user_list = list(
+#                 active_users.filter(
+#                     timestamp__date__gte=week_start,
+#                     timestamp__date__lt=week_end,
+#                     user__in=Subquery(user_trade_counts)
+#                 ).values_list('user', flat=True).distinct()
+#             )
+#             data.append({
+#                 'date': week_start.date(),
+#                 'active_users': week['total_users'],
+#                 'key_active_users': key_active_user_count,
+#                 'active_user_list': active_user_list,
+#                 'key_active_user_list': key_active_user_list
+#             })
+
+#         return Response({'data': data})
+
+class UserActivityChartData(APIView):
+    def get(self, request):
+        active_users = UserActivityLog.objects.filter(
+            action_type__in=["competition_open_trade", "demo_open_trade"]
+        )
+
+        # Group active_users by week and count number of users in each week
+        weekly_active_users = (
+            active_users.annotate(
+                week=TruncWeek('timestamp')
+            )
+            .values('week')
+            .annotate(total_users=Count('user', distinct=True))
+            .order_by('week')
+        )
+
+        data = []
+        for week in weekly_active_users:
+            week_start = week['week']
+            week_end = week_start + timedelta(days=7)  # Monday of the next week
+
+            # Filter active_users for the current week
+            users_this_week = active_users.filter(timestamp__date__gte=week_start, timestamp__date__lt=week_end)
+
+            # Count the number of trades made by each user in this week
+            user_trade_counts = users_this_week.values('user').annotate(total_trades=Count('id'))
+
+            # Filter users who have made 10 or more trades in this week
+            key_active_users_this_week = user_trade_counts.filter(total_trades__gte=10)
+
+            data.append({
+                'date': week_start.date(),
+                'active_users': week['total_users'],
+                'key_active_users': key_active_users_this_week.count(),
+                'active_user_list': list(users_this_week.values_list('user', flat=True).distinct()),
+                'key_active_user_list': list(key_active_users_this_week.values_list('user', flat=True).distinct())
+            })
+
+        return Response(data)
+
+class UserDetails(APIView):
+    def post(self, request):
+        # Get the list of user IDs from the request data
+        user_ids = request.data.get('user_ids', [])
+
+        # Fetch user details for each user ID
+        users = User.objects.filter(id__in=user_ids)
+        serializer = acc_serializers.AdminCustomUserSerializer(users, many=True)
+               
+
+        return Response(serializer.data)

@@ -1,12 +1,7 @@
-# your_app/management/commands/print_stock_data.py
+
 from django.core.management.base import BaseCommand
-import competition
-from execution.tasks import daily_returns
-from hackathon.models import Competition
-from portfolio.utils import get_stockdata2
-from execution.models import DemoPortfolio, DemoDailyReturns2, DemoCumulativeReturns, CumulativeMarketReturns, MarketReturns, CompetitionMarketReturns, CompetitionCumulativeMarketReturns
+from execution.models import DemoPortfolio, DemoDailyReturns2, DemoCumulativeReturns, CumulativeMarketReturns, MarketReturns
 from django.contrib.auth import get_user_model
-from competition.models import CompetitionPortfolio, CompetitionDailyReturns
 
 User = get_user_model()
 
@@ -32,7 +27,7 @@ class Command(BaseCommand):
                             if market.created.date() == dr.created.date():
                                 print(market.created, market.market_returns)
                                 dr.market_returns = market.market_returns
-                                # dr.save()
+                                dr.save()
                                 break
                 print('cum')     
                 cum_returns  = DemoCumulativeReturns.objects.filter(portfolio=portfolio).order_by('created')           
@@ -44,7 +39,7 @@ class Command(BaseCommand):
                             if market.created.date() == dr.created.date():
                                 print(market.created, market.market_returns, dr.portfolio.user)
                                 dr.market_returns = market.market_returns     
-                                # dr.save()
+                                dr.save()
                                 break
                 print('next')
             

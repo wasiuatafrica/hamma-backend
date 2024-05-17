@@ -2592,8 +2592,8 @@ class NewHome(APIView):
             # daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
             daily_profitloss= DemoDailyReturns2.objects.filter(portfolio=portfolio).order_by('created')
             cumulative_profitloss= DemoCumulativeReturns.objects.filter(portfolio=portfolio).order_by('created')
-            print(daily_profitloss)
-            print(cumulative_profitloss)
+            # print(daily_profitloss)
+            # print(cumulative_profitloss)
             
             # market= NewMarketReturns.objects.filter(portfolio=portfolio)
             # cumulative_market = NewCumulativeMarketReturns.objects.filter(portfolio=portfolio)
