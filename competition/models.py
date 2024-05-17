@@ -184,50 +184,76 @@ def getProfit(portfolio):
   
 from collections import defaultdict
 
-def get_leaderboard():
-    # Base query to get all active competition portfolios
-    base_query = CompetitionPortfolio.objects.filter(competition__status='current', active=True)
-    # print(len(base_query))
-    # Lists to hold leaderboard data and those with zero profit
-    leaderboard_list = []
+# def get_leaderboard():
+#     # Base query to get all active competition portfolios
+#     base_query = CompetitionPortfolio.objects.filter(competition__status='current', active=True)
+#     # print(len(base_query))
+#     # Lists to hold leaderboard data and those with zero profit
+#     leaderboard_list = []
    
-    clan_profits = defaultdict(float)
-    clan_member_counts = defaultdict(int)
+#     clan_profits = defaultdict(float)
+#     clan_member_counts = defaultdict(int)
     
-    # Iterate over each account in the base query
-    for account in base_query:
-        # print(account.user)
-        profit,status = getProfit(account)
-        # print(profit,status)
-        if status:
-            percent= round((profit/1000000)*100,2)
-            profile= Profile.objects.get(user=account.user)
-            clan=account.user.clans
-            data= {
-                'name':account.user.firstname,
-                'profit':percent,
-                'profit_naira':profit,
-                'country':profile.country,
-                'clan':clan
-            }
-            leaderboard_list.append(data)
+#     # Iterate over each account in the base query
+#     for account in base_query:
+#         # print(account.user)
+#         profit,status = getProfit(account)
+#         # print(profit,status)
+#         if status:
+#             percent= round((profit/1000000)*100,2)
+#             profile= Profile.objects.get(user=account.user)
+#             clan=account.user.clans
+#             data= {
+#                 'name':account.user.firstname,
+#                 'profit':percent,
+#                 'profit_naira':profit,
+#                 'country':profile.country,
+#                 'clan':clan
+#             }
+#             leaderboard_list.append(data)
                 
-            # Increment the clan's total profit and member count
-            clan_profits[clan] += percent
-            clan_member_counts[clan] += 1
-    # print(leaderboard_list)
-    # print(clan_member_counts.items())
-    # Now calculate the average profit for each clan
-    ranked_clans = [
-        {
-            'clan_name': clan,
-            'average_profit': clan_profits[clan] / clan_member_counts[clan],  # Average profit
-        }
-        for clan in sorted(clan_profits.keys(), key=lambda c: clan_profits[c] / clan_member_counts[c], reverse=True)
-    ]
+#             # Increment the clan's total profit and member count
+#             clan_profits[clan] += percent
+#             clan_member_counts[clan] += 1
+#     ranked_clans = [
+#         {
+#             'clan_name': clan,
+#             'average_profit': clan_profits[clan] / clan_member_counts[clan],  # Average profit
+#         }
+#         for clan in sorted(clan_profits.keys(), key=lambda c: clan_profits[c] / clan_member_counts[c], reverse=True)
+#     ]
     
-    return ranked_clans  
+#     return ranked_clans  
 
+
+from collections import defaultdict
+import pandas as pd
+
+def get_leaderboard():
+    base_query = CompetitionPortfolio.objects.filter(competition__status='current', active=True)
+
+    clan_returns = defaultdict(list)
+
+    for account in base_query:
+        profit, status = getProfit(account)
+
+        if status:
+            clan = account.user.clans
+            clan_returns[clan].append(profit/1000000)  
+
+    # print(clan_returns)
+    ranked_clans = []
+    for clan, returns in clan_returns.items():
+        cumulative_return = (1 + pd.Series(returns)).cumprod() - 1
+        print(cumulative_return)
+        ranked_clans.append({
+            'clan_name': clan,
+            'cumulative_return': round(cumulative_return.iloc[-1] * 100, 2)
+        })
+
+    ranked_clans = sorted(ranked_clans, key=lambda x: x['cumulative_return'], reverse=True)
+
+    return ranked_clans
 
 class Clan(auto_prefetch.Model):
     
@@ -275,7 +301,8 @@ class Clan(auto_prefetch.Model):
         competition = Competition.objects.filter(status='current').first()
         if competition and timezone.now() > competition.start_date :
             leaderboard = get_leaderboard()
-            clan_profit = [entry['average_profit'] for entry in leaderboard if entry['clan_name']==self.clan_name]
+            # clan_profit = [entry['average_profit'] for entry in leaderboard if entry['clan_name']==self.clan_name]
+            clan_profit = [entry['cumulative_return'] for entry in leaderboard if entry['clan_name']==self.clan_name]
             if clan_profit:
                 avg_profit = round(clan_profit[0],2)
             else:

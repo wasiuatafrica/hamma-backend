@@ -1777,8 +1777,19 @@ class RetrieveSIngleCompetitonAccount(APIView):
             return Response({"detail": "Competition account not found"}, status=status.HTTP_404_NOT_FOUND)
         if account.user != request.user:
             return Response({"detail": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
-        serializer= self.serializer_class(account)
-        return Response(serializer.data)
+        
+        positions = CompetitionPosition.objects.filter(portfolio=account,status='open')
+        
+        open_balance = sum([position.amount_invested for position in positions])
+        data = {
+            "id": account.id,
+            'account_name':account.account_name,
+            "account_type":account.account_type,
+            "balance":account.balance + open_balance,
+            "user":account.user.id
+        }
+        return Response(data)
+    
     def put(self, request, *args, **kwargs):
         id= kwargs.get("id")
         account = self.get_competition_account(id)

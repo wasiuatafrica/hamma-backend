@@ -17,6 +17,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
+import pandas as pd
 
 import portfolio
 
@@ -1653,6 +1654,62 @@ class GetAndUpdateUserNotifications(APIView):
         return Response({"detail":"Success"})
         # update_notification
 
+# from collections import defaultdict
+# class TopClans(APIView):
+#     permission_classes = (AllowAny,)
+#     def get(self, request):
+#         competition =  Competition.objects.filter(status='current')
+#         if competition.exists() and  timezone.now() > competition.first().start_date:
+#                 portfolio = CompetitionPortfolio.objects.filter(competition=competition.first(), active=True)
+                
+#                 leaderboard_list=[]
+                
+#                 clan_profits = defaultdict(float)
+#                 clan_member_counts = defaultdict(int)
+                
+#                 for account in portfolio:
+                    
+#                     profit,status = getProfit(account)
+#                     if status:
+#                         percent= round((profit/1000000)*100,2)
+#                         profile= Profile.objects.get(user=account.user)
+#                         clan=account.user.clans
+#                         data= {
+#                             'name':account.user.firstname,
+#                             'profit':percent,
+#                             'profit_naira':profit,
+#                             'country':profile.country,
+#                             'clan':clan
+#                         }
+#                         leaderboard_list.append(data)
+#                         clan_profits[clan] += percent
+#                         clan_member_counts[clan] += 1
+                        
+#                 ranked_clans = [
+#                     {
+#                         'clan_name': clan,
+#                         'profit': round(clan_profits[clan] / clan_member_counts[clan], 2) # Average profit
+#                     }
+#                     for clan in sorted(clan_profits.keys(), key=lambda c: clan_profits[c] / clan_member_counts[c], reverse=True)
+#                 ]
+#                 for data in ranked_clans:
+#                     clan_name = data['clan_name']
+#                     clan = Clan.objects.get(clan_name=clan_name)
+#                     data['clan_logo'] = clan.clan_logo.url
+#                     data['clan_id'] = clan.id
+#                     data['community_link'] = clan.community_link
+#                     data['description'] = clan.description
+#                     data['members_count'] = clan.member.count() + 1
+#                     data['profit_comparison'] = clan.profit_comparison
+#                 # Return the ranked list of clans
+#                 return Response(ranked_clans[:3])
+
+#         else:
+#             competition = Competition.objects.filter(status='closed').order_by('id').last()
+#             clans= ClanCompetitionSummary.objects.filter(competition=competition).order_by('position')[:3]
+#             data=[{'clan_id':comp.clan.id,'clan_name':comp.clan.clan_name,'community_link':comp.clan.community_link,'clan_logo':comp.clan.clan_logo.url,'description':comp.clan.description, 'profit':comp.profit, 'position':comp.position, 'top_3_count':comp.clan.top_3_count,'profit_comparison':comp.clan.profit_comparison,'members_count':comp.clan.members_count} for comp in clans ]
+#             return Response(data)
+
 from collections import defaultdict
 class TopClans(APIView):
     permission_classes = (AllowAny,)
@@ -1661,36 +1718,27 @@ class TopClans(APIView):
         if competition.exists() and  timezone.now() > competition.first().start_date:
                 portfolio = CompetitionPortfolio.objects.filter(competition=competition.first(), active=True)
                 
-                leaderboard_list=[]
-                
-                clan_profits = defaultdict(float)
-                clan_member_counts = defaultdict(int)
+                clan_returns = defaultdict(list)
                 
                 for account in portfolio:
                     
-                    profit,status = getProfit(account)
+                    profit, status = getProfit(account)
+
                     if status:
-                        percent= round((profit/1000000)*100,2)
-                        profile= Profile.objects.get(user=account.user)
-                        clan=account.user.clans
-                        data= {
-                            'name':account.user.firstname,
-                            'profit':percent,
-                            'profit_naira':profit,
-                            'country':profile.country,
-                            'clan':clan
-                        }
-                        leaderboard_list.append(data)
-                        clan_profits[clan] += percent
-                        clan_member_counts[clan] += 1
-                        
-                ranked_clans = [
-                    {
+                        clan = account.user.clans
+                        clan_returns[clan].append(profit/1000000)  
+
+                print(clan_returns)
+                ranked_clans = []
+                for clan, returns in clan_returns.items():
+                    cumulative_return = (1 + pd.Series(returns)).cumprod() - 1
+                    # print(cumulative_return)
+                    ranked_clans.append({
                         'clan_name': clan,
-                        'profit': round(clan_profits[clan] / clan_member_counts[clan], 2) # Average profit
-                    }
-                    for clan in sorted(clan_profits.keys(), key=lambda c: clan_profits[c] / clan_member_counts[c], reverse=True)
-                ]
+                        'profit': round(cumulative_return.iloc[-1] * 100, 2)
+                    })
+
+                ranked_clans = sorted(ranked_clans, key=lambda x: x['profit'], reverse=True)
                 for data in ranked_clans:
                     clan_name = data['clan_name']
                     clan = Clan.objects.get(clan_name=clan_name)
@@ -1708,11 +1756,8 @@ class TopClans(APIView):
             clans= ClanCompetitionSummary.objects.filter(competition=competition).order_by('position')[:3]
             data=[{'clan_id':comp.clan.id,'clan_name':comp.clan.clan_name,'community_link':comp.clan.community_link,'clan_logo':comp.clan.clan_logo.url,'description':comp.clan.description, 'profit':comp.profit, 'position':comp.position, 'top_3_count':comp.clan.top_3_count,'profit_comparison':comp.clan.profit_comparison,'members_count':comp.clan.members_count} for comp in clans ]
             return Response(data)
-        
-        # competition = Competition.objects.filter(status='closed').order_by('id').last()
-        # clans= ClanCompetitionSummary.objects.filter(competition=competition).order_by('position')[:3]
-        # data=[{'clan_id':comp.clan.id,'clan_name':comp.clan.clan_name,'community_link':comp.clan.community_link,'clan_logo':comp.clan.clan_logo.url,'description':comp.clan.description, 'profit':comp.profit, 'position':comp.position, 'top_3_count':comp.clan.top_3_count,'profit_comparison':comp.clan.profit_comparison,'members_count':comp.clan.members_count} for comp in clans ]
-        # return Response(data)
+       
+     
 
 class TopTraders(APIView):
     permission_classes = (AllowAny,)
