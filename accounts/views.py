@@ -4,6 +4,8 @@ from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework import permissions
+
+from portfolio.models import Wallet
 from . import serializers
 from . import models
 from .utils import verify_token, resendToken,SetTOTP, verifyTOTP,sms_2FA
@@ -65,7 +67,8 @@ class VerifyToken(APIView):
         
         # return Response({"detail":"Account verifed."})
                 
-        Portfolio.objects.create(user=user)
+        # Portfolio.objects.create(user=user)
+        Wallet.objects.create(user=user)
         ReferralWallet.objects.create(user=user)
         DemoPortfolio.objects.create(user=user)
         send_welcome_email.delay(user.id)

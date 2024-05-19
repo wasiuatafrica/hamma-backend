@@ -56,13 +56,14 @@ class WalletBalance(APIView):
 
     def get(self, request):
         portfolio = exec_models.Portfolio.objects.get_or_create(user=request.user)[0]
+        wallet = Wallet.objects.get_or_create(user=request.user)[0]
         transactions = Transaction.objects.filter(user=request.user)
         positions= portfolio.positions2.all()
         savings = Saving.objects.filter(user=request.user,status='ongoing')
         
         deposited = sum([trans.amount for trans in transactions if trans.transaction_type == "deposit"]) - sum([trans.amount for trans in transactions if trans.transaction_type == "withdrawal"])
         invested= sum([post.amount_invested for post in positions]) + sum([lock.amount for lock in savings])
-        balance = portfolio.balance
+        balance = wallet.balance
         uninvested = deposited - invested
         
         data = {
@@ -89,13 +90,14 @@ class SupportWalletBalance(APIView):
             return Response([])
         
         portfolio = exec_models.Portfolio.objects.get(user=user)
+        wallet = Wallet.objects.get(user=user)
         transactions = Transaction.objects.filter(user=user)
         positions= portfolio.positions2.all()
         savings = Saving.objects.filter(user=user,status='ongoing')
         
         deposited = sum([trans.amount for trans in transactions if trans.transaction_type == "deposit"]) - sum([trans.amount for trans in transactions if trans.transaction_type == "withdrawal"])
         invested= sum([post.amount_invested for post in positions]) + sum([lock.amount for lock in savings])
-        balance = portfolio.balance
+        balance = wallet.balance
         uninvested = deposited - invested
         
         data = {
@@ -120,11 +122,12 @@ class WalletWithdraw(APIView):
         
         amount = request.data.get('amount')
         portfolio = exec_models.Portfolio.objects.get_or_create(user=request.user)[0]
+        wallet = Wallet.objects.get(user=request.user)
         positions= portfolio.positions2.all()
         
         # deposited = sum([trans.amount for trans in transactions])
         # invested= sum([post.amount_invested for post in positions])
-        balance = portfolio.balance
+        balance = wallet.balance
         # uninvested = deposited - invested
 
         # balance1 = uninvested + balance

@@ -221,7 +221,7 @@ class AdminReceiptsView(APIView):
             receipt.save()
             activity=AdminUserActivityLog.objects.create(admin=request.user, user=receipt.user, action_type="approved_reciept",description=f"Admin user approved reciept.")
 
-            wallet= exec_models.Portfolio.objects.get(user=receipt.user)
+            wallet= Wallet.objects.get_or_create(user=receipt.user)[0]
             amount = Decimal(amount)
             wallet.balance += amount
             wallet.save()
@@ -310,7 +310,7 @@ class WithdrawalView(APIView):
         
         if type == 'main':
             withdrawal= exec_models.WithdrawalRequest.objects.get(id=id)
-            wallet= exec_models.Portfolio.objects.get(user=withdrawal.wallet.user)
+            wallet= Wallet.objects.get(user=withdrawal.wallet.user)
             
             allowed = ['approved','rejected']
         
@@ -435,7 +435,7 @@ class CheckBalance(APIView):
         
         if type == 'main':
             withdrawal= exec_models.WithdrawalRequest.objects.get(id=id)
-            wallet= exec_models.Portfolio.objects.get(user=withdrawal.wallet.user)
+            wallet= Wallet.objects.get(user=withdrawal.wallet.user)
             
             
             if wallet.balance > Decimal(withdrawal.amount):
