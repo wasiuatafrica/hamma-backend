@@ -15,8 +15,8 @@ class Command (BaseCommand):
         portfolios = Portfolio.objects.all()
         for portfolio in portfolios:
             if portfolio.balance > 0:
-                print(portfolio.user, portfolio.balance)
-                # wallet = Wallet.objects.get(user=portfolio.user)
-                # wallet.balance = portfolio.balance
-                # wallet.save()
-                # print('wallet balance updated for user', portfolio.user)
+                # print(portfolio.user, portfolio.balance)
+                wallet = Wallet.objects.get(user=portfolio.user)
+                wallet.balance = portfolio.balance
+                wallet.save()
+                print('wallet balance updated for user', portfolio.user, wallet.balance)
