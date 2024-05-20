@@ -5,6 +5,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
+import portfolio
 from waitlist import serializer
 from .models import (Wallet, Stock,  Receipts, PayStackReceipts, Alert,WithdrawalOTPRequest,
                      Transaction, AlertAI, AlertAITracker, Conversation, Message)
@@ -170,8 +171,8 @@ class WalletWithdraw(APIView):
                 otp_request.used = True
                 otp_request.save()
                 save_and_send_notification(request.user.id, 'Your withdrawal is processing.')
-                activity=UserActivityLog.objects.create(user=request.user, action_type="withdrawal_request",description="User requested for a withdrawal")
-                transactions = Transaction.objects.filter(user=request.user,transaction_type="deposit")
+                UserActivityLog.objects.create(user=request.user, action_type="withdrawal_request_initaiated",description="User requested for a withdrawal")
+                Transaction.objects.create(user=request.user,transaction_type="initiate_wallet_withdrawal", amount=amount, status='completed')
                 mail=sendMail("general/WIthdrawalRequesReceived.html","Withdrawal request received",[request.user.email],{"first_name":request.user.firstname,"amount":amount})
                 
                 return Response({"detail": "Withdrawal request has been created successfully."},
@@ -750,3 +751,50 @@ class ConversationsView(APIView):
 
 
 
+class FundLiveAccount(APIView):
+    
+    def post(self,request):
+        account_id = request.data.get('account_id')
+        amount = request.data.get('amount')
+        portfolio = exec_models.Portfolio.objects.filter(id=account_id).first()
+        
+        wallet = Wallet.objects.get(user=request.user)
+        
+        if Decimal(amount) > wallet.balance:
+            return Response({'error': 'Insufficient funds'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        wallet.balance -= Decimal(amount) 
+        wallet.save()
+        
+        portfolio.balance += Decimal(amount)
+        portfolio.save()
+        
+        save_and_send_notification(request.user.id, f'You transferred {amount} to {portfolio.account_name} trading account.')
+        UserActivityLog.objects.create(user=request.user, action_type="fund_live_account",description=f"User funded {portfolio.account_name} with {amount}.")
+        Transaction.objects.create(user=request.user,transaction_type=f"funded Live Account {portfolio.account_name}", amount=amount, status='completed')
+        return Response({'success': 'Funds successfully transferred'}, status=status.HTTP_200_OK)
+    
+class WithdrawLiveAccount(APIView):
+
+    def post(self, request):
+        account_id = request.data.get('account_id')
+        amount = request.data.get('amount')
+        portfolio = exec_models.Portfolio.objects.filter(id=account_id).first()
+
+        wallet = Wallet.objects.get(user=request.user)
+
+        if Decimal(amount) > portfolio.balance:
+            return Response({'error': 'Insufficient funds'}, status=status.HTTP_400_BAD_REQUEST)
+
+        portfolio.balance -= Decimal(amount)
+        portfolio.save()
+
+        wallet.balance += Decimal(amount)
+        wallet.save()
+        
+        save_and_send_notification(request.user.id, f'You withdrew {amount} from {portfolio.account_name} to wallet.')
+        UserActivityLog.objects.create(user=request.user, action_type="withdraw_live_account",description=f"User withdrew {amount} from  {portfolio.account_name} trading account .")
+        Transaction.objects.create(user=request.user,transaction_type=f"withdrew from  Live Account {portfolio.account_name}", amount=amount, status='completed')
+
+        
+        return Response({'success': 'Funds successfully transferred'}, status=status.HTTP_200_OK)

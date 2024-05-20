@@ -176,6 +176,14 @@ class DemoDailyReturns(auto_prefetch.Model):
         return f"{self.user} {self.portfolio_returns} - {self.created.date()}"
 
 class DemoDailyReturns2(auto_prefetch.Model):
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='returns2')
+    portfolio = auto_prefetch.ForeignKey(DemoPortfolio, on_delete=models.CASCADE, blank=True,null=True )
+    first_entry=models.BooleanField(default=True)
+    portfolio_returns = models.FloatField(default=0.0)
+    market_returns = models.FloatField(default=0.0)
+    created =models.DateTimeField(null=True, blank=True)
+
+class DailyReturns2(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='demoreturns2')
     portfolio = auto_prefetch.ForeignKey(DemoPortfolio, on_delete=models.CASCADE, blank=True,null=True )
     first_entry=models.BooleanField(default=True)
@@ -241,16 +249,23 @@ class DemoCumulativeReturns(auto_prefetch.Model):
         else:
             return f"{self.user} {self.portfolio_returns}"
             
-        
 
 class Portfolio(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='portfolio2')
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    
-    def __str__(self):
-        return f"{self.user}|{self.balance}"
+    account_name= models.CharField(max_length=20, default="Live Account 1")
 
+    def __str__(self):
+        return f"{self.user}"
+    
+    @property
+    def account_type(self):
+        return "live_portfolio"
+    
+    class Meta(auto_prefetch.Model.Meta):
+        unique_together = ('user', 'account_name')
+    
 class Position(auto_prefetch.Model):
     OPEN = 'open'
     CLOSED = 'close'
@@ -318,10 +333,11 @@ class DailyReturns(auto_prefetch.Model):
 
 class CumulativeReturns(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='cumureturns')
-    portfolio_returns = models.FloatField(default=0)
-    market_returns = models.FloatField(default=0)
-    ngx_price = models.FloatField(default=0)
-    created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    portfolio = auto_prefetch.ForeignKey(DemoPortfolio, on_delete=models.CASCADE, blank=True,null=True )
+    first_entry=models.BooleanField(default=True)
+    portfolio_returns = models.FloatField(default=0.0)
+    market_returns = models.FloatField(default=0.0)
+    created =models.DateTimeField(null=True, blank=True)
     
     def __str__(self):
         return f"{self.user} - {self.created}"

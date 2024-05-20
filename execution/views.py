@@ -24,7 +24,7 @@ from django.utils import timezone
 from accounts.models import  UserActivityLog
 from waitlist import serializer 
 
-from .models import CompetitionCumulativeMarketReturns, CompetitionMarketReturns, DemoCumulativeReturns, DemoPosition, DemoPortfolio, DemoDailyReturns, DemoDailyReturns2, MarketReturns, CumulativeMarketReturns
+from .models import CompetitionCumulativeMarketReturns, CompetitionMarketReturns, DailyReturns2, DemoCumulativeReturns, DemoPosition, DemoPortfolio, DemoDailyReturns2, MarketReturns, CumulativeMarketReturns, Portfolio, Position, CumulativeReturns
 from  competition.models import Competition, CompetitionCumulativeReturns, CompetitionCumulativeReturns2, CompetitionDailyReturns2, CompetitionPosition,CompetitionDailyReturns,CompetitionPortfolio,CompetitionTransaction
 from django.contrib.auth import get_user_model
 from . import serializers as exec_serializer
@@ -1870,6 +1870,51 @@ class DemoPorfoliosAccounts(APIView):
             return Response(serializer.data)
         return Response(serializer.errors,status.HTTP_400_BAD_REQUEST)
 
+class PorfoliosAccounts(APIView):
+    serializer_class = exec_serializer.PortfolioSerializer
+    account_create_serializer = exec_serializer.PortfolioCreateSerializer
+    
+    def get(self,request):
+        
+        accounts = Portfolio.objects.filter(user=request.user)
+        demo_data = []
+        for account in accounts:
+            positions = Position.objects.filter(portfolio=accounts, status='open')
+            # print(accounts.user)
+            # print(positions)
+            open_balance = sum([position.amount_invested for position in positions])
+            data = {
+                "id": accounts.id,
+                'account_name':accounts.account_name,
+                "account_type":accounts.account_type,
+                "balance":accounts.balance + open_balance,
+                "user":accounts.user.id
+            }
+            demo_data.append(data)
+            
+        
+        # serializer = self.serializer_class(demo_accounts, many=True)
+        return Response({"demo_accounts":demo_data})
+    
+    def post(self,request):
+        accounts = Portfolio.objects.filter(user=request.user).count()
+        if accounts >=10 :
+            return Response("You can only have 10 live acccounts",status.HTTP_400_BAD_REQUEST)
+        serializer = self.account_create_serializer(data=request.data)
+        account_exist= Portfolio.objects.filter(account_name=request.data.get("account_name"), user=request.user).exists()
+        if account_exist:
+            return Response("Duplicate name not allowed.",status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            
+            portfolio = serializer.instance
+            DailyReturns2 .objects.create(portfolio=portfolio, user=request.user,created=timezone.now() )
+            CumulativeReturns.objects.create(portfolio=portfolio, user=request.user,created=timezone.now() )
+            
+            return Response(serializer.data)
+        return Response(serializer.errors,status.HTTP_400_BAD_REQUEST)
+
+
 class RetrieveSingleDemoPorfoliosAccounts(APIView):
     serializer_class = exec_serializer.DemoPortfolioSerializer
     account_create_serializer = exec_serializer.DemoPortfolioCreateSerializer
@@ -1910,6 +1955,48 @@ class RetrieveSingleDemoPorfoliosAccounts(APIView):
         if demo_account.user != request.user:
             return Response("Permission denied",status.HTTP_403_FORBIDDEN)
         demo_account.delete()
+        return Response(None,status.HTTP_204_NO_CONTENT)
+
+class RetrieveSinglePorfoliosAccounts(APIView):
+    serializer_class = exec_serializer.PortfolioSerializer
+    account_create_serializer = exec_serializer.PortfolioCreateSerializer
+
+    def get_account(self, id):
+        account = Portfolio.objects.filter(id=id).first()
+        return account if account else None
+    
+    def get(self,request, *args, **kwargs):
+        id = kwargs.get("id")
+        account = self.get_account(id)
+        if account is None:
+            return Response("Account not found",status.HTTP_404_NOT_FOUND)
+        if account.user != request.user:
+            return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+        
+        serializer = self.serializer_class(account, many=False)
+        return Response(serializer.data)
+    
+    def put(self,request, *args, **kwargs):
+        id = kwargs.get("id")
+        account = self.get_account(id)
+        if account is None:
+            return Response("Account not found",status.HTTP_404_NOT_FOUND)
+        if account.user != request.user:
+            return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+        
+        serializer = self.account_create_serializer(account, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+        return Response(serializer.data)
+    
+    def delete(self,request, *args, **kwargs):
+        id = kwargs.get("id")
+        account = self.get_account(id)
+        if account is None:
+            return Response("Account not found",status.HTTP_404_NOT_FOUND)
+        if account.user != request.user:
+            return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+        account.delete()
         return Response(None,status.HTTP_204_NO_CONTENT)
 
 

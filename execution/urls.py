@@ -17,7 +17,9 @@ urlpatterns = [
 
     ################ NEW demo account urls ########################
     path("demo/accounts/", views.DemoPorfoliosAccounts.as_view()),
+    path("live/accounts/", views.PorfoliosAccounts.as_view()),
     path("demo/account/<str:id>/", views.RetrieveSingleDemoPorfoliosAccounts.as_view()),
+    path("live/account/<str:id>/", views.RetrieveSinglePorfoliosAccounts.as_view()),
     path('demo/trade/<str:account_type>/<str:id>/', views.SingleDemoTradeAPIView.as_view()), #DONE
     # new home view
     path('demo/home/trade/<str:account_type>/<str:id>/', views.NewHome.as_view()), #done
