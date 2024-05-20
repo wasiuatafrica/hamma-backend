@@ -368,7 +368,7 @@ class WithdrawalRequest(auto_prefetch.Model):
         profile=Profile.objects.get(user__email=user.email)
         # print(profile, "jbabah")
         return profile.account_number
-    
+     
     
 class DemoAdminTransaction(auto_prefetch.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
