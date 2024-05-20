@@ -81,12 +81,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def proof_of_id(self):
         profile=Profile.objects.get(user__email=self.email)
         # print(profile, "jbabah")
-        return str(profile.proof_of_id)
+        return str(profile.proof_of_id.url) if str(profile.proof_of_id) else ""
     @property
     def proof_of_address(self):
         profile=Profile.objects.get(user__email=self.email)
         # print(profile, "jbabah")
-        return str(profile.proof_of_address)
+        return str(profile.proof_of_address.url) if str(profile.proof_of_address) else ""
     
     
 
