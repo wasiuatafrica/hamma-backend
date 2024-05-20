@@ -143,9 +143,9 @@ def is_market_open():
 
     if datetime.today().weekday() < 5:
         market_open_time = time(10, 2)
-        market_close_time = time(14, 32)
+        # market_close_time = time(14, 32)
         # market_open_time = time(7, 55)
-        # market_close_time = time(18, 31)
+        market_close_time = time(18, 31)
 
         if market_open_time <= current_time_lagos <= market_close_time:
             return True

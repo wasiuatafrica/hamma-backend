@@ -1784,6 +1784,7 @@ class UserDetails(APIView):
     def post(self, request):
         # Get the list of user IDs from the request data
         user_ids = request.data.get('user_ids', [])
+        # print(user_ids)
 
         # Fetch user details for each user ID
         users = User.objects.filter(id__in=user_ids)

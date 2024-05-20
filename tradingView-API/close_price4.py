@@ -27,6 +27,7 @@ symbols= ["ASI", "ABBEYBDS", "ACADEMY", "ACCESSCORP", "AFRIPRUD", "AFRINSURE", "
           "TRIPPLEG", "UACN", "UHOMREIT", "UNILEVER", "UBN", "UNIONDICON", "UNHOMES", "UBA", "UCAP", 
           "UNITYBNK", "UNIVINSURE", "UPL", "UPDC", "UPDCREIT", "VERITASKAP", "VFDGROUP", "VITAFOAM", 
           "WEMABANK", "ZENITHBANK"]
+# symbols = ["WEMABANK", "ZENITHBANK"]
 
 def connect_to_mongodb():
     client = MongoClient("mongodb+srv://trademql5:trademql5@trademql5.fmlxv.mongodb.net/",maxPoolSize=20,tls=True,
@@ -42,7 +43,9 @@ def write_to_mongodb(data):
 
 def calculate_volatility_momentum(data, period):
     now = datetime.now()
-    data['datetime'] = pd.to_datetime(data.index)
+    # data['datetime'] = pd.to_datetime(data.index)
+    data.loc[:, 'datetime'] = pd.to_datetime(data.index)
+
     filtered_data = data[data['datetime'] >= (now - timedelta(days=period))].copy()
     
     if len(filtered_data) < 3:
@@ -81,14 +84,45 @@ def get_data(symbol):
         data2 = last_data_dicts[-1]
         if isinstance(data2, dict):
             return data2
-
+        
+def calculate_volatility_momentum_24hr(symbol):
+    client = MongoClient("mongodb+srv://trademql5:trademql5@trademql5.fmlxv.mongodb.net/",maxPoolSize=20,tls=True,
+                             tlsAllowInvalidCertificates=True)
+    db = client["livelake3"]
+    collection = db["merged_live_price"]
+        
+    data = list(collection.find().sort([('_id', -1)]).limit(270))
+    # print(len(data ))
+    
+    if not data:
+        print(f"No data found for symbol {symbol}")
+        return None, None
+    
+    symbol_data = [entry[symbol] for entry in reversed(data) if symbol in entry]
+    
+    if not symbol_data:
+        print(f"No data found for symbol {symbol}")
+        return None, None
+    
+    df = pd.DataFrame(symbol_data)
+    # print('df',df)
+    df = df.dropna(subset=['open', 'close'])
+    
+    if df.empty:
+        return None, None
+    
+    df['returns'] = (df['close'] - df['open']) / df['open']
+    volatility = df['returns'].std() * np.sqrt(252)
+    momentum = df['returns'].mean() * 100
+    
+    return round(volatility, 2), round(momentum, 2)
 def is_market_open():
     lagos_timezone = pytz.timezone('Africa/Lagos')
     current_time_lagos = datetime.now(lagos_timezone).time()
 
     if datetime.today().weekday() < 5:
         market_open_time = time(9, 55)
-        market_close_time = time(14, 30)
+        market_close_time = time(16, 30)
 
         if market_open_time <= current_time_lagos <= market_close_time:
             return True
@@ -112,6 +146,7 @@ while True:
                     current_year = datetime.now().year
                     data_ytd = data_full[data_full.index.year == current_year]
                     vol_mom_ytd = calculate_volatility_momentum(data_ytd, len(data_ytd))
+                    vol_mom_24hr = calculate_volatility_momentum_24hr(symbol)
                     
                     data3['volatility_1week'] = vol_mom_1week[0] if vol_mom_1week else None
                     data3['momentum_1week'] = vol_mom_1week[1] if vol_mom_1week else None
@@ -121,20 +156,26 @@ while True:
                     data3['momentum_1year'] = vol_mom_1year[1] if vol_mom_1year else None
                     data3['volatility_ytd'] = vol_mom_ytd[0] if vol_mom_ytd else None
                     data3['momentum_ytd'] = vol_mom_ytd[1] if vol_mom_ytd else None
+                    data3['volatility_24hr'] = vol_mom_24hr[0] if vol_mom_24hr else None
+                    data3['momentum_24hr'] = vol_mom_24hr[1] if vol_mom_24hr else None
                 else:
                     data3['volatility_1week'] = None
                     data3['momentum_1week'] = None
-                    data3['volatility_1month'] = None
-                    data3['momentum_1month'] = None
+                    data3['volatility'] = None
+                    data3['momentum'] = None
                     data3['volatility_1year'] = None
                     data3['momentum_1year'] = None
                     data3['volatility_ytd'] = None
                     data3['momentum_ytd'] = None
+                    data3['volatility_24hr'] = None
+                    data3['momentum_24hr'] = None
 
             data1[symbol] = data3
-
+            print(data3)
+            
+        # print(data1)
         write_to_mongodb(data1)
         print("all data saved")
     else:
         print("Market closed")
-    module_time.sleep(3600)
+    module_time.sleep(300)
