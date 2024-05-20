@@ -367,7 +367,7 @@ class WithdrawalRequest(auto_prefetch.Model):
         user = self.wallet.user
         profile=Profile.objects.get(user__email=user.email)
         # print(profile, "jbabah")
-        return profile.account_number
+        return profile.account_number 
      
     
 class DemoAdminTransaction(auto_prefetch.Model):
