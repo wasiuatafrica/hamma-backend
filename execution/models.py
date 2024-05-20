@@ -251,7 +251,7 @@ class DemoCumulativeReturns(auto_prefetch.Model):
             
 
 class Portfolio(auto_prefetch.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='portfolio2')
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='portfolio2')
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     account_name= models.CharField(max_length=20, default="Live Account 1")

@@ -1884,11 +1884,11 @@ class PorfoliosAccounts(APIView):
             # print(positions)
             open_balance = sum([position.amount_invested for position in positions])
             data = {
-                "id": accounts.id,
-                'account_name':accounts.account_name,
-                "account_type":accounts.account_type,
-                "balance":accounts.balance + open_balance,
-                "user":accounts.user.id
+                "id": account.id,
+                'account_name':account.account_name,
+                "account_type":account.account_type,
+                "balance":account.balance + open_balance,
+                "user":account.user.id
             }
             live_data.append(data)
             
