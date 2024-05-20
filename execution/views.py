@@ -1877,9 +1877,9 @@ class PorfoliosAccounts(APIView):
     def get(self,request):
         
         accounts = Portfolio.objects.filter(user=request.user)
-        demo_data = []
+        live_data = []
         for account in accounts:
-            positions = Position.objects.filter(portfolio=accounts, status='open')
+            positions = Position.objects.filter(portfolio=account, status='open')
             # print(accounts.user)
             # print(positions)
             open_balance = sum([position.amount_invested for position in positions])
@@ -1890,11 +1890,11 @@ class PorfoliosAccounts(APIView):
                 "balance":accounts.balance + open_balance,
                 "user":accounts.user.id
             }
-            demo_data.append(data)
+            live_data.append(data)
             
         
         # serializer = self.serializer_class(demo_accounts, many=True)
-        return Response({"demo_accounts":demo_data})
+        return Response({"accounts":live_data})
     
     def post(self,request):
         accounts = Portfolio.objects.filter(user=request.user).count()
