@@ -51,12 +51,12 @@ class WithdrawalSerializer(serializers.ModelSerializer):
         
     
     def get_fullname(self, obj):
-        user = obj.wallet.user
+        user = obj.user
         if user:
             return user.fullname
         
     def get_user_id(self, obj):
-        user = obj.wallet.user
+        user = obj.user
         if user:
             return user.id
         
