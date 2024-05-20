@@ -167,7 +167,7 @@ class WalletWithdraw(APIView):
 
             if otp_request and self.verify_otp(otp_request, provided_token):
                 # Proceed with withdrawal request creation
-                exec_models.WithdrawalRequest.objects.create(wallet=portfolio, amount=amount)
+                exec_models.WithdrawalRequest.objects.create(user=request.user, amount=amount)
                 otp_request.used = True
                 otp_request.save()
                 save_and_send_notification(request.user.id, 'Your withdrawal is processing.')

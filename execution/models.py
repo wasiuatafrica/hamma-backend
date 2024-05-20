@@ -348,7 +348,7 @@ class CumulativeReturns(auto_prefetch.Model):
         return f"{self.user} - {self.created}"
 
 class WithdrawalRequest(auto_prefetch.Model):
-    wallet=auto_prefetch.ForeignKey(Portfolio, on_delete=models.CASCADE)
+    wallet=auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     amount = models.FloatField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True,null=True, blank=True)
     updated = models.DateTimeField(auto_now=True)

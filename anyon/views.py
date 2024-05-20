@@ -310,20 +310,20 @@ class WithdrawalView(APIView):
         
         if type == 'main':
             withdrawal= exec_models.WithdrawalRequest.objects.get(id=id)
-            wallet= Wallet.objects.get(user=withdrawal.wallet.user)
+            wallet= Wallet.objects.get(user=withdrawal.user)
             
             allowed = ['approved','rejected']
         
             if action not in allowed:
                 return Response('action must be approved or rejected')
             
-            if action == 'approved' and wallet.balance > Decimal(withdrawal.amount):
+            if action == 'approved' and wallet.balance >= Decimal(withdrawal.amount):
                 wallet.balance -= Decimal(withdrawal.amount)
                 wallet.save()
                 
                 withdrawal.status = 'approved'
                 withdrawal.save()
-                activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal.wallet.user, action_type="approved_withrawal",description=f"Admin user approved withrawal.")
+                activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal.user, action_type="approved_withrawal",description=f"Admin user approved withrawal.")
                 
                 save_and_send_notification(wallet.user.id, f"Your withdrawal of {withdrawal.amount} has been approved.")
                 mail=sendMail("general/withdrawlRequestApproved.html","Payout sent",[wallet.user.email],{"first_name":wallet.user.firstname})
@@ -332,8 +332,8 @@ class WithdrawalView(APIView):
                 
                 data = {
                     'id':withdrawal.id,
-                    'fullname':withdrawal.wallet.user.fullname,
-                    'user_id':withdrawal.wallet.user.id,
+                    'fullname':withdrawal.user.fullname,
+                    'user_id':withdrawal.user.id,
                     'amount':withdrawal.amount,
                     'status':withdrawal.status,
                     'created':withdrawal.created,
@@ -346,14 +346,14 @@ class WithdrawalView(APIView):
             elif action == 'rejected':
                 withdrawal.status = 'rejected'
                 withdrawal.save()
-                activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal.wallet.user, action_type="rejected_withrawal",description=f"Admin user rejected withrawal.")
+                activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal.user, action_type="rejected_withrawal",description=f"Admin user rejected withrawal.")
                 save_and_send_notification(wallet.user.id, f"Your withdrawal of {withdrawal.amount} has been rejected.")
                 mail=sendMail("general/WithdrawalRequestRejected.html","Payout declined",[wallet.user.email],{"first_name":wallet.user.firstname})
                 
                 data = {
                     'id':withdrawal.id,
-                    'fullname':withdrawal.wallet.user.fullname,
-                    'user_id':withdrawal.wallet.user.id,
+                    'fullname':withdrawal.user.fullname,
+                    'user_id':withdrawal.user.id,
                     'amount':withdrawal.amount,
                     'status':withdrawal.status,
                     'created':withdrawal.created,
@@ -365,7 +365,7 @@ class WithdrawalView(APIView):
                 return Response("Insufficient fund")
         elif type == 'referral':
             withdrawal= aff_models.ReferralWithdrawalRequest.objects.get(id=id)
-            wallet = aff_models.ReferralWallet.objects.get(user=withdrawal.wallet.user)
+            wallet = aff_models.ReferralWallet.objects.get(user=withdrawal.user)
             
         # wallet = withdrawal.wallet
             allowed = ['approved','rejected']
@@ -373,13 +373,13 @@ class WithdrawalView(APIView):
             if action not in allowed:
                 return Response('action must be approved or rejected')
             
-            if action == 'approved' and wallet.balance > Decimal(withdrawal.amount):
+            if action == 'approved' and wallet.balance >= Decimal(withdrawal.amount):
                 wallet.balance -= Decimal(withdrawal.amount)
                 wallet.save()
                 
                 withdrawal.status = 'approved'
                 withdrawal.save()
-                activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal.wallet.user, action_type="approved_referral_withrawal",description=f"Admin user approved referral withrawal.")
+                activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal.user, action_type="approved_referral_withrawal",description=f"Admin user approved referral withrawal.")
                 
                 save_and_send_notification(wallet.user.id, f"Your referral withdrawal of {withdrawal.amount} has been approved.")
                 models.Transaction.objects.create(user=wallet.user, transaction_type='referral withdrawal',amount=Decimal(withdrawal.amount), status='completed')
@@ -387,8 +387,8 @@ class WithdrawalView(APIView):
                 
                 data = {
                     'id':withdrawal.id,
-                    'fullname':withdrawal.wallet.user.fullname,
-                    'user_id':withdrawal.wallet.user.id,
+                    'fullname':withdrawal.user.fullname,
+                    'user_id':withdrawal.user.id,
                     'amount':withdrawal.amount,
                     'status':withdrawal.status,
                     'created':withdrawal.created,
@@ -407,8 +407,8 @@ class WithdrawalView(APIView):
                 
                 data = {
                     'id':withdrawal.id,
-                    'fullname':withdrawal.wallet.user.fullname,
-                    'user_id':withdrawal.wallet.user.id,
+                    'fullname':withdrawal.user.fullname,
+                    'user_id':withdrawal.user.id,
                     'amount':withdrawal.amount,
                     'status':withdrawal.status,
                     'created':withdrawal.created,
