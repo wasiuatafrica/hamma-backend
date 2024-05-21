@@ -1144,24 +1144,25 @@ def last_data(last_item,symbol):
     dt = datetime.strptime(date_string, "%Y-%m-%d %H:%M")
 
     symbol_data = last_item[symbol]
-    timestamp = dt.timestamp()
-    open_value = symbol_data['open']
-    high_value = symbol_data['high'] if symbol_data.get('high') else 0
-    low_value = symbol_data['low'] if symbol_data.get('low') else 0
-    close_value = symbol_data['close']
-    volume_value = symbol_data['volume']
+    if symbol_data['high'] is not None and symbol_data['low'] is not None:
+        timestamp = dt.timestamp()
+        open_value = symbol_data['open']
+        high_value = symbol_data['high'] if symbol_data.get('high') else 0
+        low_value = symbol_data['low'] if symbol_data.get('low') else 0
+        close_value = symbol_data['close']
+        volume_value = symbol_data['volume']
 
-    new_data = {
-        "timestamp": [timestamp], 
-        "open": [open_value],  
-        "high": [high_value],  
-        "low": [low_value],  
-        "close": [close_value],  
-        "volume": [volume_value], 
-    }
+        new_data = {
+            "timestamp": [timestamp], 
+            "open": [open_value],  
+            "high": [high_value],  
+            "low": [low_value],  
+            "close": [close_value],  
+            "volume": [volume_value], 
+        }
 
-    return pd.DataFrame(new_data)
-       
+        return pd.DataFrame(new_data)
+        
         
 
 @shared_task
