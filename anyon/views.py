@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from accounts.models import Referral as acc_Referral, UserActivityLog 
 # from accounts import models 
 from accounts import serializers as acc_serializers
-import competition
 from competition.models import CompetitionPosition, CompetitionTransaction
 from . import serializers
 from rest_framework.views import APIView
@@ -22,13 +21,15 @@ from affilate import models as aff_models, serializers as aff_serializers
 from affilate.utils import get_quarter_dates,get_rank_details
 from django.db.models import Sum, F, Count, Q, ExpressionWrapper, DecimalField, Count, Subquery, Avg
 from django.db.models.functions import Coalesce, TruncDay, TruncWeek
-from datetime import datetime, timedelta
-from collections import Counter
+from datetime import datetime, timedelta, time
+
 from concurrent.futures import ThreadPoolExecutor
 from execution import models as exec_models
 from portfolio.utils import get_price
 from accounts.models import  AdminUserActivityLog 
 from competition.managers.utils import sendMail 
+from django.utils.timezone import now, make_aware
+import pytz
 
 User=get_user_model()
 
@@ -1740,8 +1741,52 @@ class AllAdminUsersActivityLogView(APIView):
 
 #         return Response({'data': data})
 
+# class UserActivityChartData(APIView):
+#     def get(self, request):
+#         active_users = UserActivityLog.objects.filter(
+#             action_type__in=["competition_open_trade", "demo_open_trade"]
+#         )
+
+#         # Group active_users by week and count number of users in each week
+#         weekly_active_users = (
+#             active_users.annotate(
+#                 week=TruncWeek('timestamp')
+#             )
+#             .values('week')
+#             .annotate(total_users=Count('user', distinct=True))
+#             .order_by('week')
+#         )
+
+#         data = []
+#         for week in weekly_active_users:
+#             week_start = week['week']
+#             week_end = week_start + timedelta(days=7)  # Monday of the next week
+
+#             # Filter active_users for the current week
+#             users_this_week = active_users.filter(timestamp__date__gte=week_start, timestamp__date__lt=week_end)
+
+#             # Count the number of trades made by each user in this week
+#             user_trade_counts = users_this_week.values('user').annotate(total_trades=Count('id'))
+
+#             # Filter users who have made 10 or more trades in this week
+#             key_active_users_this_week = user_trade_counts.filter(total_trades__gte=10)
+
+#             data.append({
+#                 'date': week_start.date(),
+#                 'active_users': week['total_users'],
+#                 'key_active_users': key_active_users_this_week.count(),
+#                 'active_user_list': list(users_this_week.values_list('user', flat=True).distinct()),
+#                 'key_active_user_list': list(key_active_users_this_week.values_list('user', flat=True).distinct())
+#             })
+
+#         return Response(data)
+
+
 class UserActivityChartData(APIView):
     def get(self, request):
+        lagos_tz = pytz.timezone('Africa/Lagos')
+        current_time = now().astimezone(lagos_tz)
+
         active_users = UserActivityLog.objects.filter(
             action_type__in=["competition_open_trade", "demo_open_trade"]
         )
@@ -1760,6 +1805,12 @@ class UserActivityChartData(APIView):
         for week in weekly_active_users:
             week_start = week['week']
             week_end = week_start + timedelta(days=7)  # Monday of the next week
+            week_friday = week_start + timedelta(days=4)  # Friday of the current week
+
+            # Skip the current week if it's not yet 3 PM on Friday Lagos time
+            if current_time.date() >= week_start.date() and current_time.date() <= week_friday.date():
+                if current_time < make_aware(datetime.combine(week_friday, time(15, 0)), lagos_tz):
+                    continue
 
             # Filter active_users for the current week
             users_this_week = active_users.filter(timestamp__date__gte=week_start, timestamp__date__lt=week_end)
@@ -1771,14 +1822,15 @@ class UserActivityChartData(APIView):
             key_active_users_this_week = user_trade_counts.filter(total_trades__gte=10)
 
             data.append({
-                'date': week_start.date(),
+                'date': week_friday.date(),  # Use Friday's date
                 'active_users': week['total_users'],
                 'key_active_users': key_active_users_this_week.count(),
                 'active_user_list': list(users_this_week.values_list('user', flat=True).distinct()),
                 'key_active_user_list': list(key_active_users_this_week.values_list('user', flat=True).distinct())
             })
-
+            
         return Response(data)
+
 
 class UserDetails(APIView):
     def post(self, request):
