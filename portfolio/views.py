@@ -8,9 +8,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 import portfolio
 from waitlist import serializer
 from .models import (Wallet, Stock,  Receipts, PayStackReceipts, Alert,WithdrawalOTPRequest,
-                     Transaction, AlertAI, AlertAITracker, Conversation, Message)
+                     Transaction, AlertAI, AlertAITracker, Conversation, Message, ButtonClick)
 from .serializers import (StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
-                          AlertSerializer,   TransactionSerializer, ConversationSerializer)
+                          AlertSerializer,   TransactionSerializer, ConversationSerializer, ButtonClickSerializer)
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view
@@ -798,3 +798,16 @@ class WithdrawLiveAccount(APIView):
 
         
         return Response({'success': 'Funds successfully transferred'}, status=status.HTTP_200_OK)
+    
+class ButtonClickCreateView(APIView):
+    
+    def post(self, request):
+        serializer = ButtonClickSerializer(data=request.data)
+        if serializer.is_valid():
+            ButtonClick.objects.create(
+                user=request.user,
+                button_name=serializer.validated_data['button_name'],
+                page=serializer.validated_data['page']
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

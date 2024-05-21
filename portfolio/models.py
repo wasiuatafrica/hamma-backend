@@ -285,3 +285,37 @@ class Message(auto_prefetch.Model):
     def __str__(self):
         return self.content
 
+# class FeedsCategory(auto_prefetch.Model):
+#     name=models.CharField(max_length=50)
+#     created=models.DateTimeField(auto_now_add=True)
+#     updated=models.DateTimeField(auto_now=True)
+
+# class DashboardFeed(auto_prefetch.Model):
+#     user= auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)
+#     topic = models.CharField(max_length=100)
+#     title = models.CharField(max_length=100)
+#     image = models.ImageField(upload_to="feed/", blank=True, null=True)
+#     image_caption = models.CharField(max_length=100, blank=True, null=True)
+#     subtitle = models.TextField(blank=True, null=True)
+#     content = models.TextField()
+#     created=models.DateTimeField(auto_now_add=True)
+#     updated = models.DateTimeField(auto_now=True)
+#     status = models.CharField(default='draft')
+#     category =  auto_prefetch.ForeignKey(FeedsCategory, on_delete=models.DO_NOTHING)
+#     agree = models.IntegerField(default=0)
+#     disagree = models.IntegerField(default=0)
+#     like = models.IntegerField(default=0)
+#     trading  = models.IntegerField(default=0)
+#     monitoring  = models.IntegerField(default=0)
+    
+#     def __str__(self):
+#         return self.title
+
+class ButtonClick(auto_prefetch.Model):
+    user= auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)
+    button_name=models.CharField(max_length=50)
+    page = models.CharField(max_length=50)
+    created=models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.button_name}"
