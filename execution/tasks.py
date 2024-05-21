@@ -1146,7 +1146,7 @@ def update_live_1m():
         print(symbol)
         df = retrieve_today_live(symbol,"1")
         # print('df',df)
-        if  df.empty:
+        if df is None or df.empty:
             continue
         
         new_data = {
@@ -1265,7 +1265,7 @@ def update_live_1d():
     
     for symbol in stocks:
         df = last_data(last_item, symbol)
-        if df.empty:
+        if df is None or df.empty:
             print(f"No data available for {symbol} today")
             continue
 
