@@ -28,14 +28,12 @@ def get_price():
     last_item = collection.find_one(sort=[('_id', -1)])
     return last_item
 
-# Function to get all items from "live_price_combined"
 def get_live():
     db = connect_to_mongodb("livelake3")
     collection = db["live_price_combined"]
     all_items = list(collection.find().sort('_id'))
     return all_items
 
-# Function to get a DataFrame with data for a specific symbol
 def get_symbol_data(all_items, symbol):
     symbol_data = []
     for item in all_items:
@@ -57,7 +55,9 @@ def safe_float(value):
 
 def get_combined():
     volatile_data = get_price()
+    print('volatile gotten')
     all_live_data = get_live()
+    print('all live gotten')
     live_data = all_live_data[-1]
 
     # Combined data storage
@@ -68,11 +68,12 @@ def get_combined():
         if symbol != '_id':
             data2 = volatile_data.get(symbol, None)  
             df = get_symbol_data(all_live_data, symbol)
+            # print(df)
             df['datetime'] = pd.to_datetime(df['datetime'])
             df = df.set_index('datetime').sort_index()
 
             # Ensure 'close' column doesn't contain None or NaN
-            df['close'] = df['close'].ffill().fillna(0)  # Forward-fill and then fill any remaining NaNs with 0
+            df['close'] = df['close'].ffill().fillna(0)  
 
             # Filter out rows where the close price remains unchanged
             df = df[df['close'].diff() != 0]
@@ -144,6 +145,7 @@ def get_combined():
                     'volatility_24hr': 0,
                     'momentum_24hr': 0,
                 }
+            print(new_data)
             combined[symbol] = new_data
     return combined
 
@@ -156,12 +158,13 @@ def write_to_mongodb(dbase,data):
 def is_market_open():
     lagos_timezone = pytz.timezone('Africa/Lagos')
     current_time_lagos = datetime.now(lagos_timezone).time()
+    # print(current_time_lagos)
 
     if datetime.today().weekday() < 5:
         market_open_time = time(10, 2)
         market_close_time = time(14, 32)
-        # market_open_time = time(7, 55)
-        # market_close_time = time(18, 31)
+        # market_open_time = time(7, 30)
+        # market_close_time = time(22, 31)
 
         if market_open_time <= current_time_lagos <= market_close_time:
             return True

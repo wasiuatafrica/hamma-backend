@@ -1046,9 +1046,9 @@ def retrieve_today_live(symbol, interval):
     collection = db["merged_live_price"]
 
     lagos_tz = pytz.timezone("Africa/Lagos")
-    today = datetime.now(lagos_tz).date()
-    # date_string = "2024-05-10"
-    # today = datetime.strptime(date_string, "%Y-%m-%d").date()
+    # today = datetime.now(lagos_tz).date()
+    date_string = "2024-05-20"
+    today = datetime.strptime(date_string, "%Y-%m-%d").date()
 
     pipeline = [
         {
@@ -1166,7 +1166,8 @@ def last_data(last_item,symbol):
     
     
     lagos_tz = pytz.timezone("Africa/Lagos")
-    today = datetime.now(lagos_tz).date()
+    # today = datetime.now(lagos_tz).date()
+    today = "2024-05-20"
     date_string = f"{today} 14:30"
     dt = datetime.strptime(date_string, "%Y-%m-%d %H:%M")
 
@@ -1290,8 +1291,8 @@ def update_live_1d():
         print('updated 5m', symbol)
         update_document(symbol, 'chartdata_1D', new_data) 
         print('updated 1D', symbol)
-        if today.weekday() == 0:  # Monday
-            update_document(symbol, 'chartdata_1W', new_data)
-            print('updated 1W', symbol)
+        # if today.weekday() == 0:  # Monday
+        update_document(symbol, 'chartdata_1W', new_data)
+        print('updated 1W', symbol)
         print('updated', symbol)
         
