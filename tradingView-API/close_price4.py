@@ -108,7 +108,7 @@ def calculate_volatility_momentum_24hr(symbol):
     # print('df',df)
     df = df.dropna(subset=['open', 'close'])
     
-    if df.empty:
+    if df is None or df.empty:
         return None, None
     
     df['returns'] = (df['close'] - df['open']) / df['open']
@@ -121,8 +121,8 @@ def is_market_open():
     current_time_lagos = datetime.now(lagos_timezone).time()
 
     if datetime.today().weekday() < 5:
-        market_open_time = time(9, 55)
-        market_close_time = time(16, 30)
+        market_open_time = time(10, 5)
+        market_close_time = time(14, 30)
 
         if market_open_time <= current_time_lagos <= market_close_time:
             return True
@@ -178,4 +178,4 @@ while True:
         print("all data saved")
     else:
         print("Market closed")
-    module_time.sleep(300)
+    module_time.sleep(900)

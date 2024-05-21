@@ -145,7 +145,7 @@ def get_combined():
                     'volatility_24hr': 0,
                     'momentum_24hr': 0,
                 }
-            print(new_data)
+            # print(new_data)
             combined[symbol] = new_data
     return combined
 
@@ -180,4 +180,4 @@ while True:
         print("Live Price merged")
     else:
         print("Market closed - Merge")
-    module_time.sleep(59)
+    module_time.sleep(58)

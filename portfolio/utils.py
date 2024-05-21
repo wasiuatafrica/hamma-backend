@@ -253,6 +253,14 @@ def get_details2(stock, stock_data):
             'volume': data.get("volume"),
             'momentum': data.get("momentum"),
             'volatility': data.get("volatility"),
+            'volatility_1week': data.get('volatility_1week'),
+            'momentum_1week': data.get('momentum_1week'),
+            'volatility_1year': data.get('volatility_1year'),
+            'momentum_1year': data.get('momentum_1year'),
+            'volatility_ytd': data.get('volatility_ytd'),
+            'momentum_ytd': data.get('momentum_ytd'),
+            'volatility_24hr': data.get('volatility_24hr'),
+            'momentum_24hr': data.get('momentum_24hr'),
         }
     else:
         # Handle the case when data is not available for the symbol
