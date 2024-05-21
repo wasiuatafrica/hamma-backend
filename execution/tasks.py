@@ -1147,8 +1147,8 @@ def last_data(last_item,symbol):
     if symbol_data['high'] is not None and symbol_data['low'] is not None:
         timestamp = dt.timestamp()
         open_value = symbol_data['open']
-        high_value = symbol_data['high'] if symbol_data.get('high') else 0
-        low_value = symbol_data['low'] if symbol_data.get('low') else 0
+        high_value = symbol_data['high'] 
+        low_value = symbol_data['low'] 
         close_value = symbol_data['close']
         volume_value = symbol_data['volume']
 
