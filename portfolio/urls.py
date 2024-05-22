@@ -21,6 +21,8 @@ urlpatterns = [
     path("fund-live/", views.FundLiveAccount.as_view()  ),
     path("withdraw-live/", views.WithdrawLiveAccount.as_view() ),
     path('button-click/', views.ButtonClickCreateView.as_view(), name='button-click-create'),
+    path('stock-watchlist/', views.StockWatchlistAPIView.as_view(), name='stock-watchlist'),
+    path('most-traded/', views.MostTradedStocks.as_view(),),
     
     
     #wallet

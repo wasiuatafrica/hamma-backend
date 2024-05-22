@@ -319,3 +319,8 @@ class ButtonClick(auto_prefetch.Model):
 
     def __str__(self):
         return f"{self.user} - {self.button_name}"
+    
+class StockWatchlist(auto_prefetch.Model):
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)
+    stock = auto_prefetch.ForeignKey(Stock, on_delete=models.CASCADE, related_name='watchlisted_by')
+    created = models.DateTimeField(auto_now_add=True)

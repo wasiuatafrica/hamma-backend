@@ -5,9 +5,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-import portfolio
-from waitlist import serializer
-from .models import (Wallet, Stock,  Receipts, PayStackReceipts, Alert,WithdrawalOTPRequest,
+
+from .models import (StockWatchlist, Wallet, Stock,  Receipts, PayStackReceipts, Alert,WithdrawalOTPRequest,
                      Transaction, AlertAI, AlertAITracker, Conversation, Message, ButtonClick)
 from .serializers import (StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
                           AlertSerializer,   TransactionSerializer, ConversationSerializer, ButtonClickSerializer)
@@ -34,6 +33,7 @@ from affilate.models import ReferralWallet,RewardActivities
 from execution import models as exec_models
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 from competition.managers.utils import sendMail 
+from django.db.models import Sum, F, Count, Q
 
 
 
@@ -284,7 +284,14 @@ class StockList(generics.ListAPIView):
         
         details = get_details3(queryset)
         symbol_data = get_symbol_data(first.symbol)
+        watchlist = [ watch.stock.symbol for watch in StockWatchlist.objects.filter(user=request.user)]
         # historical_data=get_historical_data(first.symbol)
+        for detail in details:
+            if detail['symbol'] in watchlist:
+                detail['in_watchlist'] = True
+            else:
+                detail['in_watchlist'] = False
+            
         
         response_data = {
             'stock_list': details,
@@ -811,3 +818,68 @@ class ButtonClickCreateView(APIView):
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class StockWatchlistAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        
+        queryset = Stock.objects.filter(watchlisted_by__user=request.user)
+        details = get_details3(queryset)
+
+        response_data = {
+            'watchlist': details,
+            'trending':[],
+            'analyst_pick':[],
+        
+        }
+        return Response(response_data)
+    
+    def post(self, request):
+        
+        user = request.user
+        symbol = request.data.get('symbol')
+        
+        try:
+            stock = Stock.objects.get(symbol=symbol)
+        except Stock.DoesNotExist:
+            return Response({'error': 'Stock not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        watchlist_item, created = StockWatchlist.objects.get_or_create(user=user, stock=stock)
+
+        if created:
+            return Response({'message': 'Stock added to watchlist'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'message': 'Stock is already in the watchlist'}, status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        
+        user = request.user
+        symbol = request.data.get('symbol')
+
+        try:
+            stock = Stock.objects.get(symbol=symbol)
+        except Stock.DoesNotExist:
+            return Response({'error': 'Stock not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            watchlist_item = StockWatchlist.objects.get(user=user, stock=stock)
+            watchlist_item.delete()
+            return Response({'message': 'Stock removed from watchlist'}, status=status.HTTP_204_NO_CONTENT)
+        except StockWatchlist.DoesNotExist:
+            return Response({'error': 'Stock is not in the watchlist'}, status=status.HTTP_404_NOT_FOUND)
+
+class MostTradedStocks(APIView):
+    def get(self, request):
+        most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2', filter=Q(demopositions2__status='open')) + Count('composition', filter=Q(composition__status ='open'))).filter(num_positions__gt=1).order_by('-num_positions').order_by('-num_positions')
+        most_traded_stock = most_traded_stock[:10]
+       
+                
+        details = get_details3(most_traded_stock)
+
+        response_data = {
+            'trending':details,
+        
+        }
+        return Response(response_data)
