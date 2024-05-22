@@ -1,3 +1,4 @@
+import random
 from django.db import models
 from django.db.models import Sum
 from django.contrib.auth import get_user_model
@@ -7,12 +8,16 @@ from django.utils import timezone
 import auto_prefetch
 # import models
 
-User = get_user_model()
 
 from decimal import Decimal
-import portfolio
 from portfolio.models import  Stock
+import string
 
+
+User = get_user_model()
+
+def generate_account_id():
+    return ''.join(random.choices(string.digits, k=6))
 
 
 
@@ -50,6 +55,22 @@ class CompetitionPortfolio(auto_prefetch.Model):
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     active = models.BooleanField(default=True)
     account_name= models.CharField(max_length=20, default="Competition Account 1")
+    account_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.account_id:
+            self.generate_unique_account_id()
+        super().save(*args, **kwargs)
+        
+    def generate_unique_account_id(self):
+        max_attempts = 5
+        for _ in range(max_attempts):
+            generated_id = ''.join(random.choices(string.digits, k=6))
+            if not CompetitionPortfolio.objects.filter(account_id=generated_id).exists():
+                self.account_id = generated_id
+                return
+        raise ValueError("Failed to generate a unique account ID after multiple attempts.")
+
 
     def __str__(self):
         print(self.user.clan)

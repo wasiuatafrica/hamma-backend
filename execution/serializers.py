@@ -42,7 +42,7 @@ class PortfolioCreateSerializer(serializers.ModelSerializer):
 class PortfolioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Portfolio
-        fields =  ['account_name', "user","account_type","balance", "id",]
+        fields =  ['account_name', "user","account_type","balance", "id",'account_id']
         extra_kwargs ={
             "user":{"read_only":True}
         }

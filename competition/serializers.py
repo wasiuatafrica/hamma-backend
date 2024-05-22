@@ -22,10 +22,12 @@ class CompetitionPortfolioSerializers(serializers.ModelSerializer):
         model = CompetitionPortfolio
     fields=[
         'id',
-        'account_number',
+        'account_name',
+        'account_type',
         'country',
         'email',
         'fullname',
+        'account_id'
     ]
 
 class CompetitionPortfolioCreateSerializers(serializers.ModelSerializer):

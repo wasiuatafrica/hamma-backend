@@ -1,4 +1,5 @@
 
+from nis import cat
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -6,9 +7,9 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 
-from .models import (StockWatchlist, Wallet, Stock,  Receipts, PayStackReceipts, Alert,WithdrawalOTPRequest,
+from .models import (DashboardFeed, FeedsCategory, StockWatchlist, Wallet, Stock,  Receipts, PayStackReceipts, Alert,WithdrawalOTPRequest,
                      Transaction, AlertAI, AlertAITracker, Conversation, Message, ButtonClick)
-from .serializers import (StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
+from .serializers import (DashboardFeedSerializer, FeedsCategorySerializer, StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
                           AlertSerializer,   TransactionSerializer, ConversationSerializer, ButtonClickSerializer)
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
@@ -874,3 +875,75 @@ class MostTradedStocks(APIView):
         
         }
         return Response(response_data)
+    
+class FeedView(APIView):
+    parser_classes =   [MultiPartParser, FormParser]
+    def get(self, request):
+        feed = DashboardFeed.objects.all()
+        serializer = DashboardFeedSerializer(feed, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        topic = request.data.get('topic')
+        title = request.data.get('title')
+        image = request.data.get('image')
+        content = request.data.get('content')
+        category = request.data.get('category')
+        image_caption = request.data.get('image_caption')
+        symbol = request.data.get('symbol')
+        subtitle = request.data.get('subtitle')
+        
+        stock = Stock.objects.get(symbol=symbol)
+        feedcategory = FeedsCategory .objects.get(name=category)
+        
+        feed = DashboardFeed.objects.create(
+            topic=topic,
+            title=title,
+            image=image,
+            content=content,
+            category=feedcategory,
+            image_caption=image_caption,
+            stock=stock,
+            subtitle=subtitle,
+            user=request.user
+        )
+        
+        serializer = DashboardFeedSerializer (feed)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+    def put(self, request):
+        id = request.data.get('id')
+        feed = DashboardFeed.objects.get(id=id)
+        serializer = DashboardFeedSerializer(feed, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request):
+        id = request.data.get('id')
+        feed = DashboardFeed.objects.get(id=id)
+        feed.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class PublishFeed(APIView):
+    def post(self, request):
+        id = request.data.get('id')
+        feed = DashboardFeed.objects.get(id=id)
+        feed.status = 'published'
+        feed.save()
+        return Response(status=status.HTTP_200_OK)
+    
+class UnpublishFeed(APIView):
+    def post(self, request):
+        id = request.data.get('id')
+        feed = DashboardFeed.objects.get(id=id)
+        feed.status = 'unpublished'
+        feed.save()
+        return Response(status=status.HTTP_200_OK)
+        
+class FeedCategoryView(APIView):
+    def get(self, request):
+        category = FeedsCategory.objects.all()
+        serializer = FeedsCategorySerializer(category, many=True)
+        return Response(serializer.data)

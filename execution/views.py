@@ -1824,7 +1824,8 @@ class DemoPorfoliosAccounts(APIView):
                 'account_name':competition_account.account_name,
                 "account_type":competition_account.account_type,
                 "balance":competition_account.balance + com_open_balance,
-                "user":competition_account.user.id
+                "user":competition_account.user.id,
+                "account_id": competition_account.account_id
             }
             
         else:  
@@ -1842,7 +1843,8 @@ class DemoPorfoliosAccounts(APIView):
                 'account_name':accounts.account_name,
                 "account_type":accounts.account_type,
                 "balance":accounts.balance + open_balance,
-                "user":accounts.user.id
+                "user":accounts.user.id,
+                "account_id": accounts.account_id
             }
             demo_data.append(data)
             
@@ -1888,7 +1890,8 @@ class PorfoliosAccounts(APIView):
                 'account_name':account.account_name,
                 "account_type":account.account_type,
                 "balance":account.balance + open_balance,
-                "user":account.user.id
+                "user":account.user.id,
+                "account_id":account.account_id
             }
             live_data.append(data)
             

@@ -3,52 +3,22 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from django.db.models import Sum, Avg, F
 import auto_prefetch
 from decimal import Decimal
 from datetime import datetime, timedelta
-import json
-import websockets
-import asyncio
-from django.db import close_old_connections
-from concurrent.futures import ThreadPoolExecutor
-import competition
 from portfolio.models import  Stock
-from portfolio.utils import connect_to_mongodb
 from accounts.models import Profile
 from competition.models import CompetitionPortfolio
+import random
+import string
 
 User=get_user_model()
 
-async def connect_to_websocket(stock_symbol):
-    # uri = f"ws://localhost:8765/{stock_symbol}"
-    uri = f"ws://ec2-16-16-77-63.eu-north-1.compute.amazonaws.com:8765/{stock_symbol}"
 
-    async with websockets.connect(uri) as websocket:
-        try:
-            # Sending authentication token
-            auth_token = "Ab$455"
-            await websocket.send(auth_token)
 
-            
-            data = await websocket.recv()
-            stock_data = json.loads(data)
-            print(stock_data)
-            return stock_data
-        except websockets.exceptions.ConnectionClosed as e:
-            if e.code != 1000:
-                print(f"Connection closed unexpectedly: {e}")
-                
-# def get_price(stock):
-#     return asyncio.run(connect_to_websocket(stock))
 
-# def get_price(symbol):
-#     from portfolio.utils import connect_to_mongodb
-#     db = connect_to_mongodb("stock_prices")
-#     collection = db["price_combined"]
-#     last_item = collection.find_one(sort=[('_id', -1)])
-#     # print(symbol)
-#     return last_item[symbol]
+def generate_account_id():
+    return ''.join(random.choices(string.digits, k=6))
 
 def get_price(symbol):
     from portfolio.utils import connect_to_mongodb
@@ -63,6 +33,22 @@ class DemoPortfolio(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=1000000.0)
     account_name= models.CharField(max_length=20, default="Demo Account 1")
+    account_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.account_id:
+            self.generate_unique_account_id()
+        super().save(*args, **kwargs)
+        
+    def generate_unique_account_id(self):
+        max_attempts = 5
+        for _ in range(max_attempts):
+            generated_id = ''.join(random.choices(string.digits, k=6))
+            if not CompetitionPortfolio.objects.filter(account_id=generated_id).exists():
+                self.account_id = generated_id
+                return
+        raise ValueError("Failed to generate a unique account ID after multiple attempts.")
+    
 
     def __str__(self):
         return f"{self.user}"
@@ -79,6 +65,22 @@ class Portfolio(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     account_name= models.CharField(max_length=20, default="Live Account 1")
+    account_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.account_id:
+            self.generate_unique_account_id()
+        super().save(*args, **kwargs)
+        
+    def generate_unique_account_id(self):
+        max_attempts = 5
+        for _ in range(max_attempts):
+            generated_id = ''.join(random.choices(string.digits, k=6))
+            if not CompetitionPortfolio.objects.filter(account_id=generated_id).exists():
+                self.account_id = generated_id
+                return
+        raise ValueError("Failed to generate a unique account ID after multiple attempts.")
+
 
     def __str__(self):
         return f"{self.user}"

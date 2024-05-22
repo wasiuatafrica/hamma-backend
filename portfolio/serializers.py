@@ -5,7 +5,7 @@ from rest_framework import exceptions, serializers
 UserModel = get_user_model()
 
 from rest_framework import serializers
-from .models import Wallet, Stock, Receipts, PayStackReceipts,Transaction, Alert, Conversation, ButtonClick
+from .models import DashboardFeed, FeedsCategory, Wallet, Stock, Receipts, PayStackReceipts,Transaction, Alert, Conversation, ButtonClick
 
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -58,3 +58,13 @@ class ButtonClickSerializer(serializers.ModelSerializer):
     class Meta:
         model = ButtonClick
         fields = ['button_name', 'page'] 
+        
+class DashboardFeedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DashboardFeed
+        fields = "__all__"
+        
+class FeedsCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FeedsCategory
+        fields = ['name']

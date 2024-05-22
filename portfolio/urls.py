@@ -23,9 +23,13 @@ urlpatterns = [
     path('button-click/', views.ButtonClickCreateView.as_view(), name='button-click-create'),
     path('stock-watchlist/', views.StockWatchlistAPIView.as_view(), name='stock-watchlist'),
     path('most-traded/', views.MostTradedStocks.as_view(),),
+    path("feeds/", views.FeedView.as_view() ),
+    path("feeds/publish/", views.PublishFeed.as_view() ),
+    path("feeds/unpublish/", views.UnpublishFeed.as_view() ),
+    path("feeds/category/", views.FeedCategoryView.as_view() ),
     
     
-    #wallet
+    #support
     path('wallet/support/<str:email>/', views.SupportWalletBalance.as_view()),
     path("alert/support/<str:email>/", views.SupportAlertView.as_view()),
     path('transactions/support/<str:email>/', views.SupportTransactionList.as_view()),
