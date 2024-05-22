@@ -1,2 +1,5 @@
 requests
 websocket-client
+pymongo
+pandas
+python-dotenv

@@ -1103,7 +1103,7 @@ def retrieve_today_live(symbol, interval):
         df_filtered = df.sort_values(['symbol', 'timestamp'])
         df_filtered['volume_diff'] = df_filtered['volume'].diff()
         df_filtered = df_filtered[df_filtered['volume_diff'] != 0]
-        df_filtered.drop('volume_diff', axis=1, inplace=True)
+        # df_filtered.drop('volume_diff', axis=1, inplace=True)
         
         df_filtered.dropna(inplace=True)
         
@@ -1127,7 +1127,7 @@ def update_live_1m():
             "h": df["high"].tolist(),  
             "l": df["low"].tolist(),  
             "c": df["close"].tolist(),  
-            "v": df["volume"].tolist(), 
+            "v": df["volume_diff"].tolist(), 
         }
 
 

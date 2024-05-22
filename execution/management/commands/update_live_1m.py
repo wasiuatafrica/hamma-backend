@@ -9,7 +9,7 @@ load_dotenv()
 
 MONGO_URL = os.environ.get('MONGO_STRING')
 client = MongoClient(MONGO_URL, tls=True, tlsAllowInvalidCertificates=True)
-db = client['chartdata_1D']
+db = client['chartdata_1W']
 # MongoDB connection
 def removal(symbol):
     print(symbol)

@@ -21,10 +21,8 @@ from notifications.utils import save_and_send_notification
 from django.shortcuts import get_object_or_404
 from decimal import Decimal
 from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 from lock.models import Saving
 from django.db.models import Sum
-from concurrent.futures import ThreadPoolExecutor
 from django.db import close_old_connections
 from random import randint
 from django.db.models import Exists, OuterRef
@@ -41,29 +39,22 @@ from django.db.models import Sum, F, Count, Q
 User= get_user_model()
 
 class WalletBalance(APIView):
-    # def get(self, request):
-    #     wallet = Wallet.objects.get(user=request.user)
-    #     savings = SavingsLock.objects.filter(user=request.user, status='ongoing')
-    #     if savings:
-    #         savings_amount= savings.aggregate(total_quantity=Sum('amount'))['total_quantity'] 
-    #     else:
-    #         savings_amount= Decimal(0)
-    #     data = {
-    #             'balance': wallet.balance,
-    #             'reserved':savings_amount,
-    #             'total':wallet.balance + savings_amount
-    #         }
-    #     return Response(data)
 
     def get(self, request):
-        portfolio = exec_models.Portfolio.objects.get_or_create(user=request.user)[0]
+        portfolios = exec_models.Portfolio.objects.filter(user=request.user)
         wallet = Wallet.objects.get_or_create(user=request.user)[0]
         transactions = Transaction.objects.filter(user=request.user)
-        positions= portfolio.positions2.all()
+        
+        positions_sum = 0
+        for portfolio in portfolios:
+            positions= portfolio.positions2.filter(status='open')
+            sum1 = sum([post.amount_invested for post in positions])
+            positions_sum += (sum1 + portfolio.balance)
+            
         savings = Saving.objects.filter(user=request.user,status='ongoing')
         
         deposited = sum([trans.amount for trans in transactions if trans.transaction_type == "deposit"]) - sum([trans.amount for trans in transactions if trans.transaction_type == "withdrawal"])
-        invested= sum([post.amount_invested for post in positions]) + sum([lock.amount for lock in savings])
+        invested= positions_sum + sum([lock.amount for lock in savings])
         balance = wallet.balance
         uninvested = deposited - invested
         
