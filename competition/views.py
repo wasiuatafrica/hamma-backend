@@ -18,8 +18,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 import pandas as pd
-
-import portfolio
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 from . import serializers
 from .tasks import create_returns
@@ -273,6 +273,10 @@ class ClanViewSet(viewsets.ModelViewSet):
     queryset = Clan.objects.all()
     lookup_field= 'id'
     permission_classes = (AllowAny,)
+    
+    @method_decorator(cache_page(60*5))  # Cache the response for 5 minutes
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
     
     def retrieve(self, request, id=None): 
         item = get_object_or_404(self.queryset, id=id) 

@@ -303,14 +303,35 @@ class DashboardFeed(auto_prefetch.Model):
     updated = models.DateTimeField(auto_now=True)
     status = models.CharField(default='draft', max_length=20)
     category =  auto_prefetch.ForeignKey(FeedsCategory, on_delete=models.DO_NOTHING)
-    agree = models.IntegerField(default=0)
-    disagree = models.IntegerField(default=0)
-    like = models.IntegerField(default=0)
-    trading  = models.IntegerField(default=0)
-    monitoring  = models.IntegerField(default=0)
+    # agree = models.IntegerField(default=0)
+    # disagree = models.IntegerField(default=0)
+    # like = models.IntegerField(default=0)
+    # trading  = models.IntegerField(default=0)
+    # monitoring  = models.IntegerField(default=0)
     
     def __str__(self):
         return self.title
+
+class FeedReaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    feed = models.ForeignKey(DashboardFeed, on_delete=models.CASCADE, related_name='reactions')
+    agree = models.BooleanField(default=False)
+    disagree = models.BooleanField(default=False)
+    like = models.BooleanField(default=False)
+    trading = models.BooleanField(default=False)
+    monitoring = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('user', 'feed')
+
+class UserSubscribedCategory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscribed_categories')
+    category = models.ForeignKey(FeedsCategory, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'category')
 
 class ButtonClick(auto_prefetch.Model):
     user= auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)

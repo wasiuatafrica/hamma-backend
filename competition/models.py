@@ -6,9 +6,7 @@ from datetime import date, timedelta
 from accounts.models import Profile
 from django.utils import timezone
 import auto_prefetch
-# import models
-
-
+from django.core.cache import cache
 from decimal import Decimal
 from portfolio.models import  Stock
 import string
@@ -251,6 +249,10 @@ from collections import defaultdict
 import pandas as pd
 
 def get_leaderboard():
+    # cached_leaderboard = cache.get('leaderboard')
+    # if cached_leaderboard:
+    #     return cached_leaderboard
+    
     base_query = CompetitionPortfolio.objects.filter(competition__status='current', active=True)
 
     clan_returns = defaultdict(list)
@@ -273,6 +275,8 @@ def get_leaderboard():
         })
 
     ranked_clans = sorted(ranked_clans, key=lambda x: x['cumulative_return'], reverse=True)
+    
+    # cache.set('leaderboard', ranked_clans, timeout=60*5)
 
     return ranked_clans
 

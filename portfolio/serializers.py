@@ -1,11 +1,12 @@
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions, serializers
+from django.db.models import Count, Q
 
 UserModel = get_user_model()
 
 from rest_framework import serializers
-from .models import DashboardFeed, FeedsCategory, Wallet, Stock, Receipts, PayStackReceipts,Transaction, Alert, Conversation, ButtonClick
+from .models import DashboardFeed, FeedsCategory, Wallet, Stock, Receipts, PayStackReceipts,Transaction, Alert, Conversation, ButtonClick,DashboardFeed, FeedReaction
 
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -59,10 +60,26 @@ class ButtonClickSerializer(serializers.ModelSerializer):
         model = ButtonClick
         fields = ['button_name', 'page'] 
         
+
 class DashboardFeedSerializer(serializers.ModelSerializer):
     class Meta:
         model = DashboardFeed
         fields = "__all__"
+
+    def to_representation(self, instance):
+        # Get aggregated counts for each reaction type
+        reaction_counts = instance.reactions.aggregate(
+            num_agree=Count('id', filter=Q(agree=True)),
+            num_disagree=Count('id', filter=Q(disagree=True)),
+            num_like=Count('id', filter=Q(like=True)),
+            num_trading=Count('id', filter=Q(trading=True)),
+            num_monitoring=Count('id', filter=Q(monitoring=True)),
+        )
+        # Update serializer data with aggregated counts
+        ret = super().to_representation(instance)
+        ret.update(reaction_counts)
+        return ret
+
         
 class FeedsCategorySerializer(serializers.ModelSerializer):
     class Meta:

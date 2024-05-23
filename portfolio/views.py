@@ -7,7 +7,7 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 
-from .models import (DashboardFeed, FeedsCategory, StockWatchlist, Wallet, Stock,  Receipts, PayStackReceipts, Alert,WithdrawalOTPRequest,
+from .models import (DashboardFeed, FeedReaction, FeedsCategory, StockWatchlist, UserSubscribedCategory, Wallet, Stock,  Receipts, PayStackReceipts, Alert,WithdrawalOTPRequest,
                      Transaction, AlertAI, AlertAITracker, Conversation, Message, ButtonClick)
 from .serializers import (DashboardFeedSerializer, FeedsCategorySerializer, StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
                           AlertSerializer,   TransactionSerializer, ConversationSerializer, ButtonClickSerializer)
@@ -19,7 +19,7 @@ from django.core.mail import send_mail
 from django.utils import timezone
 from .utils import get_price, get_symbol_data,get_historical_data, get_mini_data, get_details3
 from notifications.utils import save_and_send_notification
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, get_list_or_404
 from decimal import Decimal
 from django.template.loader import render_to_string
 from lock.models import Saving
@@ -947,3 +947,72 @@ class FeedCategoryView(APIView):
         category = FeedsCategory.objects.all()
         serializer = FeedsCategorySerializer(category, many=True)
         return Response(serializer.data)
+
+
+class SubscribeCategoryAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        category_name = request.data.get('category')
+        category = get_object_or_404(FeedsCategory, name=category_name)
+        if request.user.subscribed_categories.filter(category=category).exists():
+             return Response("Already Subscribed", status=status.HTTP_204_NO_CONTENT )
+        else:
+            # Subscribe to category
+            UserSubscribedCategory .objects.create(user=request.user, category=category)
+            
+            return Response({'subscribed': True}, status=status.HTTP_200_OK)
+        
+class UnsubscribeCategoryAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        category_name = request.data.get('category')
+        category = get_object_or_404(FeedsCategory, name=category_name)
+        
+        try:
+            subscription = request.user.subscribed_categories.get(category=category)
+        except UserSubscribedCategory.DoesNotExist:
+            return Response("Not Subscribed to this Category", status=status.HTTP_404_NOT_FOUND)
+        
+        # Unsubscribe from category
+        subscription.delete()
+        return Response({'unsubscribed': True}, status=status.HTTP_200_OK)
+
+class UserDashboardFeedsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        subscribed_categories = request.user.subscribed_categories.all()
+        categories =  [sub.category for sub in subscribed_categories]
+        feeds = get_list_or_404(DashboardFeed.objects.filter(category__in=categories))
+        serializer = DashboardFeedSerializer(feeds, many=True)
+        return Response(serializer.data)
+
+
+class DashboardFeedReactionAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, feed_id):
+        # Retrieve the DashboardFeed object
+        feed = get_object_or_404(DashboardFeed, pk=feed_id)
+        
+        # Extract reaction data from request
+        agree = bool(request.data.get('agree', False))
+        disagree = bool(request.data.get('disagree', False))
+        like = bool(request.data.get('like', False))
+        trading = bool(request.data.get('trading', False))
+        monitoring = bool(request.data.get('monitoring', False))
+
+        # Get or create reaction for current user and feed
+        reaction, created = FeedReaction .objects.get_or_create(user=request.user, feed=feed)
+
+        # Update reaction fields
+        reaction.agree = agree
+        reaction.disagree = disagree
+        reaction.like = like
+        reaction.trading = trading
+        reaction.monitoring = monitoring
+        reaction.save()
+
+        return Response({'message': 'Reaction updated successfully'}, status=status.HTTP_200_OK)

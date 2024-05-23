@@ -23,10 +23,14 @@ urlpatterns = [
     path('button-click/', views.ButtonClickCreateView.as_view(), name='button-click-create'),
     path('stock-watchlist/', views.StockWatchlistAPIView.as_view(), name='stock-watchlist'),
     path('most-traded/', views.MostTradedStocks.as_view(),),
-    path("feeds/", views.FeedView.as_view() ),
+    path("feeds/admin/", views.FeedView.as_view() ),
     path("feeds/publish/", views.PublishFeed.as_view() ),
     path("feeds/unpublish/", views.UnpublishFeed.as_view() ),
     path("feeds/category/", views.FeedCategoryView.as_view() ),
+    path('feeds/subscribe/', views.SubscribeCategoryAPIView.as_view(), name='subscribe_category'),
+    path('feeds/unsubscribe/', views.UnsubscribeCategoryAPIView.as_view(), name='unsubscribe_category'),
+    path('feeds/users/', views.UserDashboardFeedsAPIView.as_view(), name='user_dashboard_feeds'),
+    path('feeds/reactions/<str:feed_id>/', views.DashboardFeedReactionAPIView.as_view(), name='dashboard_feed_reaction'),
     
     
     #support

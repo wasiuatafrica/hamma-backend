@@ -1199,8 +1199,8 @@ def update_live_1d():
 
         print(new_data)
 
-        update_document(symbol, 'chartdata_5', new_data) 
-        print('updated 5m', symbol)
+        # update_document(symbol, 'chartdata_5', new_data) 
+        # print('updated 5m', symbol)
         update_document(symbol, 'chartdata_1D', new_data) 
         print('updated 1D', symbol)
         if today.weekday() == 0:  # Monday
