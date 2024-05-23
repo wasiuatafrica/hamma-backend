@@ -62,4 +62,4 @@ def get_data(symbol):
 
 
 
-get_data("CUTIX")
+get_data("CUTIX") 
