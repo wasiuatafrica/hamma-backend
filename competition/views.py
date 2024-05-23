@@ -281,7 +281,7 @@ class ClanViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, id=None): 
         item = get_object_or_404(self.queryset, id=id) 
         serializer = self.get_serializer(item) 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK) 
     
 class ClanUpdateLogoAndLInk(APIView):
     serializer_class= serializers.ClanUpdateSerializer
