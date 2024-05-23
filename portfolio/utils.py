@@ -14,10 +14,11 @@ import math
 from execution.symbol_pair import pairs
 
 User= get_user_model()
+client = MongoClient(os.environ.get("MONGO_STRING"),tls=True,
+                             tlsAllowInvalidCertificates=True)
 
 def connect_to_mongodb(db_name):
-    client = MongoClient(os.environ.get("MONGO_STRING"),tls=True,
-                             tlsAllowInvalidCertificates=True)
+    
     # db = client["anyon_orderbook"]
     db = client[db_name]
     return db

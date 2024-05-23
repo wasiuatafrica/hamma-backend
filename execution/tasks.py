@@ -33,7 +33,10 @@ from pymongo import MongoClient
 logger = get_task_logger(__name__)
 channel_layer = get_channel_layer()
 
-
+MONGO_URL = os.environ.get('MONGO_STRING')
+client = MongoClient(MONGO_URL, tls=True, tlsAllowInvalidCertificates=True)
+db_merged = client["livelake3"]
+collection_merged = db_merged["merged_live_price"]
 
 def get_equity_data(user):
         portfolio = DemoPortfolio.objects.get(user=user)
@@ -1005,11 +1008,11 @@ def competition_returns3():
 def competition_returns4():
     competition_daily_returns4()
 
-MONGO_URL = os.environ.get('MONGO_STRING')
+
 
 def update_document(symbol,dbase, new_data):
 
-    client = MongoClient(MONGO_URL)
+    
     db = client[dbase]
     if symbol not in db.list_collection_names():
         db.create_collection(symbol)
@@ -1041,9 +1044,7 @@ def update_document(symbol,dbase, new_data):
     
 def retrieve_today_live(symbol, interval):
   
-    client = MongoClient(MONGO_URL, tls=True, tlsAllowInvalidCertificates=True)
-    db = client["livelake3"]
-    collection = db["merged_live_price"]
+    
 
     lagos_tz = pytz.timezone("Africa/Lagos")
     today = datetime.now(lagos_tz).date()
@@ -1089,7 +1090,7 @@ def retrieve_today_live(symbol, interval):
     ]
 
 
-    cursor = collection.aggregate(pipeline)
+    cursor = collection_merged.aggregate(pipeline)
 
     data = list(cursor)
     
@@ -1170,10 +1171,8 @@ def update_live_1d():
     stocks = [stock.symbol for stock in Stock.objects.filter(active=True).order_by('symbol')]
     today = timezone.now()
     
-    client = MongoClient(MONGO_URL, tls=True, tlsAllowInvalidCertificates=True)
-    db = client["livelake3"]
-    collection = db["merged_live_price"]
-    last_item = collection.find_one(sort=[('_id', -1)])
+    
+    last_item = collection_merged.find_one(sort=[('_id', -1)])
     
     for symbol in stocks:
         df = last_data(last_item, symbol)

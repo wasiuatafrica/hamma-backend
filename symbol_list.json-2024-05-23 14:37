@@ -16,24 +16,24 @@
         "CSI": "FGS202518",
         "Asset": "DEBT",
         "Open": 99.9999,
-        "High": null,
-        "Low": null,
+        "High": 99.9999,
+        "Low": 99.9999,
         "Close": 99.9999,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CWG",
         "CSI": "CWG",
         "Asset": "EQUITY",
         "Open": 6.0,
-        "High": null,
-        "Low": null,
+        "High": 6.0,
+        "Low": 6.0,
         "Close": 6.0,
-        "Volume": 30260.0,
+        "Volume": 15106.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202129",
@@ -64,108 +64,108 @@
         "CSI": "FFUNCAPEBF",
         "Asset": "EQUITY",
         "Open": 109.3,
-        "High": null,
-        "Low": null,
+        "High": 109.3,
+        "Low": 109.3,
         "Close": 109.3,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "VETBANK",
         "CSI": "VETBANK",
         "Asset": "ETF",
         "Open": 8.0,
-        "High": null,
-        "Low": null,
+        "High": 8.0,
+        "Low": 8.0,
         "Close": 8.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "SKYAVN",
         "CSI": "SKYAVN",
         "Asset": "EQUITY",
         "Open": 22.95,
-        "High": null,
-        "Low": null,
-        "Close": 22.95,
-        "Volume": 1605.0,
+        "High": 20.7,
+        "Low": 20.7,
+        "Close": 20.7,
+        "Volume": 179076.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UPDCREIT",
         "CSI": "UPDCREIT",
         "Asset": "EQUITY",
-        "Open": 4.25,
-        "High": 4.0,
-        "Low": 4.0,
-        "Close": 4.0,
-        "Volume": 655309.0,
+        "Open": 4.0,
+        "High": 4.1,
+        "Low": 4.1,
+        "Close": 4.1,
+        "Volume": 513871.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202654",
         "CSI": "FGS202654",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "STDINSURE",
         "CSI": "STDINSURE [MRF]",
         "Asset": "EQUITY",
         "Open": 0.2,
-        "High": null,
-        "Low": null,
+        "High": 0.2,
+        "Low": 0.2,
         "Close": 0.2,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "EPF2026S1",
         "CSI": "EPF2026S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "DIF2032S2",
         "CSI": "DIF2032S2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG192053S3",
         "CSI": "FG192053S3",
         "Asset": "DEBT",
         "Open": 84.8639,
-        "High": null,
-        "Low": null,
+        "High": 84.8639,
+        "Low": 84.8639,
         "Close": 84.8639,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CHELLARAM [MRF]",
@@ -196,36 +196,36 @@
         "CSI": "SMURFIT [MRF]",
         "Asset": "EQUITY",
         "Open": 0.2,
-        "High": null,
-        "Low": null,
+        "High": 0.2,
+        "Low": 0.2,
         "Close": 0.2,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGSUK2033S6",
         "CSI": "FGSUK2033S6",
         "Asset": "DEBT",
-        "Open": 99.8001,
-        "High": 99.99,
-        "Low": 99.99,
-        "Close": 99.99,
-        "Volume": 1000.0,
+        "Open": 95.0,
+        "High": 95.0,
+        "Low": 95.0,
+        "Close": 95.0,
+        "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "LINKASSURE",
         "CSI": "LINKASSURE [MRF]",
         "Asset": "EQUITY",
         "Open": 0.85,
-        "High": null,
-        "Low": null,
+        "High": 0.85,
+        "Low": 0.85,
         "Close": 0.85,
-        "Volume": 195089.0,
+        "Volume": 200697.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "STUDPRESS",
@@ -241,27 +241,27 @@
     },
     {
         "Symbol": "ETI",
-        "CSI": "ETI [AWR]",
+        "CSI": "ETI",
         "Asset": "EQUITY",
         "Open": 24.05,
-        "High": null,
-        "Low": null,
+        "High": 24.05,
+        "Low": 24.05,
         "Close": 24.05,
-        "Volume": 147359.0,
+        "Volume": 347214.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FFSFSFIXED",
         "CSI": "FFSFSFIXED",
         "Asset": "EQUITY",
         "Open": 1.03,
-        "High": null,
-        "Low": null,
+        "High": 1.03,
+        "Low": 1.03,
         "Close": 1.03,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ALEX [BLS]",
@@ -280,24 +280,24 @@
         "CSI": "FFIONEVBF",
         "Asset": "EQUITY",
         "Open": 2.15,
-        "High": null,
-        "Low": null,
+        "High": 2.15,
+        "Low": 2.15,
         "Close": 2.15,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UNHOMES",
         "CSI": "UNHOMES [DIP]",
         "Asset": "EQUITY",
         "Open": 3.02,
-        "High": null,
-        "Low": null,
+        "High": 3.02,
+        "Low": 3.02,
         "Close": 3.02,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG9B2022S1",
@@ -315,25 +315,25 @@
         "Symbol": "CHAMS",
         "CSI": "CHAMS",
         "Asset": "EQUITY",
-        "Open": 1.66,
-        "High": 1.65,
-        "Low": 1.5,
+        "Open": 1.4,
+        "High": 1.54,
+        "Low": 1.4,
         "Close": 1.5,
-        "Volume": 3315703.0,
+        "Volume": 10740661.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "LEARNAFRCA",
         "CSI": "LEARNAFRCA",
         "Asset": "EQUITY",
         "Open": 3.5,
-        "High": null,
-        "Low": null,
-        "Close": 3.5,
-        "Volume": 117454.0,
+        "High": 3.52,
+        "Low": 3.52,
+        "Close": 3.52,
+        "Volume": 170380.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "COURTVILLE",
@@ -364,36 +364,36 @@
         "CSI": "FGEUR2032S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202760",
         "CSI": "FGS202760",
         "Asset": "DEBT",
         "Open": 90.0444,
-        "High": null,
-        "Low": null,
+        "High": 90.0444,
+        "Low": 90.0444,
         "Close": 90.0444,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG172045S3",
         "CSI": "FG172045S3",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "PZ [MRF]",
@@ -412,24 +412,24 @@
         "CSI": "NSLTECH [MRF]",
         "Asset": "EQUITY",
         "Open": 0.46,
-        "High": null,
-        "Low": null,
+        "High": 0.46,
+        "Low": 0.46,
         "Close": 0.46,
-        "Volume": 1050.0,
+        "Volume": 4300.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "VFDGROUP",
         "CSI": "VFDGROUP [MRF]",
         "Asset": "EQUITY",
         "Open": 202.9,
-        "High": null,
-        "Low": null,
+        "High": 202.9,
+        "Low": 202.9,
         "Close": 202.9,
-        "Volume": 127.0,
+        "Volume": 16.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202282",
@@ -496,24 +496,24 @@
         "CSI": "RAKUNITY [MRF]",
         "Asset": "EQUITY",
         "Open": 0.3,
-        "High": null,
-        "Low": null,
+        "High": 0.3,
+        "Low": 0.3,
         "Close": 0.3,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UNITYBNK",
         "CSI": "UNITYBNK [MRF]",
         "Asset": "EQUITY",
-        "Open": 1.6,
-        "High": 1.65,
-        "Low": 1.65,
-        "Close": 1.65,
-        "Volume": 918485.0,
+        "Open": 1.57,
+        "High": 1.52,
+        "Low": 1.5,
+        "Close": 1.5,
+        "Volume": 1513971.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UNIONDAC [MRF]",
@@ -532,12 +532,12 @@
         "CSI": "BAPLC",
         "Asset": "EQUITY",
         "Open": 6.25,
-        "High": null,
-        "Low": null,
+        "High": 6.25,
+        "Low": 6.25,
         "Close": 6.25,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ARBICO",
@@ -555,25 +555,25 @@
         "Symbol": "UBA",
         "CSI": "UBA",
         "Asset": "EQUITY",
-        "Open": 21.85,
-        "High": 21.4,
-        "Low": 20.5,
-        "Close": 21.1,
-        "Volume": 7748086.0,
+        "Open": 20.35,
+        "High": 20.95,
+        "Low": 18.9,
+        "Close": 20.0,
+        "Volume": 50316438.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "DAN2028S1TC",
         "CSI": "DAN2028S1TC",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202245",
@@ -604,48 +604,48 @@
         "CSI": "FG142027S1",
         "Asset": "DEBT",
         "Open": 98.16,
-        "High": null,
-        "Low": null,
+        "High": 98.16,
+        "Low": 98.16,
         "Close": 98.16,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NSP2031S2",
         "CSI": "NSP2031S2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGEUR2030S8",
         "CSI": "FGEUR2030S8",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "STACO",
         "CSI": "STACO [MRF]",
         "Asset": "EQUITY",
         "Open": 0.48,
-        "High": null,
-        "Low": null,
+        "High": 0.48,
+        "Low": 0.48,
         "Close": 0.48,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "INFINITY [BLS]",
@@ -664,12 +664,12 @@
         "CSI": "DAN2027S2TA",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MOBIL [DIP]",
@@ -736,24 +736,24 @@
         "CSI": "DAN2024S1TA",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG202027S3",
         "CSI": "FG202027S3",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NIGERINS [MRF]",
@@ -772,12 +772,12 @@
         "CSI": "FGS202532",
         "Asset": "DEBT",
         "Open": 70.0,
-        "High": null,
-        "Low": null,
+        "High": 70.0,
+        "Low": 70.0,
         "Close": 70.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UPDC [BLS]",
@@ -832,36 +832,36 @@
         "CSI": "MERVALUE",
         "Asset": "ETF",
         "Open": 315.0,
-        "High": null,
-        "Low": null,
+        "High": 315.0,
+        "Low": 315.0,
         "Close": 315.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FHSUK202801",
         "CSI": "FHSUK202801",
         "Asset": "DEBT",
         "Open": 100.0001,
-        "High": null,
-        "Low": null,
+        "High": 100.0001,
+        "Low": 100.0001,
         "Close": 100.0001,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FFUNCAPWFF",
         "CSI": "FFUNCAPWFF",
         "Asset": "EQUITY",
         "Open": 1.12,
-        "High": null,
-        "Low": null,
+        "High": 1.12,
+        "Low": 1.12,
         "Close": 1.12,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202274",
@@ -880,24 +880,24 @@
         "CSI": "FG202031S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "GUINNESS",
         "CSI": "GUINNESS",
         "Asset": "EQUITY",
-        "Open": 53.0,
-        "High": null,
-        "Low": null,
-        "Close": 53.0,
-        "Volume": 375732.0,
+        "Open": 50.2,
+        "High": 50.0,
+        "Low": 49.6,
+        "Close": 49.6,
+        "Volume": 2070715.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202303",
@@ -940,12 +940,12 @@
         "CSI": "NNFM",
         "Asset": "EQUITY",
         "Open": 48.3,
-        "High": null,
-        "Low": null,
+        "High": 48.3,
+        "Low": 48.3,
         "Close": 48.3,
-        "Volume": 3735.0,
+        "Volume": 1024.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "LOTUSHAL15",
@@ -955,21 +955,21 @@
         "High": 26.5,
         "Low": 26.5,
         "Close": 26.5,
-        "Volume": 60.0,
+        "Volume": 100.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NAB2021S1",
         "CSI": "NAB2021S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "INTBREW [BMF]",
@@ -987,13 +987,13 @@
         "Symbol": "CONHALLPLC",
         "CSI": "CONHALLPLC [MRF]",
         "Asset": "EQUITY",
-        "Open": 1.33,
-        "High": null,
-        "Low": null,
-        "Close": 1.33,
-        "Volume": 212009.0,
+        "Open": 1.3,
+        "High": 1.38,
+        "Low": 1.35,
+        "Close": 1.38,
+        "Volume": 508095.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202384",
@@ -1024,12 +1024,12 @@
         "CSI": "TRANSEXPR",
         "Asset": "EQUITY",
         "Open": 1.25,
-        "High": null,
-        "Low": null,
+        "High": 1.25,
+        "Low": 1.25,
         "Close": 1.25,
-        "Volume": 10000.0,
+        "Volume": 4000.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "PRESTIGE [BLS]",
@@ -1048,12 +1048,12 @@
         "CSI": "FG5B2028S5",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202491",
@@ -1084,12 +1084,12 @@
         "CSI": "TSL2030S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "AFRINSURE [MRF]",
@@ -1108,48 +1108,48 @@
         "CSI": "LAB2027T4",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "BUACEMENT",
         "CSI": "BUACEMENT",
         "Asset": "EQUITY",
         "Open": 143.2,
-        "High": null,
-        "Low": null,
+        "High": 143.2,
+        "Low": 143.2,
         "Close": 143.2,
-        "Volume": 2768.0,
+        "Volume": 3403.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NMR2030S1",
         "CSI": "NMR2030S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "SEPLAT",
         "CSI": "SEPLAT",
         "Asset": "EQUITY",
         "Open": 2962.2,
-        "High": null,
-        "Low": null,
-        "Close": 2962.2,
-        "Volume": 20250.0,
+        "High": 3000.0,
+        "Low": 3000.0,
+        "Close": 3000.0,
+        "Volume": 214121.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202143",
@@ -1192,24 +1192,24 @@
         "CSI": "REDSTAREX",
         "Asset": "EQUITY",
         "Open": 3.38,
-        "High": null,
-        "Low": null,
+        "High": 3.38,
+        "Low": 3.38,
         "Close": 3.38,
-        "Volume": 6450.0,
+        "Volume": 36198.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "JOHNHOLT",
         "CSI": "JOHNHOLT",
         "Asset": "EQUITY",
         "Open": 1.98,
-        "High": null,
-        "Low": null,
+        "High": 1.98,
+        "Low": 1.98,
         "Close": 1.98,
-        "Volume": 9584.0,
+        "Volume": 25206.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "THOMASWY [MRS]",
@@ -1228,12 +1228,12 @@
         "CSI": "FGEUR2038S7",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "EKOCORP [BLS]",
@@ -1252,60 +1252,60 @@
         "CSI": "FG192038S2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGEUR2025S5",
         "CSI": "FGEUR2025S5",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "AFRIPRUD",
         "CSI": "AFRIPRUD",
         "Asset": "EQUITY",
         "Open": 6.55,
-        "High": null,
-        "Low": null,
-        "Close": 6.55,
-        "Volume": 179424.0,
+        "High": 6.8,
+        "Low": 6.8,
+        "Close": 6.8,
+        "Volume": 616066.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "BETAGLAS",
         "CSI": "BETAGLAS",
         "Asset": "EQUITY",
         "Open": 59.4,
-        "High": null,
-        "Low": null,
+        "High": 59.4,
+        "Low": 59.4,
         "Close": 59.4,
-        "Volume": 9923.0,
+        "Volume": 6682.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG162049S2",
         "CSI": "FG162049S2",
         "Asset": "DEBT",
         "Open": 95.0001,
-        "High": null,
-        "Low": null,
+        "High": 95.0001,
+        "Low": 95.0001,
         "Close": 95.0001,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ROYALEX [MRF]",
@@ -1324,36 +1324,36 @@
         "CSI": "IAO2026S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202427",
         "CSI": "FGS202427",
         "Asset": "DEBT",
         "Open": 80.0,
-        "High": null,
-        "Low": null,
+        "High": 80.0,
+        "Low": 80.0,
         "Close": 80.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "WAPCO",
         "CSI": "WAPCO",
         "Asset": "EQUITY",
-        "Open": 33.5,
-        "High": 33.8,
-        "Low": 33.8,
-        "Close": 33.8,
-        "Volume": 1710531.0,
+        "Open": 35.0,
+        "High": 35.0,
+        "Low": 35.0,
+        "Close": 35.0,
+        "Volume": 603256.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "AFRIPRUD [MRF]",
@@ -1372,36 +1372,36 @@
         "CSI": "FGS202545",
         "Asset": "DEBT",
         "Open": 85.0,
-        "High": null,
-        "Low": null,
+        "High": 85.0,
+        "Low": 85.0,
         "Close": 85.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "TRANSPOWER",
         "CSI": "TRANSPOWER",
         "Asset": "EQUITY",
         "Open": 373.9,
-        "High": null,
-        "Low": null,
+        "High": 373.9,
+        "Low": 373.9,
         "Close": 373.9,
-        "Volume": 55384.0,
+        "Volume": 42696.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CAVERTON",
         "CSI": "CAVERTON [MRF]",
         "Asset": "EQUITY",
-        "Open": 1.42,
-        "High": null,
-        "Low": null,
-        "Close": 1.42,
-        "Volume": 38529.0,
+        "Open": 1.3,
+        "High": 1.4,
+        "Low": 1.3,
+        "Close": 1.4,
+        "Volume": 656484.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202307",
@@ -1420,48 +1420,48 @@
         "CSI": "NIDF",
         "Asset": "EQUITY",
         "Open": 114.0,
-        "High": null,
-        "Low": null,
+        "High": 114.0,
+        "Low": 114.0,
         "Close": 114.0,
-        "Volume": 551.0,
+        "Volume": 2147.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CAPOIL",
         "CSI": "CAPOIL [MRF]",
         "Asset": "EQUITY",
         "Open": 0.2,
-        "High": null,
-        "Low": null,
+        "High": 0.2,
+        "Low": 0.2,
         "Close": 0.2,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "GTCO",
         "CSI": "GTCO",
         "Asset": "EQUITY",
-        "Open": 39.9,
-        "High": 39.0,
-        "Low": 37.5,
-        "Close": 39.0,
-        "Volume": 2967879.0,
+        "Open": 38.0,
+        "High": 38.0,
+        "Low": 37.0,
+        "Close": 37.0,
+        "Volume": 38543724.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ETRANZACT",
         "CSI": "ETRANZACT [BLS]",
         "Asset": "EQUITY",
         "Open": 5.6,
-        "High": null,
-        "Low": null,
+        "High": 5.6,
+        "Low": 5.6,
         "Close": 5.6,
-        "Volume": 20969.0,
+        "Volume": 302231.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ROADS [DIP]",
@@ -1492,24 +1492,24 @@
         "CSI": "FGS202547",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "VETINDETF",
         "CSI": "VETINDETF",
         "Asset": "ETF",
         "Open": 48.0,
-        "High": null,
-        "Low": null,
+        "High": 48.0,
+        "Low": 48.0,
         "Close": 48.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UNIVINSURE [MRF]",
@@ -1540,36 +1540,36 @@
         "CSI": "IMG",
         "Asset": "EQUITY",
         "Open": 12.4,
-        "High": null,
-        "Low": null,
+        "High": 12.4,
+        "Low": 12.4,
         "Close": 12.4,
-        "Volume": 76533.0,
+        "Volume": 18600.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "AXA2027S1",
         "CSI": "AXA2027S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGSUK2032S5",
         "CSI": "FGSUK2032S5",
         "Asset": "DEBT",
         "Open": 106.8493,
-        "High": null,
-        "Low": null,
+        "High": 106.8493,
+        "Low": 106.8493,
         "Close": 106.8493,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MULTITREX [DIP]",
@@ -1588,24 +1588,24 @@
         "CSI": "RONCHESS",
         "Asset": "EQUITY",
         "Open": 81.0,
-        "High": null,
-        "Low": null,
+        "High": 81.0,
+        "Low": 81.0,
         "Close": 81.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "TANTALIZER",
         "CSI": "TANTALIZER",
         "Asset": "EQUITY",
-        "Open": 0.5,
-        "High": 0.5,
-        "Low": 0.46,
-        "Close": 0.47,
-        "Volume": 1866632.0,
+        "Open": 0.54,
+        "High": 0.54,
+        "Low": 0.49,
+        "Close": 0.49,
+        "Volume": 409008.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ETI [MRF]",
@@ -1648,12 +1648,12 @@
         "CSI": "DAN2026S1TB",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UNHOMES [MRS]",
@@ -1684,24 +1684,24 @@
         "CSI": "ABBEYBDS [BLS]",
         "Asset": "EQUITY",
         "Open": 2.46,
-        "High": null,
-        "Low": null,
+        "High": 2.46,
+        "Low": 2.46,
         "Close": 2.46,
-        "Volume": 10860.0,
+        "Volume": 11714.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FCMB",
         "CSI": "FCMB",
         "Asset": "EQUITY",
-        "Open": 7.0,
-        "High": 7.0,
-        "Low": 6.65,
-        "Close": 6.65,
-        "Volume": 838325.0,
+        "Open": 6.8,
+        "High": 6.9,
+        "Low": 6.15,
+        "Close": 6.9,
+        "Volume": 12334270.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "JAPAULGOLD [MRF]",
@@ -1720,24 +1720,24 @@
         "CSI": "ASOSAVINGS [DIP]",
         "Asset": "EQUITY",
         "Open": 0.5,
-        "High": null,
-        "Low": null,
+        "High": 0.5,
+        "Low": 0.5,
         "Close": 0.5,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NGXGROUP",
         "CSI": "NGXGROUP",
         "Asset": "EQUITY",
-        "Open": 22.05,
-        "High": null,
-        "Low": null,
-        "Close": 22.05,
-        "Volume": 70136.0,
+        "Open": 22.1,
+        "High": 22.1,
+        "Low": 22.1,
+        "Close": 22.1,
+        "Volume": 268621.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NIG-GERMAN [DIP]",
@@ -1755,13 +1755,13 @@
         "Symbol": "SOVRENINS",
         "CSI": "SOVRENINS [MRF]",
         "Asset": "EQUITY",
-        "Open": 0.41,
-        "High": 0.38,
-        "Low": 0.37,
-        "Close": 0.37,
-        "Volume": 1007200.0,
+        "Open": 0.4,
+        "High": 0.39,
+        "Low": 0.39,
+        "Close": 0.39,
+        "Volume": 195200.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202154",
@@ -1828,24 +1828,24 @@
         "CSI": "JULI",
         "Asset": "EQUITY",
         "Open": 9.49,
-        "High": null,
-        "Low": null,
+        "High": 9.49,
+        "Low": 9.49,
         "Close": 9.49,
         "Volume": 110.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "EKOCORP",
         "CSI": "EKOCORP [BMF]",
         "Asset": "EQUITY",
         "Open": 5.79,
-        "High": null,
-        "Low": null,
+        "High": 5.79,
+        "Low": 5.79,
         "Close": 5.79,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "PLA2022SO",
@@ -1864,12 +1864,12 @@
         "CSI": "FGEUR2047S3",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "RESORTSAL [MRF]",
@@ -1888,72 +1888,72 @@
         "CSI": "FHSUK202902",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ENAMELWA",
         "CSI": "ENAMELWA",
         "Asset": "EQUITY",
         "Open": 19.3,
-        "High": null,
-        "Low": null,
+        "High": 19.3,
+        "Low": 19.3,
         "Close": 19.3,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202663",
         "CSI": "FGS202663",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "LAB2033S1",
         "CSI": "LAB2033S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202425",
         "CSI": "FGS202425",
         "Asset": "DEBT",
         "Open": 100.0002,
-        "High": null,
-        "Low": null,
+        "High": 100.0002,
+        "Low": 100.0002,
         "Close": 100.0002,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ABCTRANS",
         "CSI": "ABCTRANS",
         "Asset": "EQUITY",
         "Open": 0.65,
-        "High": null,
-        "Low": null,
+        "High": 0.65,
+        "Low": 0.65,
         "Close": 0.65,
-        "Volume": 50161.0,
+        "Volume": 117540.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MEYER [MRF]",
@@ -1972,12 +1972,12 @@
         "CSI": "FGS202528",
         "Asset": "DEBT",
         "Open": 55.0,
-        "High": null,
-        "Low": null,
+        "High": 55.0,
+        "Low": 55.0,
         "Close": 55.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MRE2023S2B",
@@ -2020,12 +2020,12 @@
         "CSI": "SB2024S1TA",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202137",
@@ -2080,12 +2080,12 @@
         "CSI": "FGS202431",
         "Asset": "DEBT",
         "Open": 85.0,
-        "High": null,
-        "Low": null,
+        "High": 85.0,
+        "Low": 85.0,
         "Close": 85.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FMN2023S2",
@@ -2116,12 +2116,12 @@
         "CSI": "DIF2029S1TA",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202131",
@@ -2140,12 +2140,12 @@
         "CSI": "FFFBNBALF",
         "Asset": "EQUITY",
         "Open": 146.14,
-        "High": null,
-        "Low": null,
+        "High": 146.14,
+        "Low": 146.14,
         "Close": 146.14,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ASOSAVINGS [MRS]",
@@ -2164,12 +2164,12 @@
         "CSI": "AVAIF",
         "Asset": "EQUITY",
         "Open": 1000000.0,
-        "High": null,
-        "Low": null,
+        "High": 1000000.0,
+        "Low": 1000000.0,
         "Close": 1000000.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": " LAB2024T3",
@@ -2211,13 +2211,13 @@
         "Symbol": "ELLAHLAKES",
         "CSI": "ELLAHLAKES",
         "Asset": "EQUITY",
-        "Open": 3.3,
-        "High": 3.2,
-        "Low": 3.05,
-        "Close": 3.2,
-        "Volume": 2273007.0,
+        "Open": 3.18,
+        "High": 3.18,
+        "Low": 3.18,
+        "Close": 3.18,
+        "Volume": 158599.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202261",
@@ -2236,12 +2236,12 @@
         "CSI": "ADV2028S1A",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202164",
@@ -2260,72 +2260,72 @@
         "CSI": "NMR2027S3",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "SCOA",
         "CSI": "SCOA",
         "Asset": "EQUITY",
         "Open": 2.15,
-        "High": null,
-        "Low": null,
+        "High": 2.15,
+        "Low": 2.15,
         "Close": 2.15,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "IKEJAHOTEL",
         "CSI": "IKEJAHOTEL",
         "Asset": "EQUITY",
-        "Open": 7.45,
-        "High": null,
-        "Low": null,
-        "Close": 7.45,
-        "Volume": 14367.0,
+        "Open": 7.3,
+        "High": 7.3,
+        "Low": 7.3,
+        "Close": 7.3,
+        "Volume": 152588.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG152025S2",
         "CSI": "FG152025S2",
         "Asset": "DEBT",
         "Open": 102.8874,
-        "High": null,
-        "Low": null,
+        "High": 102.8874,
+        "Low": 102.8874,
         "Close": 102.8874,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202406",
         "CSI": "FGS202406",
         "Asset": "DEBT",
         "Open": 98.4631,
-        "High": null,
-        "Low": null,
+        "High": 98.4631,
+        "Low": 98.4631,
         "Close": 98.4631,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ACCESSCORP",
         "CSI": "ACCESSCORP",
         "Asset": "EQUITY",
         "Open": 17.0,
-        "High": 17.25,
-        "Low": 16.9,
-        "Close": 17.0,
-        "Volume": 189773119.0,
+        "High": 17.0,
+        "Low": 16.45,
+        "Close": 16.5,
+        "Volume": 17157045.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CWG [BLS]",
@@ -2356,48 +2356,48 @@
         "CSI": "FGS202543",
         "Asset": "DEBT",
         "Open": 99.9999,
-        "High": null,
-        "Low": null,
+        "High": 99.9999,
+        "Low": 99.9999,
         "Close": 99.9999,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CHAMPION",
         "CSI": "CHAMPION [BLS]",
         "Asset": "EQUITY",
-        "Open": 3.3,
-        "High": 3.05,
-        "Low": 2.97,
-        "Close": 2.97,
-        "Volume": 831043.0,
+        "Open": 2.97,
+        "High": 3.0,
+        "Low": 3.0,
+        "Close": 3.0,
+        "Volume": 533462.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG7B2030S3",
         "CSI": "FG7B2030S3",
         "Asset": "DEBT",
         "Open": 70.5001,
-        "High": null,
-        "Low": null,
+        "High": 70.5001,
+        "Low": 70.5001,
         "Close": 70.5001,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "LASUK2030S2",
         "CSI": "LASUK2030S2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "BUAFOODS [BLS]",
@@ -2416,72 +2416,72 @@
         "CSI": "SIM2025S2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGSUK2025S2",
         "CSI": "FGSUK2025S2",
         "Asset": "DEBT",
-        "Open": 94.0,
-        "High": null,
-        "Low": null,
-        "Close": 94.0,
-        "Volume": 0.0,
+        "Open": 90.0,
+        "High": 95.0,
+        "Low": 95.0,
+        "Close": 95.0,
+        "Volume": 1000.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "TRIPPLEG",
         "CSI": "TRIPPLEG",
         "Asset": "EQUITY",
         "Open": 4.13,
-        "High": null,
-        "Low": null,
+        "High": 4.13,
+        "Low": 4.13,
         "Close": 4.13,
-        "Volume": 2000.0,
+        "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "STERLINGNG",
         "CSI": "STERLINGNG [MRF]",
         "Asset": "EQUITY",
-        "Open": 4.48,
-        "High": null,
-        "Low": null,
-        "Close": 4.48,
-        "Volume": 622244.0,
+        "Open": 4.25,
+        "High": 4.28,
+        "Low": 4.07,
+        "Close": 4.08,
+        "Volume": 3606060.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "SFSREIT",
         "CSI": "SFSREIT",
         "Asset": "EQUITY",
         "Open": 101.35,
-        "High": null,
-        "Low": null,
+        "High": 101.35,
+        "Low": 101.35,
         "Close": 101.35,
-        "Volume": 0.0,
+        "Volume": 14.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202636",
         "CSI": "FGS202636",
         "Asset": "DEBT",
         "Open": 100.0001,
-        "High": null,
-        "Low": null,
+        "High": 100.0001,
+        "Low": 100.0001,
         "Close": 100.0001,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CAPHOTEL",
@@ -2499,25 +2499,25 @@
         "Symbol": "WAPIC",
         "CSI": "WAPIC [MRF]",
         "Asset": "EQUITY",
-        "Open": 0.65,
-        "High": null,
-        "Low": null,
+        "Open": 0.69,
+        "High": 0.65,
+        "Low": 0.65,
         "Close": 0.65,
-        "Volume": 251698.0,
+        "Volume": 1057907.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ETERNA",
         "CSI": "ETERNA",
         "Asset": "EQUITY",
         "Open": 11.15,
-        "High": null,
-        "Low": null,
+        "High": 11.15,
+        "Low": 11.15,
         "Close": 11.15,
-        "Volume": 167170.0,
+        "Volume": 92625.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202411",
@@ -2535,13 +2535,13 @@
         "Symbol": "CILEASING",
         "CSI": "CILEASING [MRF]",
         "Asset": "EQUITY",
-        "Open": 3.47,
-        "High": 3.13,
-        "Low": 3.13,
-        "Close": 3.13,
-        "Volume": 383446.0,
+        "Open": 3.13,
+        "High": 3.44,
+        "Low": 3.1,
+        "Close": 3.44,
+        "Volume": 1625723.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "EVANSMED [DIP]",
@@ -2560,24 +2560,24 @@
         "CSI": "EUNISELL",
         "Asset": "EQUITY",
         "Open": 3.2,
-        "High": null,
-        "Low": null,
+        "High": 3.2,
+        "Low": 3.2,
         "Close": 3.2,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202539",
         "CSI": "FGS202539",
         "Asset": "DEBT",
         "Open": 90.0,
-        "High": null,
-        "Low": null,
+        "High": 90.0,
+        "Low": 90.0,
         "Close": 90.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FCM2021S1",
@@ -2596,24 +2596,24 @@
         "CSI": "VANLEER [MRF]",
         "Asset": "EQUITY",
         "Open": 5.45,
-        "High": null,
-        "Low": null,
+        "High": 5.45,
+        "Low": 5.45,
         "Close": 5.45,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "STANBICETF30",
         "CSI": "STANBICETF30",
         "Asset": "ETF",
-        "Open": 596.69,
-        "High": 625.93,
-        "Low": 537.03,
-        "Close": 537.03,
-        "Volume": 819.0,
+        "Open": 500.0,
+        "High": 549.0,
+        "Low": 490.0,
+        "Close": 548.98,
+        "Volume": 294.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ZAM2022S1",
@@ -2631,37 +2631,37 @@
         "Symbol": "MAYBAKER",
         "CSI": "MAYBAKER",
         "Asset": "EQUITY",
-        "Open": 7.0,
-        "High": null,
-        "Low": null,
-        "Close": 7.0,
-        "Volume": 112605.0,
+        "Open": 6.7,
+        "High": 6.7,
+        "Low": 6.7,
+        "Close": 6.7,
+        "Volume": 61613.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202659",
         "CSI": "FGS202659",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "AFROMEDIA",
         "CSI": "AFROMEDIA [MRF]",
         "Asset": "EQUITY",
         "Open": 0.24,
-        "High": null,
-        "Low": null,
+        "High": 0.24,
+        "Low": 0.24,
         "Close": 0.24,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "BOCGAS",
@@ -2692,48 +2692,48 @@
         "CSI": "FGS202524",
         "Asset": "DEBT",
         "Open": 100.0001,
-        "High": null,
-        "Low": null,
+        "High": 100.0001,
+        "Low": 100.0001,
         "Close": 100.0001,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MULTIVERSE",
         "CSI": "MULTIVERSE",
         "Asset": "EQUITY",
-        "Open": 13.75,
-        "High": null,
-        "Low": null,
-        "Close": 13.75,
-        "Volume": 50.0,
+        "Open": 12.4,
+        "High": 12.4,
+        "Low": 12.4,
+        "Close": 12.4,
+        "Volume": 1285.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGEUR2033S11",
         "CSI": "FGEUR2033S11",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MRS",
         "CSI": "MRS",
         "Asset": "EQUITY",
         "Open": 135.0,
-        "High": null,
-        "Low": null,
+        "High": 135.0,
+        "Low": 135.0,
         "Close": 135.0,
-        "Volume": 43301.0,
+        "Volume": 55408.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "GOLDBREW [BRS]",
@@ -2752,72 +2752,72 @@
         "CSI": "FGS202758",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG182032S2",
         "CSI": "FG182032S2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "LAB2031S4",
         "CSI": "LAB2031S4",
         "Asset": "DEBT",
         "Open": 99.9636,
-        "High": null,
-        "Low": null,
+        "High": 99.9636,
+        "Low": 99.9636,
         "Close": 99.9636,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FFFRONTIER",
         "CSI": "FFFRONTIER",
         "Asset": "EQUITY",
         "Open": 121.43,
-        "High": null,
-        "Low": null,
+        "High": 121.43,
+        "Low": 121.43,
         "Close": 121.43,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "OSB2020S2",
         "CSI": "OSB2020S2",
         "Asset": "DEBT",
         "Open": 100.0001,
-        "High": null,
-        "Low": null,
+        "High": 100.0001,
+        "Low": 100.0001,
         "Close": 100.0001,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "TOURIST",
         "CSI": "TOURIST [MRF]",
         "Asset": "EQUITY",
         "Open": 2.5,
-        "High": null,
-        "Low": null,
+        "High": 2.5,
+        "Low": 2.5,
         "Close": 2.5,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202265",
@@ -2835,25 +2835,25 @@
         "Symbol": "INTENEGINS",
         "CSI": "INTENEGINS [RST]",
         "Asset": "EQUITY",
-        "Open": 1.65,
-        "High": null,
-        "Low": null,
-        "Close": 1.65,
-        "Volume": 606.0,
+        "Open": 1.41,
+        "High": 1.41,
+        "Low": 1.41,
+        "Close": 1.41,
+        "Volume": 5566.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FMN2025S3B",
         "CSI": "FMN2025S3B",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202301",
@@ -2872,12 +2872,12 @@
         "CSI": "FGS202657",
         "Asset": "DEBT",
         "Open": 70.0,
-        "High": null,
-        "Low": null,
+        "High": 70.0,
+        "Low": 70.0,
         "Close": 70.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ARBICO [BLS]",
@@ -2895,13 +2895,13 @@
         "Symbol": "RTBRISCOE",
         "CSI": "RTBRISCOE",
         "Asset": "EQUITY",
-        "Open": 0.52,
-        "High": 0.48,
+        "Open": 0.47,
+        "High": 0.47,
         "Low": 0.47,
         "Close": 0.47,
-        "Volume": 2541220.0,
+        "Volume": 157782.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202263",
@@ -2931,13 +2931,13 @@
         "Symbol": "TRANSCOHOT",
         "CSI": "TRANSCOHOT",
         "Asset": "EQUITY",
-        "Open": 92.0,
+        "Open": 94.79,
         "High": 94.79,
         "Low": 94.79,
         "Close": 94.79,
-        "Volume": 220129.0,
+        "Volume": 3773.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202398",
@@ -2956,24 +2956,24 @@
         "CSI": "EKI2020S2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "LMS2025S2",
         "CSI": "LMS2025S2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "SKYAVN [BLS]",
@@ -2991,25 +2991,25 @@
         "Symbol": "OMATEK",
         "CSI": "OMATEK [RST]",
         "Asset": "EQUITY",
-        "Open": 0.63,
-        "High": null,
-        "Low": null,
-        "Close": 0.63,
-        "Volume": 102055.0,
+        "Open": 0.7,
+        "High": 0.66,
+        "Low": 0.64,
+        "Close": 0.66,
+        "Volume": 1580681.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG132026S1",
         "CSI": "FG132026S1",
         "Asset": "DEBT",
         "Open": 100.08,
-        "High": null,
-        "Low": null,
+        "High": 100.08,
+        "Low": 100.08,
         "Close": 100.08,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "GUINEAINS [MRF]",
@@ -3028,24 +3028,24 @@
         "CSI": "DANGCEM",
         "Asset": "EQUITY",
         "Open": 656.7,
-        "High": null,
-        "Low": null,
+        "High": 656.7,
+        "Low": 656.7,
         "Close": 656.7,
-        "Volume": 13825.0,
+        "Volume": 17399.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FMN2026S1",
         "CSI": "FMN2026S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202375",
@@ -3063,13 +3063,13 @@
         "Symbol": "LASACO",
         "CSI": "LASACO [MRF]",
         "Asset": "EQUITY",
-        "Open": 2.04,
-        "High": null,
-        "Low": null,
-        "Close": 2.04,
-        "Volume": 114100.0,
+        "Open": 2.03,
+        "High": 2.03,
+        "Low": 2.03,
+        "Close": 2.03,
+        "Volume": 63850.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202392",
@@ -3088,12 +3088,12 @@
         "CSI": "FGEUR2027S2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "VALUEFUND",
@@ -3112,72 +3112,72 @@
         "CSI": "BUAFOODS",
         "Asset": "EQUITY",
         "Open": 379.9,
-        "High": null,
-        "Low": null,
+        "High": 379.9,
+        "Low": 379.9,
         "Close": 379.9,
-        "Volume": 12906.0,
+        "Volume": 6680.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "DEAPCAP",
         "CSI": "DEAPCAP [DWL]",
         "Asset": "EQUITY",
-        "Open": 0.53,
-        "High": 0.49,
-        "Low": 0.48,
-        "Close": 0.48,
-        "Volume": 512750.0,
+        "Open": 0.4,
+        "High": 0.4,
+        "Low": 0.4,
+        "Close": 0.4,
+        "Volume": 108030.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CSF2025S1",
         "CSI": "CSF2025S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FFLEGYUBFD",
         "CSI": "FFLEGYUBFD",
         "Asset": "EQUITY",
         "Open": 1.04,
-        "High": null,
-        "Low": null,
+        "High": 1.04,
+        "Low": 1.04,
         "Close": 1.04,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MCNICHOLS",
         "CSI": "MCNICHOLS",
         "Asset": "EQUITY",
-        "Open": 1.0,
+        "Open": 1.1,
         "High": 1.1,
         "Low": 1.1,
         "Close": 1.1,
-        "Volume": 1011936.0,
+        "Volume": 36000.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MULTITREX",
         "CSI": "MULTITREX [DWL]",
         "Asset": "EQUITY",
         "Open": 0.36,
-        "High": null,
-        "Low": null,
+        "High": 0.36,
+        "Low": 0.36,
         "Close": 0.36,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "SMURFIT [MRF]",
@@ -3208,36 +3208,36 @@
         "CSI": "UNILEVER",
         "Asset": "EQUITY",
         "Open": 15.0,
-        "High": 15.1,
+        "High": 15.0,
         "Low": 15.0,
         "Close": 15.0,
-        "Volume": 677601.0,
+        "Volume": 147180.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202495",
         "CSI": "FGS202495",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FBNH",
         "CSI": "FBNH [MRF]",
         "Asset": "EQUITY",
-        "Open": 22.95,
-        "High": 22.9,
-        "Low": 22.9,
-        "Close": 22.9,
-        "Volume": 3762718.0,
+        "Open": 22.55,
+        "High": 22.55,
+        "Low": 21.95,
+        "Close": 22.55,
+        "Volume": 3522189.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "INITSPLC",
@@ -3268,12 +3268,12 @@
         "CSI": "FGS202541",
         "Asset": "DEBT",
         "Open": 99.9999,
-        "High": null,
-        "Low": null,
+        "High": 99.9999,
+        "Low": 99.9999,
         "Close": 99.9999,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CILEASING [MRF]",
@@ -3292,36 +3292,36 @@
         "CSI": "FG152028S1",
         "Asset": "DEBT",
         "Open": 97.9999,
-        "High": null,
-        "Low": null,
+        "High": 97.9999,
+        "Low": 97.9999,
         "Close": 97.9999,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NOTORE",
         "CSI": "NOTORE [BLS]",
         "Asset": "EQUITY",
         "Open": 62.5,
-        "High": null,
-        "Low": null,
+        "High": 62.5,
+        "Low": 62.5,
         "Close": 62.5,
-        "Volume": 0.0,
+        "Volume": 2050.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "VERITASKAP",
         "CSI": "VERITASKAP [MRF]",
         "Asset": "EQUITY",
-        "Open": 0.57,
-        "High": 0.57,
+        "Open": 0.56,
+        "High": 0.59,
         "Low": 0.56,
-        "Close": 0.56,
-        "Volume": 1629427.0,
+        "Close": 0.59,
+        "Volume": 6523287.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "TRN2022S1",
@@ -3340,24 +3340,24 @@
         "CSI": "SUNUASSUR [MRF]",
         "Asset": "EQUITY",
         "Open": 1.25,
-        "High": null,
-        "Low": null,
+        "High": 1.25,
+        "Low": 1.25,
         "Close": 1.25,
-        "Volume": 12058.0,
+        "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "TAJSUKS1",
         "CSI": "TAJSUKS1",
         "Asset": "DEBT",
         "Open": 99.9901,
-        "High": null,
-        "Low": null,
+        "High": 99.9901,
+        "Low": 99.9901,
         "Close": 99.9901,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "OYB2022S1",
@@ -3387,13 +3387,13 @@
         "Symbol": "HONYFLOUR",
         "CSI": "HONYFLOUR [BLS]",
         "Asset": "EQUITY",
-        "Open": 3.31,
-        "High": 3.15,
-        "Low": 3.1,
-        "Close": 3.1,
-        "Volume": 687539.0,
+        "Open": 3.1,
+        "High": 3.0,
+        "Low": 3.0,
+        "Close": 3.0,
+        "Volume": 855708.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202305",
@@ -3412,12 +3412,12 @@
         "CSI": "DAN2032S2TC",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UBN [BLS]",
@@ -3448,72 +3448,72 @@
         "CSI": "BAU2021S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NESTLE",
         "CSI": "NESTLE",
         "Asset": "EQUITY",
-        "Open": 820.0,
-        "High": null,
-        "Low": null,
-        "Close": 820.0,
-        "Volume": 74216.0,
+        "Open": 900.0,
+        "High": 900.0,
+        "Low": 900.0,
+        "Close": 900.0,
+        "Volume": 2805.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "STANBIC",
         "CSI": "STANBIC",
         "Asset": "EQUITY",
         "Open": 52.0,
-        "High": null,
-        "Low": null,
+        "High": 52.0,
+        "Low": 52.0,
         "Close": 52.0,
-        "Volume": 44133.0,
+        "Volume": 5044184.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "DIF2032S1TB",
         "CSI": "DIF2032S1TB",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "THOMASWY",
         "CSI": "THOMASWY [RST]",
         "Asset": "EQUITY",
         "Open": 1.77,
-        "High": null,
-        "Low": null,
+        "High": 1.77,
+        "Low": 1.77,
         "Close": 1.77,
-        "Volume": 32500.0,
+        "Volume": 43542.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "VITAFOAM",
         "CSI": "VITAFOAM",
         "Asset": "EQUITY",
         "Open": 17.0,
-        "High": null,
-        "Low": null,
+        "High": 17.0,
+        "Low": 17.0,
         "Close": 17.0,
-        "Volume": 21878.0,
+        "Volume": 77974.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202127",
@@ -3532,132 +3532,132 @@
         "CSI": "UPL",
         "Asset": "EQUITY",
         "Open": 2.15,
-        "High": null,
-        "Low": null,
+        "High": 2.15,
+        "Low": 2.15,
         "Close": 2.15,
-        "Volume": 29347.0,
+        "Volume": 646789.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FFUNCAPEQF",
         "CSI": "FFUNCAPEQF",
         "Asset": "EQUITY",
         "Open": 0.72,
-        "High": null,
-        "Low": null,
+        "High": 0.72,
+        "Low": 0.72,
         "Close": 0.72,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGEUR2049S4",
         "CSI": "FGEUR2049S4",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202644",
         "CSI": "FGS202644",
         "Asset": "DEBT",
         "Open": 98.9585,
-        "High": null,
-        "Low": null,
+        "High": 98.9585,
+        "Low": 98.9585,
         "Close": 98.9585,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "DUNLOP",
         "CSI": "DUNLOP [MRS]",
         "Asset": "EQUITY",
         "Open": 0.2,
-        "High": null,
-        "Low": null,
+        "High": 0.2,
+        "Low": 0.2,
         "Close": 0.2,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG162029S1",
         "CSI": "FG162029S1",
         "Asset": "DEBT",
-        "Open": 144.9999,
-        "High": null,
-        "Low": null,
-        "Close": 144.9999,
+        "Open": 40.0,
+        "High": 40.0,
+        "Low": 40.0,
+        "Close": 40.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UNIVINSURE",
         "CSI": "UNIVINSURE",
         "Asset": "EQUITY",
-        "Open": 0.35,
+        "Open": 0.36,
         "High": 0.36,
-        "Low": 0.34,
+        "Low": 0.33,
         "Close": 0.35,
-        "Volume": 7372264.0,
+        "Volume": 11117509.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202512",
         "CSI": "FGS202512",
         "Asset": "DEBT",
         "Open": 60.0,
-        "High": null,
-        "Low": null,
+        "High": 60.0,
+        "Low": 60.0,
         "Close": 60.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202634",
         "CSI": "FGS202634",
         "Asset": "DEBT",
         "Open": 60.0,
-        "High": null,
-        "Low": null,
+        "High": 60.0,
+        "Low": 60.0,
         "Close": 60.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGSUK2024S1",
         "CSI": "FGSUK2024S1",
         "Asset": "DEBT",
-        "Open": 92.3012,
-        "High": null,
-        "Low": null,
-        "Close": 92.3012,
+        "Open": 95.0,
+        "High": 95.0,
+        "Low": 95.0,
+        "Close": 95.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FID2031S1",
         "CSI": "FID2031S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ABBEYBDS [BLS]",
@@ -3688,12 +3688,12 @@
         "CSI": "OKOMUOIL",
         "Asset": "EQUITY",
         "Open": 255.7,
-        "High": null,
-        "Low": null,
+        "High": 255.7,
+        "Low": 255.7,
         "Close": 255.7,
-        "Volume": 9259.0,
+        "Volume": 52587.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CAPOIL [MRF]",
@@ -3712,36 +3712,36 @@
         "CSI": "GEREGU",
         "Asset": "EQUITY",
         "Open": 1000.0,
-        "High": null,
-        "Low": null,
+        "High": 1000.0,
+        "Low": 1000.0,
         "Close": 1000.0,
-        "Volume": 794.0,
+        "Volume": 1107.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGEUR2031S6",
         "CSI": "FGEUR2031S6",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MANSARD",
         "CSI": "MANSARD [MRF]",
         "Asset": "EQUITY",
-        "Open": 5.3,
-        "High": 5.19,
-        "Low": 5.19,
-        "Close": 5.19,
-        "Volume": 2073711.0,
+        "Open": 5.07,
+        "High": 5.2,
+        "Low": 4.85,
+        "Close": 5.0,
+        "Volume": 4210960.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202259",
@@ -3760,24 +3760,24 @@
         "CSI": "FGS202551",
         "Asset": "DEBT",
         "Open": 55.0,
-        "High": null,
-        "Low": null,
+        "High": 55.0,
+        "Low": 55.0,
         "Close": 55.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "KGB2022S2",
         "CSI": "KGB2022S2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MULTITREX [BMR]",
@@ -3796,24 +3796,24 @@
         "CSI": "FGS202497",
         "Asset": "DEBT",
         "Open": 93.0,
-        "High": null,
-        "Low": null,
+        "High": 93.0,
+        "Low": 93.0,
         "Close": 93.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NAHCO",
         "CSI": "NAHCO",
         "Asset": "EQUITY",
-        "Open": 30.9,
+        "Open": 31.0,
         "High": 31.0,
         "Low": 31.0,
         "Close": 31.0,
-        "Volume": 3065219.0,
+        "Volume": 552804.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202394",
@@ -3832,12 +3832,12 @@
         "CSI": "PRESCO",
         "Asset": "EQUITY",
         "Open": 267.2,
-        "High": null,
-        "Low": null,
+        "High": 267.2,
+        "Low": 267.2,
         "Close": 267.2,
-        "Volume": 54441.0,
+        "Volume": 42216.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202280",
@@ -3855,13 +3855,13 @@
         "Symbol": "FGSUK2027S3",
         "CSI": "FGSUK2027S3",
         "Asset": "DEBT",
-        "Open": 71.01,
-        "High": null,
-        "Low": null,
-        "Close": 71.01,
+        "Open": 71.0,
+        "High": 71.0,
+        "Low": 71.0,
+        "Close": 71.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "GTCO [MRF]",
@@ -3903,37 +3903,37 @@
         "Symbol": "MERGROWTH",
         "CSI": "MERGROWTH",
         "Asset": "ETF",
-        "Open": 273.0,
-        "High": 255.0,
-        "Low": 252.0,
-        "Close": 252.0,
-        "Volume": 147.0,
+        "Open": 204.2,
+        "High": 183.8,
+        "Low": 183.8,
+        "Close": 183.8,
+        "Volume": 55.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "AFRINSURE",
         "CSI": "AFRINSURE [MRF]",
         "Asset": "EQUITY",
         "Open": 0.2,
-        "High": null,
-        "Low": null,
+        "High": 0.2,
+        "Low": 0.2,
         "Close": 0.2,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "DCM2025S1",
         "CSI": "DCM2025S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UBA2021S1",
@@ -3964,12 +3964,12 @@
         "CSI": "FGS202510",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202390",
@@ -4000,12 +4000,12 @@
         "CSI": "FGS202423",
         "Asset": "DEBT",
         "Open": 103.3468,
-        "High": null,
-        "Low": null,
+        "High": 103.3468,
+        "Low": 103.3468,
         "Close": 103.3468,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202272",
@@ -4024,36 +4024,36 @@
         "CSI": "CHELLARAM",
         "Asset": "EQUITY",
         "Open": 4.1,
-        "High": null,
-        "Low": null,
+        "High": 4.1,
+        "Low": 4.1,
         "Close": 4.1,
-        "Volume": 300.0,
+        "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "WEMABANK",
         "CSI": "WEMABANK",
         "Asset": "EQUITY",
-        "Open": 6.85,
-        "High": 6.85,
-        "Low": 6.5,
-        "Close": 6.85,
-        "Volume": 1819932.0,
+        "Open": 6.95,
+        "High": 6.8,
+        "Low": 6.35,
+        "Close": 6.7,
+        "Volume": 4092252.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "GOLDBREW",
         "CSI": "GOLDBREW [BLS]",
         "Asset": "EQUITY",
         "Open": 3.15,
-        "High": null,
-        "Low": null,
+        "High": 3.15,
+        "Low": 3.15,
         "Close": 3.15,
-        "Volume": 201.0,
+        "Volume": 300.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202278",
@@ -4096,12 +4096,12 @@
         "CSI": "FGS202553",
         "Asset": "DEBT",
         "Open": 60.0,
-        "High": null,
-        "Low": null,
+        "High": 60.0,
+        "Low": 60.0,
         "Close": 60.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "DEAPCAP [DWL]",
@@ -4120,24 +4120,24 @@
         "CSI": "AIRTELAFRI",
         "Asset": "EQUITY",
         "Open": 2150.0,
-        "High": null,
-        "Low": null,
+        "High": 2150.0,
+        "Low": 2150.0,
         "Close": 2150.0,
-        "Volume": 144.0,
+        "Volume": 64156.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CONOIL",
         "CSI": "CONOIL [MRF]",
         "Asset": "EQUITY",
         "Open": 96.9,
-        "High": null,
-        "Low": null,
+        "High": 96.9,
+        "Low": 96.9,
         "Close": 96.9,
-        "Volume": 26166.0,
+        "Volume": 39599.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "RTBRISCOE [MRF]",
@@ -4168,36 +4168,36 @@
         "CSI": "MEDVIEWAIR [BMF]",
         "Asset": "EQUITY",
         "Open": 1.62,
-        "High": null,
-        "Low": null,
+        "High": 1.62,
+        "Low": 1.62,
         "Close": 1.62,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202640",
         "CSI": "FGS202640",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FBQ2030S2",
         "CSI": "FBQ2030S2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "BAPLC [MRF]",
@@ -4240,12 +4240,12 @@
         "CSI": "FG6B2029S5",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202383",
@@ -4264,12 +4264,12 @@
         "CSI": "FFUNCAPBLF",
         "Asset": "EQUITY",
         "Open": 1.23,
-        "High": null,
-        "Low": null,
+        "High": 1.23,
+        "Low": 1.23,
         "Close": 1.23,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CAPHOTEL [BLS]",
@@ -4300,24 +4300,24 @@
         "CSI": "PBS2026S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "DANGSUGAR",
         "CSI": "DANGSUGAR",
         "Asset": "EQUITY",
-        "Open": 40.0,
-        "High": 39.0,
-        "Low": 39.0,
-        "Close": 39.0,
-        "Volume": 757195.0,
+        "Open": 39.95,
+        "High": 39.95,
+        "Low": 39.95,
+        "Close": 39.95,
+        "Volume": 1989207.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "LAB2023S1",
@@ -4348,48 +4348,48 @@
         "CSI": "MORISON [MRF]",
         "Asset": "EQUITY",
         "Open": 4.05,
-        "High": null,
-        "Low": null,
+        "High": 4.05,
+        "Low": 4.05,
         "Close": 4.05,
-        "Volume": 0.0,
+        "Volume": 1353.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202533",
         "CSI": "FGS202533",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202526",
         "CSI": "FGS202526",
         "Asset": "DEBT",
         "Open": 70.0,
-        "High": null,
-        "Low": null,
+        "High": 70.0,
+        "Low": 70.0,
         "Close": 70.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CIL2028S2",
         "CSI": "CIL2028S2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "SIM2023S1",
@@ -4432,12 +4432,12 @@
         "CSI": "FG172050S2",
         "Asset": "DEBT",
         "Open": 104.9997,
-        "High": null,
-        "Low": null,
+        "High": 104.9997,
+        "Low": 104.9997,
         "Close": 104.9997,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UNIONDICON [BRS]",
@@ -4456,72 +4456,72 @@
         "CSI": "FGS202520",
         "Asset": "DEBT",
         "Open": 99.9999,
-        "High": null,
-        "Low": null,
+        "High": 99.9999,
+        "Low": 99.9999,
         "Close": 99.9999,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202516",
         "CSI": "FGS202516",
         "Asset": "DEBT",
         "Open": 100.63,
-        "High": null,
-        "Low": null,
+        "High": 100.63,
+        "Low": 100.63,
         "Close": 100.63,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MTNN",
         "CSI": "MTNN",
         "Asset": "EQUITY",
-        "Open": 224.0,
-        "High": null,
-        "Low": null,
-        "Close": 224.0,
-        "Volume": 457211.0,
+        "Open": 230.5,
+        "High": 230.5,
+        "Low": 230.5,
+        "Close": 230.5,
+        "Volume": 1860901.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FFLEGYEYFD",
         "CSI": "FFLEGYEYFD",
         "Asset": "EQUITY",
         "Open": 1.18,
-        "High": null,
-        "Low": null,
+        "High": 1.18,
+        "Low": 1.18,
         "Close": 1.18,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202419",
         "CSI": "FGS202419",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FIDELITYBK",
         "CSI": "FIDELITYBK",
         "Asset": "EQUITY",
-        "Open": 8.9,
-        "High": 8.9,
-        "Low": 8.6,
-        "Close": 8.7,
-        "Volume": 4611069.0,
+        "Open": 8.5,
+        "High": 8.3,
+        "Low": 7.85,
+        "Close": 8.0,
+        "Volume": 5099210.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202409",
@@ -4540,24 +4540,24 @@
         "CSI": "FGS202661",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "JAPAULGOLD",
         "CSI": "JAPAULGOLD",
         "Asset": "EQUITY",
-        "Open": 2.05,
-        "High": 1.99,
-        "Low": 1.9,
-        "Close": 1.92,
-        "Volume": 1625675.0,
+        "Open": 1.9,
+        "High": 1.85,
+        "Low": 1.71,
+        "Close": 1.74,
+        "Volume": 13998760.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202487",
@@ -4576,24 +4576,24 @@
         "CSI": "PHARMDEKO [MRF]",
         "Asset": "EQUITY",
         "Open": 1.83,
-        "High": null,
-        "Low": null,
+        "High": 1.83,
+        "Low": 1.83,
         "Close": 1.83,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UBN2029S3",
         "CSI": "UBN2029S3",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CONOIL [MRF]",
@@ -4612,12 +4612,12 @@
         "CSI": "FG6B2029S3",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202379",
@@ -4636,24 +4636,24 @@
         "CSI": "VETGOODS",
         "Asset": "ETF",
         "Open": 16.4,
-        "High": null,
-        "Low": null,
+        "High": 16.4,
+        "Low": 16.4,
         "Close": 16.4,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202404",
         "CSI": "FGS202404",
         "Asset": "DEBT",
         "Open": 71.0,
-        "High": null,
-        "Low": null,
+        "High": 71.0,
+        "Low": 71.0,
         "Close": 71.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202141",
@@ -4672,24 +4672,24 @@
         "CSI": "LFZ2042S2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NEIMETH",
         "CSI": "NEIMETH [BLS]",
         "Asset": "EQUITY",
         "Open": 1.7,
-        "High": null,
-        "Low": null,
-        "Close": 1.7,
-        "Volume": 85235.0,
+        "High": 1.7,
+        "Low": 1.64,
+        "Close": 1.64,
+        "Volume": 505716.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "GLAXOSMITH",
@@ -4720,24 +4720,24 @@
         "CSI": "LIVINGTRUST",
         "Asset": "EQUITY",
         "Open": 3.27,
-        "High": null,
-        "Low": null,
+        "High": 3.27,
+        "Low": 3.27,
         "Close": 3.27,
-        "Volume": 100.0,
+        "Volume": 5905.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FFFSDHCIF",
         "CSI": "FFFSDHCIF",
         "Asset": "EQUITY",
         "Open": 2858.81,
-        "High": null,
-        "Low": null,
+        "High": 2858.81,
+        "Low": 2858.81,
         "Close": 2858.81,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "DUNLOP [MRS]",
@@ -4759,9 +4759,9 @@
         "High": 90.0,
         "Low": 90.0,
         "Close": 90.0,
-        "Volume": 4120.0,
+        "Volume": 200.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202255",
@@ -4804,24 +4804,24 @@
         "CSI": "FGEUR2029S4",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "VETGRIF30",
         "CSI": "VETGRIF30",
         "Asset": "ETF",
         "Open": 38.0,
-        "High": 40.0,
-        "Low": 40.0,
-        "Close": 40.0,
-        "Volume": 320.0,
+        "High": 38.0,
+        "Low": 38.0,
+        "Close": 38.0,
+        "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ACCESS [AWR]",
@@ -4863,61 +4863,61 @@
         "Symbol": "SIAMLETF40",
         "CSI": "SIAMLETF40",
         "Asset": "ETF",
-        "Open": 844.0,
-        "High": null,
-        "Low": null,
-        "Close": 844.0,
-        "Volume": 0.0,
+        "Open": 800.0,
+        "High": 849.98,
+        "Low": 849.98,
+        "Close": 849.98,
+        "Volume": 1.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202402",
         "CSI": "FGS202402",
         "Asset": "DEBT",
         "Open": 90.0181,
-        "High": null,
-        "Low": null,
+        "High": 90.0181,
+        "Low": 90.0181,
         "Close": 90.0181,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202762",
         "CSI": "FGS202762",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FFIONEABMM",
         "CSI": "FFIONEABMM",
         "Asset": "EQUITY",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NMR2033S2",
         "CSI": "NMR2033S2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202485",
@@ -4935,13 +4935,13 @@
         "Symbol": "UACN",
         "CSI": "UACN",
         "Asset": "EQUITY",
-        "Open": 13.4,
-        "High": 13.3,
-        "Low": 13.1,
-        "Close": 13.3,
-        "Volume": 564301.0,
+        "Open": 13.5,
+        "High": 13.5,
+        "Low": 13.5,
+        "Close": 13.5,
+        "Volume": 168769.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UNIONDAC [DIP]",
@@ -4960,24 +4960,24 @@
         "CSI": "FGS202652",
         "Asset": "DEBT",
         "Open": 60.0,
-        "High": null,
-        "Low": null,
+        "High": 60.0,
+        "Low": 60.0,
         "Close": 60.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "OANDO",
         "CSI": "OANDO [MRF]",
         "Asset": "EQUITY",
-        "Open": 10.4,
-        "High": 10.0,
-        "Low": 9.95,
-        "Close": 10.0,
-        "Volume": 3032743.0,
+        "Open": 10.5,
+        "High": 10.55,
+        "Low": 10.0,
+        "Close": 10.55,
+        "Volume": 10279729.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "HONYFLOUR [MRF]",
@@ -5019,37 +5019,37 @@
         "Symbol": "UCAP",
         "CSI": "UCAP",
         "Asset": "EQUITY",
-        "Open": 18.15,
-        "High": null,
-        "Low": null,
-        "Close": 18.15,
-        "Volume": 421771.0,
+        "Open": 17.75,
+        "High": 17.75,
+        "Low": 17.75,
+        "Close": 17.75,
+        "Volume": 697454.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ALEX",
         "CSI": "ALEX [BLS]",
         "Asset": "EQUITY",
         "Open": 7.15,
-        "High": null,
-        "Low": null,
+        "High": 7.15,
+        "Low": 7.15,
         "Close": 7.15,
-        "Volume": 1000.0,
+        "Volume": 12.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202642",
         "CSI": "FGS202642",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "EKOCORP [BMF]",
@@ -5068,12 +5068,12 @@
         "CSI": "FG142037S2",
         "Asset": "DEBT",
         "Open": 100.0001,
-        "High": null,
-        "Low": null,
+        "High": 100.0001,
+        "Low": 100.0001,
         "Close": 100.0001,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG152023S3",
@@ -5104,12 +5104,12 @@
         "CSI": "DAN2029S2TB",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FOB2021S1",
@@ -5140,24 +5140,24 @@
         "CSI": "FGS202537",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NB",
         "CSI": "NB",
         "Asset": "EQUITY",
-        "Open": 23.0,
-        "High": 23.1,
-        "Low": 23.0,
-        "Close": 23.1,
-        "Volume": 13607037.0,
+        "Open": 23.9,
+        "High": 23.75,
+        "Low": 23.5,
+        "Close": 23.75,
+        "Volume": 2494885.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202276",
@@ -5176,36 +5176,36 @@
         "CSI": "ADV2031S1B",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202522",
         "CSI": "FGS202522",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "AUSTINLAZ",
         "CSI": "AUSTINLAZ [DIP]",
         "Asset": "EQUITY",
         "Open": 2.0,
-        "High": null,
-        "Low": null,
+        "High": 2.0,
+        "Low": 2.0,
         "Close": 2.0,
-        "Volume": 225.0,
+        "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MRE2022S1",
@@ -5236,24 +5236,24 @@
         "CSI": "UCAP2025S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MEYER",
         "CSI": "MEYER",
         "Asset": "EQUITY",
         "Open": 5.3,
-        "High": null,
-        "Low": null,
+        "High": 5.3,
+        "Low": 5.3,
         "Close": 5.3,
-        "Volume": 2615.0,
+        "Volume": 40.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "GUINEAINS",
@@ -5261,35 +5261,35 @@
         "Asset": "EQUITY",
         "Open": 0.32,
         "High": 0.32,
-        "Low": 0.3,
+        "Low": 0.32,
         "Close": 0.32,
-        "Volume": 2477222.0,
+        "Volume": 88030.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202646",
         "CSI": "FGS202646",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG132036S2",
         "CSI": "FG132036S2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ARDOVA [MRF]",
@@ -5308,12 +5308,12 @@
         "CSI": "ACADEMY",
         "Asset": "EQUITY",
         "Open": 2.03,
-        "High": null,
-        "Low": null,
+        "High": 2.03,
+        "Low": 2.03,
         "Close": 2.03,
-        "Volume": 7600.0,
+        "Volume": 742.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "TANTALIZER [MRF]",
@@ -5343,61 +5343,61 @@
         "Symbol": "CUTIX",
         "CSI": "CUTIX",
         "Asset": "EQUITY",
-        "Open": 3.04,
-        "High": null,
-        "Low": null,
-        "Close": 3.04,
-        "Volume": 106288.0,
+        "Open": 3.05,
+        "High": 3.2,
+        "Low": 3.0,
+        "Close": 3.05,
+        "Volume": 1182556.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FFUNCAPMMF",
         "CSI": "FFUNCAPMMF",
         "Asset": "EQUITY",
         "Open": 1.0,
-        "High": null,
-        "Low": null,
+        "High": 1.0,
+        "Low": 1.0,
         "Close": 1.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG202034S2",
         "CSI": "FG202034S2",
         "Asset": "DEBT",
         "Open": 99.3712,
-        "High": null,
-        "Low": null,
-        "Close": 99.3712,
-        "Volume": 0.0,
+        "High": 97.3238,
+        "Low": 97.3238,
+        "Close": 97.3238,
+        "Volume": 585.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202535",
         "CSI": "FGS202535",
         "Asset": "DEBT",
         "Open": 95.0,
-        "High": null,
-        "Low": null,
+        "High": 95.0,
+        "Low": 95.0,
         "Close": 95.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202038",
         "CSI": "FGS202038",
         "Asset": "DEBT",
         "Open": 102.0,
-        "High": null,
-        "Low": null,
+        "High": 102.0,
+        "Low": 102.0,
         "Close": 102.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MEDVIEWAIR [BMF]",
@@ -5415,25 +5415,25 @@
         "Symbol": "GREENWETF",
         "CSI": "GREENWETF",
         "Asset": "ETF",
-        "Open": 720.0,
-        "High": 792.0,
-        "Low": 648.01,
-        "Close": 648.01,
-        "Volume": 102.0,
+        "Open": 783.0,
+        "High": 861.3,
+        "Low": 861.0,
+        "Close": 861.3,
+        "Volume": 120.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FLOURMILL",
         "CSI": "FLOURMILL",
         "Asset": "EQUITY",
         "Open": 38.0,
-        "High": null,
-        "Low": null,
+        "High": 38.0,
+        "Low": 38.0,
         "Close": 38.0,
-        "Volume": 484552.0,
+        "Volume": 120777.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "AUSTINLAZ [BLS]",
@@ -5464,192 +5464,192 @@
         "CSI": "CAP",
         "Asset": "EQUITY",
         "Open": 32.95,
-        "High": null,
-        "Low": null,
+        "High": 32.95,
+        "Low": 32.95,
         "Close": 32.95,
-        "Volume": 540087.0,
+        "Volume": 344819.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG112034S2",
         "CSI": "FG112034S2",
         "Asset": "DEBT",
         "Open": 100.0003,
-        "High": null,
-        "Low": null,
+        "High": 100.0003,
+        "Low": 100.0003,
         "Close": 100.0003,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CORNERST",
         "CSI": "CORNERST [MRF]",
         "Asset": "EQUITY",
-        "Open": 2.0,
-        "High": 2.0,
-        "Low": 2.0,
-        "Close": 2.0,
-        "Volume": 251683.0,
+        "Open": 1.9,
+        "High": 1.95,
+        "Low": 1.81,
+        "Close": 1.95,
+        "Volume": 548501.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UPDC",
         "CSI": "UPDC [BLS]",
         "Asset": "EQUITY",
-        "Open": 1.4,
-        "High": 1.3,
-        "Low": 1.3,
-        "Close": 1.3,
-        "Volume": 272205.0,
+        "Open": 1.2,
+        "High": 1.24,
+        "Low": 1.24,
+        "Close": 1.24,
+        "Volume": 570885.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UNIONDICON",
         "CSI": "UNIONDICON [BRS]",
         "Asset": "EQUITY",
         "Open": 8.1,
-        "High": null,
-        "Low": null,
+        "High": 8.1,
+        "Low": 8.1,
         "Close": 8.1,
-        "Volume": 0.0,
+        "Volume": 10.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FIDSON",
         "CSI": "FIDSON",
         "Asset": "EQUITY",
         "Open": 15.75,
-        "High": null,
-        "Low": null,
+        "High": 15.75,
+        "Low": 15.75,
         "Close": 15.75,
-        "Volume": 58171.0,
+        "Volume": 191578.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202650",
         "CSI": "FGS202650",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG182042S1",
         "CSI": "FG182042S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202499",
         "CSI": "FGS202499",
         "Asset": "DEBT",
         "Open": 70.0,
-        "High": null,
-        "Low": null,
+        "High": 70.0,
+        "Low": 70.0,
         "Close": 70.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "TOTAL",
         "CSI": "TOTAL",
         "Asset": "EQUITY",
         "Open": 321.5,
-        "High": null,
-        "Low": null,
+        "High": 321.5,
+        "Low": 321.5,
         "Close": 321.5,
-        "Volume": 9504.0,
+        "Volume": 19140.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "PRESTIGE",
         "CSI": "PRESTIGE [BMF]",
         "Asset": "EQUITY",
-        "Open": 0.54,
-        "High": 0.55,
+        "Open": 0.55,
+        "High": 0.53,
         "Low": 0.51,
-        "Close": 0.55,
-        "Volume": 1180740.0,
+        "Close": 0.53,
+        "Volume": 716996.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "INTBREW",
         "CSI": "INTBREW [BLS]",
         "Asset": "EQUITY",
-        "Open": 4.0,
+        "Open": 3.99,
         "High": 3.99,
-        "Low": 3.75,
+        "Low": 3.99,
         "Close": 3.99,
-        "Volume": 816648.0,
+        "Volume": 866400.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "REGALINS",
         "CSI": "REGALINS [MRF]",
         "Asset": "EQUITY",
-        "Open": 0.31,
-        "High": 0.34,
-        "Low": 0.33,
-        "Close": 0.34,
-        "Volume": 5758395.0,
+        "Open": 0.37,
+        "High": 0.37,
+        "Low": 0.37,
+        "Close": 0.37,
+        "Volume": 58765.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NASCON",
         "CSI": "NASCON",
         "Asset": "EQUITY",
-        "Open": 36.0,
-        "High": null,
-        "Low": null,
-        "Close": 36.0,
-        "Volume": 832771.0,
+        "Open": 35.0,
+        "High": 35.0,
+        "Low": 35.0,
+        "Close": 35.0,
+        "Volume": 1578963.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "LFZ2041S1",
         "CSI": "LFZ2041S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ODB2027S1",
         "CSI": "ODB2027S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202388",
@@ -5680,36 +5680,36 @@
         "CSI": "ADBB2021S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "PREMPAINTS",
         "CSI": "PREMPAINTS [MRF]",
         "Asset": "EQUITY",
         "Open": 10.0,
-        "High": null,
-        "Low": null,
+        "High": 10.0,
+        "Low": 10.0,
         "Close": 10.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NIGERINS",
         "CSI": "NIGERINS [MRF]",
         "Asset": "EQUITY",
         "Open": 0.2,
-        "High": null,
-        "Low": null,
+        "High": 0.2,
+        "Low": 0.2,
         "Close": 0.2,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "GUARANTY",
@@ -5740,24 +5740,24 @@
         "CSI": "FGEUR2051S12",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ABC2027S0",
         "CSI": "ABC2027S0",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "OKOMUOIL [MRF]",
@@ -5776,24 +5776,24 @@
         "CSI": "BUA2027S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NSP2034S1",
         "CSI": "NSP2034S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "STERLNBANK",
@@ -5860,36 +5860,36 @@
         "CSI": "NOVA2027S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FFFBNFIF",
         "CSI": "FFFBNFIF",
         "Asset": "EQUITY",
         "Open": 1234.59,
-        "High": null,
-        "Low": null,
+        "High": 1234.59,
+        "Low": 1234.59,
         "Close": 1234.59,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202530",
         "CSI": "FGS202530",
         "Asset": "DEBT",
         "Open": 60.0,
-        "High": null,
-        "Low": null,
+        "High": 60.0,
+        "Low": 60.0,
         "Close": 60.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MOBIL",
@@ -5932,84 +5932,84 @@
         "CSI": "MCI2026S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CUSTODIAN",
         "CSI": "CUSTODIAN [MRF]",
         "Asset": "EQUITY",
-        "Open": 10.2,
-        "High": null,
-        "Low": null,
-        "Close": 10.2,
-        "Volume": 623131.0,
+        "Open": 9.6,
+        "High": 9.7,
+        "Low": 9.7,
+        "Close": 9.7,
+        "Volume": 400900.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NPFMCRFBK",
         "CSI": "NPFMCRFBK [MRF]",
         "Asset": "EQUITY",
         "Open": 1.8,
-        "High": null,
-        "Low": null,
+        "High": 1.8,
+        "Low": 1.8,
         "Close": 1.8,
-        "Volume": 31240.0,
+        "Volume": 37000.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "DAARCOMM",
         "CSI": "DAARCOMM",
         "Asset": "EQUITY",
         "Open": 0.63,
-        "High": null,
-        "Low": null,
+        "High": 0.63,
+        "Low": 0.63,
         "Close": 0.63,
-        "Volume": 146200.0,
+        "Volume": 19200.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MECURE",
         "CSI": "MECURE",
         "Asset": "EQUITY",
         "Open": 9.57,
-        "High": null,
-        "Low": null,
+        "High": 9.57,
+        "Low": 9.57,
         "Close": 9.57,
-        "Volume": 20502.0,
+        "Volume": 17349.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202408",
         "CSI": "FGS202408",
         "Asset": "DEBT",
         "Open": 40.05,
-        "High": null,
-        "Low": null,
+        "High": 40.05,
+        "Low": 40.05,
         "Close": 40.05,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202429",
         "CSI": "FGS202429",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "KGB2020S1",
@@ -6027,13 +6027,13 @@
         "Symbol": "BERGER",
         "CSI": "BERGER",
         "Asset": "EQUITY",
-        "Open": 12.35,
-        "High": 13.55,
-        "Low": 13.55,
-        "Close": 13.55,
-        "Volume": 283088.0,
+        "Open": 14.9,
+        "High": 14.9,
+        "Low": 14.9,
+        "Close": 14.9,
+        "Volume": 77342.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "STACO [MRF]",
@@ -6052,48 +6052,48 @@
         "CSI": "FGS202514",
         "Asset": "DEBT",
         "Open": 70.0,
-        "High": null,
-        "Low": null,
+        "High": 70.0,
+        "Low": 70.0,
         "Close": 70.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "LAB2027T2",
         "CSI": "LAB2027T2",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202421",
         "CSI": "FGS202421",
         "Asset": "DEBT",
         "Open": 70.0,
-        "High": null,
-        "Low": null,
+        "High": 70.0,
+        "Low": 70.0,
         "Close": 70.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGEUR2028S10",
         "CSI": "FGEUR2028S10",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202150",
@@ -6112,24 +6112,24 @@
         "CSI": "SB2024S1TB",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FFLEGYDTFD",
         "CSI": "FFLEGYDTFD",
         "Asset": "EQUITY",
         "Open": 3.35,
-        "High": null,
-        "Low": null,
+        "High": 3.35,
+        "Low": 3.35,
         "Close": 3.35,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UPD2023S1",
@@ -6147,37 +6147,37 @@
         "Symbol": "ZENITHBANK",
         "CSI": "ZENITHBANK",
         "Asset": "EQUITY",
-        "Open": 32.8,
-        "High": 32.8,
-        "Low": 31.0,
-        "Close": 31.65,
-        "Volume": 11711000.0,
+        "Open": 31.0,
+        "High": 31.0,
+        "Low": 29.7,
+        "Close": 30.85,
+        "Volume": 28942504.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "ROYALEX",
         "CSI": "ROYALEX [MRF]",
         "Asset": "EQUITY",
-        "Open": 0.56,
+        "Open": 0.55,
         "High": 0.56,
         "Low": 0.55,
-        "Close": 0.55,
-        "Volume": 2854929.0,
+        "Close": 0.56,
+        "Volume": 1200707.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "UHOMREIT",
         "CSI": "UHOMREIT",
         "Asset": "EQUITY",
         "Open": 36.6,
-        "High": null,
-        "Low": null,
+        "High": 36.6,
+        "Low": 36.6,
         "Close": 36.6,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CORNERST [MRF]",
@@ -6196,60 +6196,60 @@
         "CSI": "INFINITY [BLS]",
         "Asset": "EQUITY",
         "Open": 7.04,
-        "High": null,
-        "Low": null,
+        "High": 7.04,
+        "Low": 7.04,
         "Close": 7.04,
-        "Volume": 23.0,
+        "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NEM",
         "CSI": "NEM [MRF]",
         "Asset": "EQUITY",
         "Open": 8.45,
-        "High": null,
-        "Low": null,
-        "Close": 8.45,
-        "Volume": 245300.0,
+        "High": 7.65,
+        "Low": 7.65,
+        "Close": 7.65,
+        "Volume": 166954.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "TIP",
         "CSI": "TIP",
         "Asset": "EQUITY",
-        "Open": 1.95,
-        "High": null,
-        "Low": null,
-        "Close": 1.95,
-        "Volume": 1862499.0,
+        "Open": 1.8,
+        "High": 1.85,
+        "Low": 1.85,
+        "Close": 1.85,
+        "Volume": 3389992.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FFLEGYMMFD",
         "CSI": "FFLEGYMMFD",
         "Asset": "EQUITY",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NCR",
         "CSI": "NCR [MRF]",
         "Asset": "EQUITY",
         "Open": 4.32,
-        "High": null,
-        "Low": null,
+        "High": 4.32,
+        "Low": 4.32,
         "Close": 4.32,
-        "Volume": 1000.0,
+        "Volume": 5.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "STDINSURE [MRF]",
@@ -6268,12 +6268,12 @@
         "CSI": "FFIONEVGIF",
         "Asset": "EQUITY",
         "Open": 1.0,
-        "High": null,
-        "Low": null,
+        "High": 1.0,
+        "Low": 1.0,
         "Close": 1.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "INTENEGINS [MRS]",
@@ -6339,13 +6339,13 @@
         "Symbol": "AIICO",
         "CSI": "AIICO [MRF]",
         "Asset": "EQUITY",
-        "Open": 0.99,
-        "High": 1.02,
+        "Open": 0.98,
+        "High": 1.04,
         "Low": 0.98,
-        "Close": 1.0,
-        "Volume": 6695464.0,
+        "Close": 0.98,
+        "Volume": 3394992.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "STANBIC [MRF]",
@@ -6363,37 +6363,37 @@
         "Symbol": "JAIZBANK",
         "CSI": "JAIZBANK",
         "Asset": "EQUITY",
-        "Open": 2.39,
-        "High": 2.39,
-        "Low": 2.2,
-        "Close": 2.26,
-        "Volume": 7614029.0,
+        "Open": 2.11,
+        "High": 2.12,
+        "Low": 2.0,
+        "Close": 2.0,
+        "Volume": 5885749.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202638",
         "CSI": "FGS202638",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "NEWGOLD",
         "CSI": "NEWGOLD",
         "Asset": "ETF",
         "Open": 23000.0,
-        "High": null,
-        "Low": null,
+        "High": 23000.0,
+        "Low": 23000.0,
         "Close": 23000.0,
-        "Volume": 0.0,
+        "Volume": 10.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "INTERLINK",
@@ -6412,24 +6412,24 @@
         "CSI": "FGS202139",
         "Asset": "DEBT",
         "Open": 85.0,
-        "High": null,
-        "Low": null,
+        "High": 85.0,
+        "Low": 85.0,
         "Close": 85.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG192033S1",
         "CSI": "FG192033S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG132021S3",
@@ -6448,24 +6448,36 @@
         "CSI": "ABB2026S0",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
+    },
+    {
+        "Symbol": "FG202029S5",
+        "CSI": "FG202029S5",
+        "Asset": "DEBT",
+        "Open": 100.0,
+        "High": 100.0,
+        "Low": 100.0,
+        "Close": 100.0,
+        "Volume": 0.0,
+        "Value": null,
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FFFBNMMF",
         "CSI": "FFFBNMMF",
         "Asset": "EQUITY",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202158",
@@ -6484,24 +6496,24 @@
         "CSI": "RESORTSAL [MRF]",
         "Asset": "EQUITY",
         "Open": 0.2,
-        "High": null,
-        "Low": null,
+        "High": 0.2,
+        "Low": 0.2,
         "Close": 0.2,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FG172035S1",
         "CSI": "FG172035S1",
         "Asset": "DEBT",
         "Open": 20.0,
-        "High": null,
-        "Low": null,
+        "High": 20.0,
+        "Low": 20.0,
         "Close": 20.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "JULI [MRF]",
@@ -6519,97 +6531,97 @@
         "Symbol": "VSPBONDETF",
         "CSI": "VSPBONDETF",
         "Asset": "ETF",
-        "Open": 300.0,
-        "High": null,
-        "Low": null,
-        "Close": 300.0,
-        "Volume": 0.0,
+        "Open": 295.0,
+        "High": 295.0,
+        "Low": 295.0,
+        "Close": 295.0,
+        "Volume": 3.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202549",
         "CSI": "FGS202549",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "MBENEFIT",
         "CSI": "MBENEFIT [MRF]",
         "Asset": "EQUITY",
-        "Open": 0.58,
-        "High": 0.57,
+        "Open": 0.57,
+        "High": 0.54,
         "Low": 0.53,
         "Close": 0.53,
-        "Volume": 1934150.0,
+        "Volume": 352055.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202656",
         "CSI": "FGS202656",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "TRANSCORP",
         "CSI": "TRANSCORP",
         "Asset": "EQUITY",
-        "Open": 11.95,
-        "High": 12.0,
-        "Low": 11.0,
-        "Close": 11.4,
-        "Volume": 15834311.0,
+        "Open": 11.15,
+        "High": 11.0,
+        "Low": 10.05,
+        "Close": 11.0,
+        "Volume": 21644678.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202648",
         "CSI": "FGS202648",
         "Asset": "DEBT",
         "Open": 50.0,
-        "High": null,
-        "Low": null,
+        "High": 50.0,
+        "Low": 50.0,
         "Close": 50.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FTNCOCOA",
         "CSI": "FTNCOCOA [RST]",
         "Asset": "EQUITY",
-        "Open": 1.44,
-        "High": null,
-        "Low": null,
-        "Close": 1.44,
-        "Volume": 440406.0,
+        "Open": 1.39,
+        "High": 1.26,
+        "Low": 1.26,
+        "Close": 1.26,
+        "Volume": 1702635.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202764",
         "CSI": "FGS202764",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGS202125",
@@ -6628,12 +6640,12 @@
         "CSI": "FFUNCAPBDF",
         "Asset": "EQUITY",
         "Open": 1.65,
-        "High": null,
-        "Low": null,
+        "High": 1.65,
+        "Low": 1.65,
         "Close": 1.65,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FGDIA2022S1",
@@ -6652,48 +6664,48 @@
         "CSI": "FGB2026S2",
         "Asset": "DEBT",
         "Open": 108.0002,
-        "High": null,
-        "Low": null,
+        "High": 108.0002,
+        "Low": 108.0002,
         "Close": 108.0002,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "JBERGER",
         "CSI": "JBERGER",
         "Asset": "EQUITY",
-        "Open": 79.3,
-        "High": null,
-        "Low": null,
-        "Close": 79.3,
-        "Volume": 122586.0,
+        "Open": 85.0,
+        "High": 85.0,
+        "Low": 85.0,
+        "Close": 85.0,
+        "Volume": 17644589.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "GOLDINSURE",
         "CSI": "GOLDINSURE [MRS]",
         "Asset": "EQUITY",
         "Open": 0.2,
-        "High": null,
-        "Low": null,
+        "High": 0.2,
+        "Low": 0.2,
         "Close": 0.2,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "FFFSDHCGF",
         "CSI": "FFFSDHCGF",
         "Asset": "EQUITY",
         "Open": 3002.68,
-        "High": null,
-        "Low": null,
+        "High": 3002.68,
+        "Low": 3002.68,
         "Close": 3002.68,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "OANDO [MRF]",
@@ -6712,48 +6724,48 @@
         "CSI": "CADBURY",
         "Asset": "EQUITY",
         "Open": 16.25,
-        "High": null,
-        "Low": null,
-        "Close": 16.25,
-        "Volume": 28675.0,
+        "High": 16.0,
+        "Low": 16.0,
+        "Close": 16.0,
+        "Volume": 437962.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "PZ",
         "CSI": "PZ",
         "Asset": "EQUITY",
-        "Open": 21.6,
+        "Open": 22.0,
         "High": 22.0,
         "Low": 22.0,
         "Close": 22.0,
-        "Volume": 9860343.0,
+        "Volume": 123055.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "LIVESTOCK",
         "CSI": "LIVESTOCK",
         "Asset": "EQUITY",
-        "Open": 1.75,
-        "High": 1.64,
-        "Low": 1.64,
-        "Close": 1.64,
-        "Volume": 942009.0,
+        "Open": 1.69,
+        "High": 1.61,
+        "Low": 1.6,
+        "Close": 1.6,
+        "Volume": 3111362.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CMB2025S1",
         "CSI": "CMB2025S1",
         "Asset": "DEBT",
         "Open": 100.0,
-        "High": null,
-        "Low": null,
+        "High": 100.0,
+        "Low": 100.0,
         "Close": 100.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "CRS2022S1",
@@ -6772,12 +6784,12 @@
         "CSI": "FGS202555",
         "Asset": "DEBT",
         "Open": 98.0,
-        "High": null,
-        "Low": null,
+        "High": 98.0,
+        "Low": 98.0,
         "Close": 98.0,
         "Volume": 0.0,
         "Value": null,
-        "TradeDate": "2024-05-20T00:00:00"
+        "TradeDate": "2024-05-23T00:00:00"
     },
     {
         "Symbol": "PORTPAINT [DIP]",
