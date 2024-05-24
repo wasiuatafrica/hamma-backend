@@ -253,15 +253,34 @@ def get_details2(stock, stock_data):
             'change': data.get("change"),
             'volume': data.get("volume"),
             'momentum': data.get("momentum"),
+            'momentum_change': data.get("momentum_change"),
+            'volume_momentum':data.get('volume_momentum'),
+            'volume_momentum_change':data.get('volume_momentum_change'),            
             'volatility': data.get("volatility"),
+            
             'volatility_1week': data.get('volatility_1week'),
             'momentum_1week': data.get('momentum_1week'),
+            'momentum_change_1week': data.get('momentum_change_1week'),
+            'volume_momentum_1week': data.get('volume_momentum_1week'),
+            'volume_momentum_change_1week': data.get('volume_momentum_change_1week'),   
+            
             'volatility_1year': data.get('volatility_1year'),
             'momentum_1year': data.get('momentum_1year'),
+            'momentum_change_1year': data.get('momentum_change_1year'),
+            'volume_momentum_1year': data.get('volume_momentum_1year'),
+            'volume_momentum_change_1year': data.get('volume_momentum_change_1year'),
+            
             'volatility_ytd': data.get('volatility_ytd'),
             'momentum_ytd': data.get('momentum_ytd'),
+            'momentum_change_ytd': data.get('momentum_change_ytd'),
+            'volume_momentum_ytd': data.get('volume_momentum_ytd'),
+            'volume_momentum_change_ytd': data.get('volume_momentum_change_ytd'),
+            
             'volatility_24hr': data.get('volatility_24hr'),
             'momentum_24hr': data.get('momentum_24hr'),
+            'momentum_change_24hr': data.get('momentum_change_24hr'),
+            'volume_momentum_24hr': data.get('volume_momentum_24hr'),
+            'volume_momentum_change_24hr': data.get('volume_momentum_change_24hr'),
         }
     else:
         # Handle the case when data is not available for the symbol

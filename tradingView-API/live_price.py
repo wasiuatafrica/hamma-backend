@@ -17,20 +17,18 @@ TOKEN=os.environ.get('TOKEN')
 MONGO_URL=os.environ.get('MONGO_URL')
 
 lagos_tz = pytz.timezone('Africa/Lagos')
-
+client = MongoClient(MONGO_URL,maxPoolSize=20,tls=True, tlsAllowInvalidCertificates=True)
+db = client["livelake3"]
+collection = db["live_price_combined"]
 # Get current time in Lagos timezone
 
 
 
-def connect_to_mongodb(dbase):
-    client = MongoClient(MONGO_URL,maxPoolSize=20,tls=True, tlsAllowInvalidCertificates=True)
-    db = client[dbase]
-    return db
 
 
 def write_to_mongodb(dbase,data):
-    db = connect_to_mongodb(dbase)
-    collection = db["live_price_combined"]
+    
+    
     collection.insert_one(data)
     
 
