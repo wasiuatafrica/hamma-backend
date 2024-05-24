@@ -1731,7 +1731,7 @@ class CreatCompetitionAccount(APIView):
         portfolio = CompetitionPortfolio.objects.filter(competition=competition,user=request.user).first()
         if portfolio:
             if portfolio.active:
-                return Response({"detail": "You are already  have account in this competition."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": "You already  have account in this competition."}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({"detail": "You have  already exited this competition"}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.serializer_class(data=request.data)
@@ -2759,7 +2759,7 @@ class NewHome(APIView):
                 {
                     'date':daily.created.date(),
                     'return':daily.portfolio_returns,
-                } for daily in daily_profitloss
+                } for daily in daily_profitloss if daily_profitloss.count() > 1
             ]
             open_balance = sum([position.amount_invested for position in positions])
             data = {
