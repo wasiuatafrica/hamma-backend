@@ -133,7 +133,7 @@ def calculate_volatility_momentum_24hr(symbol):
     
     collection = db_merged["merged_live_price"]
         
-    data = list(collection.find().sort([('_id', -1)]).limit(70))
+    data = list(collection.find().sort([('_id', -1)]).limit(270))
     # print(len(data ))
     
     if not data:

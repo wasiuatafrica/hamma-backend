@@ -34,8 +34,8 @@ logger = get_task_logger(__name__)
 channel_layer = get_channel_layer()
 
 MONGO_URL = os.environ.get('MONGO_STRING')
-client = MongoClient(MONGO_URL, tls=True, tlsAllowInvalidCertificates=True)
-db_merged = client["livelake3"]
+mongo_client = MongoClient(MONGO_URL, tls=True, tlsAllowInvalidCertificates=True)
+db_merged = mongo_client["livelake3"]
 collection_merged = db_merged["merged_live_price"]
 
 def get_equity_data(user):
@@ -1013,7 +1013,7 @@ def competition_returns4():
 def update_document(symbol,dbase, new_data):
 
     
-    db = client[dbase]
+    db = mongo_client[dbase]
     if symbol not in db.list_collection_names():
         db.create_collection(symbol)
     
@@ -1040,7 +1040,7 @@ def update_document(symbol,dbase, new_data):
         collection.insert_one(new_data)
 
     # Close the MongoDB connection
-    client.close()
+    mongo_client.close()
     
 def retrieve_today_live(symbol, interval):
   
