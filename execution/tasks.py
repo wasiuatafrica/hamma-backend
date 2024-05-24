@@ -1040,7 +1040,7 @@ def update_document(symbol,dbase, new_data):
         collection.insert_one(new_data)
 
     # Close the MongoDB connection
-    mongo_client.close()
+    # mongo_client.close()
     
 def retrieve_today_live(symbol, interval):
   
