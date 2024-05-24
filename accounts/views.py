@@ -70,7 +70,7 @@ class VerifyToken(APIView):
         # Portfolio.objects.create(user=user)
         Wallet.objects.create(user=user)
         ReferralWallet.objects.create(user=user)
-        # DemoPortfolio.objects.create(user=user)
+        DemoPortfolio.objects.create(user=user)
         send_welcome_email.delay(user.id)
         activity=models.UserActivityLog.objects.create(user=user, action_type="verified_account",description="User verified their account.")
         
