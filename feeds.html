@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .endpoint, .method {
+            margin-bottom: 20px;
+        }
+        .method {
+            margin-left: 20px;
+        }
+        .params, .responses {
+            margin-left: 40px;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Documentation</h1>
+
+    <h2>Endpoints</h2>
+
+    <div class="endpoint">
+        <h3>Admin Feed Management</h3>
+        <p><strong>Path:</strong> <code>/portfolio/feeds/admin/</code></p>
+        <p><strong>Methods:</strong> GET, POST, PUT, DELETE</p>
+        <p><strong>Description:</strong> Manage the feed, including retrieving all feeds, creating a new feed, updating an existing feed, and deleting a feed.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>Publish Feed</h3>
+        <p><strong>Path:</strong> <code>/portfolio/feeds/publish/</code></p>
+        <p><strong>Method:</strong> POST</p>
+        <p><strong>Description:</strong> Publish a feed by changing its status to 'published'.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>Unpublish Feed</h3>
+        <p><strong>Path:</strong> <code>/portfolio/feeds/unpublish/</code></p>
+        <p><strong>Method:</strong> POST</p>
+        <p><strong>Description:</strong> Unpublish a feed by changing its status to 'unpublished'.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>Feed Categories</h3>
+        <p><strong>Path:</strong> <code>/portfolio/feeds/category/</code></p>
+        <p><strong>Method:</strong> GET</p>
+        <p><strong>Description:</strong> Retrieve all feed categories.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>Subscribe to Category</h3>
+        <p><strong>Path:</strong> <code>/portfolio/feeds/subscribe/</code></p>
+        <p><strong>Method:</strong> POST</p>
+        <p><strong>Description:</strong> Subscribe to a feed category.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>Unsubscribe from Category</h3>
+        <p><strong>Path:</strong> <code>/portfolio/feeds/unsubscribe/</code></p>
+        <p><strong>Method:</strong> POST</p>
+        <p><strong>Description:</strong> Unsubscribe from a feed category.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>User Dashboard Feeds</h3>
+        <p><strong>Path:</strong> <code>/portfolio/feeds/users/</code></p>
+        <p><strong>Method:</strong> GET</p>
+        <p><strong>Description:</strong> Retrieve all feeds for the categories the user is subscribed to.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>Feed Reactions</h3>
+        <p><strong>Path:</strong> <code>/portfolio/feeds/reactions/&lt;str:feed_id&gt;/</code></p>
+        <p><strong>Method:</strong> POST</p>
+        <p><strong>Description:</strong> React to a feed with various types of reactions (agree, disagree, like, trading, monitoring).</p>
+    </div>
+
+    <h2>Views</h2>
+
+    <div class="view">
+        <h3>FeedView</h3>
+        <p><strong>Description:</strong> Manage feeds for the admin.</p>
+        <div class="method">
+            <h4>GET</h4>
+            <p>Retrieve all feeds.</p>
+            <p><strong>Response:</strong> Serialized feed data.</p>
+        </div>
+        <div class="method">
+            <h4>POST</h4>
+            <p>Create a new feed.</p>
+            <div class="params">
+                <p><strong>Request:</strong></p>
+                <ul>
+                    <li>topic: Topic of the feed.</li>
+                    <li>title: Title of the feed.</li>
+                    <li>image: Image for the feed.</li>
+                    <li>content: Content of the feed.</li>
+                    <li>category: Category of the feed.</li>
+                    <li>image_caption: Caption for the image.</li>
+                    <li>symbol: Symbol related to the feed.</li>
+                    <li>subtitle: Subtitle of the feed.</li>
+                </ul>
+                <p><strong>Response:</strong> Serialized feed data.</p>
+            </div>
+        </div>
+        <div class="method">
+            <h4>PUT</h4>
+            <p>Update an existing feed.</p>
+            <div class="params">
+                <p><strong>Request:</strong> Updated feed data.</p>
+                <p><strong>Response:</strong> Serialized feed data or validation errors.</p>
+            </div>
+        </div>
+        <div class="method">
+            <h4>DELETE</h4>
+            <p>Delete a feed.</p>
+            <div class="params">
+                <p><strong>Request:</strong> Feed ID.</p>
+                <p><strong>Response:</strong> Status code 204 No Content.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="view">
+        <h3>PublishFeed</h3>
+        <p><strong>Description:</strong> Publish a feed.</p>
+        <div class="method">
+            <h4>POST</h4>
+            <div class="params">
+                <p><strong>Request:</strong> Feed ID.</p>
+                <p><strong>Response:</strong> Status code 200 OK.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="view">
+        <h3>UnpublishFeed</h3>
+        <p><strong>Description:</strong> Unpublish a feed.</p>
+        <div class="method">
+            <h4>POST</h4>
+            <div class="params">
+                <p><strong>Request:</strong> Feed ID.</p>
+                <p><strong>Response:</strong> Status code 200 OK.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="view">
+        <h3>FeedCategoryView</h3>
+        <p><strong>Description:</strong> Retrieve all feed categories.</p>
+        <div class="method">
+            <h4>GET</h4>
+            <p><strong>Response:</strong> Serialized category data.</p>
+        </div>
+    </div>
+
+    <div class="view">
+        <h3>SubscribeCategoryAPIView</h3>
+        <p><strong>Description:</strong> Subscribe to a feed category.</p>
+        <div class="method">
+            <h4>POST</h4>
+            <div class="params">
+                <p><strong>Request:</strong> Category name.</p>
+                <p><strong>Response:</strong> Success or error message.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="view">
+        <h3>UnsubscribeCategoryAPIView</h3>
+        <p><strong>Description:</strong> Unsubscribe from a feed category.</p>
+        <div class="method">
+            <h4>POST</h4>
+            <div class="params">
+                <p><strong>Request:</strong> Category name.</p>
+                <p><strong>Response:</strong> Success or error message.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="view">
+        <h3>UserDashboardFeedsAPIView</h3>
+        <p><strong>Description:</strong> Retrieve all feeds for the categories the user is subscribed to.</p>
+        <div class="method">
+            <h4>GET</h4>
+            <p><strong>Response:</strong> Serialized feed data.</p>
+        </div>
+    </div>
+
+    <div class="view">
+        <h3>DashboardFeedReactionAPIView</h3>
+        <p><strong>Description:</strong> React to a feed.</p>
+        <div class="method">
+            <h4>POST</h4>
+            <div class="params">
+                <p><strong>Request:</strong></p>
+                <ul>
+                    <li>feed_id: ID of the feed to react to.</li>
+                    <li>agree: Agree reaction (boolean).</li>
+                    <li>disagree: Disagree reaction (boolean).</li>
+                    <li>like: Like reaction (boolean).</li>
+                    <li>trading: Trading reaction (boolean).</li>
+                    <li>monitoring: Monitoring reaction (boolean).</li>
+                </ul>
+                <p><strong>Response:</strong> Success message.</p>
+            </div>
+        </div>
+    </div>
+
+    <h2>Serializers</h2>
+
+    <div class="serializer">
+        <h3>DashboardFeedSerializer</h3>
+        <p><strong>Model:</strong> DashboardFeed</p>
+        <p><strong>Fields:</strong> All fields of the DashboardFeed model.</p>
+        <p><strong>Custom Representation:</strong> Includes aggregated counts for each reaction type (agree, disagree, like, trading, monitoring).</p>
+    </div>
+
+    <div class="serializer">
+        <h3>FeedsCategorySerializer</h3>
+        <p><strong>Model:</strong> FeedsCategory</p>
+        <p><strong>Fields:</strong> <code>name</code></p>
+    </div>
+
+</body>
+</html>
