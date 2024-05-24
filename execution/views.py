@@ -1825,7 +1825,8 @@ class DemoPorfoliosAccounts(APIView):
                 "account_type":competition_account.account_type,
                 "balance":competition_account.balance + com_open_balance,
                 "user":competition_account.user.id,
-                "account_id": competition_account.account_id
+                "account_id": competition_account.account_id,
+                'active':competition_account.active
             }
             
         else:  
