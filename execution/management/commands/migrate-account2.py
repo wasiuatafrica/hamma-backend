@@ -23,11 +23,12 @@ class Command(BaseCommand):
                 
                 daily_returns=DemoDailyReturns2.objects.filter(portfolio=portfolio).order_by('created')  
                 if daily_returns.exists():
+                    if daily_returns.count() > 1:
                
-                    print('daily')
-                    for dr in daily_returns[1:]:
-                        # print(dr.created, dr.portfolio, dr.portfolio_returns, dr.market_returns)
-                        if dr.portfolio_returns !=0:
+                        print('daily')
+                        for dr in daily_returns[1:]:
+                            # print(dr.created, dr.portfolio, dr.portfolio_returns, dr.market_returns)
+                            
                             for market in market_returns:
                                 if market.created.date() == dr.created.date():
                                     print(market.created, market.market_returns)
@@ -41,10 +42,10 @@ class Command(BaseCommand):
                 cum_returns  = DemoCumulativeReturns.objects.filter(portfolio=portfolio).order_by('created')   
                 if cum_returns.exists():
                             
-                   
-                    for dr in cum_returns[1:]:
-                        if dr.portfolio_returns !=0:
-                        # print(dr.created, dr.portfolio, dr.portfolio_returns, dr.market_returns)
+                    if cum_returns.count() > 1:
+                        for dr in cum_returns[1:]:
+                            # if dr.portfolio_returns !=0:
+                            # print(dr.created, dr.portfolio, dr.portfolio_returns, dr.market_returns)
                             for market in cum_market_returns:
                                 if market.created.date() == dr.created.date():
                                     print(market.created, market.market_returns, dr.portfolio.user)

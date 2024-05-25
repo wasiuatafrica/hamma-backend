@@ -37,7 +37,7 @@ def create_wallet_and_send_email(sender, instance, created, **kwargs):
         recipient_list = [instance.email]
         send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
 
-@receiver(post_save, sender=User)
-def daily_returns(sender, instance, created, **kwargs):
-    if created:
-        daily_returns_setup.delay(instance.id)
+# @receiver(post_save, sender=User)
+# def daily_returns(sender, instance, created, **kwargs):
+#     if created:
+#         daily_returns_setup.delay(instance.id)
