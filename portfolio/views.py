@@ -822,7 +822,6 @@ class StockWatchlistAPIView(APIView):
 
         response_data = {
             'watchlist': details,
-            'trending':[],
             'analyst_pick':[],
         
         }
