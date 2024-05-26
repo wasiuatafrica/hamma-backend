@@ -275,7 +275,7 @@ class StockList(generics.ListAPIView):
         first = queryset.first()
         
         details = get_details3(queryset)
-        symbol_data = get_symbol_data(first.symbol)
+        # symbol_data = get_symbol_data(first.symbol)
         watchlist = [ watch.stock.symbol for watch in StockWatchlist.objects.filter(user=request.user)]
         # historical_data=get_historical_data(first.symbol)
         for detail in details:
@@ -287,7 +287,7 @@ class StockList(generics.ListAPIView):
         
         response_data = {
             'stock_list': details,
-            'first_symbol_order_book': symbol_data,
+            'first_symbol_order_book': [],
             # 'historical_data':historical_data,
         }
         return Response(response_data)
@@ -305,13 +305,13 @@ class GetSingleStock(APIView):
         symbol = self.kwargs.get('symbol')
         # queryset = Stock.objects.get(symbol=symbol)
         queryset = get_object_or_404(Stock, symbol=symbol)
-        symbol_data = get_symbol_data(symbol)
+        # symbol_data = get_symbol_data(symbol)
         
         details = get_details3([queryset])
         
         response_data = {
             'stock_detail': details,
-            'order_book': symbol_data,
+            'order_book': [],
             # 'historical_data':historical_data
         }
         return Response(response_data)
