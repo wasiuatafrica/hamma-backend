@@ -10,6 +10,7 @@ from django.core.cache import cache
 from decimal import Decimal
 from portfolio.models import  Stock
 import string
+from portfolio.utils import db_merged
 
 
 User = get_user_model()
@@ -20,9 +21,7 @@ def generate_account_id():
 
 
 def get_price(symbol):
-    from portfolio.utils import connect_to_mongodb
-    db = connect_to_mongodb("livelake3")
-    collection = db["merged_live_price"]
+    collection = db_merged["merged_live_price"]
     last_item = collection.find_one(sort=[('_id', -1)])
 
     return last_item[symbol]

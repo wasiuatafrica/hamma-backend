@@ -561,7 +561,7 @@ def daily_returns5():
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
     # print(current_time_lagos)
     
-    if current_time_lagos.time() >= datetime.strptime('10:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:30 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
+    if current_time_lagos.time() >= datetime.strptime('10:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('9:30 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 6:
         users = User.objects.all()
         for user in users:
             portfolios = DemoPortfolio.objects.filter(user=user)
@@ -621,8 +621,8 @@ def daily_returns5():
                         d_returns.created = timezone.now()
                         d_returns.save()
                     else:
-                        DemoDailyReturns2.objects.create(
-                        # user=portfolio.user,
+                        d_returns = DemoDailyReturns2.objects.create(
+                        user=portfolio.user,
                         portfolio=portfolio,
                         portfolio_returns=round(last_row['Daily_PortfolioReturns'], 2),
                         created=timezone.now(),
@@ -651,63 +651,53 @@ def daily_returns5():
                         c_returns.created = timezone.now()
                         c_returns.save()
                     else:
-                        DemoCumulativeReturns.objects.create(
-                        # user=portfolio.user,
+                        c_returns = DemoCumulativeReturns.objects.create(
+                        user=portfolio.user,
                         portfolio=portfolio,
                         portfolio_returns=round(last_row_cum['cum_returns'], 2),
                         created=timezone.now(),
                         first_entry=False)
                         
-                tv = TvDatafeed()
-                
-                # days_passed = days_since_date('2024-05-1')
-                portfolio_creation_date = portfolio.created.date().strftime('%Y-%m-%d')
-                days_passed = days_since_date(portfolio_creation_date)
-                # print('days',days_passed)
-                n_bars=1 + days_passed 
-                df2 = tv.get_hist(symbol="ASI", exchange='NSENG', interval=Interval.in_daily, n_bars=n_bars)
-                ASI_daily_selected = df2.reset_index()
-                ASI_daily_selected['ASI_daily_retuns'] = ASI_daily_selected['close'].pct_change() * 100
-                ASI_daily_selected['Date'] = ASI_daily_selected['datetime'].dt.strftime('%Y-%m-%d')
-
-                print(ASI_daily_selected)
-                # # Save the last row to the database
-                last_row_market = ASI_daily_selected.iloc[-1]
-                # # print(last_row_market)
-                
-                market_returns = last_row_market['ASI_daily_retuns']
-                if np.isnan(market_returns):
-                    market_returns = 0
+                    tv = TvDatafeed()
                     
-                comp_market = MarketReturns.objects.filter(created__date=timezone.now().date(), portfolio = portfolio)
-                if comp_market.exists():
-                    comp_market2 = comp_market.first()
-                else:
-                    comp_market2 = MarketReturns.objects.create(created=timezone.now(), portfolio = portfolio)
-                
-                comp_market2.market_returns = round(market_returns, 2)
-                comp_market2.save()
+                    # days_passed = days_since_date('2024-05-1')
+                    portfolio_creation_date = portfolio.created.date().strftime('%Y-%m-%d')
+                    days_passed = days_since_date(portfolio_creation_date)
+                    # print('days',days_passed)
+                    n_bars=1 + days_passed 
+                    df2 = tv.get_hist(symbol="ASI", exchange='NSENG', interval=Interval.in_daily, n_bars=n_bars)
+                    ASI_daily_selected = df2.reset_index()
+                    ASI_daily_selected['ASI_daily_retuns'] = ASI_daily_selected['close'].pct_change() * 100
+                    ASI_daily_selected['Date'] = ASI_daily_selected['datetime'].dt.strftime('%Y-%m-%d')
 
-                cum_mark_table = ASI_daily_selected[['Date', 'ASI_daily_retuns']]
-                cum_mark_table['cum_ASI_daily_retuns'] = (1 + cum_mark_table.ASI_daily_retuns / 100).cumprod() - 1
-                cum_mark_table['cum_ASI_daily_retuns'] = cum_mark_table.cum_ASI_daily_retuns * 100
+                    # print(ASI_daily_selected)
+                    # # Save the last row to the database
+                    last_row_market = ASI_daily_selected.iloc[-1]
+                    # # print(last_row_market)
+                    
+                    market_returns = last_row_market['ASI_daily_retuns']
+                    if np.isnan(market_returns):
+                        market_returns = 0
+                        
+                    
+                    d_returns.market_returns = round(market_returns, 2)
+                    d_returns.save()
 
-                # print(cum_mark_table)
-                last_row_cum_market = cum_mark_table.iloc[-1]
-                # print(last_row_cum_market)
-                cum_market_returns = last_row_cum_market['cum_ASI_daily_retuns']
-                if np.isnan(cum_market_returns):
-                    cum_market_returns = 0 
-                comp_market_cum = CumulativeMarketReturns.objects.filter(created__date=timezone.now().date(), portfolio = portfolio)
-                if comp_market_cum.exists():
-                    comp_market_cum2 = comp_market_cum.first()
-                else:
-                    comp_market_cum2 = CumulativeMarketReturns.objects.create(created=timezone.now(),portfolio = portfolio)
-                
-                comp_market_cum2.market_returns = round(cum_market_returns, 2)
-                comp_market_cum2.save()   
-                
-                print('all calculated')
+                    cum_mark_table = ASI_daily_selected[['Date', 'ASI_daily_retuns']]
+                    cum_mark_table['cum_ASI_daily_retuns'] = (1 + cum_mark_table.ASI_daily_retuns / 100).cumprod() - 1
+                    cum_mark_table['cum_ASI_daily_retuns'] = cum_mark_table.cum_ASI_daily_retuns * 100
+
+                    # print(cum_mark_table)
+                    last_row_cum_market = cum_mark_table.iloc[-1]
+                    # print(last_row_cum_market)
+                    cum_market_returns = last_row_cum_market['cum_ASI_daily_retuns']
+                    if np.isnan(cum_market_returns):
+                        cum_market_returns = 0 
+                    
+                    c_returns.market_returns = round(cum_market_returns, 2)
+                    c_returns.save()
+                    
+        print('all demo returns calculated')
                         
 def competition_daily_returns5():
     from tvDatafeed import TvDatafeed, Interval

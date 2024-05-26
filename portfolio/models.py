@@ -19,29 +19,6 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 User= get_user_model()
-
-async def connect_to_websocket(stock_symbol):
-    # uri = f"ws://localhost:8765/{stock_symbol}"
-    uri = f"ws://ec2-16-16-77-63.eu-north-1.compute.amazonaws.com:8765/{stock_symbol}"
-
-    async with websockets.connect(uri) as websocket:
-        try:
-            # Sending authentication token
-            auth_token = "Ab$455"
-            await websocket.send(auth_token)
-
-            
-            data = await websocket.recv()
-            stock_data = json.loads(data)
-            print(stock_data)
-            return stock_data
-        except websockets.exceptions.ConnectionClosed as e:
-            if e.code != 1000:
-                print(f"Connection closed unexpectedly: {e}")
-                
-def get_price(stock):
-    return asyncio.run(connect_to_websocket(stock))
-
 def get_holding_detail(holding, trades):
     from .utils import get_price
     stock= holding.stock.symbol

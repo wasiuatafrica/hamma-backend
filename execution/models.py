@@ -6,11 +6,13 @@ from django.contrib.auth import get_user_model
 import auto_prefetch
 from decimal import Decimal
 from datetime import datetime, timedelta
+import portfolio
 from portfolio.models import  Stock
 from accounts.models import Profile
 from competition.models import CompetitionPortfolio
 import random
 import string
+from portfolio.utils import db_merged
 
 User=get_user_model()
 
@@ -21,9 +23,7 @@ def generate_account_id():
     return ''.join(random.choices(string.digits, k=6))
 
 def get_price(symbol):
-    from portfolio.utils import connect_to_mongodb
-    db = connect_to_mongodb("livelake3")
-    collection = db["merged_live_price"]
+    collection = db_merged["merged_live_price"]
     last_item = collection.find_one(sort=[('_id', -1)])
     # print(symbol)
     return last_item[symbol]

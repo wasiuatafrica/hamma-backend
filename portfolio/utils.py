@@ -17,6 +17,8 @@ User= get_user_model()
 client = MongoClient(os.environ.get("MONGO_STRING"),tls=True,
                              tlsAllowInvalidCertificates=True)
 
+db_merged = client["livelake3"]
+
 def connect_to_mongodb(db_name):
     
     # db = client["anyon_orderbook"]
@@ -53,18 +55,7 @@ def get_historical_data(symbol):
     serialized_records = json.loads(json_util.dumps(records))
     return serialized_records
 
-# def get_mini_data():
-#     db = connect_to_mongodb("anyon_history")
-#     collection_names = db.list_collection_names()
-#     # print(collection_names)
-#     result_list = []
-    
-#     for collection_name in collection_names:
-#         collection = db[collection_name]
-#         last_27_items = list(collection.find().sort('datetime', -1).limit(27))
-#         result_list.append({collection_name:json.loads(json_util.dumps(last_27_items))})
-        
-#     return result_list
+
 
 
 def get_trend(closing_prices):
@@ -96,40 +87,9 @@ def get_mini_data():
     return result_list
 
 
-
-# async def connect_to_websocket(stock_symbol):
-#     # uri = f"ws://localhost:8765/{stock_symbol}"
-#     uri = f"ws://ec2-16-16-77-63.eu-north-1.compute.amazonaws.com:8765/{stock_symbol}"
-
-#     async with websockets.connect(uri) as websocket:
-#         try:
-#             # Sending authentication token
-#             auth_token = "Ab$455"
-#             await websocket.send(auth_token)
-
-            
-#             data = await websocket.recv()
-#             stock_data = json.loads(data)
-#             print(stock_data)
-#             return stock_data
-#         except websockets.exceptions.ConnectionClosed as e:
-#             if e.code != 1000:
-#                 print(f"Connection closed unexpectedly: {e}")
-                
-# def get_price(stock):
-#     return asyncio.run(connect_to_websocket(stock))
-
-# def get_price(symbol):
-#     db = connect_to_mongodb("stock_prices")
-#     collection = db["price_combined"]
-#     last_item = collection.find_one(sort=[('_id', -1)])
-#     # print(last_item)
-#     return last_item[symbol]
-
 def get_price(symbol):
-    from portfolio.utils import connect_to_mongodb
-    db = connect_to_mongodb("livelake3")
-    collection = db["merged_live_price"]
+    
+    collection = db_merged["merged_live_price"]
     last_item = collection.find_one(sort=[('_id', -1)])
     # print(symbol)
     return last_item[symbol]
@@ -147,91 +107,12 @@ def get_details(stock):
     
     return details
     
-    
-async def connect_to_websockets2(symbols):
-    results = {}
-
-    async def connect(symbol):
-        uri = f"ws://ec2-16-16-77-63.eu-north-1.compute.amazonaws.com:8765/{symbol}"
-        async with websockets.connect(uri) as websocket:
-            # Sending authentication token for each symbol
-            auth_token = "Ab$455"
-            await websocket.send(auth_token)
-
-            data = await websocket.recv()
-            stock_data = json.loads(data)
-            print(stock_data)
-            results[symbol] = stock_data
-            return symbol
-    
-    # Launch all the connect coroutines and wait for them to finish
-    await asyncio.gather(*(connect(symbol) for symbol in symbols))
-    return results
-
-# async def connect_to_websockets3(symbols):
-#     uri = "ws://ec2-16-16-77-63.eu-north-1.compute.amazonaws.com:8765"
-#     results = {}
-#     auth_token = "Ab$455"
-
-#     # Connect to WebSocket server once
-#     async with websockets.connect(uri) as websocket:
-#         # Send authentication token
-#         await websocket.send(auth_token)
-
-#         # Subscribe to all symbols
-#         subscribe_message = json.dumps({"action": "subscribe", "symbols": symbols})
-#         await websocket.send(subscribe_message)
-
-#         # Enter a loop to continuously receive data for subscribed symbols
-#         try:
-#             while True:
-#                 data = await websocket.recv()
-#                 stock_data = json.loads(data)
-#                 symbol = stock_data['stock']
-#                 results[symbol] = stock_data
-#                 print(stock_data)
-
-#                 # You could choose to break the loop after a certain condition,
-#                 # but for the sake of this example, the loop will run indefinitely.
-#         except websockets.exceptions.ConnectionClosed as e:
-#             print(f"Connection closed: {e}")
-
-#     return results
-
-
-
-def get_stockdata(stocks):
-    return asyncio.run(connect_to_websockets2(stocks))
-
-# def get_stockdata2():
-#     db = connect_to_mongodb("stock_prices")
-#     collection = db["price_combined"]
-#     last_item = collection.find_one(sort=[('_id', -1)])
-
-#     return last_item
 
 def get_stockdata2():
-    db = connect_to_mongodb("livelake3")
-    collection = db["merged_live_price"]
+    collection = db_merged["merged_live_price"]
     last_item = collection.find_one(sort=[('_id', -1)])
 
     return last_item
-
-# Your get_details now accepts a single data entry
-# def get_details2(stock, stock_data):
-#     # print(stock.symbol)
-#     data = stock_data[stock.symbol]
-#     print(data)
-#     if data:
-#         return {
-#             'company': stock.company,
-#             'symbol': stock.symbol,
-#             'sector': stock.sector,
-#             'current_price': data.get('current_price', 0),
-#             "percent_change": data.get('percentage_change', 0),
-#             # 'change': round(data['current_price'] - data['open_price'],2)
-#             'change': data.get("change", 0)
-#         }
 
 def get_details2(stock, stock_data):
     data = stock_data.get(stock.symbol, {})
@@ -242,12 +123,6 @@ def get_details2(stock, stock_data):
             'symbol': stock.symbol,
             'sector': stock.sector,
             "logo_url": stock.logo_url,
-            # 'current_price': handle_special_values(data.get('current_price', 0)),
-            # "percent_change": handle_special_values(data.get('percentage_change', 0)),
-            # 'change': handle_special_values(data.get("change", 0)),
-            # 'volume': handle_special_values(data.get("volume", 0)),
-            # 'momentum': handle_special_values(data.get("momentum", 0)),
-            # 'volatility': handle_special_values(data.get("volatility", 0)),
             'current_price': data.get('current_price'),
             "percent_change": data.get('percentage_change'),
             'change': data.get("change"),

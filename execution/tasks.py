@@ -5,7 +5,7 @@ from asgiref.sync import async_to_sync
 from django.core.management import call_command
 from django.shortcuts import get_object_or_404
 
-from execution.utils import competition_daily_returns4, get_positions, daily_returns3, competition_daily_returns3
+from execution.utils import competition_daily_returns4, daily_returns5, get_positions, daily_returns3, competition_daily_returns3
 from .serializers import DemoPositionSerializer
 from anyon.views import User
 from portfolio.models import Message, Conversation, Stock, MarketAI,DemoTransaction
@@ -999,6 +999,10 @@ def update_latest_cumulative_returns():
 @shared_task                
 def returns3():
     daily_returns3()
+    
+@shared_task                
+def returns5():
+    daily_returns5()
     
 @shared_task                
 def competition_returns3():

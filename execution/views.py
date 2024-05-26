@@ -28,6 +28,9 @@ from .models import CompetitionCumulativeMarketReturns, CompetitionMarketReturns
 from  competition.models import Competition, CompetitionCumulativeReturns, CompetitionCumulativeReturns2, CompetitionDailyReturns2, CompetitionPosition,CompetitionDailyReturns,CompetitionPortfolio,CompetitionTransaction
 from django.contrib.auth import get_user_model
 from . import serializers as exec_serializer
+from competition import tasks as competition_task,  models as competion_models, serializers as competition_serializer_module
+from portfolio.utils import get_stockdata2
+
 User = get_user_model()
 # class DemoTradeAPIView(APIView):
 #     permission_classes = [IsAuthenticated]
@@ -1704,10 +1707,6 @@ class DemoHolding2(APIView):
             
 
 
-#############################################################################################
-from competition import tasks as competition_task,  models as competion_models, serializers as competition_serializer_module
-from datetime import datetime,time, date, timedelta
-
 class CreatCompetitionAccount(APIView):
     serializer_class = competition_serializer_module.CompetitionPortfolioCreateSerializers
     
@@ -2003,6 +2002,55 @@ class RetrieveSinglePorfoliosAccounts(APIView):
         account.delete()
         return Response(None,status.HTTP_204_NO_CONTENT)
 
+def get_position(all_prices, queryset):
+    
+    all_positions = []
+    for position in queryset: 
+        symbol=position.stock.symbol
+        price = all_prices[symbol]['current_price']
+        current_value = round(position.quantity * price,2)
+        
+        if position.status=='open':
+            if position.action == 'buy':
+                profit_loss = Decimal(current_value) - position.amount_invested
+            elif position.action == 'sell':
+                profit_loss = position.amount_invested - Decimal(current_value)
+        elif position.status=='close':
+            profit_loss =  position.profit_loss
+            current_value = position.quantity * position.close_price
+        else:
+            current_value = 0
+            profit_loss = 0
+        
+        
+        if position.amount_invested != 0:
+            percent = round((profit_loss/position.amount_invested) * 100,2)
+            data1 = {
+                'id':position.id,
+                'symbol':symbol,
+                'open_pl':round(profit_loss,2),
+                'pl_percent': percent,
+                'created':position.created,
+                'status':position.status,
+                'open_price': position.open_price,
+                'order_id':position.order_id,
+            }
+            
+        else:
+            data1 = {
+                'id':position.id,
+                'symbol':symbol,
+                'open_pl':0,
+                'pl_percent': 0,
+                'created':position.created,
+                'status':position.status,
+                'open_price': position.open_price,
+                'order_id':position.order_id,
+            }
+        all_positions.append(data1)
+    return(all_positions)
+    
+
 
 
 class SingleDemoTradeAPIView(APIView):
@@ -2068,42 +2116,12 @@ class SingleDemoTradeAPIView(APIView):
             if portfolio and timezone.now() > competition.start_date:
                 positions = CompetitionPosition.objects.filter(portfolio=portfolio, status='open')
         
-        def get_position(position):
-                # print(position.id)
-                pl, cur_val,price = position.calculate_profit_loss()
-                symbol=position.stock.symbol
-                
-                if position.amount_invested != 0:
-                    percent = round((pl/position.amount_invested) * 100,2)
-                    data1 = {
-                        'id':position.id,
-                        'symbol':symbol,
-                        'open_pl':round(pl,2),
-                        'pl_percent': percent,
-                        'created':position.created,
-                        'status':position.status,
-                        'open_price': position.open_price,
-                        'order_id':position.order_id,
-                    }
-                    
-                else:
-                    data1 = {
-                        'id':position.id,
-                        'symbol':symbol,
-                        'open_pl':0,
-                        'pl_percent': 0,
-                        'created':position.created,
-                        'status':position.status,
-                        'open_price': position.open_price,
-                        'order_id':position.order_id,
-                    }
-                return data1
             
-        with ThreadPoolExecutor() as executor:
-            futures = executor.map(get_position, positions)
-            position_data_list = [result for result in futures if result]
+        all_prices = get_stockdata2()
+        
+        position_data_list = [get_position(all_prices, positions)]
             
-            return Response(position_data_list)
+        return Response(position_data_list)
     
     def post(self, request, *args, **kwargs):
 
@@ -2195,23 +2213,6 @@ class SingleDemoTradeAPIView(APIView):
                         activity=UserActivityLog.objects.create(user=request.user, action_type="competition_open_trade",description=f"User opened competition trade with amount {amount} on symbol {symbol}.")
                         positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open')
                         
-                        def get_position(position):
-                            pl, cur_val,price = position.calculate_profit_loss()
-                            symbol=position.stock.symbol
-                            
-                            percent = round((pl/position.amount_invested) * 100,2)
-                            data1 = {
-                                'id':position.id,
-                                'symbol':symbol,
-                                'open_pl':pl,
-                                'pl_percent': percent,
-                                'created':position.created
-                            }
-                            return data1
-                        
-                        # with ThreadPoolExecutor() as executor:
-                        #     futures = executor.map(get_position, positions)
-                        #     position_data_list = [result for result in futures if result]
                         
                             
                         save_and_send_notification(request.user.id,f' COMPETITION: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ')
@@ -2254,26 +2255,7 @@ class SingleDemoTradeAPIView(APIView):
                     
                     positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open',active=True)
                     
-                    def get_position(position):
-                        pl, cur_val,price = position.calculate_profit_loss()
-                        symbol=position.stock.symbol
-                        
-                        percent = round((pl/position.amount_invested) * 100,2)
-                        data1 = {
-                            'id':position.id,
-                            'symbol':symbol,
-                            'open_pl':pl,
-                            'pl_percent': percent,
-                            'created':position.created,
-                            'order_id':position.order_id,
-                            
-                        }
-                        return data1
                     
-                    # with ThreadPoolExecutor() as executor:
-                    #     futures = executor.map(get_position, positions)
-                    #     position_data_list = [result for result in futures if result]
-                        
                     save_and_send_notification(request.user.id,f' COMPETITION: Your limit order will be opened when the condition you set is met.')
                     
                     return Response({'message': f'{action.title()} order scheduled successfully.'}, status=status.HTTP_201_CREATED)
@@ -2333,31 +2315,7 @@ class SingleDemoTradeAPIView(APIView):
                 activity=UserActivityLog.objects.create(user=request.user, action_type="demo_open_trade",description=f"User opened demo trade with amount {amount} on symbol {symbol}.")
                 positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
                 
-                def get_position(position):
-                    pl, cur_val,price = position.calculate_profit_loss()
-                    symbol=position.stock.symbol
-                    if position.amount_invested != 0:
-                        percent = round((pl/position.amount_invested) * 100,2)
-                        data1 = {
-                            'id':position.id,
-                            'symbol':symbol,
-                            'open_pl':pl,
-                            'pl_percent': percent,
-                            'created':position.created
-                        }
-                    else:
-                        data1 = {
-                            'id':position.id,
-                            'symbol':symbol,
-                            'open_pl':0,
-                            'pl_percent': 0,
-                            'created':position.created
-                        }
-                    return data1
                 
-                # with ThreadPoolExecutor() as executor:
-                #     futures = executor.map(get_position, positions)
-                #     position_data_list = [result for result in futures if result]
                 
                     
                 save_and_send_notification(request.user.id,f' DEMO: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ')
@@ -2398,36 +2356,7 @@ class SingleDemoTradeAPIView(APIView):
                 
                 positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
                 
-                def get_position(position):
-                    pl, cur_val,price = position.calculate_profit_loss()
-                    symbol=position.stock.symbol
-                    
-                    if position.amount_invested != 0:
-                        percent = round((pl/position.amount_invested) * 100,2)
-                        data1 = {
-                            'id':position.id,
-                            'symbol':symbol,
-                            'open_pl':pl,
-                            'pl_percent': percent,
-                            'created':position.created,
-                            'order_id':position.order_id,
-                            
-                        }
-                    else:
-                        data1 = {
-                            'id':position.id,
-                            'symbol':symbol,
-                            'open_pl':0,
-                            'pl_percent': 0,
-                            'created':position.created,
-                            'order_id':position.order_id,
-
-                        }
-                    return data1
                 
-                # with ThreadPoolExecutor() as executor:
-                #     futures = executor.map(get_position, positions)
-                #     position_data_list = [result for result in futures if result]
                     
                 save_and_send_notification(request.user.id,f' DEMO: Your limit order will be opened when the condition you set is met.')
                 
@@ -2765,7 +2694,7 @@ class NewHome(APIView):
             open_balance = sum([position.amount_invested for position in positions])
             data = {
                 'balance':round(balance + open_balance,2),
-                'starting_balance': None,
+                'starting_balance': 1000000,
                 
                 'equity':equity + open_balance ,
                 'floating_pl' : profit_loss,
@@ -3027,6 +2956,58 @@ class NewDemoClosePendingTrade(APIView):
                 return Response("Position is not open")
 
 
+def get_holdings_positions(queryset):
+    all_prices = get_stockdata2()
+    all_holdings = []
+    for position in queryset:
+        symbol=position.stock.symbol
+        price = all_prices[symbol]['current_price']
+        current_value = round(position.quantity * price,2)
+        
+        if position.status=='open':
+            if position.action == 'buy':
+                profit_loss = Decimal(current_value) - position.amount_invested
+            elif position.action == 'sell':
+                profit_loss = position.amount_invested - Decimal(current_value)
+        elif position.status=='close':
+            profit_loss =  position.profit_loss
+            current_value = position.quantity * position.close_price
+        else:
+            current_value = 0
+            profit_loss = 0
+        
+        
+        if position.amount_invested != 0:
+            percent_change = round(profit_loss/position.amount_invested *100,2)
+        else:
+            percent_change = None
+            
+        
+        data = {
+            'id':position.id,
+            'stock':position.stock.symbol,
+            'shares':position.quantity,
+            'avg_cost':position.open_price,
+            'close_price':position.close_price,
+            'ltp':price,
+            'open_time':position.created.isoformat(),
+            'close_time':position.updated.isoformat() if position.updated != position.created else '-',
+            'change': profit_loss,
+            "percent_change":percent_change,
+            'cur_val':current_value,
+            "avg_volume":'3300',
+            "volume":'66000',
+            'status':position.status,
+            'invested':position.amount_invested,
+            "profit_loss":profit_loss,
+            "side":position.action,
+            "order":position.order_type,
+            'order_id':position.order_id
+            
+            }
+        all_holdings.append(data)
+    return all_holdings
+
 
         
 class NewDemoHolding(APIView):
@@ -3079,48 +3060,7 @@ class NewDemoHolding(APIView):
                 
                 if positions:
                     
-                    def get_position(position):
-                        
-                        pl, value, price= position.calculate_profit_loss()
-                        # print("plv",pl, value, price)
-                        if position.amount_invested != 0:
-                            percent_change = round(pl/position.amount_invested *100,2)
-                        else:
-                            percent_change = None
-                            
-                        if position.status == 'open':
-                            profit_loss = pl
-                        else:
-                            profit_loss = position.profit_loss
-                        data = {
-                            'id':position.id,
-                            'stock':position.stock.symbol,
-                            'shares':position.quantity,
-                            'avg_cost':position.open_price,
-                            'close_price':position.close_price,
-                            'ltp':price,
-                            'open_time':position.created.isoformat(),
-                            'close_time':position.updated.isoformat() if position.updated != position.created else '-',
-                            'change': pl,
-                            "percent_change":percent_change,
-                            'cur_val':value,
-                            "avg_volume":'3300',
-                            "volume":'66000',
-                            'status':position.status,
-                            'invested':position.amount_invested,
-                            "profit_loss":profit_loss,
-                            "side":position.action,
-                            "order":position.order_type,
-                            'order_id':position.order_id
-                            
-                            }
-                        return data
-
-
-                    with ThreadPoolExecutor() as executor:
-                        futures = executor.map(get_position, positions)
-                        positions_data = [result for result in futures if result]
-
+                    positions_data = get_holdings_positions(positions)
                     floating_pl = sum([data['change'] for data in positions_data if data['status']=='open'])
                     closed_pl = sum([data['profit_loss'] for data in positions_data if data['status']=='close'])
                     open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
@@ -3163,54 +3103,12 @@ class NewDemoHolding(APIView):
 
             portfolio = demo_account
 
-            # portfolio= DemoPortfolio.objects.get_or_create(user=request.user)[0]
             positions =  DemoPosition.objects.filter(portfolio=portfolio).order_by("-updated")
             balance =  portfolio.balance
             
             if positions:
                 
-                def get_position(position):
-                    
-                    pl, value, price= position.calculate_profit_loss()
-                    # print("plv",pl, value, price)
-                    if position.amount_invested != 0:
-                        percent_change = round(pl/position.amount_invested *100,2)
-                    else:
-                        percent_change = None
-                        
-                    if position.status == 'open':
-                        profit_loss = pl
-                    else:
-                        profit_loss = position.profit_loss
-                    data = {
-                        'id':position.id,
-                        'stock':position.stock.symbol,
-                        'shares':position.quantity,
-                        'avg_cost':position.open_price,
-                        'close_price':position.close_price,
-                        'ltp':price,
-                        'open_time':position.created.isoformat(),
-                        'close_time':position.updated.isoformat() if position.updated != position.created else '-',
-                        'change': pl,
-                        "percent_change":percent_change,
-                        'cur_val':value,
-                        "avg_volume":'3300',
-                        "volume":'66000',
-                        'status':position.status,
-                        'invested':position.amount_invested,
-                        "profit_loss":profit_loss,
-                        "side":position.action,
-                        "order":position.order_type,
-                        'order_id':position.order_id
-                        
-                        }
-                    return data
-
-
-                with ThreadPoolExecutor() as executor:
-                    futures = executor.map(get_position, positions)
-                    positions_data = [result for result in futures if result]
-
+                positions_data = get_holdings_positions(positions)
                 floating_pl = sum([data['change'] for data in positions_data if data['status']=='open'])
                 closed_pl = sum([data['profit_loss'] for data in positions_data if data['status']=='close'])
                 open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
