@@ -1996,6 +1996,27 @@
         </div>         
     </div>
 
+    <div class="container mt-5">
+        <h3 data-toggle="collapse" data-target="#payout_eligibilty">18. Get user and clan competition payout eligibility [LATEST] 27/5/2024</h3>
+        <div id="payout_eligibilty" class="collapse">
+            <p> GET /leaderboard/payout/eligibility/{clan_id}/</p>
+            <p>Response.</p>
+            <pre>
+                {
+                    "top_clan_eligibilty": {
+                      "minimum_of_3_memebers": true,
+                      "traded_minimum_of_10_days": true,
+                      "clan_completed_kyc": false
+                    },
+                    "top_trader_eligibilty": {
+                      "traded_minimum_of_10_days": true,
+                      "trader_completed_kyc": true
+                    }
+                }
+            </pre>
+        </div>         
+    </div>
+
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>

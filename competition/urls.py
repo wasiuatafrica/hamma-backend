@@ -32,6 +32,7 @@ urlpatterns=[
     path('notifications/',views.GetAndUpdateUserNotifications.as_view()),
     path('top-clans/', views.TopClans.as_view()),
     path('top-traders/', views.TopTraders.as_view()),
+    path("payout/eligibility/<int:clan_id>/", views.CheckPayoutEligibility().as_view()),
     
     #admin
     path("login/", views.login_view, name="leaderboard_admin"),

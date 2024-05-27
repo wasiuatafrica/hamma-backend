@@ -1,7 +1,11 @@
 import datetime
+from typing import Any
 from django.utils import timezone
 import datetime
 from calendar import weekday, day_name, monthcalendar
+from typing import Optional, Any
+from . import models
+from accounts import models as acc_models
 
 def get_public_holidays(year):
     """
@@ -62,3 +66,54 @@ def count_business_days(start_date, end_date):
 
 # business_days = count_business_days(start_date, end_date)
 # print(f"There are {business_days} business days between {start_date} and {end_date}.")
+
+def has_atleat_3_clan_members(clan_id: int)->bool:
+    clan = models.Clan.objects.filter(id=clan_id).first()
+    if not clan:
+        return False
+    return True if clan.members_count >=3 else False
+    
+def trader_has_completed_kyc(user:Any)->bool:
+    profile = acc_models.Profile.objects.filter(user=user).first()
+    return True if (profile.proof_of_address and profile.proof_of_id and profile.profile_img ) else False
+
+def user_has_atleat_10_min_trading_days(user:any)->bool:
+    competion_summary = models.CompetitionSummary.objects.filter(user=user).first()
+    if not competion_summary:
+        return False
+    return True if competion_summary.trading_days >=10 else False
+
+def clan_has_at_least_10_min_trading_days(clan_id: int) -> bool:
+    try:
+        clan = models.Clan.objects.get(id=clan_id)
+    except models.Clan.DoesNotExist:
+        return False
+    
+    members = list(clan.member.all())
+    if clan.clan_admin:
+        members.append(clan.clan_admin)
+    
+    for member in members:
+        competition_summary = models.CompetitionSummary.objects.filter(clan=clan, user=member).first()
+        if not competition_summary or competition_summary.trading_days is None or competition_summary.trading_days < 10:
+            return False
+    
+    return True
+
+def clan_has_at_completed_kyc(clan_id: int) -> bool:
+    try:
+        clan = models.Clan.objects.get(id=clan_id)
+    except models.Clan.DoesNotExist:
+        return False
+    
+    members = list(clan.member.all())
+    if clan.clan_admin:
+        members.append(clan.clan_admin)
+    
+    for member in members:
+        
+        profile = acc_models.Profile.objects.filter(user=member).first()
+        if not (profile.proof_of_address and profile.proof_of_id and profile.profile_img ):
+            return False
+    
+    return True
