@@ -52,7 +52,7 @@ class CompetitionPortfolio(auto_prefetch.Model):
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     active = models.BooleanField(default=True)
     account_name= models.CharField(max_length=20, default="Competition Account 1")
-    account_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    account_id = models.CharField(max_length=20,  null=True, blank=True)
     
     def save(self, *args, **kwargs):
         if not self.account_id:

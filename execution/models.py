@@ -33,7 +33,7 @@ class DemoPortfolio(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=1000000.0)
     account_name= models.CharField(max_length=20, default="Demo Account 1")
-    account_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    account_id = models.CharField(max_length=20,  null=True, blank=True)
     
     def save(self, *args, **kwargs):
         if not self.account_id:
@@ -57,8 +57,8 @@ class DemoPortfolio(auto_prefetch.Model):
     def account_type(self):
         return "demo_portfolio"
     
-    class Meta(auto_prefetch.Model.Meta):
-        unique_together = ('user', 'account_name')
+    # class Meta(auto_prefetch.Model.Meta):
+    #     unique_together = ('user', 'account_name')
 
 class Portfolio(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='portfolio2')
