@@ -1834,9 +1834,9 @@ class DemoPorfoliosAccounts(APIView):
                     'active':competition_account.active
                 }
             else:  
-                comdata = None
+                comdata = []
         else:  
-            comdata = None
+            comdata = []
 
         demo_accounts = DemoPortfolio.objects.filter(user=request.user)
         demo_data = []
