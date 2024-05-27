@@ -68,10 +68,7 @@ def welcome_1b(id): #12h
 @shared_task
 def daily_returns_setup(id):
     user= User.objects.get(id=id)
-    data = get_price ('ASI')
-    pr = data['current_price']
     DemoDailyReturns2.objects.create(user=user, created=timezone.now())
-    DailyReturns.objects.create(user=user, created=timezone.now())
     DemoCumulativeReturns.objects.create(user=user, created=timezone.now())
 
 def create_crontab(target_time):
