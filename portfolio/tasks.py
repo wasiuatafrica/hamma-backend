@@ -91,32 +91,35 @@ def check_alert(id):
                     if alert.alert_type == 'price':
                         price = data['current_price']
                         if alert.action == 'below':
-                            if price < alert.to_price:
-                                if (alert.last_email_sent and (timezone.now().astimezone(lagos_tz) - alert.last_email_sent) >= timedelta(minutes=30)) or not alert.last_email_sent:
-                                    send_alert_email(alert.user, alert.stock.symbol, alert.alert_type, alert.action, alert.to_price)
-                                    print('sent')
-                                    save_and_send_notification(alert.user.id, f'{alert.stock} price has gone below {alert.to_price} for the {alert.alert_name}.')
-                                    if alert.frequency in ['Once', 'once']:
-                                        alert.trigerred = True
-                                        alert.last_email_sent = timezone.now().astimezone(lagos_tz)
-                                        alert.save()
-                                    else:
-                                        alert.last_email_sent = timezone.now().astimezone(lagos_tz)
-                                        alert.save()
-                                        return
+                            if alert.to_price is not None:
+                                if price < alert.to_price:
+                                    if (alert.last_email_sent and (timezone.now().astimezone(lagos_tz) - alert.last_email_sent) >= timedelta(minutes=30)) or not alert.last_email_sent:
+                                        send_alert_email(alert.user, alert.stock.symbol, alert.alert_type, alert.action, alert.to_price)
+                                        print('sent')
+                                        save_and_send_notification(alert.user.id, f'{alert.stock} price has gone below {alert.to_price} for the {alert.alert_name}.')
+                                        if alert.frequency in ['Once', 'once']:
+                                            alert.trigerred = True
+                                            alert.last_email_sent = timezone.now().astimezone(lagos_tz)
+                                            alert.save()
+                                        else:
+                                            alert.last_email_sent = timezone.now().astimezone(lagos_tz)
+                                            alert.save()
+                                            return
                         elif alert.action == 'above':
-                            if price > alert.to_price:
-                                if (alert.last_email_sent and (timezone.now().astimezone(lagos_tz) - alert.last_email_sent) >= timedelta(minutes=30)) or not alert.last_email_sent:
-                                    send_alert_email(alert.user, alert.stock.symbol, alert.alert_type, alert.action, alert.to_price)
-                                    save_and_send_notification(alert.user.id, f'{alert.stock} price has gone above {alert.to_price} for the {alert.alert_name}.')
-                                    if alert.frequency in ['Once', 'once']:
-                                        alert.trigerred = True
-                                        alert.last_email_sent = timezone.now().astimezone(lagos_tz)
-                                        alert.save()
-                                    else:
-                                        alert.last_email_sent = timezone.now().astimezone(lagos_tz)
-                                        alert.save()
-                                        return
+                            if alert.to_price is not None:
+                            
+                                if price > alert.to_price:
+                                    if (alert.last_email_sent and (timezone.now().astimezone(lagos_tz) - alert.last_email_sent) >= timedelta(minutes=30)) or not alert.last_email_sent:
+                                        send_alert_email(alert.user, alert.stock.symbol, alert.alert_type, alert.action, alert.to_price)
+                                        save_and_send_notification(alert.user.id, f'{alert.stock} price has gone above {alert.to_price} for the {alert.alert_name}.')
+                                        if alert.frequency in ['Once', 'once']:
+                                            alert.trigerred = True
+                                            alert.last_email_sent = timezone.now().astimezone(lagos_tz)
+                                            alert.save()
+                                        else:
+                                            alert.last_email_sent = timezone.now().astimezone(lagos_tz)
+                                            alert.save()
+                                            return
 
                     elif alert.alert_type == 'volume':
                         price=data['volume']
