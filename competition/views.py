@@ -1973,18 +1973,11 @@ def admin_clan_remove_member_detailed(request, req_id):
 class CheckPayoutEligibility(APIView):
     
     def get(self, request, clan_id):
-        top_clan_eligibilty={
+
+        data={
             "minimum_of_3_memebers": utils.has_atleat_3_clan_members(clan_id),
-            "traded_minimum_of_10_days":utils.clan_has_at_least_10_min_trading_days(clan_id),
-            "clan_completed_kyc":utils.clan_has_at_completed_kyc(clan_id)
-        }
-        top_trader_eligibilty={
             "traded_minimum_of_10_days":utils.user_has_atleat_10_min_trading_days(clan_id),
             "trader_completed_kyc":utils.trader_has_completed_kyc(request.user)
-        }
-        data={
-            "top_clan_eligibilty":top_clan_eligibilty,
-            "top_trader_eligibilty":top_trader_eligibilty
         }
 
         return Response(data)
