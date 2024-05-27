@@ -188,7 +188,8 @@ class LoginWithEmailView(APIView):
                     return Response({"detail": "This account is not active. Please verify account before login."}, status=status.HTTP_400_BAD_REQUEST)
             
             if user.check_password(password):
-                requires_2fa = self.requires_2fa(user, ip_address, location, device)
+                # requires_2fa = self.requires_2fa(user, ip_address, location, device)
+                requires_2fa = False
                 print(requires_2fa)
                 
                 if requires_2fa:
