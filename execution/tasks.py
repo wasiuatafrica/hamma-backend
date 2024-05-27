@@ -15,7 +15,7 @@ from django.db import transaction
 from time import sleep
 from decimal import Decimal
 from datetime import datetime, timedelta,time
-from portfolio.utils import get_price
+from portfolio.utils import get_price, get_stockdata2
 from notifications.utils import save_and_send_notification
 from django_celery_beat.models import PeriodicTask
 from django.utils import timezone
@@ -1211,3 +1211,106 @@ def update_live_1d():
             print('updated 1W', symbol)
        
         
+@shared_task
+def calc_take_profit():
+    positions = DemoPosition.objects.filter(status='open')
+    all_prices = get_stockdata2()
+    for position in positions:
+        if position.take_profit:
+            symbol = position.stock.symbol
+            current_price = all_prices[symbol]['current_price']
+            if position.action == 'buy':
+                if current_price >= position.take_profit:
+                    current_value = round(position.quantity * current_price,2)
+                    profit_loss = Decimal(current_value) - position.amount_invested
+                       
+                    position.status = DemoPosition.CLOSED
+                    position.close_price = Decimal(current_price)
+                    position.profit_loss = profit_loss
+                    position.save()
+                    
+                    CompetitionTransaction.objects.create(
+                                user=position.portfolio.user,
+                                transaction_type='close trade',
+                                amount=current_value,
+                                status='completed'
+                            )
+                    save_and_send_notification(position.portfolio.user.id, f"Take profit has been triggered for {position.stock.symbol}. Position is closed")
+                    UserActivityLog.objects.create(user=position.portfolio.user, action_type="demo_closed_trade",description=f"User closed demo trade with symbol {position.stock.symbol}.")
+                    position.portfolio.balance += position.amount_invested + position.profit_loss
+                    position.portfolio.save()
+                    
+            elif position.action == 'sell':
+                if current_price <= position.take_profit:
+                    current_value = round(position.quantity * current_price,2)
+                    
+                    profit_loss = position.amount_invested - Decimal(current_value)
+                       
+                    position.status = DemoPosition.CLOSED
+                    position.close_price = Decimal(current_price)
+                    position.profit_loss = profit_loss
+                    position.save()
+                    
+                    CompetitionTransaction.objects.create(
+                                user=position.portfolio.user,
+                                transaction_type='close trade',
+                                amount=current_value,
+                                status='completed'
+                            )
+                    save_and_send_notification(position.portfolio.user.id, f"Take profit has been triggered for {position.stock.symbol}. Position is closed")
+                    UserActivityLog.objects.create(user=position.portfolio.user, action_type="demo_closed_trade",description=f"User closed demo trade with symbol {position.stock.symbol}.")
+                    position.portfolio.balance += position.amount_invested + position.profit_loss
+                    position.portfolio.save()
+                    
+@shared_task
+def calc_stop_loss():
+    positions = DemoPosition.objects.filter(status='open')
+    all_prices = get_stockdata2()
+    for position in positions:
+        if position.stop_loss:
+            symbol = position.stock.symbol
+            current_price = all_prices[symbol]['current_price']
+            if position.action == 'buy':
+                if current_price <= position.stop_loss:
+                    current_value = round(position.quantity * current_price,2)
+                    profit_loss = Decimal(current_value) - position.amount_invested
+                       
+                    position.status = DemoPosition.CLOSED
+                    position.close_price = Decimal(current_price)
+                    position.profit_loss = profit_loss
+                    position.save()
+                    
+                    CompetitionTransaction.objects.create(
+                                user=position.portfolio.user,
+                                transaction_type='close trade',
+                                amount=current_value,
+                                status='completed'
+                            )
+                    save_and_send_notification(position.portfolio.user.id, f"Stop profit has been triggered for {position.stock.symbol}. Position is closed")
+                    UserActivityLog.objects.create(user=position.portfolio.user, action_type="demo_closed_trade",description=f"User closed demo trade with symbol {position.stock.symbol}.")
+                    position.portfolio.balance += position.amount_invested + position.profit_loss
+                    position.portfolio.save()
+                    
+            elif position.action == 'sell':
+                if current_price >= position.stop_loss:
+                    current_value = round(position.quantity * current_price,2)
+                    
+                    profit_loss = position.amount_invested - Decimal(current_value)
+                       
+                    position.status = DemoPosition.CLOSED
+                    position.close_price = Decimal(current_price)
+                    position.profit_loss = profit_loss
+                    position.save()
+                    
+                    CompetitionTransaction.objects.create(
+                                user=position.portfolio.user,
+                                transaction_type='close trade',
+                                amount=current_value,
+                                status='completed'
+                            )
+                    save_and_send_notification(position.portfolio.user.id, f"Take profit has been triggered for {position.stock.symbol}. Position is closed")
+                    UserActivityLog.objects.create(user=position.portfolio.user, action_type="demo_closed_trade",description=f"User closed demo trade with symbol {position.stock.symbol}.")
+                    position.portfolio.balance += position.amount_invested + position.profit_loss
+                    position.portfolio.save()
+                    
+                    

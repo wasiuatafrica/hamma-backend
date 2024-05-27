@@ -1,5 +1,8 @@
+from calendar import c
 from functools import partial
 from re import U
+from tracemalloc import stop
+from numpy import take
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -2141,6 +2144,50 @@ class SingleDemoTradeAPIView(APIView):
         time_in_force = request.data.get('time_in_force', 'day')  # Default to Good 'Til Canceled
         is_buy = action == 'buy'
         order_type = request.data.get('order_type')
+        take_profit = request.data.get('take_profit',None)
+        stop_loss = request.data.get('stop_loss', None)
+        
+        if take_profit:
+            take_profit = float(take_profit)
+        
+        if stop_loss:
+            stop_loss = float(stop_loss)
+        
+        current_price = round(Decimal(get_price(symbol)['current_price']), 2)
+        
+        if order_type == 'market': 
+            if take_profit:
+                if action == 'buy':
+                    if current_price >= take_profit:
+                        return Response("Take profit cannot be less than current price", status.HTTP_400_BAD_REQUEST)
+                elif action == 'sell':
+                    if current_price <= take_profit:
+                        return Response("Take profit cannot be greater than current price", status.HTTP_400_BAD_REQUEST)
+                    
+            if stop_loss:
+                if action == 'buy':
+                    if current_price <= stop_loss:
+                        return Response("Stop loss cannot be greater than current price", status.HTTP_400_BAD_REQUEST)
+                elif action == 'sell':
+                    if current_price >= stop_loss:
+                        return Response("Stop loss cannot be less than current price", status.HTTP_400_BAD_REQUEST)
+                
+        elif order_type == 'limit': 
+            if take_profit:
+                if action == 'buy':
+                    if price >= take_profit:
+                        return Response("Take profit cannot be less than current price", status.HTTP_400_BAD_REQUEST)
+                elif action == 'sell':
+                    if price <= take_profit:
+                        return Response("Take profit cannot be greater than current price", status.HTTP_400_BAD_REQUEST)
+                    
+            if stop_loss:
+                if action == 'buy':
+                    if price <= stop_loss:
+                        return Response("Stop loss cannot be greater than current price", status.HTTP_400_BAD_REQUEST)
+                elif action == 'sell':
+                    if price >= stop_loss:
+                        return Response("Stop loss cannot be less than current price", status.HTTP_400_BAD_REQUEST)
         
         # print(order_type)
         
@@ -2171,7 +2218,7 @@ class SingleDemoTradeAPIView(APIView):
             if in_competition and timezone.now() > competition.start_date:
                 portfolio = in_competition
                 if order_type == 'market':
-                    market_price = round(Decimal(get_price(symbol)['current_price']), 2)
+                    market_price = current_price
                     amount = quantity * market_price
                     
                     balance =  portfolio.balance
@@ -2186,7 +2233,9 @@ class SingleDemoTradeAPIView(APIView):
                             open_price = market_price,
                             quantity=quantity,
                             amount_invested = amount,
-                            order_id=order_id
+                            order_id=order_id,
+                            take_profit = take_profit,
+                            stop_loss = stop_loss
                         )
 
                         if not is_buy:
@@ -2232,7 +2281,9 @@ class SingleDemoTradeAPIView(APIView):
                         alert_name = 'pending trade' + shortuuid.uuid(),
                         time_in_force=time_in_force,
                         order_id=order_id,
-                        order_type = order_type
+                        order_type = order_type,
+                        take_profit = take_profit,
+                        stop_loss = stop_loss
                         
                         
                     )  
@@ -2289,7 +2340,9 @@ class SingleDemoTradeAPIView(APIView):
                         open_price = market_price,
                         quantity=quantity,
                         amount_invested = amount,
-                        order_id=order_id
+                        order_id=order_id,
+                        take_profit = take_profit,
+                        stop_loss = stop_loss
                     )
 
                     if not is_buy:
@@ -2333,7 +2386,9 @@ class SingleDemoTradeAPIView(APIView):
                     alert_name = shortuuid.uuid(),
                     time_in_force=time_in_force,
                     order_id=order_id,
-                    order_type = order_type
+                    order_type = order_type,
+                    take_profit = take_profit,
+                    stop_loss = stop_loss
                     
                     
                 )  

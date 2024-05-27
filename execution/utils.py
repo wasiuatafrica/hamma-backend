@@ -556,12 +556,13 @@ def daily_returns5():
     from tvDatafeed import TvDatafeed, Interval
     
     today = timezone.now().date()
-    
+     
     lagos_timezone = pytz.timezone('Africa/Lagos')
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
     # print(current_time_lagos)
     
-    if current_time_lagos.time() >= datetime.strptime('10:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('9:30 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 6:
+    if current_time_lagos.time() >= datetime.strptime('10:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:31 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
+    # if current_time_lagos.time() >= datetime.strptime('7:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:30 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
         users = User.objects.all()
         for user in users:
             portfolios = DemoPortfolio.objects.filter(user=user)
@@ -570,6 +571,7 @@ def daily_returns5():
                 positions_today = DemoPosition.objects.filter(portfolio=portfolio, status='close', updated__date=today)
                 
                 if positions_today.exists():
+                    # print(f"{user} closed position today")
                     positions = DemoPosition.objects.filter(portfolio=portfolio, status='close')
                 
                     
@@ -614,6 +616,7 @@ def daily_returns5():
                     ).order_by('-created')
                     
                     if d_returns.exists():
+                        # print('daily returns exist today')
                         if len(d_returns) > 1:
                             d_returns = d_returns.order_by('-created')[1]
                         d_returns= d_returns.first()
@@ -621,6 +624,8 @@ def daily_returns5():
                         d_returns.created = timezone.now()
                         d_returns.save()
                     else:
+                        print('daily returns created first time today')
+                        
                         d_returns = DemoDailyReturns2.objects.create(
                         user=portfolio.user,
                         portfolio=portfolio,

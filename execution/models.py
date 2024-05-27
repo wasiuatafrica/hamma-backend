@@ -120,6 +120,12 @@ class Position(auto_prefetch.Model):
     time_in_force = models.CharField(max_length=20, default='day')
     order_type = models.CharField(max_length=20, default='market')
     profit_loss = models.IntegerField(default=0)
+    take_profit = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    stop_loss = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    trailing_stop_loss = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    highest_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    
+
     
     def __str__(self):
         return f"{self.portfolio.user} - {self.stock.symbol} - {self.action}"
@@ -176,6 +182,11 @@ class DemoPosition(auto_prefetch.Model):
     order_type = models.CharField(max_length=20, default='market')
     order_id = models.CharField(max_length=40,  blank=True, null=True)
     profit_loss = models.IntegerField(default=0)
+    take_profit = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    stop_loss = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    trailing_stop_loss = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    highest_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+
     
     
     def __str__(self):
