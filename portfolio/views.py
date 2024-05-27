@@ -517,7 +517,7 @@ class AlertView(APIView):
         current_month_end = current_month_start.replace(month=current_month_start.month + 1) - timezone.timedelta(seconds=1)
 
         alerts_query = Alert.objects.filter(
-            created__range=(current_month_start, current_month_end), user=request.user
+            created__range=(current_month_start, current_month_end), user=request.user, trigerred = False
         )
         conversation_query = Conversation.objects.annotate(
             has_messages=Exists(Message.objects.filter(room=OuterRef('pk')))
