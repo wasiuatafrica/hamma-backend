@@ -38,7 +38,7 @@ class CompetitionPortfolioCreateSerializers(serializers.ModelSerializer):
             'account_name',
             "account_type",
             "balance",
-            "user"
+            # "user"
         ]
         
     
