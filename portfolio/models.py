@@ -317,7 +317,7 @@ class ButtonClick(auto_prefetch.Model):
     created=models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user} - {self.button_name}"
+        return f"{self.user} -{self.page} - {self.button_name}"
     
 class StockWatchlist(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)
