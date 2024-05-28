@@ -3777,7 +3777,7 @@ class AddTrailingStopLoss(APIView):
             account = self.get_demo_position(id)
             
         if not account:
-            return Response("Account not found", status.HTTP_404_NOT_FOUND)
+            return Response("Position not found", status.HTTP_404_NOT_FOUND)
         
         if account.status != 'open':
             return Response("Position is not open", status.HTTP_400_BAD_REQUEST)
