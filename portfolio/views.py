@@ -82,9 +82,9 @@ class SupportWalletBalance(APIView):
         except User.DoesNotExist:
             return Response([])
         
-        portfolios = exec_models.Portfolio.objects.filter(user=request.user)
-        wallet = Wallet.objects.get_or_create(user=request.user)[0]
-        transactions = Transaction.objects.filter(user=request.user)
+        portfolios = exec_models.Portfolio.objects.filter(user=user)
+        wallet = Wallet.objects.get_or_create(user=user)[0]
+        transactions = Transaction.objects.filter(user=user)
 
         positions_sum = 0
         for portfolio in portfolios:
