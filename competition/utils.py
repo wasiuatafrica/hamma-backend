@@ -97,7 +97,7 @@ def trader_has_completed_kyc(user:Any)->bool:
         
     return{
         "pass": True if mark == 3 else False,
-        "mark":1 if mark ==3 else 0,
+        "mark":3 if mark ==3 else mark,
         "reason":f"Has {mark} of the kyc requirements"
     }
     
