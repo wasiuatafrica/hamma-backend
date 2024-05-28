@@ -3709,7 +3709,7 @@ class NewSupportDemoHolding(APIView):
             demo_account = self.get_account(id)
             if demo_account is None:
                 return Response("Account not found",status.HTTP_404_NOT_FOUND)
-            if not demo_account.user.is_staff:
+            if not request.user.is_staff:
                 return Response("Permission denied",status.HTTP_403_FORBIDDEN)
 
             portfolio = demo_account
