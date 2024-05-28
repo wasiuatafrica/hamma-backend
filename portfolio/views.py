@@ -82,10 +82,16 @@ class SupportWalletBalance(APIView):
         except User.DoesNotExist:
             return Response([])
         
-        portfolio = exec_models.Portfolio.objects.get(user=user)
-        wallet = Wallet.objects.get(user=user)
-        transactions = Transaction.objects.filter(user=user)
-        positions= portfolio.positions2.all()
+        portfolios = exec_models.Portfolio.objects.filter(user=request.user)
+        wallet = Wallet.objects.get_or_create(user=request.user)[0]
+        transactions = Transaction.objects.filter(user=request.user)
+
+        positions_sum = 0
+        for portfolio in portfolios:
+            positions= portfolio.positions2.filter(status='open')
+            sum1 = sum([post.amount_invested for post in positions])
+            positions_sum += (sum1 + portfolio.balance)
+            
         savings = Saving.objects.filter(user=user,status='ongoing')
         
         deposited = sum([trans.amount for trans in transactions if trans.transaction_type == "deposit"]) - sum([trans.amount for trans in transactions if trans.transaction_type == "withdrawal"])
