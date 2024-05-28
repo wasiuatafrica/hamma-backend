@@ -1905,7 +1905,7 @@ class ButtonClickSummaryAPIView2(APIView):
 
     def get_click_summary_data(self, queryset, start_date, end_date):
         if start_date and end_date:
-            queryset = queryset.filter(timestamp__date__range=[start_date, end_date])
+            queryset = queryset.filter(created__date__range=[start_date, end_date])
         
         button_click_counts = queryset.values('page', 'button_name').annotate(click_count=Count('id'))
 
