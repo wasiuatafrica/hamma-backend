@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 import competition
-from portfolio.models import Stock, DemoTransaction
+import portfolio
+from portfolio.models import Stock, DemoTransaction, Wallet
 from notifications.utils import save_and_send_notification
 from rest_framework.permissions import IsAuthenticated
 from accounts.utils import User, get_referrer
@@ -2058,6 +2059,11 @@ class RetrieveSinglePorfoliosAccounts(APIView):
             return Response("Account not found",status.HTTP_404_NOT_FOUND)
         if account.user != request.user:
             return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+        
+        wallet = Wallet.objects.get(user=request.user)
+        wallet.balance += account.balance
+        wallet.save()
+        
         account.delete()
         return Response(None,status.HTTP_204_NO_CONTENT)
 
