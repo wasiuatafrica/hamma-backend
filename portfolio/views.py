@@ -95,7 +95,8 @@ class SupportWalletBalance(APIView):
         savings = Saving.objects.filter(user=user,status='ongoing')
         
         deposited = sum([trans.amount for trans in transactions if trans.transaction_type == "deposit"]) - sum([trans.amount for trans in transactions if trans.transaction_type == "withdrawal"])
-        invested= sum([post.amount_invested for post in positions]) + sum([lock.amount for lock in savings])
+        invested= positions_sum + sum([lock.amount for lock in savings])
+        
         balance = wallet.balance
         uninvested = deposited - invested
         
