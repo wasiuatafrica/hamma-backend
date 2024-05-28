@@ -52,6 +52,7 @@ import competition
 # competion
 from competition import models as competion_models, serializers as competion_serializers
 from django.utils import timezone
+from . import utils
 
 # Send mails
 from .managers.utils import sendMail 
@@ -1969,3 +1970,14 @@ def admin_clan_remove_member_detailed(request, req_id):
 
     return render(request,"leaderboard/clan-name-change-approval.html", {"clan_remove_member_request":clan_remove_member_request})
 
+class CheckPayoutEligibility(APIView):
+    
+    def get(self, request, clan_id):
+
+        data={
+            "minimum_of_3_memebers": utils.has_atleat_3_clan_members(clan_id),
+            "traded_minimum_of_10_days":utils.user_has_atleat_10_min_trading_days(clan_id),
+            "trader_completed_kyc":utils.trader_has_completed_kyc(request.user)
+        }
+
+        return Response(data)
