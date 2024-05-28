@@ -27,6 +27,7 @@ urlpatterns = [
    path("flag-withdrawal-request/<str:withdrawal_request_id>/", views.FlagWithdrawalRequest.as_view()),
    path("admin-users-activity-log/", views.AllAdminUsersActivityLogView.as_view()),
    path("flag-reward-activity/<str:reward_activity_id>/", views.FlagRewardActivities.as_view()),
+   path('button-click-summary/', views.ButtonClickSummaryAPIView.as_view(), name='button-click-summary'),
 
    #new clan admin links
 

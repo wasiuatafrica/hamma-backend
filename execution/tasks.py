@@ -1221,6 +1221,8 @@ def calc_take_profit():
             current_price = all_prices[symbol]['current_price']
             if position.action == 'buy':
                 if current_price >= position.take_profit:
+                    print('take profit triggered')
+                    
                     current_value = round(position.quantity * current_price,2)
                     profit_loss = Decimal(current_value) - position.amount_invested
                        
@@ -1272,6 +1274,7 @@ def calc_stop_loss():
             current_price = all_prices[symbol]['current_price']
             if position.action == 'buy':
                 if current_price <= position.stop_loss:
+                    # print('stop loss triggered')
                     current_value = round(position.quantity * current_price,2)
                     profit_loss = Decimal(current_value) - position.amount_invested
                        
@@ -1286,7 +1289,7 @@ def calc_stop_loss():
                                 amount=current_value,
                                 status='completed'
                             )
-                    save_and_send_notification(position.portfolio.user.id, f"Stop profit has been triggered for {position.stock.symbol}. Position is closed")
+                    save_and_send_notification(position.portfolio.user.id, f"Stop loss has been triggered for {position.stock.symbol}. Position is closed")
                     UserActivityLog.objects.create(user=position.portfolio.user, action_type="demo_closed_trade",description=f"User closed demo trade with symbol {position.stock.symbol}.")
                     position.portfolio.balance += position.amount_invested + position.profit_loss
                     position.portfolio.save()
@@ -1308,7 +1311,76 @@ def calc_stop_loss():
                                 amount=current_value,
                                 status='completed'
                             )
-                    save_and_send_notification(position.portfolio.user.id, f"Take profit has been triggered for {position.stock.symbol}. Position is closed")
+                    save_and_send_notification(position.portfolio.user.id, f"Stop loss has been triggered for {position.stock.symbol}. Position is closed")
+                    UserActivityLog.objects.create(user=position.portfolio.user, action_type="demo_closed_trade",description=f"User closed demo trade with symbol {position.stock.symbol}.")
+                    position.portfolio.balance += position.amount_invested + position.profit_loss
+                    position.portfolio.save()
+                    
+                    
+@shared_task
+def calc_tailing_sl():
+    positions = DemoPosition.objects.filter(status='open')
+    all_prices = get_stockdata2()
+    for position in positions:
+        if position.trailing_stop_loss:
+            symbol = position.stock.symbol
+            current_price = all_prices[symbol]['current_price']
+            if position.action == 'buy':
+                if position.highest_price is None or position.highest_price == 0:
+                    position.highest_price = current_price
+                    position.save()
+                    
+                
+                if current_price > position.highest_price:
+                    position.highest_price = current_price
+                    position.save()
+                    
+                if current_price <= position.highest_price - position.trailing_stop_loss:
+                    current_value = round(position.quantity * current_price,2)
+                    profit_loss = Decimal(current_value) - position.amount_invested
+                       
+                    position.status = DemoPosition.CLOSED
+                    position.close_price = Decimal(current_price)
+                    position.profit_loss = profit_loss
+                    position.save()
+                    
+                    CompetitionTransaction.objects.create(
+                                user=position.portfolio.user,
+                                transaction_type='close trade',
+                                amount=current_value,
+                                status='completed'
+                            )
+                    save_and_send_notification(position.portfolio.user.id, f"Trailing stop loss  has been triggered for {position.stock.symbol}. Position is closed")
+                    UserActivityLog.objects.create(user=position.portfolio.user, action_type="demo_closed_trade",description=f"User closed demo trade with symbol {position.stock.symbol}.")
+                    position.portfolio.balance += position.amount_invested + position.profit_loss
+                    position.portfolio.save()
+                    
+            elif position.action == 'sell':
+                if position.highest_price is None or position.highest_price == 0:
+                    position.highest_price = current_price
+                    position.save()
+                    
+                
+                if current_price < position.highest_price:
+                    position.highest_price = current_price
+                    position.save()
+                    
+                if current_price >= position.highest_price - position.trailing_stop_loss:
+                    current_value = round(position.quantity * current_price,2)
+                    profit_loss = position.amount_invested - Decimal(current_value) 
+                    
+                    position.status = DemoPosition.CLOSED
+                    position.close_price = Decimal(current_price)
+                    position.profit_loss = profit_loss
+                    position.save()
+                    
+                    CompetitionTransaction.objects.create(
+                                user=position.portfolio.user,
+                                transaction_type='close trade',
+                                amount=current_value,
+                                status='completed'
+                            )
+                    save_and_send_notification(position.portfolio.user.id, f"Trailing stop loss has been triggered for {position.stock.symbol}. Position is closed")
                     UserActivityLog.objects.create(user=position.portfolio.user, action_type="demo_closed_trade",description=f"User closed demo trade with symbol {position.stock.symbol}.")
                     position.portfolio.balance += position.amount_invested + position.profit_loss
                     position.portfolio.save()

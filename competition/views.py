@@ -274,7 +274,7 @@ class ClanViewSet(viewsets.ModelViewSet):
     lookup_field= 'id'
     permission_classes = (AllowAny,)
     
-    @method_decorator(cache_page(60*60*2))  # Cache the response for 5 minutes
+    @method_decorator(cache_page(60*60*2))  # Cache the response for 2hrs
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
     

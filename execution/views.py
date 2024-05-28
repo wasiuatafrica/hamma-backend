@@ -1,8 +1,4 @@
-from calendar import c
-from functools import partial
-from re import U
-from tracemalloc import stop
-from numpy import take
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -1879,6 +1875,62 @@ class DemoPorfoliosAccounts(APIView):
             return Response(serializer.data)
         return Response(serializer.errors,status.HTTP_400_BAD_REQUEST)
 
+class SupportDemoPorfoliosAccounts(APIView):
+    serializer_class = exec_serializer.DemoPortfolioSerializer
+    account_create_serializer = exec_serializer.DemoPortfolioCreateSerializer
+    competition_serializer = competition_serializer_module.CompetitionPortfolioCreateSerializers
+    
+    def get(self,request,*args, **kwargs ):
+        """_summary_
+
+        Get competition account for the current competition. if no competiton return empty
+        """
+        email = kwargs.get("email")
+        
+        competition = competion_models.Competition.objects.filter(status='current').first()
+        if competition:
+            competition_account = CompetitionPortfolio.objects.filter(user__email=email,competition=competition)
+            if competition_account.exists():
+                competition_account = competition_account.first()
+                
+                compositions = CompetitionPosition.objects.filter(portfolio=competition_account, status='open')
+                com_open_balance = sum([position.amount_invested for position in compositions])
+                comdata = {
+                    "id": competition_account.id,
+                    'account_name':competition_account.account_name,
+                    "account_type":competition_account.account_type,
+                    "balance":competition_account.balance + com_open_balance,
+                    "user":competition_account.user.id,
+                    "account_id": competition_account.account_id,
+                    'active':competition_account.active
+                }
+            else:  
+                comdata = []
+        else:  
+            comdata = []
+
+        demo_accounts = DemoPortfolio.objects.filter(user__email=email)
+        demo_data = []
+        for accounts in demo_accounts:
+            positions = DemoPosition.objects.filter(portfolio=accounts, status='open')
+            # print(accounts.user)
+            # print(positions)
+            open_balance = sum([position.amount_invested for position in positions])
+            data = {
+                "id": accounts.id,
+                'account_name':accounts.account_name,
+                "account_type":accounts.account_type,
+                "balance":accounts.balance + open_balance,
+                "user":accounts.user.id,
+                "account_id": accounts.account_id
+            }
+            demo_data.append(data)
+            
+        
+        # serializer = self.serializer_class(demo_accounts, many=True)
+        return Response({"demo_accounts":demo_data,"competition_account":comdata})
+
+
 class PorfoliosAccounts(APIView):
     serializer_class = exec_serializer.PortfolioSerializer
     account_create_serializer = exec_serializer.PortfolioCreateSerializer
@@ -2421,6 +2473,78 @@ class SingleDemoTradeAPIView(APIView):
                 
                 return Response({'message': f'{action.title()} order scheduled successfully.'}, status=status.HTTP_201_CREATED)
 
+class SupportSingleDemoTradeAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_account(self, id):
+        demo_account = DemoPortfolio.objects.filter(id=id).first()
+        return demo_account if demo_account else None
+
+    def get_competion_account(self, id, competion):
+        competition_demo_account = CompetitionPortfolio.objects.filter(competition=competition,active=True, id=id).first()
+        return competition_demo_account if competition_demo_account else None
+
+    def get(self,request, *args, **kwargs):
+
+        account_type= kwargs.get("account_type")
+        valid_account_types= ["demo_portfolio","competition_account"]
+
+        if not account_type in valid_account_types:
+            return Response(f"Account type should be {valid_account_types}.",status.HTTP_400_BAD_REQUEST)
+
+
+        if account_type == "demo_portfolio":
+            # GET THE PARTICULAR PORTFOLIO 
+            id = kwargs.get("id")
+
+            demo_account = self.get_account(id)
+            if demo_account is None:
+                return Response("Account not found",status.HTTP_404_NOT_FOUND)
+            if not demo_account.user.is_staff :
+                return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+
+            positions = DemoPosition.objects.filter(portfolio=demo_account,status='open')
+
+        else:
+
+            # get competition portfoilo by id 
+            competition = Competition.objects.filter(status='current').first()
+
+            # get the competion account
+            id = kwargs.get("id")
+
+            demo_account = CompetitionPortfolio.objects.filter(competition__status='current',active=True, id=id)
+            
+            if demo_account.exists:
+                demo_account = demo_account.first()
+            else:
+                demo_account = None
+                
+            if demo_account is None:
+                return Response("Account not found",status.HTTP_404_NOT_FOUND)
+            if not demo_account.user.is_staff :
+                return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+
+            in_competition = demo_account
+
+            # competition = Competition.objects.filter(status='current').first()
+            # portfolio = None
+            
+            if competition:
+                portfolio = in_competition
+                
+            if portfolio and timezone.now() > competition.start_date:
+                positions = CompetitionPosition.objects.filter(portfolio=portfolio, status='open')
+        
+            
+        all_prices = get_stockdata2()
+        
+        position_data_list = [get_position(all_prices, positions)]
+            
+        return Response(position_data_list)
+
+
+
 ####################### New home view ###############################################
 
 class NewHome(APIView):
@@ -2768,6 +2892,306 @@ class NewHome(APIView):
             }
             
             return Response(data)
+
+class NewSupportHome(APIView):
+
+    def get_account(self, id):
+        demo_account = DemoPortfolio.objects.filter(id=id).first()
+        return demo_account if demo_account else None
+
+    def get_competion_account(self, id, competion):
+        competition_demo_account = CompetitionPortfolio.objects.filter(competition__status='current',active=True, id=id).first()
+        return competition_demo_account if competition_demo_account else None
+    
+    def get(self, request, *args, **kwargs):
+
+        account_type= kwargs.get("account_type")
+        valid_account_types= ["demo_portfolio","competition_account"]
+        # email = kwargs.get("email")
+
+        if not account_type in valid_account_types:
+            return Response(f"Account type should be {valid_account_types}.",status.HTTP_400_BAD_REQUEST)
+        
+
+        if account_type == "competition_account":
+
+            competition = Competition.objects.filter(status='current').first()
+
+            # get the competion account
+            id = kwargs.get("id")
+
+            # demo_account = self.get_competion_account(id, competition)
+            
+            demo_account = CompetitionPortfolio.objects.filter(competition__status='current',active=True, id=id)
+            
+            if demo_account.exists:
+                demo_account = demo_account.first()
+            else:
+                demo_account = None
+            
+            if demo_account is None:
+                return Response("Account not found",status.HTTP_404_NOT_FOUND)
+            
+
+            in_competition = demo_account
+        
+            # in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
+            if in_competition and timezone.now() > competition.start_date:
+                portfolio = in_competition
+                
+                positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open')
+                positions2 = CompetitionPosition.objects.filter(portfolio=portfolio,status='close')
+                
+                today = timezone.now()
+                position_data_dict = {}
+
+                for daily in positions2:
+                    if daily.updated.month == today.month:
+                        date_key = daily.updated.date()
+                        if date_key in position_data_dict:
+                            position_data_dict[date_key] += daily.profit_loss
+                        else:
+                            position_data_dict[date_key] = daily.profit_loss
+
+                position_data_list2 = [
+                    {'profit_loss': profit_loss, 'date': date} 
+                    for date, profit_loss in position_data_dict.items()
+                ]
+                if position_data_list2:
+                    start_date = min(item['date'] for item in position_data_list2)
+                else:
+                    start_date = today.date()
+
+                # Create a new list with dates from start_date until today
+                final_list = [
+                    {'profit_loss': position_data_dict.get(date, 0), 'date': date.strftime('%Y-%m-%d')}
+                    for date in (start_date + timedelta(n) for n in range((today.date() - start_date).days + 1) if (start_date + timedelta(n)).weekday() < 5) 
+                ]
+                profit_loss2= sum([pos.profit_loss for pos in positions2])
+                
+                balance = portfolio.balance
+                
+                
+                def pl_cv(position):
+                    pl, cur_val,price = position.calculate_profit_loss()
+                    symbol=position.stock.symbol
+                    print(pl)
+                    data2 =  {
+                            'stock':symbol,
+                            'current_value':round(cur_val,2)
+                        }
+                    
+                    return pl, data2
+                
+                with ThreadPoolExecutor() as executor:
+                    futures = executor.map(pl_cv, positions)
+                    pl_cv_list = [result for result in futures if result]
+                
+                profit_loss_list = [x[0] for x in pl_cv_list]
+                current_value_list = [x[1] for x in pl_cv_list]
+                        
+                profit_loss = sum(profit_loss_list) if profit_loss_list else 0
+                
+                
+                # daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
+                daily_profitloss= CompetitionDailyReturns2 .objects.filter(portfolio=in_competition).order_by('created')
+                cumulative_profitloss= CompetitionCumulativeReturns2.objects.filter(portfolio=in_competition).order_by('created')
+                
+                
+                market= CompetitionMarketReturns.objects.all()
+                cumulative_market = CompetitionCumulativeMarketReturns.objects.all()
+                
+                overview = []
+                cumulative_overview = []
+                
+                if daily_profitloss and daily_profitloss.count() > 1:
+                    for daily in daily_profitloss:
+                        for daily2 in market:
+                            if daily.created.date() == daily2.created.date():
+                                overview.append(
+                                    {
+                                        
+                            'portfolio_returns': daily.portfolio_returns,
+                            'market_returns': daily2.market_returns,
+                            'date': daily.created.date()
+                        }
+                                    
+                                )
+                    if overview: 
+                        first = overview[0]
+                        if first['portfolio_returns'] == 0:
+                            first['market_returns'] = 0
+                    
+                if cumulative_profitloss and cumulative_profitloss.count() > 1:
+                    # print('cpl', cumulative_profitloss)
+                                        
+                    for daily in cumulative_profitloss:
+                        for daily2 in cumulative_market :
+                            if daily.created.date() == daily2.created.date():
+                                cumulative_overview.append(
+                                    {
+                                        
+                            'portfolio_returns': daily.portfolio_returns,
+                            'market_returns': daily2.market_returns,
+                            'date': daily.created.date()
+                        }
+                                    
+                                )
+                    # print('cumu',cumulative_overview)
+                    if cumulative_overview:
+                        first_ = cumulative_overview[0]
+                        if first_['portfolio_returns'] == 0:
+                            first_['market_returns'] = 0
+                
+                equity1 = round(balance + profit_loss,2)
+                equity = equity1 if equity1 >= 0 else 0
+                
+                calendar = [
+                    {
+                        'date':daily.created.date(),
+                        'return':daily.portfolio_returns,
+                    } for daily in daily_profitloss if daily_profitloss.count() > 1 and daily.created > competition.start_date
+                ]
+                open_balance = sum([position.amount_invested for position in positions])
+                data = {
+                    'balance':round(balance + open_balance,2),
+                    'starting_balance':1000000,
+                    'equity':equity + open_balance,
+                    'floating_pl' : profit_loss,
+                    'closed_pl' : profit_loss2,
+                    # 'positions': position_data_list2,
+                    'positions': final_list,
+                    # 'open_positions': position_data_list,
+                    'current_value':current_value_list,
+                    "overview":overview,
+                    "cumulative_overview":cumulative_overview,
+                    "calendar":calendar
+                }
+                
+                return Response(data)
+        else:
+
+
+            id = kwargs.get("id")
+
+            demo_account = self.get_account(id)
+            if demo_account is None:
+                return Response("Account not found",status.HTTP_404_NOT_FOUND)
+            
+            portfolio = demo_account
+
+            positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
+            positions2 = DemoPosition.objects.filter(portfolio=portfolio,status='close')
+            
+            today = timezone.now()
+            position_data_dict = {}
+
+            for daily in positions2:
+                if daily.updated.month == today.month:
+                    date_key = daily.updated.date()
+                    if date_key in position_data_dict:
+                        position_data_dict[date_key] += daily.profit_loss
+                    else:
+                        position_data_dict[date_key] = daily.profit_loss
+
+            position_data_list2 = [
+                {'profit_loss': profit_loss, 'date': date} 
+                for date, profit_loss in position_data_dict.items()
+            ]
+            if position_data_list2:
+                start_date = min(item['date'] for item in position_data_list2)
+            else:
+                start_date = today.date()
+
+            final_list = [
+                {'profit_loss': position_data_dict.get(date, 0), 'date': date.strftime('%Y-%m-%d')}
+                for date in (start_date + timedelta(n) for n in range((today.date() - start_date).days + 1) if (start_date + timedelta(n)).weekday() < 5) 
+            ]
+            profit_loss2= sum([pos.profit_loss for pos in positions2])
+            
+            balance = portfolio.balance
+            
+            
+            def pl_cv(position):
+                pl, cur_val,price = position.calculate_profit_loss()
+                symbol=position.stock.symbol
+                print(pl)
+                data2 =  {
+                        'stock':symbol,
+                        'current_value':round(cur_val,2)
+                    }
+                
+                return pl, data2
+            
+            with ThreadPoolExecutor() as executor:
+                futures = executor.map(pl_cv, positions)
+                pl_cv_list = [result for result in futures if result]
+            
+            profit_loss_list = [x[0] for x in pl_cv_list]
+            current_value_list = [x[1] for x in pl_cv_list]
+                    
+            profit_loss = sum(profit_loss_list) if profit_loss_list else 0
+            
+            
+            daily_profitloss= DemoDailyReturns2.objects.filter(portfolio=portfolio).order_by('created')
+            cumulative_profitloss= DemoCumulativeReturns.objects.filter(portfolio=portfolio).order_by('created')
+            
+            overview = []
+            cumulative_overview = []
+            
+            if daily_profitloss and daily_profitloss.count() > 1:
+                for returns in daily_profitloss:
+                    overview.append(
+                        {
+
+                    'portfolio_returns': returns.portfolio_returns,
+                    'market_returns': returns.market_returns,
+                    'date': returns.created.date()
+                }
+
+                    )
+                
+                
+            if cumulative_profitloss and cumulative_profitloss.count() > 1 :
+                for returns in cumulative_profitloss:
+                    cumulative_overview.append(
+                        {
+
+                    'portfolio_returns': returns.portfolio_returns,
+                    'market_returns': returns.market_returns,
+                    'date': returns.created.date()
+                }
+
+                    )
+            
+            equity1 = round(balance + profit_loss,2)
+            equity = equity1 if equity1 >= 0 else 0
+            
+            calendar = [
+                {
+                    'date':daily.created.date(),
+                    'return':daily.portfolio_returns,
+                } for daily in daily_profitloss if daily_profitloss.count() > 1
+            ]
+            open_balance = sum([position.amount_invested for position in positions])
+            data = {
+                'balance':round(balance + open_balance,2),
+                'starting_balance': 1000000,
+                
+                'equity':equity + open_balance ,
+                'floating_pl' : profit_loss,
+                'closed_pl' : profit_loss2,
+                # 'positions': position_data_list2,
+                'positions': final_list,
+                # 'open_positions': position_data_list,
+                'current_value':current_value_list,
+                "overview":overview,
+                "cumulative_overview":cumulative_overview,
+                "calendar":calendar
+            }
+            
+            return Response(data)
+
 
 class NewDemoCloseTrade(APIView):
 
@@ -3196,3 +3620,168 @@ class NewDemoHolding(APIView):
                 }
                 
                 return Response(hold_data)
+class NewSupportDemoHolding(APIView):
+
+    def get_account(self, id):
+        demo_account = DemoPortfolio.objects.filter(id=id).first()
+        return demo_account if demo_account else None
+    
+    def get_competion_account(self, id, competion):
+        competition_demo_account = CompetitionPortfolio.objects.filter(competition=competition,active=True, id=id).first()
+        return competition_demo_account if competition_demo_account else None
+    
+    def get(self, request, *args, **kwargs):
+
+        account_type= kwargs.get("account_type")
+        valid_account_types= ["demo_portfolio","competition_account"]
+
+        if not account_type in valid_account_types:
+            return Response(f"Account type should be {valid_account_types}.",status.HTTP_400_BAD_REQUEST)
+        
+
+        if account_type == "competition_account":
+
+            competition = Competition.objects.filter(status='current').first()
+
+            # get the competion account
+            id = kwargs.get("id")
+
+            demo_account = CompetitionPortfolio.objects.filter(competition__status='current',active=True, id=id)
+            
+            if demo_account.exists:
+                demo_account = demo_account.first()
+            else:
+                demo_account = None
+            
+            if demo_account is None:
+                return Response("Account not found",status.HTTP_404_NOT_FOUND)
+            
+            if not demo_account.user.is_staff:
+                return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+
+            in_competition = demo_account
+        
+            
+            # in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
+            if in_competition and timezone.now() > competition.start_date:
+                portfolio = in_competition
+                    
+                positions =  CompetitionPosition.objects.filter(portfolio=portfolio).order_by("-updated")
+                balance =  portfolio.balance
+                
+                if positions:
+                    
+                    positions_data = get_holdings_positions(positions)
+                    floating_pl = sum([data['change'] for data in positions_data if data['status']=='open'])
+                    closed_pl = sum([data['profit_loss'] for data in positions_data if data['status']=='close'])
+                    open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
+                    closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
+                    # wallet_balance = portfolio.balance
+                    # open_balance = open_trade_sum
+                    positions_close = CompetitionPosition.objects.filter(portfolio=portfolio, status='open')
+                    open_balance = sum([position.amount_invested for position in positions_close])
+                    
+                    hold_data ={
+                        'balance':balance +open_balance,
+                        'floating_pl':floating_pl,
+                        'closed_pl':closed_pl,
+                        'equity':balance  + floating_pl + open_balance,
+                        'holdings':positions_data
+                        
+                    }
+                    
+                    return Response(hold_data)
+                else:
+                    hold_data ={
+                        'balance':0,
+                        'floating_pl':0,
+                        'closed_pl':0,
+                        'equity':0,
+                        'holdings':[]
+                        
+                    }
+                    
+                    return Response(hold_data)
+        else:
+
+            id = kwargs.get("id")
+
+            demo_account = self.get_account(id)
+            if demo_account is None:
+                return Response("Account not found",status.HTTP_404_NOT_FOUND)
+            if not demo_account.user.is_staff:
+                return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+
+            portfolio = demo_account
+
+            positions =  DemoPosition.objects.filter(portfolio=portfolio).order_by("-updated")
+            balance =  portfolio.balance
+            
+            if positions:
+                
+                positions_data = get_holdings_positions(positions)
+                floating_pl = sum([data['change'] for data in positions_data if data['status']=='open'])
+                closed_pl = sum([data['profit_loss'] for data in positions_data if data['status']=='close'])
+                open_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='open'])
+                closed_trade_sum = sum([data['invested'] for data in positions_data if data['status']=='close'])
+                # wallet_balance = portfolio.balance
+                open_balance = open_trade_sum
+                
+                hold_data ={
+                    'balance':balance +open_balance,
+                    'floating_pl':floating_pl,
+                    'closed_pl':closed_pl,
+                    'equity':balance  + floating_pl + open_balance,
+                    'holdings':positions_data
+                    
+                }
+                
+                return Response(hold_data)
+            else:
+                hold_data ={
+                    'balance':balance,
+                    'floating_pl':0,
+                    'closed_pl':0,
+                    'equity':balance,
+                    'holdings':[]
+                    
+                }
+                
+                return Response(hold_data)
+      
+            
+class AddTrailingStopLoss(APIView):
+    def get_demo_position(self, id):
+        position = DemoPosition.objects.filter(id=id).first()
+        return position if position else None
+    
+    def get_competion_account(self, id):
+        position = CompetitionPosition.objects.filter(id=id).first()
+        return position if position else None
+
+    def post(self, request, *args, **kwargs):
+
+        id = kwargs.get("id")
+        account_type= request.data.get("account_type")
+        trailing_sl = request.data.get("trailing_sl")
+
+        if account_type == "competition_account":
+            account = self.get_competion_account(id)
+        else:
+            account = self.get_demo_position(id)
+            
+        if not account:
+            return Response("Account not found", status.HTTP_404_NOT_FOUND)
+        
+        if account.status != 'open':
+            return Response("Position is not open", status.HTTP_400_BAD_REQUEST)
+        
+        if not trailing_sl:
+            return Response("Trailing stop loss is required", status.HTTP_400_BAD_REQUEST)
+        
+        account.trailing_stop_loss = Decimal(trailing_sl)
+        account.save()
+        
+        return Response("Trailing stop loss added successfully", status.HTTP_200_OK)
+        
+        

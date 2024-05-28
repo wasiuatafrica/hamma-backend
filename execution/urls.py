@@ -29,12 +29,20 @@ urlpatterns = [
     path('demo/cancel/trade/<str:account_type>/<str:id>/<str:position_id>/', views.NewDemoClosePendingTrade.as_view()),
     # new demohoding view 
     path('demo/holding/<str:account_type>/<str:id>/', views.NewDemoHolding.as_view()), #DONE
+    path('trailing-sl/<str:id>/', views.AddTrailingStopLoss.as_view()),
 
     # competition
     path("create-competition-account/", views.CreatCompetitionAccount.as_view()),
     path("leave-competition/", views.LeaveCompetion.as_view()),
     path("competition/account/<str:id>/", views.RetrieveSIngleCompetitonAccount.as_view()),
     
-
+    #NEWSUPPORT
+    path('demo/support/home/<str:account_type>/<str:id>/', views.NewSupportHome.as_view()), #done
+    path("demo/support/accounts/<str:email>/", views.SupportDemoPorfoliosAccounts.as_view()),
+    path('demo/support/holding/<str:account_type>/<str:id>/', views.NewSupportDemoHolding.as_view()), #DONE
+    path('demo/support/trade/<str:account_type>/<str:id>/', views.SupportSingleDemoTradeAPIView.as_view()), #DONE
+    
+    
+    
     
 ]

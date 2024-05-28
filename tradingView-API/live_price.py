@@ -51,10 +51,19 @@ def get_live_data()    :
         
         symbol=data['Symbol'].split(' ')[0]
         
-        data1= {'datetime': lagos_now.strftime("%Y-%m-%d %H:%M:%S"),  'open': data['Open'], 'high': data['High'], 'low': data['Low'], 'close': data['Close'], 'volume': data['Volume'], 'symbol': symbol}
+        
+        data1= {
+            'datetime': lagos_now.strftime("%Y-%m-%d %H:%M:%S"),  
+            'open': data['Open'], 
+            'high': data['High'] if data['High']  else data['Open']*1.01 , 
+            'low': data['Low'] if data['Low'] else data['Close']*0.99, 
+            'close': data['Close'], 
+            'volume': data['Volume'], 
+            'symbol': symbol
+            }
         
         combined[symbol] = data1
-          
+    # print(combined)     
     write_to_mongodb("livelake3", combined)
       
 def is_market_open():
@@ -63,8 +72,10 @@ def is_market_open():
 
     if datetime.today().weekday() < 5:
         market_open_time = time(10, 0)
-        # market_close_time = time(18, 30)
+        
         market_close_time = time(14, 31)
+        # market_open_time = time(7, 0)
+        # market_close_time = time(22, 30)
 
         if market_open_time <= current_time_lagos <= market_close_time:
             return True

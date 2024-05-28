@@ -1844,3 +1844,23 @@ class UserDetails(APIView):
                
 
         return Response(serializer.data)
+
+
+class ButtonClickSummaryAPIView(APIView):
+
+    def get(self, request, format=None):
+        button_click_counts = models.ButtonClick .objects.values('page', 'button_name').annotate(click_count=Count('id'))
+
+        
+        grouped_data = {}
+        for entry in button_click_counts:
+            page = entry['page']
+            if page not in grouped_data:
+                grouped_data[page] = []
+            grouped_data[page].append({
+                'button_name': entry['button_name'],
+                'click_count': entry['click_count']
+            })
+        
+        return Response(grouped_data)
+        
