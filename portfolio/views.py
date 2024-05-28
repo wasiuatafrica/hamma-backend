@@ -834,6 +834,25 @@ class StockWatchlistAPIView(APIView):
         }
         return Response(response_data)
     
+class SupportStockWatchlistAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request,*args, **kwargs ):
+        
+        email = kwargs.get('email')
+        print(email)
+        
+        queryset = Stock.objects.filter(watchlisted_by__user__email=email)
+        details = get_details3(queryset)
+
+        response_data = {
+            'watchlist': details,
+            'analyst_pick':[],
+        
+        }
+        return Response(response_data)
+
+    
     def post(self, request):
         
         user = request.user

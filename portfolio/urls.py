@@ -37,6 +37,8 @@ urlpatterns = [
     path('wallet/support/<str:email>/', views.SupportWalletBalance.as_view()),
     path("alert/support/<str:email>/", views.SupportAlertView.as_view()),
     path('transactions/support/<str:email>/', views.SupportTransactionList.as_view()),
+    path('support/stock-watchlist/<str:email>/', views.SupportStockWatchlistAPIView.as_view()),
+    
     
    
 
