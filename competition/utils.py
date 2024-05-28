@@ -119,7 +119,7 @@ def user_has_atleat_10_min_trading_days(user:any)->bool:
     
     return {
             "pass":True if len(days) >=10 else False,
-            "mark":1 if len(days) >=10 else 0,
+            "mark":10 if len(days) >=10 else len(days),
             "reason":f"Has only {len(days)} trading days" if len(days)<10 else "Has minimum of 10 trading days"
         }
 
