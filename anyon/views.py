@@ -1864,3 +1864,59 @@ class ButtonClickSummaryAPIView(APIView):
         
         return Response(grouped_data)
         
+
+class ButtonClickSummaryAPIView2(APIView):
+
+    def get(self, request, format=None):
+        # Get all button click data
+        all_button_clicks = models.ButtonClick.objects.all()
+
+        # Calculate date ranges
+        today = timezone.now().date()
+        last_7_days = today - timedelta(days=7)
+        last_30_days = today - timedelta(days=30)
+        last_1_year = today - timedelta(days=365)
+
+        # Total data
+        total_data = self.get_click_summary_data(all_button_clicks, None, None)
+
+        # Last 7 days data
+        last_7_days_data = self.get_click_summary_data(all_button_clicks, last_7_days, today)
+
+        # Last 30 days data
+        last_30_days_data = self.get_click_summary_data(all_button_clicks, last_30_days, today)
+
+        # Last 1 year data
+        last_1_year_data = self.get_click_summary_data(all_button_clicks, last_1_year, today)
+
+        # Today's data
+        today_data = self.get_click_summary_data(all_button_clicks, today, today)
+
+        # Construct response
+        response_data = {
+            'total': total_data,
+            'last_7_days': last_7_days_data,
+            'last_30_days': last_30_days_data,
+            'last_1_year': last_1_year_data,
+            'today': today_data
+        }
+
+        return Response(response_data)
+
+    def get_click_summary_data(self, queryset, start_date, end_date):
+        if start_date and end_date:
+            queryset = queryset.filter(timestamp__date__range=[start_date, end_date])
+        
+        button_click_counts = queryset.values('page', 'button_name').annotate(click_count=Count('id'))
+
+        grouped_data = {}
+        for entry in button_click_counts:
+            page = entry['page']
+            if page not in grouped_data:
+                grouped_data[page] = []
+            grouped_data[page].append({
+                'button_name': entry['button_name'],
+                'click_count': entry['click_count']
+            })
+        
+        return grouped_data
