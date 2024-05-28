@@ -2872,7 +2872,7 @@ class NewHome(APIView):
                 {
                     'date':daily.created.date(),
                     'return':daily.portfolio_returns,
-                } for daily in daily_profitloss if daily_profitloss.count() > 1
+                } for daily in daily_profitloss[1:] if daily_profitloss.count() > 1
             ]
             open_balance = sum([position.amount_invested for position in positions])
             data = {

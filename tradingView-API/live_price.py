@@ -55,8 +55,8 @@ def get_live_data()    :
         data1= {
             'datetime': lagos_now.strftime("%Y-%m-%d %H:%M:%S"),  
             'open': data['Open'], 
-            'high': data['High'] if data['High']  else data['Open']*1.01 , 
-            'low': data['Low'] if data['Low'] else data['Close']*0.99, 
+            'high': data['High'] if data['High']  else round(data['Open']*1.01,2) , 
+            'low': data['Low'] if data['Low'] else round(data['Close']*0.99, 2),
             'close': data['Close'], 
             'volume': data['Volume'], 
             'symbol': symbol
