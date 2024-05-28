@@ -2,7 +2,7 @@ from pyexpat.errors import messages
 from django.contrib import admin
 
 from .models import (
-    Stock, PayStackReceipts, Receipts, WithdrawalOTPRequest, Wallet,
+    ButtonClick, Stock, PayStackReceipts, Receipts, WithdrawalOTPRequest, Wallet,
     Transaction,  Alert, AlertAI, AlertAITracker,  Conversation, Message, DemoTransaction
 )
 
@@ -40,5 +40,6 @@ admin.site.register(AlertAITracker)
 admin.site.register(Message)
 admin.site.register(Conversation)
 admin.site.register(DemoTransaction)
+admin.site.register(ButtonClick)
 # admin.site.register(Position)
 # admin.site.register(DemoPosition)
