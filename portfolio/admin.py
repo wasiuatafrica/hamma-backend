@@ -2,7 +2,7 @@ from pyexpat.errors import messages
 from django.contrib import admin
 
 from .models import (
-    ButtonClick, Stock, PayStackReceipts, Receipts, WithdrawalOTPRequest, Wallet,
+    ButtonClick, DashboardFeed, Stock, PayStackReceipts, Receipts, WithdrawalOTPRequest, Wallet,
     Transaction,  Alert, AlertAI, AlertAITracker,  Conversation, Message, DemoTransaction
 )
 
@@ -30,16 +30,12 @@ class TransactionAdmin(admin.ModelAdmin):
 
 # Registering the admin model with the Transaction model
 admin.site.register(Transaction, TransactionAdmin)
-# admin.site.register(Trade)
 admin.site.register(Alert)
 admin.site.register(AlertAI)
 admin.site.register(AlertAITracker)
-# admin.site.register(DemoTrade)
-# admin.site.register(DemoHolding)
-# admin.site.register(DemoPortfolio)
 admin.site.register(Message)
 admin.site.register(Conversation)
 admin.site.register(DemoTransaction)
 admin.site.register(ButtonClick)
-# admin.site.register(Position)
-# admin.site.register(DemoPosition)
+admin.site.register(DashboardFeed)
+

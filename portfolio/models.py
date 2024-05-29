@@ -280,11 +280,7 @@ class DashboardFeed(auto_prefetch.Model):
     updated = models.DateTimeField(auto_now=True)
     status = models.CharField(default='draft', max_length=20)
     category =  auto_prefetch.ForeignKey(FeedsCategory, on_delete=models.DO_NOTHING)
-    # agree = models.IntegerField(default=0)
-    # disagree = models.IntegerField(default=0)
-    # like = models.IntegerField(default=0)
-    # trading  = models.IntegerField(default=0)
-    # monitoring  = models.IntegerField(default=0)
+    
     
     def __str__(self):
         return self.title
