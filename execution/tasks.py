@@ -1283,7 +1283,7 @@ def calc_stop_loss():
         positions = DemoPosition.objects.filter(status='open')
         all_prices = get_stockdata2()
         for position in positions:
-            if position.stop_loss:
+            if position.stop_loss and not position.trailing_stop_loss:
                 symbol = position.stock.symbol
                 current_price = all_prices[symbol]['current_price']
                 if position.action == 'buy':
