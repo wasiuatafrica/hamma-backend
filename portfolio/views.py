@@ -936,15 +936,30 @@ class FeedView(APIView):
         serializer = DashboardFeedSerializer (feed)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
         
+
+
     def put(self, request):
         id = request.data.get('id')
-        feed = DashboardFeed.objects.get(id=id)
-        serializer = DashboardFeedSerializer(feed, data=request.data)
+        try:
+            feed = DashboardFeed.objects.get(id=id)
+        except DashboardFeed.DoesNotExist:
+            return Response({"error": "Feed not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        data = request.data.copy()
+        
+        # Retain existing file fields if they are not included in the request data
+        if 'image' not in data:
+            data['image'] = feed.image
+        if 'image_caption' not in data:
+            data['image_caption'] = feed.image_caption
+        
+        serializer = DashboardFeedSerializer(feed, data=data, partial=True)
+        
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def delete(self, request):
         id = request.data.get('id')
         feed = DashboardFeed.objects.get(id=id)
