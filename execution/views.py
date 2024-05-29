@@ -3491,7 +3491,10 @@ def get_holdings_positions(queryset):
             "profit_loss":profit_loss,
             "side":position.action,
             "order":position.order_type,
-            'order_id':position.order_id
+            'order_id':position.order_id,
+            'take_profit':position.take_profit,
+            'stop_loss':position.stop_loss,
+            'trailing_sl':position.trailing_stop_loss,
             
             }
         all_holdings.append(data)
@@ -3786,6 +3789,7 @@ class AddTrailingStopLoss(APIView):
             return Response("Trailing stop loss is required", status.HTTP_400_BAD_REQUEST)
         
         account.trailing_stop_loss = Decimal(trailing_sl)
+        account.last_price = 0
         account.save()
         
         return Response("Trailing stop loss added successfully", status.HTTP_200_OK)

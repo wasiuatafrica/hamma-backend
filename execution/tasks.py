@@ -1321,68 +1321,61 @@ def calc_stop_loss():
 def calc_tailing_sl():
     positions = DemoPosition.objects.filter(status='open')
     all_prices = get_stockdata2()
+
     for position in positions:
-        if position.trailing_stop_loss:
-            symbol = position.stock.symbol
-            current_price = all_prices[symbol]['current_price']
-            if position.action == 'buy':
-                if position.highest_price is None or position.highest_price == 0:
-                    position.highest_price = current_price
-                    position.save()
-                    
-                
-                if current_price > position.highest_price:
-                    position.highest_price = current_price
-                    position.save()
-                    
-                if current_price <= position.highest_price - position.trailing_stop_loss:
-                    current_value = round(position.quantity * current_price,2)
-                    profit_loss = Decimal(current_value) - position.amount_invested
-                       
-                    position.status = DemoPosition.CLOSED
-                    position.close_price = Decimal(current_price)
-                    position.profit_loss = profit_loss
-                    position.save()
-                    
-                    CompetitionTransaction.objects.create(
-                                user=position.portfolio.user,
-                                transaction_type='close trade',
-                                amount=current_value,
-                                status='completed'
-                            )
-                    save_and_send_notification(position.portfolio.user.id, f"Trailing stop loss  has been triggered for {position.stock.symbol}. Position is closed")
-                    UserActivityLog.objects.create(user=position.portfolio.user, action_type="demo_closed_trade",description=f"User closed demo trade with symbol {position.stock.symbol}.")
-                    position.portfolio.balance += position.amount_invested + position.profit_loss
-                    position.portfolio.save()
-                    
-            elif position.action == 'sell':
-                if position.highest_price is None or position.highest_price == 0:
-                    position.highest_price = current_price
-                    position.save()
-                    
-                
-                if current_price < position.highest_price:
-                    position.highest_price = current_price
-                    position.save()
-                    
-                if current_price >= position.highest_price - position.trailing_stop_loss:
-                    current_value = round(position.quantity * current_price,2)
-                    profit_loss = position.amount_invested - Decimal(current_value) 
-                    
-                    position.status = DemoPosition.CLOSED
-                    position.close_price = Decimal(current_price)
-                    position.profit_loss = profit_loss
-                    position.save()
-                    
-                    CompetitionTransaction.objects.create(
-                                user=position.portfolio.user,
-                                transaction_type='close trade',
-                                amount=current_value,
-                                status='completed'
-                            )
-                    save_and_send_notification(position.portfolio.user.id, f"Trailing stop loss has been triggered for {position.stock.symbol}. Position is closed")
-                    UserActivityLog.objects.create(user=position.portfolio.user, action_type="demo_closed_trade",description=f"User closed demo trade with symbol {position.stock.symbol}.")
-                    position.portfolio.balance += position.amount_invested + position.profit_loss
-                    position.portfolio.save()
-                    
-                    
+        if not position.trailing_stop_loss:
+            continue
+
+        symbol = position.stock.symbol
+        current_price = all_prices[symbol]['current_price']
+
+        if position.action == 'buy':
+            handle_buy_position(position, current_price)
+            
+        elif position.action == 'sell':
+            handle_sell_position(position, current_price)
+            
+        # Update last price for the next comparison
+        position.last_price = current_price
+        position.save()
+
+def handle_buy_position(position, current_price):
+    if position.last_price and position.last_price > 0:
+        if position.last_price - current_price >= position.trailing_stop_loss:
+            close_position(position, current_price)
+
+def handle_sell_position(position, current_price):
+    if position.last_price and position.last_price > 0:
+        if current_price - position.last_price >= position.trailing_stop_loss:
+            close_position(position, current_price)
+
+def close_position(position, current_price):
+    current_value = round(position.quantity * current_price, 2)
+    profit_loss = Decimal(current_value) - position.amount_invested
+
+    # Update position status and details
+    position.status = DemoPosition.CLOSED
+    position.close_price = Decimal(current_price)
+    position.profit_loss = profit_loss
+    position.save()
+
+    # Log transaction and notify user
+    CompetitionTransaction.objects.create(
+        user=position.portfolio.user,
+        transaction_type='close trade',
+        amount=current_value,
+        status='completed'
+    )
+    save_and_send_notification(
+        position.portfolio.user.id,
+        f"Trailing stop loss has been triggered for {position.stock.symbol}. Position is closed"
+    )
+    UserActivityLog.objects.create(
+        user=position.portfolio.user,
+        action_type="demo_closed_trade",
+        description=f"User closed demo trade with symbol {position.stock.symbol}."
+    )
+
+    # Update portfolio balance
+    position.portfolio.balance += position.amount_invested + position.profit_loss
+    position.portfolio.save()

@@ -185,7 +185,7 @@ class DemoPosition(auto_prefetch.Model):
     take_profit = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     stop_loss = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     trailing_stop_loss = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    highest_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    last_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
     
     
