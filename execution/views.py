@@ -3790,7 +3790,7 @@ class AddTrailingStopLoss(APIView):
         
         today = timezone.now()
         if account.updated.date()== today.date() and account.trailing_stop_loss:
-            return Response("Trailing stop loss cannot be added now", status.HTTP_400_BAD_REQUEST)
+            return Response("Trailing stop loss can be added once a day.", status.HTTP_400_BAD_REQUEST)
         
         account.trailing_stop_loss = Decimal(trailing_sl)
         account.last_price = 0
