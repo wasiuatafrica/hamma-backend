@@ -2194,7 +2194,7 @@ class SingleDemoTradeAPIView(APIView):
         valid_account_types= ["demo_portfolio","competition_account"]
 
         if not account_type in valid_account_types:
-            return Response(f"Account type should be {valid_account_types}.",status.HTTP_400_BAD_REQUEST)
+            return Response({'error': f"Account type should be {valid_account_types}."},status.HTTP_400_BAD_REQUEST)
         
         
         symbol = request.data.get('symbol')
@@ -2221,35 +2221,35 @@ class SingleDemoTradeAPIView(APIView):
             if take_profit:
                 if action == 'buy':
                     if current_price >= take_profit:
-                        return Response("Take profit cannot be less than current price", status.HTTP_400_BAD_REQUEST)
+                        return Response({'error': "Take profit cannot be less than current price"}, status.HTTP_400_BAD_REQUEST)
                 elif action == 'sell':
                     if current_price <= take_profit:
-                        return Response("Take profit cannot be greater than current price", status.HTTP_400_BAD_REQUEST)
+                        return Response({'error': "Take profit cannot be greater than current price"}, status.HTTP_400_BAD_REQUEST)
                     
             if stop_loss:
                 if action == 'buy':
                     if current_price <= stop_loss:
-                        return Response("Stop loss cannot be greater than current price", status.HTTP_400_BAD_REQUEST)
+                        return Response({'error': "Stop loss cannot be greater than current price"}, status.HTTP_400_BAD_REQUEST)
                 elif action == 'sell':
                     if current_price >= stop_loss:
-                        return Response("Stop loss cannot be less than current price", status.HTTP_400_BAD_REQUEST)
+                        return Response({'error': "Stop loss cannot be less than current price"}, status.HTTP_400_BAD_REQUEST)
                 
         elif order_type == 'limit': 
             if take_profit:
                 if action == 'buy':
                     if price >= take_profit:
-                        return Response("Take profit cannot be less than current price", status.HTTP_400_BAD_REQUEST)
+                        return Response({'error': "Take profit cannot be less than current price"}, status.HTTP_400_BAD_REQUEST)
                 elif action == 'sell':
                     if price <= take_profit:
-                        return Response("Take profit cannot be greater than current price", status.HTTP_400_BAD_REQUEST)
+                        return Response({'error': "Take profit cannot be greater than current price"}, status.HTTP_400_BAD_REQUEST)
                     
             if stop_loss:
                 if action == 'buy':
                     if price <= stop_loss:
-                        return Response("Stop loss cannot be greater than current price", status.HTTP_400_BAD_REQUEST)
+                        return Response({'error': "Stop loss cannot be greater than current price"}, status.HTTP_400_BAD_REQUEST)
                 elif action == 'sell':
                     if price >= stop_loss:
-                        return Response("Stop loss cannot be less than current price", status.HTTP_400_BAD_REQUEST)
+                        return Response({'error': "Stop loss cannot be less than current price"}, status.HTTP_400_BAD_REQUEST)
         
         # print(order_type)
         
