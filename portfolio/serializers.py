@@ -62,9 +62,18 @@ class ButtonClickSerializer(serializers.ModelSerializer):
         
 
 class DashboardFeedSerializer(serializers.ModelSerializer):
+    stock_symbol = serializers.SerializerMethodField()
+    category_name = serializers.SerializerMethodField()
+
     class Meta:
         model = DashboardFeed
         fields = "__all__"
+
+    def get_stock_symbol(self, instance):
+        return instance.stock.symbol if instance.stock else None
+    
+    def get_category_name(self, instance):
+        return instance.category.name if instance.category else None
 
     def to_representation(self, instance):
         # Get aggregated counts for each reaction type
@@ -78,6 +87,11 @@ class DashboardFeedSerializer(serializers.ModelSerializer):
         # Update serializer data with aggregated counts
         ret = super().to_representation(instance)
         ret.update(reaction_counts)
+        
+        # Add the stock symbol to the representation
+        ret['stock_symbol'] = self.get_stock_symbol(instance)
+        ret['category_name'] = self.get_category_name(instance)
+        
         return ret
 
         
