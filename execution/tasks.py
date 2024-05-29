@@ -1223,7 +1223,7 @@ def calc_take_profit():
         positions = DemoPosition.objects.filter(status='open')
         all_prices = get_stockdata2()
         for position in positions:
-            if position.take_profit:
+            if position.take_profit and not position.trailing_stop_loss:
                 symbol = position.stock.symbol
                 current_price = all_prices[symbol]['current_price']
                 if position.action == 'buy':
@@ -1330,45 +1330,47 @@ def calc_stop_loss():
                         position.portfolio.balance += position.amount_invested + position.profit_loss
                         position.portfolio.save()
                         
-                        
+
 @shared_task
 def calc_tailing_sl():
-    today = timezone.now().date()
-     
-    lagos_timezone = pytz.timezone('Africa/Lagos')
-    current_time_lagos = timezone.now().astimezone(lagos_timezone)
-    # print(current_time_lagos)
-    
-    if current_time_lagos.time() >= datetime.strptime('10:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:31 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
-        positions = DemoPosition.objects.filter(status='open')
-        all_prices = get_stockdata2()
+    positions = DemoPosition.objects.filter(status='open')
+    all_prices = get_stockdata2()
 
-        for position in positions:
-            if not position.trailing_stop_loss:
-                continue
+    for position in positions:
+        if not position.trailing_stop_loss:
+            continue
 
-            symbol = position.stock.symbol
-            current_price = all_prices[symbol]['current_price']
+        symbol = position.stock.symbol
+        current_price = all_prices[symbol]['current_price']
 
-            if position.action == 'buy':
-                handle_buy_position(position, current_price)
-                
-            elif position.action == 'sell':
-                handle_sell_position(position, current_price)
-                
-            # Update last price for the next comparison
-            position.last_price = current_price
-            position.save()
+        if position.action == 'buy':
+            if handle_buy_position(position, current_price):
+                continue  # Skip to the next position if the current one is closed
+        elif position.action == 'sell':
+            if handle_sell_position(position, current_price):
+                continue  # Skip to the next position if the current one is closed
+
+        # Update last price for the next comparison
+        position.last_price = current_price
+        position.save()
 
 def handle_buy_position(position, current_price):
     if position.last_price and position.last_price > 0:
-        if position.last_price - current_price >= position.trailing_stop_loss:
+        # Calculate trailing stop loss threshold
+        trailing_stop_threshold = position.last_price * (1 - position.trailing_stop_loss / 100)
+        if current_price <= trailing_stop_threshold:
             close_position(position, current_price)
+            return True  # Indicate that the position was closed
+    return False
 
 def handle_sell_position(position, current_price):
     if position.last_price and position.last_price > 0:
-        if current_price - position.last_price >= position.trailing_stop_loss:
+        # Calculate trailing stop loss threshold
+        trailing_stop_threshold = position.last_price * (1 + position.trailing_stop_loss / 100)
+        if current_price >= trailing_stop_threshold:
             close_position(position, current_price)
+            return True  # Indicate that the position was closed
+    return False
 
 def close_position(position, current_price):
     current_value = round(position.quantity * current_price, 2)
