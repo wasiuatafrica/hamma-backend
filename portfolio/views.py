@@ -953,6 +953,14 @@ class FeedView(APIView):
         if 'image_caption' not in data:
             data['image_caption'] = feed.image_caption
         
+        stock_symbol = data.get('symbol')
+        if stock_symbol:
+            try:
+                stock = Stock.objects.get(symbol=stock_symbol)
+                data['stock'] = stock.id
+            except Stock.DoesNotExist:
+                return Response({"error": "Stock not found"}, status=status.HTTP_404_NOT_FOUND)
+        
         serializer = DashboardFeedSerializer(feed, data=data, partial=True)
         
         if serializer.is_valid():

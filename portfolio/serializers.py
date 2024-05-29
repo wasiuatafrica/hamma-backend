@@ -98,4 +98,4 @@ class DashboardFeedSerializer(serializers.ModelSerializer):
 class FeedsCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = FeedsCategory
-        fields = ['name']
+        fields = '__all__'
