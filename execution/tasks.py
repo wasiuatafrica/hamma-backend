@@ -1341,12 +1341,13 @@ def calc_stop_loss():
 def calc_tailing_sl():
     lagos_timezone = pytz.timezone('Africa/Lagos')
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
-    # print(current_time_lagos)
     
-    if current_time_lagos.time() >= datetime.strptime('10:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:31 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
+    if (current_time_lagos.time() >= datetime.strptime('10:02 AM', '%I:%M %p').time() and 
+        current_time_lagos.time() <= datetime.strptime('2:31 PM', '%I:%M %p').time() and 
+        current_time_lagos.weekday() < 5):
+        
         demopositions = DemoPosition.objects.filter(status='open')
         composition = CompetitionPosition.objects.filter(status='open')
-            
         positions = list(demopositions) + list(composition)
         all_prices = get_stockdata2()
 
@@ -1364,14 +1365,14 @@ def calc_tailing_sl():
                 if handle_sell_position(position, current_price):
                     continue  # Skip to the next position if the current one is closed
 
-            # Update last price for the next comparison
-            position.last_price = current_price
+            # Update last highest price for the next comparison
+            position.last_price = max(position.last_price, current_price)
             position.save()
 
 def handle_buy_position(position, current_price):
     if position.last_price and position.last_price > 0:
-        # Calculate trailing stop loss threshold
-        trailing_stop_threshold = position.last_price * (1 - position.trailing_stop_loss / 100)
+        # Calculate trailing stop loss threshold based on a fixed price difference
+        trailing_stop_threshold = position.last_price - position.trailing_stop_loss
         if current_price <= trailing_stop_threshold:
             close_position(position, current_price)
             return True  # Indicate that the position was closed
@@ -1379,8 +1380,8 @@ def handle_buy_position(position, current_price):
 
 def handle_sell_position(position, current_price):
     if position.last_price and position.last_price > 0:
-        # Calculate trailing stop loss threshold
-        trailing_stop_threshold = position.last_price * (1 + position.trailing_stop_loss / 100)
+        # Calculate trailing stop loss threshold based on a fixed price difference
+        trailing_stop_threshold = position.last_price + position.trailing_stop_loss
         if current_price >= trailing_stop_threshold:
             close_position(position, current_price)
             return True  # Indicate that the position was closed
