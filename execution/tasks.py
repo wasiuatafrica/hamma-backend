@@ -1220,7 +1220,10 @@ def calc_take_profit():
     # print(current_time_lagos)
     
     if current_time_lagos.time() >= datetime.strptime('10:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:31 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
-        positions = DemoPosition.objects.filter(status='open')
+        demopositions = DemoPosition.objects.filter(status='open')
+        composition = CompetitionPosition.objects.filter(status='open')
+        
+        positions = list(demopositions) + list(composition)
         all_prices = get_stockdata2()
         for position in positions:
             if position.take_profit and not position.trailing_stop_loss:
@@ -1280,7 +1283,10 @@ def calc_stop_loss():
     # print(current_time_lagos)
     
     if current_time_lagos.time() >= datetime.strptime('10:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:31 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
-        positions = DemoPosition.objects.filter(status='open')
+        demopositions = DemoPosition.objects.filter(status='open')
+        composition = CompetitionPosition.objects.filter(status='open')
+        
+        positions = list(demopositions) + list(composition)
         all_prices = get_stockdata2()
         for position in positions:
             if position.stop_loss and not position.trailing_stop_loss:
@@ -1333,26 +1339,34 @@ def calc_stop_loss():
 
 @shared_task
 def calc_tailing_sl():
-    positions = DemoPosition.objects.filter(status='open')
-    all_prices = get_stockdata2()
+    lagos_timezone = pytz.timezone('Africa/Lagos')
+    current_time_lagos = timezone.now().astimezone(lagos_timezone)
+    # print(current_time_lagos)
+    
+    if current_time_lagos.time() >= datetime.strptime('10:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:31 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
+        demopositions = DemoPosition.objects.filter(status='open')
+        composition = CompetitionPosition.objects.filter(status='open')
+            
+        positions = list(demopositions) + list(composition)
+        all_prices = get_stockdata2()
 
-    for position in positions:
-        if not position.trailing_stop_loss:
-            continue
+        for position in positions:
+            if not position.trailing_stop_loss:
+                continue
 
-        symbol = position.stock.symbol
-        current_price = all_prices[symbol]['current_price']
+            symbol = position.stock.symbol
+            current_price = all_prices[symbol]['current_price']
 
-        if position.action == 'buy':
-            if handle_buy_position(position, current_price):
-                continue  # Skip to the next position if the current one is closed
-        elif position.action == 'sell':
-            if handle_sell_position(position, current_price):
-                continue  # Skip to the next position if the current one is closed
+            if position.action == 'buy':
+                if handle_buy_position(position, current_price):
+                    continue  # Skip to the next position if the current one is closed
+            elif position.action == 'sell':
+                if handle_sell_position(position, current_price):
+                    continue  # Skip to the next position if the current one is closed
 
-        # Update last price for the next comparison
-        position.last_price = current_price
-        position.save()
+            # Update last price for the next comparison
+            position.last_price = current_price
+            position.save()
 
 def handle_buy_position(position, current_price):
     if position.last_price and position.last_price > 0:
