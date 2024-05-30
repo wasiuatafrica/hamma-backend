@@ -916,7 +916,13 @@ class FeedView(APIView):
         category = request.data.get('category')
         image_caption = request.data.get('image_caption')
         symbol = request.data.get('symbol')
-        subtitle = request.data.get('subtitle')
+        subtitle = request.data.get('subtitle',None)
+        bullet_1 = request.data.get('bullet_1',None)
+        bullet_2 = request.data.get('bullet_2',None)
+        bullet_3 = request.data.get('bullet_3',None)
+        bullet_4 = request.data.get('bullet_4',None)
+        bullet_5 = request.data.get('bullet_5',None)
+        bullet_6 = request.data.get('bullet_6',None)
         
         stock = Stock.objects.get(symbol=symbol)
         feedcategory = FeedsCategory .objects.get(name=category)
@@ -930,7 +936,13 @@ class FeedView(APIView):
             image_caption=image_caption,
             stock=stock,
             subtitle=subtitle,
-            user=request.user
+            user=request.user,
+            bullet_1=bullet_1,
+            bullet_2=bullet_2,
+            bullet_3=bullet_3,
+            bullet_4=bullet_4,
+            bullet_5=bullet_5,
+            bullet_6=bullet_6
         )
         
         serializer = DashboardFeedSerializer (feed)
