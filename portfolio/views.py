@@ -1034,7 +1034,7 @@ class UserDashboardFeedsAPIView(APIView):
         # subscribed_categories = request.user.subscribed_categories.all()
         # categories =  [sub.category for sub in subscribed_categories]
         # feeds = get_list_or_404(DashboardFeed.objects.filter(category__in=categories, status='published'))
-        feeds = DashboardFeed.objects.filter(status='published')
+        feeds = DashboardFeed.objects.filter(status='published').order_by('-created')
         serializer = DashboardFeedSerializer(feeds, many=True)
         return Response(serializer.data)
 
