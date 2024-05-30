@@ -51,12 +51,14 @@ class LoginView(APIView):
         # Authenticate user
         user = authenticate(request, email=email, password=password)
         
-        if user is not None and user.is_staff:
+        if user is not None and (user.is_staff or user.is_analyst) :
             refresh = RefreshToken.for_user(user)
             print(user)
             token_data = {
                     'refresh': str(refresh),
                     'access': str(refresh.access_token),
+                    'is_analyst': user.is_analyst,
+                    'is_staff': user.is_staff,
                 }
             activity=AdminUserActivityLog.objects.create(admin=user, user=user, action_type="login",description=f"Admin user login into their account.")
             return Response(token_data, status=status.HTTP_200_OK)
