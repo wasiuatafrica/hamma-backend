@@ -276,7 +276,7 @@ class DashboardFeed(auto_prefetch.Model):
     title = models.CharField(max_length=200)
     image = models.ImageField(upload_to="feed/", blank=True, null=True)
     image_caption = models.CharField(max_length=100, blank=True, null=True)
-    stock = auto_prefetch.ForeignKey(Stock, on_delete=models.CASCADE, blank=True, null=True)
+    stock = auto_prefetch.ForeignKey(Stock, on_delete=models.CASCADE, blank=True, null=True, related_name='feed')
     subtitle = models.TextField(blank=True, null=True)
     content = models.TextField(blank=True, null=True)
     bullet_1 = models.TextField(blank=True, null=True)
@@ -289,6 +289,7 @@ class DashboardFeed(auto_prefetch.Model):
     updated = models.DateTimeField(auto_now=True)
     status = models.CharField(default='draft', max_length=20)
     category =  auto_prefetch.ForeignKey(FeedsCategory, on_delete=models.DO_NOTHING)
+    published_date = models.DateTimeField(blank=True, null=True)
     
     
     def __str__(self):

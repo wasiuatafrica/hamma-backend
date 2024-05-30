@@ -13,6 +13,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     lastname = models.CharField(max_length=255, default="", blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
+    is_analyst = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
     has_2fa=models.BooleanField(default=True, null=True, blank=True)
     totp_url=models.ImageField(upload_to="qr_img", null=True, blank=True)

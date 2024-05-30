@@ -33,12 +33,17 @@ from execution import models as exec_models
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 from competition.managers.utils import sendMail 
 from django.db.models import Sum, F, Count, Q
+from datetime import datetime, timedelta
 
+from rest_framework.permissions import BasePermission
 
-
- 
 User= get_user_model()
 
+class IsStaffOrAnalyst(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and (request.user.is_staff or request.user.is_analyst)
+
+ 
 class WalletBalance(APIView):
 
     def get(self, request):
@@ -827,9 +832,21 @@ class StockWatchlistAPIView(APIView):
         queryset = Stock.objects.filter(watchlisted_by__user=request.user)
         details = get_details3(queryset)
 
+        seven_days_ago = timezone.now() - timedelta(days=7)
+
+        # Get the feeds that are published within the last 7 days
+        published_feeds = DashboardFeed.objects.filter(
+            status='published',
+            published_date__gte=seven_days_ago
+        ).order_by('-created')
+
+        # Get the queryset of stocks related to these feeds
+        analyst = Stock.objects.filter(feed__in=published_feeds).distinct()
+        analyst_pick = get_details3(analyst)
+        
         response_data = {
             'watchlist': details,
-            'analyst_pick':[],
+            'analyst_pick':analyst_pick
         
         }
         return Response(response_data)
@@ -903,6 +920,8 @@ class MostTradedStocks(APIView):
     
 class FeedView(APIView):
     parser_classes =   [MultiPartParser, FormParser]
+    permission_classes = [IsAuthenticated, IsStaffOrAnalyst]
+    
     def get(self, request):
         feed = DashboardFeed.objects.all()
         serializer = DashboardFeedSerializer(feed, many=True)
@@ -987,14 +1006,19 @@ class FeedView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
     
 class PublishFeed(APIView):
+    permission_classes = [IsAuthenticated, IsStaffOrAnalyst]
+    
     def post(self, request):
         id = request.data.get('id')
         feed = DashboardFeed.objects.get(id=id)
         feed.status = 'published'
+        feed.published_date = datetime.now()
         feed.save()
         return Response(status=status.HTTP_200_OK)
     
 class UnpublishFeed(APIView):
+    permission_classes = [IsAuthenticated, IsStaffOrAnalyst]
+    
     def post(self, request):
         id = request.data.get('id')
         feed = DashboardFeed.objects.get(id=id)
@@ -1046,7 +1070,8 @@ class UserDashboardFeedsAPIView(APIView):
         # subscribed_categories = request.user.subscribed_categories.all()
         # categories =  [sub.category for sub in subscribed_categories]
         # feeds = get_list_or_404(DashboardFeed.objects.filter(category__in=categories, status='published'))
-        feeds = DashboardFeed.objects.filter(status='published').order_by('-created')
+        seven_days_ago = timezone.now() - timedelta(days=6)
+        feeds = DashboardFeed.objects.filter(status='published', published_date__gte=seven_days_ago).order_by('-created')
         serializer = DashboardFeedSerializer(feeds, many=True)
         return Response(serializer.data)
 
