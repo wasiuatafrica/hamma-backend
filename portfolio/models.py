@@ -266,6 +266,9 @@ class FeedsCategory(auto_prefetch.Model):
     name=models.CharField(max_length=50)
     created=models.DateTimeField(auto_now_add=True)
     updated=models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.name
 
 class DashboardFeed(auto_prefetch.Model):
     user= auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)
