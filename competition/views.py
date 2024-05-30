@@ -1976,7 +1976,7 @@ class CheckPayoutEligibility(APIView):
 
         data={
             "minimum_of_3_memebers": utils.has_atleat_3_clan_members(clan_id),
-            "traded_minimum_of_10_days":utils.user_has_atleat_10_min_trading_days(clan_id),
+            "traded_minimum_of_10_days":utils.user_has_atleat_10_min_trading_days(request.user),
             "trader_completed_kyc":utils.trader_has_completed_kyc(request.user)
         }
 
