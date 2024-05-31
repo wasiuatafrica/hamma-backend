@@ -1092,7 +1092,7 @@ class DashboardFeedReactionAPIView(APIView):
 
         agree = request.data.get('agree', 'false')
         disagree = request.data.get('agree', 'false')
-        like = request.data.get('agree', 'false')
+        like = request.data.get('agree', 'false') 
         trading = request.data.get('agree', 'false')
         monitoring = request.data.get('agree', 'false')
 
