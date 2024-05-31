@@ -516,7 +516,7 @@ class SupportTransactionList(APIView):
 
 class Symbols(APIView):
     def get(self, request):
-        stocks = Stock.objects.all()
+        stocks = Stock.objects.filter(active=True)
         symbols = [{stock.symbol:stock.id} for stock in stocks]
         return Response(symbols)
 

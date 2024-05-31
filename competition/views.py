@@ -1970,14 +1970,82 @@ def admin_clan_remove_member_detailed(request, req_id):
 
     return render(request,"leaderboard/clan-name-change-approval.html", {"clan_remove_member_request":clan_remove_member_request})
 
+
+def top_clan_trader(user):
+    is_top_trader = False
+    is_in_top_clan = False
+    
+    competition =  Competition.objects.filter(status='current')
+    if competition.exists() and  timezone.now() > competition.first().start_date:
+        portfolio = CompetitionPortfolio.objects.filter(competition=competition.first(), active=True)
+        
+        clan_returns = defaultdict(list)
+        leaderboard_list=[]
+        
+        for account in portfolio:
+            
+            profit, status = getProfit(account)
+
+            if status:
+                clan = account.user.clans
+                clan_returns[clan].append(profit/1000000)  
+                data= {
+                            'email':account.user.email,
+                            'profit':profit,
+                        }
+                leaderboard_list.append(data)
+        sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)   
+        top_trader = sorted_data[0]
+        if user.email == top_trader['email']:
+            is_top_trader = True
+
+        ranked_clans = []
+        for clan, returns in clan_returns.items():
+            cumulative_return = (1 + pd.Series(returns)).cumprod() - 1
+            ranked_clans.append({
+                'clan_name': clan,
+                'profit': round(cumulative_return.iloc[-1] * 100, 2)
+            })
+
+        ranked_clans = sorted(ranked_clans, key=lambda x: x['profit'], reverse=True)
+        
+        
+        top_clan = ranked_clans[0]
+        if top_clan['clan_name'] == user.clans:
+            is_in_top_clan =  True
+            
+
+    else:
+        competition = Competition.objects.filter(status='closed').order_by('id').last()
+        clans= ClanCompetitionSummary.objects.filter(competition=competition).order_by('position')[:3]
+        data=[{'clan_id':comp.clan.id,'clan_name':comp.clan.clan_name,'community_link':comp.clan.community_link,'clan_logo':comp.clan.clan_logo.url,'description':comp.clan.description, 'profit':comp.profit, 'position':comp.position, 'top_3_count':comp.clan.top_3_count,'profit_comparison':comp.clan.profit_comparison,'members_count':comp.clan.members_count} for comp in clans ]
+        
+        top_clan = data[0]
+        if top_clan['clan_name'] == user.clans:
+            is_in_top_clan = True
+        
+    return is_top_trader, is_in_top_clan
+
+
+    
+
 class CheckPayoutEligibility(APIView):
     
     def get(self, request, clan_id):
+        top_tc = top_clan_trader(request.user)
 
         data={
             "minimum_of_3_memebers": utils.has_atleat_3_clan_members(clan_id),
             "traded_minimum_of_10_days":utils.user_has_atleat_10_min_trading_days(request.user),
-            "trader_completed_kyc":utils.trader_has_completed_kyc(request.user)
+            "trader_completed_kyc":utils.trader_has_completed_kyc(request.user),
+            "is_top_trader" : {
+                                "pass":top_tc[0],
+                                "mark": 1 if top_tc[0] else 0,
+                                },
+            "is_in_top_clan" : {
+                                "pass":top_tc[1],
+                                "mark": 1 if top_tc[1] else 0,
+                                },
         }
 
         return Response(data)
