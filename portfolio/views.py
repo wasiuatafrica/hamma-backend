@@ -1190,7 +1190,7 @@ class CheckReaction(APIView):
     def get(self, request, feed_id):
         # feed_id = request.data.get('feed_id')
         feed = get_object_or_404(DashboardFeed, id=feed_id)
-        reaction = FeedReaction.objects.filter(user=request.user, feed=feed).first
+        reaction = FeedReaction.objects.filter(user=request.user, feed=feed).first()
         print(reaction)
         if reaction:
             serializer = FeedReactionSerializer(reaction)
