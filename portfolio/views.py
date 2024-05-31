@@ -1076,113 +1076,113 @@ class UserDashboardFeedsAPIView(APIView):
         return Response(serializer.data)
 
 
-# class DashboardFeedReactionAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request, feed_id):
-#         # Retrieve the DashboardFeed object
-#         feed = get_object_or_404(DashboardFeed, pk=feed_id)
-        
-#         # Extract reaction data from request
-#         # agree = bool(request.data.get('agree', False))
-#         # disagree = bool(request.data.get('disagree', False))
-#         # like = bool(request.data.get('like', False))
-#         # trading = bool(request.data.get('trading', False))
-#         # monitoring = bool(request.data.get('monitoring', False))
-
-#         agree = request.data.get('agree', 'false')
-#         disagree = request.data.get('agree', 'false')
-#         like = request.data.get('agree', 'false')
-#         trading = request.data.get('agree', 'false')
-#         monitoring = request.data.get('agree', 'false')
-
-#         # Get or create reaction for current user and feed
-#         reaction, created = FeedReaction .objects.get_or_create(user=request.user, feed=feed)
-
-#         # Update reaction fields
-#         reaction.agree = agree
-#         reaction.disagree = disagree
-#         reaction.like = like
-#         reaction.trading = trading
-#         reaction.monitoring = monitoring
-#         reaction.save()
-
-#         return Response({'message': 'Reaction updated successfully'}, status=status.HTTP_200_OK)
-
 class DashboardFeedReactionAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, feed_id):
         # Retrieve the DashboardFeed object
-        feed = get_object_or_404(DashboardFeed, id=feed_id)
+        feed = get_object_or_404(DashboardFeed, pk=feed_id)
         
         # Extract reaction data from request
-        agree = request.data.get('agree')
-        disagree = request.data.get('disagree')
-        like = request.data.get('like')
-        trading = request.data.get('trading')
-        monitoring = request.data.get('monitoring')
+        # agree = bool(request.data.get('agree', False))
+        # disagree = bool(request.data.get('disagree', False))
+        # like = bool(request.data.get('like', False))
+        # trading = bool(request.data.get('trading', False))
+        # monitoring = bool(request.data.get('monitoring', False))
+
+        agree = request.data.get('agree', 'false')
+        disagree = request.data.get('agree', 'false')
+        like = request.data.get('agree', 'false')
+        trading = request.data.get('agree', 'false')
+        monitoring = request.data.get('agree', 'false')
 
         # Get or create reaction for current user and feed
-        reaction, created = FeedReaction.objects.get_or_create(user=request.user, feed=feed)
-        print(like)
-        
-        # Handle voting and unvoting
-        if agree is not None:
-            if agree == 'true':
-                reaction.agree = True
-                reaction.disagree = False
-                reaction.like = False
-                reaction.trading = False
-                reaction.monitoring = False
-            elif agree == 'false':
-                reaction.agree = False
+        reaction, created = FeedReaction .objects.get_or_create(user=request.user, feed=feed)
 
-        if disagree is not None:
-            if disagree == 'true':
-                reaction.agree = False
-                reaction.disagree = True
-                reaction.like = False
-                reaction.trading = False
-                reaction.monitoring = False
-            elif disagree == 'false':
-                reaction.disagree = False
-
-        if like is not None:
-            if like == 'true':
-                reaction.agree = False
-                reaction.disagree = False
-                reaction.like = True
-                reaction.trading = False
-                reaction.monitoring = False
-            elif like == 'false':
-                reaction.like = False
-
-        if trading is not None:
-            if trading == 'true':
-                reaction.agree = False
-                reaction.disagree = False
-                reaction.like = False
-                reaction.trading = True
-                reaction.monitoring = False
-            elif trading == 'false':
-                reaction.trading = False
-
-        if monitoring is not None:
-            if monitoring == 'true':
-                reaction.agree = False
-                reaction.disagree = False
-                reaction.like = False
-                reaction.trading = False
-                reaction.monitoring = True
-            elif monitoring == 'false':
-                reaction.monitoring = False
-
-        # Save the updated reaction
+        # Update reaction fields
+        reaction.agree = agree
+        reaction.disagree = disagree
+        reaction.like = like
+        reaction.trading = trading
+        reaction.monitoring = monitoring
         reaction.save()
-        print(reaction.like)
 
         return Response({'message': 'Reaction updated successfully'}, status=status.HTTP_200_OK)
+
+# class DashboardFeedReactionAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request, feed_id):
+#         # Retrieve the DashboardFeed object
+#         feed = get_object_or_404(DashboardFeed, id=feed_id)
+        
+#         # Extract reaction data from request
+#         agree = request.data.get('agree')
+#         disagree = request.data.get('disagree')
+#         like = request.data.get('like')
+#         trading = request.data.get('trading')
+#         monitoring = request.data.get('monitoring')
+
+#         # Get or create reaction for current user and feed
+#         reaction, created = FeedReaction.objects.get_or_create(user=request.user, feed=feed)
+#         print(like)
+        
+#         # Handle voting and unvoting
+#         if agree is not None:
+#             if agree == 'true':
+#                 reaction.agree = True
+#                 reaction.disagree = False
+#                 reaction.like = False
+#                 reaction.trading = False
+#                 reaction.monitoring = False
+#             elif agree == 'false':
+#                 reaction.agree = False
+
+#         if disagree is not None:
+#             if disagree == 'true':
+#                 reaction.agree = False
+#                 reaction.disagree = True
+#                 reaction.like = False
+#                 reaction.trading = False
+#                 reaction.monitoring = False
+#             elif disagree == 'false':
+#                 reaction.disagree = False
+
+#         if like is not None:
+#             if like == 'true':
+#                 reaction.agree = False
+#                 reaction.disagree = False
+#                 reaction.like = True
+#                 reaction.trading = False
+#                 reaction.monitoring = False
+#             elif like == 'false':
+#                 reaction.like = False
+
+#         if trading is not None:
+#             if trading == 'true':
+#                 reaction.agree = False
+#                 reaction.disagree = False
+#                 reaction.like = False
+#                 reaction.trading = True
+#                 reaction.monitoring = False
+#             elif trading == 'false':
+#                 reaction.trading = False
+
+#         if monitoring is not None:
+#             if monitoring == 'true':
+#                 reaction.agree = False
+#                 reaction.disagree = False
+#                 reaction.like = False
+#                 reaction.trading = False
+#                 reaction.monitoring = True
+#             elif monitoring == 'false':
+#                 reaction.monitoring = False
+
+#         # Save the updated reaction
+#         reaction.save()
+#         print(reaction.like)
+
+#         return Response({'message': 'Reaction updated successfully'}, status=status.HTTP_200_OK)
 
 class CheckReaction(APIView):
     permission_classes = [IsAuthenticated]
