@@ -104,3 +104,9 @@ class FeedsCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = FeedsCategory
         fields = '__all__'
+        
+         
+class FeedReactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FeedReaction
+        fields = ['like','agree','disagree','trading', 'monitoring']

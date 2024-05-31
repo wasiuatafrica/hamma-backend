@@ -31,6 +31,7 @@ urlpatterns = [
     path('feeds/unsubscribe/', views.UnsubscribeCategoryAPIView.as_view(), name='unsubscribe_category'),
     path('feeds/users/', views.UserDashboardFeedsAPIView.as_view(), name='user_dashboard_feeds'),
     path('feeds/reactions/<str:feed_id>/', views.DashboardFeedReactionAPIView.as_view(), name='dashboard_feed_reaction'),
+    path('reactions/check/<str:feed_id>/', views.CheckReaction.as_view(), ),
     
     
     #support

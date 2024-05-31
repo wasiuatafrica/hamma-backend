@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from .models import (DashboardFeed, FeedReaction, FeedsCategory, StockWatchlist, UserSubscribedCategory, Wallet, Stock,  Receipts, PayStackReceipts, Alert,WithdrawalOTPRequest,
                      Transaction, AlertAI, AlertAITracker, Conversation, Message, ButtonClick)
-from .serializers import (DashboardFeedSerializer, FeedsCategorySerializer, StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
+from .serializers import (DashboardFeedSerializer, FeedReactionSerializer, FeedsCategorySerializer, StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
                           AlertSerializer,   TransactionSerializer, ConversationSerializer, ButtonClickSerializer)
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
@@ -1125,7 +1125,8 @@ class DashboardFeedReactionAPIView(APIView):
 
         # Get or create reaction for current user and feed
         reaction, created = FeedReaction.objects.get_or_create(user=request.user, feed=feed)
-
+        print(like)
+        
         # Handle voting and unvoting
         if agree is not None:
             if agree == 'true':
@@ -1179,5 +1180,21 @@ class DashboardFeedReactionAPIView(APIView):
 
         # Save the updated reaction
         reaction.save()
+        print(reaction.like)
 
         return Response({'message': 'Reaction updated successfully'}, status=status.HTTP_200_OK)
+
+class CheckReaction(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, feed_id):
+        # feed_id = request.data.get('feed_id')
+        feed = get_object_or_404(DashboardFeed, id=feed_id)
+        reaction = FeedReaction.objects.filter(user=request.user, feed=feed).first()
+        print(reaction)
+        if reaction:
+            serializer = FeedReactionSerializer(reaction)
+            return Response(serializer.data)
+        else:
+            return Response({'message': 'Reaction not found'}, status=status.HTTP_404_NOT_FOUND)
+        
