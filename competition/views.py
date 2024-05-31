@@ -20,7 +20,10 @@ from rest_framework.parsers import MultiPartParser, FormParser
 import pandas as pd
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-
+from django.urls import reverse, reverse_lazy
+from django.contrib.auth import authenticate, login, logout
+from django.http import JsonResponse
+from django.shortcuts import redirect
 from . import serializers
 from .tasks import create_returns
 from .models import (
@@ -1894,14 +1897,6 @@ def update_topclan_payout(request):
 
 
 
-from django.shortcuts import render, redirect
-from django.urls import reverse, reverse_lazy
-from django.contrib.auth import authenticate, login, logout
-from django.http import JsonResponse
-from django.shortcuts import redirect
-
-
-
 def login_view(request):
     if request.method == "POST":
     
@@ -2038,6 +2033,35 @@ class CheckPayoutEligibility(APIView):
             "minimum_of_3_memebers": utils.has_atleat_3_clan_members(clan_id),
             "traded_minimum_of_10_days":utils.user_has_atleat_10_min_trading_days(request.user),
             "trader_completed_kyc":utils.trader_has_completed_kyc(request.user),
+            "is_top_trader" : {
+                                "pass":top_tc[0],
+                                "mark": 1 if top_tc[0] else 0,
+                                },
+            "is_in_top_clan" : {
+                                "pass":top_tc[1],
+                                "mark": 1 if top_tc[1] else 0,
+                                },
+        }
+
+        return Response(data)
+    
+class SupportCheckPayoutEligibility(APIView):
+    
+    def get(self, request, email):
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return Response({"error":"User not found"})
+        if not user.clans:
+            return Response({"error":"User not in any clan"})
+        
+        clan_id = Clan.objects.filter(clan_name=user.clans).first().id
+        
+        top_tc = top_clan_trader(user)
+
+        data={
+            "minimum_of_3_memebers": utils.has_atleat_3_clan_members(clan_id),
+            "traded_minimum_of_10_days":utils.user_has_atleat_10_min_trading_days(user),
+            "trader_completed_kyc":utils.trader_has_completed_kyc(user),
             "is_top_trader" : {
                                 "pass":top_tc[0],
                                 "mark": 1 if top_tc[0] else 0,

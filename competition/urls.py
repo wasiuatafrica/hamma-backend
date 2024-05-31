@@ -82,6 +82,8 @@ urlpatterns=[
     path('request-top-trader-payout/<str:competition_id>/support/<str:email>/', views.SupportTopTraderPayoutRequest.as_view()),
     path('request-top-clan-payout/<str:competition_id>/support/<str:email>/', views.SupportTopClanPayoutRequest.as_view()),
     path('trader-payout-history/support/<str:email>/',views.SupportPayoutHistory.as_view()),
+    path("support/payout/eligibility/<str:email>/", views.SupportCheckPayoutEligibility().as_view()),
+    
     
     
     
