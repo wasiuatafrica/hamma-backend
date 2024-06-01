@@ -1,3 +1,4 @@
+from lib2to3.pytree import type_repr
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from accounts.models import Referral as acc_Referral, UserActivityLog 
@@ -307,6 +308,8 @@ class WithdrawalView(APIView):
         id = request.data.get('id')
         action = request.data.get('action')
         type = request.data.get('type', None)
+
+        print(request.data, "vdsfvd")
         
         if not type or type not in ['main', 'referral']:
             return Response('type key must be present and it be either main or referral', status=status.HTTP_400_BAD_REQUEST)
@@ -347,11 +350,17 @@ class WithdrawalView(APIView):
                 return Response(data)
             
             elif action == 'rejected':
+                reasons = request.data.get("reasons")
+                if not reasons:
+                    return Response({"error":"The reasons are required."}, status.HTTP_400_BAD_REQUEST)
+                if not isinstance(reasons, list):
+                     return Response({"error": "The reasons must be in an array"}, status=status.HTTP_400_BAD_REQUEST)
+                
                 withdrawal.status = 'rejected'
                 withdrawal.save()
                 activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal.user, action_type="rejected_withrawal",description=f"Admin user rejected withrawal.")
                 save_and_send_notification(wallet.user.id, f"Your withdrawal of {withdrawal.amount} has been rejected.")
-                mail=sendMail("general/WithdrawalRequestRejected.html","Payout declined",[wallet.user.email],{"first_name":wallet.user.firstname})
+                mail=sendMail("general/WithdrawalRequestRejected.html","Payout declined",[wallet.user.email],{"first_name":wallet.user.firstname, "reasons":reasons})
                 
                 data = {
                     'id':withdrawal.id,
@@ -368,7 +377,7 @@ class WithdrawalView(APIView):
                 return Response("Insufficient fund")
         elif type == 'referral':
             withdrawal= aff_models.ReferralWithdrawalRequest.objects.get(id=id)
-            wallet = aff_models.ReferralWallet.objects.get(user=withdrawal.user)
+            wallet = aff_models.ReferralWallet.objects.get(user=withdrawal.wallet.user)
             
         # wallet = withdrawal.wallet
             allowed = ['approved','rejected']
@@ -382,7 +391,7 @@ class WithdrawalView(APIView):
                 
                 withdrawal.status = 'approved'
                 withdrawal.save()
-                activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal.user, action_type="approved_referral_withrawal",description=f"Admin user approved referral withrawal.")
+                activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal.wallet.user, action_type="approved_referral_withrawal",description=f"Admin user approved referral withrawal.")
                 
                 save_and_send_notification(wallet.user.id, f"Your referral withdrawal of {withdrawal.amount} has been approved.")
                 models.Transaction.objects.create(user=wallet.user, transaction_type='referral withdrawal',amount=Decimal(withdrawal.amount), status='completed')
@@ -390,8 +399,8 @@ class WithdrawalView(APIView):
                 
                 data = {
                     'id':withdrawal.id,
-                    'fullname':withdrawal.user.fullname,
-                    'user_id':withdrawal.user.id,
+                    'fullname':withdrawal.wallet.user.fullname,
+                    'user_id':withdrawal.wallet.user.id,
                     'amount':withdrawal.amount,
                     'status':withdrawal.status,
                     'created':withdrawal.created,
@@ -402,16 +411,23 @@ class WithdrawalView(APIView):
                 return Response(data)
         
             elif action == 'rejected':
+
+                reasons = request.data.get("reasons")
+                if not reasons:
+                    return Response({"error":"The reasons are required."}, status.HTTP_400_BAD_REQUEST)
+                if not isinstance(reasons, list):
+                     return Response({"error": "The reasons must be in an array"}, status=status.HTTP_400_BAD_REQUEST)
+                
                 withdrawal.status = 'rejected'
                 withdrawal.save()
                 activity=AdminUserActivityLog.objects.create(admin=request.user, user=withdrawal.wallet.user, action_type="rejected_referral_withrawal",description=f"Admin user rejected referral withrawal.")
                 save_and_send_notification(wallet.user.id, f"Your referral withdrawal of {withdrawal.amount} has been rejected.")
-                mail=sendMail("general/WithdrawalRequestRejected.html","Payout declined",[wallet.user.email],{"first_name":wallet.user.firstname})
+                mail=sendMail("general/WithdrawalRequestRejected.html","Payout declined",[wallet.user.email],{"first_name":wallet.user.firstname, "reasons":reasons})
                 
                 data = {
                     'id':withdrawal.id,
-                    'fullname':withdrawal.user.fullname,
-                    'user_id':withdrawal.user.id,
+                    'fullname':withdrawal.wallet.user.fullname,
+                    'user_id':withdrawal.wallet.user.id,
                     'amount':withdrawal.amount,
                     'status':withdrawal.status,
                     'created':withdrawal.created,
