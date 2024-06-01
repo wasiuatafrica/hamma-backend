@@ -225,9 +225,10 @@
 																	<p style="margin: 0; margin-bottom: 15px;">Upon careful review of your account, we have declined your payout request due to the following reason(s):</p>
 																	<p style="margin: 0; margin-bottom: 15px;">
 																		<ul>
-																			<li>Failed KYC details</li>
-																			<li>No profit net profit</li>
-																			<li>etc</li>
+																			{% for reason in reasons %}
+																			<li>{{reason}}</li>
+																			{%endfor%}
+
 																		</ul>
 																	</p>
 																	<p style="margin: 0; margin-bottom: 15px;">Feel free to contact our support for further assistance. <a href="https://www.competition.gohamma.com">support</a> for further assistance.</p>
