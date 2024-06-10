@@ -57,11 +57,12 @@ INSTALLED_APPS = [
     'notifications',
     'django_otp',
     'django_otp.plugins.otp_totp',
-    "judoscale.django",
+    # "judoscale.django",
     # 'silk'
 
     # new app
-    "hackathon"
+    "hackathon",
+    "datacollection"
 ]
 
 
