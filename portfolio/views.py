@@ -851,23 +851,6 @@ class StockWatchlistAPIView(APIView):
         }
         return Response(response_data)
     
-class SupportStockWatchlistAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request,*args, **kwargs ):
-        
-        email = kwargs.get('email')
-        print(email)
-        
-        queryset = Stock.objects.filter(watchlisted_by__user__email=email)
-        details = get_details3(queryset)
-
-        response_data = {
-            'watchlist': details,
-            'analyst_pick':[],
-        
-        }
-        return Response(response_data)
 
     
     def post(self, request):
@@ -903,6 +886,24 @@ class SupportStockWatchlistAPIView(APIView):
             return Response({'message': 'Stock removed from watchlist'}, status=status.HTTP_204_NO_CONTENT)
         except StockWatchlist.DoesNotExist:
             return Response({'error': 'Stock is not in the watchlist'}, status=status.HTTP_404_NOT_FOUND)
+
+class SupportStockWatchlistAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request,*args, **kwargs ):
+        
+        email = kwargs.get('email')
+        print(email)
+        
+        queryset = Stock.objects.filter(watchlisted_by__user__email=email)
+        details = get_details3(queryset)
+
+        response_data = {
+            'watchlist': details,
+            'analyst_pick':[],
+        
+        }
+        return Response(response_data)
 
 class MostTradedStocks(APIView):
     def get(self, request):
