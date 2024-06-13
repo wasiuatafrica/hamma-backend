@@ -38,6 +38,22 @@ mongo_client = MongoClient(MONGO_URL, tls=True, tlsAllowInvalidCertificates=True
 db_merged = mongo_client["livelake3"]
 collection_merged = db_merged["merged_live_price"]
 
+BANK_HOLIDAYS = [
+    datetime(2024, 1, 1),   # New Year's Day
+    datetime(2024, 4, 7),   # Good Friday
+    datetime(2024, 4, 10),  # Easter Monday
+    datetime(2024, 5, 1),   # Workers' Day
+    datetime(2024, 5, 27),  # Children's Day
+    datetime(2024, 6, 17),  
+    datetime(2024, 6, 18),  
+    datetime(2024, 10, 1),  # Independence Day
+    datetime(2024, 12, 25), # Christmas Day
+    
+]
+
+lagos_tz = pytz.timezone('Africa/Lagos')
+BANK_HOLIDAYS = [lagos_tz.localize(date) for date in BANK_HOLIDAYS]
+# print(BANK_HOLIDAYS)
 def get_equity_data(user):
         portfolio = DemoPortfolio.objects.get(user=user)
         
@@ -1118,6 +1134,13 @@ def retrieve_today_live(symbol, interval):
        
 @shared_task
 def update_live_1m():
+    lagos_tz = pytz.timezone("Africa/Lagos")
+    today = datetime.now(lagos_tz).date()
+    
+    if today in [holiday.date() for holiday in BANK_HOLIDAYS]:
+        print(f"Today {today} is a bank holiday. Skipping update_live_1m task.")
+        return
+    
     stocks = [stock.symbol for stock in Stock.objects.filter(active=True).order_by('symbol')]
     for symbol in stocks:
         print(symbol)
@@ -1172,6 +1195,14 @@ def last_data(last_item,symbol):
 
 @shared_task
 def update_live_1d():
+    
+    lagos_tz = pytz.timezone("Africa/Lagos")
+    today2 = datetime.now(lagos_tz).date()
+    
+    if today2 in [holiday.date() for holiday in BANK_HOLIDAYS]:
+        print(f"Today {today} is a bank holiday. Skipping update_live_1d  task.")
+        return
+    
     stocks = [stock.symbol for stock in Stock.objects.filter(active=True).order_by('symbol')]
     today = timezone.now()
     

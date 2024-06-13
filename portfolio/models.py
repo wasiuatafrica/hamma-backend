@@ -321,6 +321,7 @@ class ButtonClick(auto_prefetch.Model):
     button_name=models.CharField(max_length=50)
     page = models.CharField(max_length=50)
     created=models.DateTimeField(auto_now_add=True)
+    device_type = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
         return f"{self.user} -{self.page} - {self.button_name}"

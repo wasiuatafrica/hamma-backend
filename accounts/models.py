@@ -204,6 +204,7 @@ class UserActivityLog(models.Model):
     action_type=models.CharField(max_length=50)
     timestamp = models.DateTimeField(auto_now_add=True)
     description=models.CharField(max_length=100)
+    device_type=models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.user} - {self.action_type} - {self.timestamp.date()}"

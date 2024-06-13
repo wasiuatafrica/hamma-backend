@@ -187,6 +187,7 @@ class DemoTradeAPIView(APIView):
         symbol = request.data.get('symbol')
         order_id = request.data.get('order_id')
         quantity = int(request.data.get('quantity'))
+        device_type=request.data.get("device_type",None)
         if request.data.get('price'):
             price = float(request.data.get('price'))
         action = request.data.get('action')
@@ -242,7 +243,7 @@ class DemoTradeAPIView(APIView):
                     portfolio.save()
                     
                     
-                    activity=UserActivityLog.objects.create(user=request.user, action_type="competition_open_trade",description=f"User opened competition trade with amount {amount} on symbol {symbol}.")
+                    activity=UserActivityLog.objects.create(user=request.user, action_type="competition_open_trade",description=f"User opened competition trade with amount {amount} on symbol {symbol}.",device_type=device_type)
                     positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open')
                     
                     def get_position(position):
@@ -355,7 +356,7 @@ class DemoTradeAPIView(APIView):
                     amount=quantity * market_price,
                     status='completed'
                 )
-                activity=UserActivityLog.objects.create(user=request.user, action_type="demo_open_trade",description=f"User opened demo trade with amount {amount} on symbol {symbol}.")
+                activity=UserActivityLog.objects.create(user=request.user, action_type="demo_open_trade",description=f"User opened demo trade with amount {amount} on symbol {symbol}.",device_type=device_type)
                 positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
                 
                 def get_position(position):
@@ -1065,6 +1066,7 @@ class SupportHome(APIView):
 class DemoCloseTrade(APIView):
     def post(self, request, *args, **kwargs):
         id= self.kwargs.get('id')
+        device_type=request.data.get("device_type",None)
         competition = Competition.objects.filter(status='current').first()
         
         in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
@@ -1084,7 +1086,7 @@ class DemoCloseTrade(APIView):
                         amount=cur_val,
                         status='completed'
                     )
-                activity=UserActivityLog.objects.create(user=request.user, action_type="competition_closed_trade",description=f"User closed competition trade with symbol {position.stock.symbol}.")
+                activity=UserActivityLog.objects.create(user=request.user, action_type="competition_closed_trade",description=f"User closed competition trade with symbol {position.stock.symbol}.",device_type=device_type)
                 position.portfolio.balance += position.amount_invested + position.profit_loss
                 position.portfolio.save()
                 
@@ -1118,7 +1120,7 @@ class DemoCloseTrade(APIView):
                         amount=cur_val,
                         status='completed'
                     )
-                activity=UserActivityLog.objects.create(user=request.user, action_type="demo_closed_trade",description=f"User closed demo trade with symbol {position.stock.symbol}.")
+                activity=UserActivityLog.objects.create(user=request.user, action_type="demo_closed_trade",description=f"User closed demo trade with symbol {position.stock.symbol}.",device_type=device_type)
                 position.portfolio.balance += position.amount_invested + position.profit_loss
                 position.portfolio.save()
                 
@@ -1140,6 +1142,7 @@ class DemoCloseTrade(APIView):
 class DemoClosePendingTrade(APIView):
     def post(self, request, *args, **kwargs):
         id= self.kwargs.get('id')
+        device_type=request.data.get("device_type",None)
         competition = Competition.objects.filter(status='current').first()
         
         in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
@@ -1155,7 +1158,7 @@ class DemoClosePendingTrade(APIView):
                 task.enabled = False
                 task.save()
                
-                activity=UserActivityLog.objects.create(user=request.user, action_type="competition_cancel_trade",description=f"User cancelled competition pending trade with symbol {position.stock.symbol}.")
+                activity=UserActivityLog.objects.create(user=request.user, action_type="competition_cancel_trade",description=f"User cancelled competition pending trade with symbol {position.stock.symbol}.",device_type=device_type)
                                
                 data = {
                     'id':position.id,
@@ -1184,7 +1187,7 @@ class DemoClosePendingTrade(APIView):
                 task.enabled = False
                 task.save()
                 
-                UserActivityLog.objects.create(user=request.user, action_type="demo_closed_pending_trade",description=f"User cancelled  demo pending trade with symbol {position.stock.symbol}.")
+                UserActivityLog.objects.create(user=request.user, action_type="demo_closed_pending_trade",description=f"User cancelled  demo pending trade with symbol {position.stock.symbol}.",device_type=device_type)
                
                 
                 data = {
@@ -2200,6 +2203,7 @@ class SingleDemoTradeAPIView(APIView):
         symbol = request.data.get('symbol')
         order_id = request.data.get('order_id')
         quantity = int(request.data.get('quantity'))
+        device_type=request.data.get("device_type",None)
         if request.data.get('price'):
             price = float(request.data.get('price'))
         action = request.data.get('action')
@@ -2321,7 +2325,7 @@ class SingleDemoTradeAPIView(APIView):
                         portfolio.save()
                         
                         
-                        activity=UserActivityLog.objects.create(user=request.user, action_type="competition_open_trade",description=f"User opened competition trade with amount {amount} on symbol {symbol}.")
+                        activity=UserActivityLog.objects.create(user=request.user, action_type="competition_open_trade",description=f"User opened competition trade with amount {amount} on symbol {symbol}.",device_type=device_type)
                         positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open')
                         
                         
@@ -2427,7 +2431,7 @@ class SingleDemoTradeAPIView(APIView):
                     portfolio.balance -= total
                     portfolio.save()
                     
-                activity=UserActivityLog.objects.create(user=request.user, action_type="demo_open_trade",description=f"User opened demo trade with amount {amount} on symbol {symbol}.")
+                activity=UserActivityLog.objects.create(user=request.user, action_type="demo_open_trade",description=f"User opened demo trade with amount {amount} on symbol {symbol}.",device_type=device_type)
                 positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
                 
                 
@@ -3212,6 +3216,7 @@ class NewDemoCloseTrade(APIView):
     def post(self, request, *args, **kwargs):
 
         account_type= kwargs.get("account_type")
+        device_type=request.data.get("device_type",None)
         valid_account_types= ["demo_portfolio","competition_account"]
 
         if not account_type in valid_account_types:
@@ -3258,7 +3263,7 @@ class NewDemoCloseTrade(APIView):
                             amount=cur_val,
                             status='completed'
                         )
-                    activity=UserActivityLog.objects.create(user=request.user, action_type="competition_closed_trade",description=f"User closed competition trade with symbol {position.stock.symbol}.")
+                    activity=UserActivityLog.objects.create(user=request.user, action_type="competition_closed_trade",description=f"User closed competition trade with symbol {position.stock.symbol}.",device_type=device_type)
                     position.portfolio.balance += position.amount_invested + position.profit_loss
                     position.portfolio.save()
                     
@@ -3308,7 +3313,7 @@ class NewDemoCloseTrade(APIView):
                         amount=cur_val,
                         status='completed'
                     )
-                activity=UserActivityLog.objects.create(user=request.user, action_type="demo_closed_trade",description=f"User closed demo trade with symbol {position.stock.symbol}.")
+                activity=UserActivityLog.objects.create(user=request.user, action_type="demo_closed_trade",description=f"User closed demo trade with symbol {position.stock.symbol}.",device_type=device_type)
                 position.portfolio.balance += position.amount_invested + position.profit_loss
                 position.portfolio.save()
                 
@@ -3341,6 +3346,7 @@ class NewDemoClosePendingTrade(APIView):
 
         account_type= kwargs.get("account_type")
         valid_account_types= ["demo_portfolio","competition_account"]
+        device_type=request.data.get("device_type",None)
 
         if not account_type in valid_account_types:
             return Response(f"Account type should be {valid_account_types}.",status.HTTP_400_BAD_REQUEST)
@@ -3381,7 +3387,7 @@ class NewDemoClosePendingTrade(APIView):
                     task.enabled = False
                     task.save()
                 
-                    activity=UserActivityLog.objects.create(user=request.user, action_type="competition_cancel_trade",description=f"User cancelled competition pending trade with symbol {position.stock.symbol}.")
+                    activity=UserActivityLog.objects.create(user=request.user, action_type="competition_cancel_trade",description=f"User cancelled competition pending trade with symbol {position.stock.symbol}.",device_type=device_type)
                                 
                     data = {
                         'id':position.id,
@@ -3426,7 +3432,7 @@ class NewDemoClosePendingTrade(APIView):
                 task.enabled = False
                 task.save()
                 
-                UserActivityLog.objects.create(user=request.user, action_type="demo_closed_pending_trade",description=f"User cancelled  demo pending trade with symbol {position.stock.symbol}.")
+                UserActivityLog.objects.create(user=request.user, action_type="demo_closed_pending_trade",description=f"User cancelled  demo pending trade with symbol {position.stock.symbol}.",device_type=device_type)
                
                 
                 data = {

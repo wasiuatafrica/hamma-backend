@@ -124,6 +124,7 @@ class WalletWithdraw(APIView):
 
     def post(self, request, *args, **kwargs):
         stage = request.data.get('stage')
+        device_type=request.data.get("device_type",None)
         
         amount = request.data.get('amount')
         portfolio = exec_models.Portfolio.objects.get_or_create(user=request.user)[0]
@@ -175,7 +176,7 @@ class WalletWithdraw(APIView):
                 otp_request.used = True
                 otp_request.save()
                 save_and_send_notification(request.user.id, 'Your withdrawal is processing.')
-                UserActivityLog.objects.create(user=request.user, action_type="withdrawal_request_initaiated",description="User requested for a withdrawal")
+                UserActivityLog.objects.create(user=request.user, action_type="withdrawal_request_initaiated",description="User requested for a withdrawal",device_type=device_type)
                 Transaction.objects.create(user=request.user,transaction_type="initiate_wallet_withdrawal", amount=amount, status='completed')
                 mail=sendMail("general/WIthdrawalRequesReceived.html","Withdrawal request received",[request.user.email],{"first_name":request.user.firstname,"amount":amount})
                 
@@ -437,13 +438,14 @@ class ReceiptsView(APIView):
 
     def post(self, request):
         serializers = ReceiptsViewSerializer(data=request.data)
+        device_type=request.data.get("device_type",None)
         if serializers.is_valid():
             image = serializers.validated_data["image"]
             receipt=Receipts.objects.create(user=request.user, image=image)
             # sendreciptsmail(request,receipt)
             # sendreciptsmail(request,image)
             save_and_send_notification(request.user.id, "Receipt Upload Successful.")
-            activity=UserActivityLog.objects.create(user=request.user, action_type="receipt",description="User uploaded a payment receipt.")
+            activity=UserActivityLog.objects.create(user=request.user, action_type="receipt",description="User uploaded a payment receipt.",device_type=device_type)
             mail=sendMail("general/depositRecieptRecieved.html","Deposit receipt reviewed",[request.user.email],{"first_name":request.user.firstname})
             return Response({"message": "File uploaded successfully"})
         return Response(serializers.errors)
@@ -451,6 +453,7 @@ class ReceiptsView(APIView):
 @api_view(['POST',])
 def PayStackReceiptsView(request):
     amount=request.data.get("amount")
+    device_type=request.data.get("device_type",None)
     paystack_recipt=PayStackReceipts.objects.create(
         user = request.user,
         reference=request.data.get("reference"),
@@ -484,7 +487,7 @@ def PayStackReceiptsView(request):
                     
     
     Transaction.objects.create(user=request.user, amount=Decimal(amount),transaction_type='deposit', status='completed',channel='paystack')
-    activity=UserActivityLog.objects.create(user=request.user, action_type="paystack",description="User made a payment via paystack")
+    activity=UserActivityLog.objects.create(user=request.user, action_type="paystack",description="User made a payment via paystack",device_type=device_type)
     serializer=PayStackReceiptsSerializer(paystack_recipt, many=False)
     return Response({"detail":serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -561,6 +564,7 @@ class AlertView(APIView):
         return Response(data)
     
     def post(self, request):
+        device_type=request.data.get("device_type",None)
         types= ['price', 'volume']
         # counter = AlertAITracker.objects.get_or_create(user=request.user)[0]
         current_date = timezone.now()
@@ -606,7 +610,7 @@ class AlertView(APIView):
             
             counter.count += 1
             counter.save()
-            activity=UserActivityLog.objects.create(user=request.user, action_type="alert",description="User created an alert.")
+            activity=UserActivityLog.objects.create(user=request.user, action_type="alert",description="User created an alert.",device_type=device_type)
 
             return Response(serializer.data, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
@@ -767,6 +771,7 @@ class FundLiveAccount(APIView):
     def post(self,request):
         account_id = request.data.get('account_id')
         amount = request.data.get('amount')
+        device_type=request.data.get("device_type",None)
         portfolio = exec_models.Portfolio.objects.filter(id=account_id).first()
         
         wallet = Wallet.objects.get(user=request.user)
@@ -781,13 +786,14 @@ class FundLiveAccount(APIView):
         portfolio.save()
         
         save_and_send_notification(request.user.id, f'You transferred {amount} to {portfolio.account_name} trading account.')
-        UserActivityLog.objects.create(user=request.user, action_type="fund_live_account",description=f"User funded {portfolio.account_name} with {amount}.")
+        UserActivityLog.objects.create(user=request.user, action_type="fund_live_account",description=f"User funded {portfolio.account_name} with {amount}.",device_type=device_type)
         Transaction.objects.create(user=request.user,transaction_type=f"funded Live Account {portfolio.account_name}", amount=amount, status='completed')
         return Response({'success': 'Funds successfully transferred'}, status=status.HTTP_200_OK)
     
 class WithdrawLiveAccount(APIView):
 
     def post(self, request):
+        device_type=request.data.get("device_type",None)
         account_id = request.data.get('account_id')
         amount = request.data.get('amount')
         portfolio = exec_models.Portfolio.objects.filter(id=account_id).first()
@@ -804,7 +810,7 @@ class WithdrawLiveAccount(APIView):
         wallet.save()
         
         save_and_send_notification(request.user.id, f'You withdrew {amount} from {portfolio.account_name} to wallet.')
-        UserActivityLog.objects.create(user=request.user, action_type="withdraw_live_account",description=f"User withdrew {amount} from  {portfolio.account_name} trading account .")
+        UserActivityLog.objects.create(user=request.user, action_type="withdraw_live_account",description=f"User withdrew {amount} from  {portfolio.account_name} trading account .",device_type=device_type)
         Transaction.objects.create(user=request.user,transaction_type=f"withdrew from  Live Account {portfolio.account_name}", amount=amount, status='completed')
 
         

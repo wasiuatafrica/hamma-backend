@@ -50,6 +50,8 @@ class VerifyToken(APIView):
     def post(self, request):
         token=request.data.get("token")
         user_email=request.data.get("user_email")
+        device_type=request.data.get("device_type",None)
+        
         if not token and user_email:
             return Response({"detail":"Token or user_email missing"}, status=status.HTTP_400_BAD_REQUEST)
         token_reponse=verify_token(user_email, token)
@@ -72,7 +74,7 @@ class VerifyToken(APIView):
         ReferralWallet.objects.create(user=user)
         DemoPortfolio.objects.create(user=user)
         send_welcome_email.delay(user.id)
-        activity=models.UserActivityLog.objects.create(user=user, action_type="verified_account",description="User verified their account.")
+        activity=models.UserActivityLog.objects.create(user=user, action_type="verified_account",description="User verified their account.",device_type=device_type)
         
         refresh = RefreshToken.for_user(user)
         user_data =serializers.CustomUserSerializer(user, many=False).data
@@ -83,7 +85,7 @@ class VerifyToken(APIView):
             'access': str(refresh.access_token),
             "user": user_data
         }
-        activity=models.UserActivityLog.objects.create(user=user, action_type="login",description="User logged into their account")
+        activity=models.UserActivityLog.objects.create(user=user, action_type="login",description="User logged into their account",device_type=device_type)
         return Response(token_data, status=status.HTTP_200_OK)
 
 class ProfileView(APIView):
@@ -106,6 +108,7 @@ class ProfileView(APIView):
         return Response({"detail":serializer.data, "user":user}, status=status.HTTP_200_OK)
 
     def put(self, request):
+        device_type=request.data.get("device_type",None)
         instance = self.get_object(request)
         serializer=self.serializer_class(instance,data=request.data)
         user_serializer=serializers.UpdateCustomUserSerializer(request.user, data=request.data)
@@ -118,7 +121,7 @@ class ProfileView(APIView):
             else:
                 return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             user=serializers.CustomUserSerializer(request.user, many=False).data
-            activity=models.UserActivityLog.objects.create(user=request.user, action_type="updated_profile",description="User updated their profile")
+            activity=models.UserActivityLog.objects.create(user=request.user, action_type="updated_profile",description="User updated their profile",device_type=device_type)
             return Response({"detail":serializer.data, "user":user})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -155,13 +158,14 @@ class DashBoardUpdatePassword(APIView):
     def post(self, request):
         serializer=self.serializer_class(data=request.data)
         user=request.user
+        device_type=request.data.get("device_type",None)
         if serializer.is_valid(): 
             if not serializer.validated_data["new_password1"] == serializer.validated_data["new_password2"]:
                 return Response({"detail":"new_password1 and new_passowrd2 must match"}, status=status.HTTP_400_BAD_REQUEST)
             if user.check_password(serializer.validated_data["current_password"]):
                 user.set_password(serializer.validated_data["new_password1"])
                 user.save()
-                activity=models.UserActivityLog.objects.create(user=user, action_type="change_password",description="User changed their password")
+                activity=models.UserActivityLog.objects.create(user=user, action_type="change_password",description="User changed their password",device_type=device_type)
                 return Response({"detail":"Password updated successfully"})
             return Response({"detail":"current_password is wrong"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -177,6 +181,7 @@ class LoginWithEmailView(APIView):
         ip_address = request.data.get("ip_address")
         location = request.data.get("location")
         device = request.data.get("device")
+        device_type=request.data.get("device_type",None)
         
         serializer=self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -217,7 +222,7 @@ class LoginWithEmailView(APIView):
                     "user": user_data
                 }
                 #Add activity
-                activity=models.UserActivityLog.objects.create(user=user, action_type="login",description="User logged into their account")
+                activity=models.UserActivityLog.objects.create(user=user, action_type="login",description="User logged into their account",device_type=device_type)
                 return Response(token_data, status=status.HTTP_200_OK)
                 # return Response({"detail": "Login successful"}, status=status.HTTP_200_OK)
             else:
@@ -293,6 +298,7 @@ class LoginWith2FA(APIView):
         ip_address = request.data.get("ip_address")
         location = request.data.get("location")
         device = request.data.get("device")
+        device_type=request.data.get("device_type",None)
 
         serializer=self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -324,7 +330,7 @@ class LoginWith2FA(APIView):
                 }
                 #Add activity
                 first_time = models.FirstLogin.objects.get_or_create(user=user)
-                activity=models.UserActivityLog.objects.create(user=user, action_type="login",description="User logged into their account")
+                activity=models.UserActivityLog.objects.create(user=user, action_type="login",description="User logged into their account",device_type=device_type)
                 return Response(token_data, status=status.HTTP_200_OK)
             else:
                 return Response({"detail": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -378,6 +384,7 @@ class ResetForgettenPassword(APIView):
         return Response({"detail":"email and token is required"}, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request):
+        device_type=request.data.get("device_type",None)
         serializer=self.serializer_class(data=request.data)
         if serializer.is_valid():
             user= self.get_user(serializer.validated_data["email"])
@@ -387,7 +394,7 @@ class ResetForgettenPassword(APIView):
                     if serializer.validated_data["new_password1"] == serializer.validated_data["new_password2"]:
                         user.set_password(serializer.validated_data["new_password1"])
                         user.save()
-                        activity=models.UserActivityLog.objects.create(user=user, action_type="change_password",description="User changed their password")
+                        activity=models.UserActivityLog.objects.create(user=user, action_type="change_password",description="User changed their password",device_type=device_type)
                         return Response({"detail":"Password updated successfully"}) 
                     return Response({"detail":"new_password1 and new_passowrd2 must match"}, status=status.HTTP_400_BAD_REQUEST)
                 return Response({"detail": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
