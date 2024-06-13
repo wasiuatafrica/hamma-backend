@@ -820,11 +820,13 @@ class ButtonClickCreateView(APIView):
     
     def post(self, request):
         serializer = ButtonClickSerializer(data=request.data)
+        device_type=request.data.get("device_type",None)
         if serializer.is_valid():
             ButtonClick.objects.create(
                 user=request.user,
                 button_name=serializer.validated_data['button_name'],
-                page=serializer.validated_data['page']
+                page=serializer.validated_data['page'],
+                device_type=device_type
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
