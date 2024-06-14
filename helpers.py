@@ -13,7 +13,7 @@ def get_timedelta_in_weeks(date1, date2):
 # Define June 30th of the current year
 current_year = datetime.datetime.now().year
 june_30 = datetime.datetime(current_year, 6, 30, 3,15)
-june_31 = datetime.datetime(current_year, 6, 16, 3,15)
+june_31 = datetime.datetime(current_year, 6, 17, 3,15)
 
 # Get the day name 2 weeks before June 30th
 day_name = get_timedelta_in_weeks(june_30,june_31)

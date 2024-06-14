@@ -151,7 +151,8 @@ class DemoPositionSerializer(serializers.ModelSerializer):
             'order_id',
             'order_type',
             'created',
-            'type'
+            'type',
+            'comment'
             
         )
         
@@ -198,7 +199,8 @@ class CompeitionPositionSerializer(serializers.ModelSerializer):
             'order_id',
             'order_type',
             'created',
-            'type'
+            'type',
+            'comment'
             
         )
         

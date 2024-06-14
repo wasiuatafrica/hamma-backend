@@ -1257,7 +1257,7 @@ def calc_take_profit():
         positions = list(demopositions) + list(composition)
         all_prices = get_stockdata2()
         for position in positions:
-            if position.take_profit and not position.trailing_stop_loss:
+            if position.take_profit:
                 symbol = position.stock.symbol
                 current_price = all_prices[symbol]['current_price']
                 if position.action == 'buy':
@@ -1270,6 +1270,7 @@ def calc_take_profit():
                         position.status = DemoPosition.CLOSED
                         position.close_price = Decimal(current_price)
                         position.profit_loss = profit_loss
+                        position.comment = 'take profit executed'
                         position.save()
                         
                         CompetitionTransaction.objects.create(
@@ -1292,6 +1293,7 @@ def calc_take_profit():
                         position.status = DemoPosition.CLOSED
                         position.close_price = Decimal(current_price)
                         position.profit_loss = profit_loss
+                        position.comment = 'take profit executed'
                         position.save()
                         
                         CompetitionTransaction.objects.create(
@@ -1332,6 +1334,7 @@ def calc_stop_loss():
                         position.status = DemoPosition.CLOSED
                         position.close_price = Decimal(current_price)
                         position.profit_loss = profit_loss
+                        position.comment = 'stop loss executed'
                         position.save()
                         
                         CompetitionTransaction.objects.create(
@@ -1354,6 +1357,7 @@ def calc_stop_loss():
                         position.status = DemoPosition.CLOSED
                         position.close_price = Decimal(current_price)
                         position.profit_loss = profit_loss
+                        position.comment = 'stop loss executed'
                         position.save()
                         
                         CompetitionTransaction.objects.create(
@@ -1420,12 +1424,15 @@ def handle_sell_position(position, current_price):
 
 def close_position(position, current_price):
     current_value = round(position.quantity * current_price, 2)
-    profit_loss = Decimal(current_value) - position.amount_invested
-
-    # Update position status and details
+    if position.action == 'buy':
+        profit_loss = Decimal(current_value) - position.amount_invested
+    elif position.action == 'sell':
+        profit_loss = position.amount_invested - Decimal(current_value)
+    
     position.status = DemoPosition.CLOSED
     position.close_price = Decimal(current_price)
     position.profit_loss = profit_loss
+    position.comment = 'trailing stop  executed'
     position.save()
 
     # Log transaction and notify user

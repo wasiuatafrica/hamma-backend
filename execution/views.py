@@ -3255,6 +3255,7 @@ class NewDemoCloseTrade(APIView):
                     position.status = 'close'
                     position.close_price = Decimal(price)
                     position.profit_loss =pl
+                    position.comment = 'closed by trader'
                     position.save()
                     
                     CompetitionTransaction.objects.create(
@@ -3304,7 +3305,9 @@ class NewDemoCloseTrade(APIView):
                 
                 position.status = 'close'
                 position.close_price = Decimal(price)
+                position.comment = 'closed by trader'
                 position.profit_loss =pl
+                
                 position.save()
                 
                 DemoTransaction.objects.create(
@@ -3501,6 +3504,7 @@ def get_holdings_positions(queryset):
             'take_profit':position.take_profit,
             'stop_loss':position.stop_loss,
             'trailing_sl':position.trailing_stop_loss,
+            'comment':position.comment
             
             }
         all_holdings.append(data)

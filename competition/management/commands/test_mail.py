@@ -68,6 +68,6 @@ class Command(BaseCommand):
         
         for user in users:
             print(user)
-            test_email3(user.email,user.firstname.title(),"extension2" ,'More Time to Win: Hamma Competition Deadline Extended!')
+            # test_email3(user.email,user.firstname.title(),"extension2" ,'More Time to Win: Hamma Competition Deadline Extended!')
        
         
