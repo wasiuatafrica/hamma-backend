@@ -32,6 +32,13 @@ from competition.managers.utils import sendMail
 from django.utils.timezone import now, make_aware
 import pytz
 
+from rest_framework.pagination import PageNumberPagination
+
+class CustomizedPaginator(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 20
+
 User=get_user_model()
 
 
@@ -1938,3 +1945,108 @@ class ButtonClickSummaryAPIView2(APIView):
             })
         
         return grouped_data
+
+
+# New dulivate endpoints endpoints 
+#################################
+###############################
+class AdminManageUser2(APIView):
+    serializer_class= acc_serializers.AdminCustomUserSerializer
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+
+    def get_object(self, user_id):
+        # Get a single user by ID
+        return get_object_or_404(User, id=user_id)
+
+    def get(self, request, user_id=None):
+        paginator = CustomizedPaginator()  # Instantiate your custom paginator
+
+        # filter user by email
+        email=request.GET.get("email")
+        if email:
+            user=User.objects.filter(email=email)
+            serialized_data = self.serializer_class(user, many=True).data
+            return Response(serialized_data)
+        
+        if user_id is not None:
+            # Return details of a specific user
+            user = self.get_object(user_id)
+            serialized_data = self.serializer_class(user).data
+            return Response(serialized_data)
+        else:
+            # Return a list of all users
+            users = User.objects.all().order_by("-date_joined")
+
+            # Apply pagination
+            result_page = paginator.paginate_queryset(users, request)
+            serializer = self.serializer_class(result_page, many=True)
+            
+            return paginator.get_paginated_response(serializer.data)
+
+
+class AdminTradeView2(APIView):
+    serializer_class = serializers.DemoPositionSerializer
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+    
+    
+    def get(self, request):
+        paginator = CustomizedPaginator()  # Instantiate the paginator
+
+
+        demo_trades = exec_models.DemoPosition.objects.all().order_by('-created')
+        paginated_demo_trades = paginator.paginate_queryset(demo_trades, request)
+        demo_serializer = self.serializer_class(paginated_demo_trades, many=True)
+
+        comp_trades = CompetitionPosition.objects.all().order_by('-created')
+        paginated_comp_trades = paginator.paginate_queryset(comp_trades, request)
+        comp_serializer = serializers.CompeitionPositionSerializer(paginated_comp_trades, many=True)
+
+        # Combine serialized data
+        combined_data = demo_serializer.data + comp_serializer.data
+        sorted_data = sorted(combined_data, key=lambda x: x['created'], reverse=True)
+
+        return paginator.get_paginated_response(combined_data)
+
+class UserActivityLogView2(APIView):
+    serializer_class=acc_serializers.UserActivityLogSerializer
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+
+    def get(self,request, *args, **kwargs):
+        paginator = CustomizedPaginator()  # Instantiate your custom paginator
+        id=kwargs.get("id")
+        filter=request.GET.get("filter")
+        if filter:
+            activities=UserActivityLog.objects.filter(user__id=id, action_type=filter).order_by("-id")
+        else:
+            activities=UserActivityLog.objects.filter(user__id=id).order_by("-id")
+
+        # Apply pagination
+        result_page = paginator.paginate_queryset(activities, request)
+        serializer = self.serializer_class(result_page, many=True)
+        
+        return paginator.get_paginated_response(serializer.data)
+
+
+class AllUsersActivityLogView2(APIView):
+    serializer_class=acc_serializers.UserActivityLogSerializer
+    permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+
+    def get(self, request):
+        filter = request.GET.get("filter")
+        paginator = CustomizedPaginator()  # Instantiate your custom paginator
+
+        if filter:
+            if filter == "active":
+                activities = UserActivityLog.objects.filter(user__is_active=True).order_by("-timestamp")
+            elif filter == "inactive":
+                activities = UserActivityLog.objects.filter(user__is_active=False).order_by("-timestamp")
+            else:
+                activities = UserActivityLog.objects.filter(action_type=filter).order_by("-timestamp")
+        else:
+            activities = UserActivityLog.objects.all().order_by("-timestamp")
+        
+        # Apply pagination
+        result_page = paginator.paginate_queryset(activities, request)
+        serializer = self.serializer_class(result_page, many=True)
+        
+        return paginator.get_paginated_response(serializer.data)

@@ -30,7 +30,13 @@ urlpatterns = [
    path('button-click-summary/', views.ButtonClickSummaryAPIView.as_view(), name='button-click-summary'),
    path('button-click-summary-2/', views.ButtonClickSummaryAPIView2.as_view(), name='button-click-summary'),
 
-   #new clan admin links
+   ############
+   #duplicate endpoints with pagniation
+   path("new/manage-users/", views.AdminManageUser2.as_view(), name="manage-users"),
+   path("new/manage-users/<user_id>/", views.AdminManageUser2.as_view(), name="manage-users"),
+   path('new/trades/', views.AdminTradeView2.as_view()),
+   path("new/users-activity-log/<str:id>/", views.UserActivityLogView2.as_view()),
+   path("new/users-activity-log/", views.AllUsersActivityLogView2.as_view()),
 
 
 ]
