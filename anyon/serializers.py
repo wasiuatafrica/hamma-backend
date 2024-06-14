@@ -200,7 +200,7 @@ class CompeitionPositionSerializer(serializers.ModelSerializer):
             'order_type',
             'created',
             'type',
-            'comment'
+            'comment' 
             
         )
         
