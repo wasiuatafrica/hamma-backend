@@ -1950,6 +1950,7 @@ class ButtonClickSummaryAPIView2(APIView):
 # New dulivate endpoints endpoints 
 #################################
 ###############################
+from django.db.models import Q
 class AdminManageUser2(APIView):
     serializer_class= acc_serializers.AdminCustomUserSerializer
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
@@ -1963,6 +1964,7 @@ class AdminManageUser2(APIView):
 
         # filter user by email
         email=request.GET.get("email")
+        name = request.GET.get("name")
         if email:
             user=User.objects.filter(email=email)
             serialized_data = self.serializer_class(user, many=True).data
@@ -1976,6 +1978,8 @@ class AdminManageUser2(APIView):
         else:
             # Return a list of all users
             users = User.objects.all().order_by("-date_joined")
+            if name:
+                users = users.filter(Q(firstname__icontains=name) | Q(lastname__icontains=name))
 
             # Apply pagination
             result_page = paginator.paginate_queryset(users, request)
