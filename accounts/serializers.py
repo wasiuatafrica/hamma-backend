@@ -126,7 +126,14 @@ class TokenSeriailizer(serializers.Serializer):
 class UserActivityLogSerializer(serializers.ModelSerializer):
     class Meta:
         model=models.UserActivityLog
-        fields= "__all__"
+        fields= [
+            "id",
+            "user",
+            "action_type",
+            "timestamp",
+            "description",
+            "userfullname",
+        ]
 
 class AdminUserActivityLogSerializer(serializers.ModelSerializer):
     class Meta:
