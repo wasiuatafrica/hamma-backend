@@ -1965,6 +1965,7 @@ class AdminManageUser2(APIView):
         # filter user by email
         email=request.GET.get("email")
         name = request.GET.get("name")
+        is_active = request.GET.get("is_active")
         if email:
             user=User.objects.filter(email=email)
             serialized_data = self.serializer_class(user, many=True).data
@@ -1980,6 +1981,10 @@ class AdminManageUser2(APIView):
             users = User.objects.all().order_by("-date_joined")
             if name:
                 users = users.filter(Q(firstname__icontains=name) | Q(lastname__icontains=name))
+            if is_active:
+                value = is_active.lower()== "true"
+                users = users.filter(Q(is_active=value))
+
 
             # Apply pagination
             result_page = paginator.paginate_queryset(users, request)
