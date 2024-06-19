@@ -209,6 +209,10 @@ class UserActivityLog(models.Model):
     def __str__(self) -> str:
         return f"{self.user} - {self.action_type} - {self.timestamp.date()}"
 
+    @property
+    def userfullname(self):
+        return f"{self.user.firstname} {self.user.lastname}" 
+
 
 class AdminUserActivityLog(models.Model):
     admin=models.ForeignKey(CustomUser, related_name='admin_activity', on_delete=models.CASCADE)
