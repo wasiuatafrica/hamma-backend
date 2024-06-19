@@ -133,6 +133,7 @@ class UserActivityLogSerializer(serializers.ModelSerializer):
             "timestamp",
             "description",
             "userfullname",
+            "device_type"
         ]
 
 class AdminUserActivityLogSerializer(serializers.ModelSerializer):
