@@ -932,7 +932,7 @@ class FeedView(APIView):
     permission_classes = [IsAuthenticated, IsStaffOrAnalyst]
     
     def get(self, request):
-        feed = DashboardFeed.objects.all()
+        feed = DashboardFeed.objects.all().order_by("-created")
         serializer = DashboardFeedSerializer(feed, many=True)
         return Response(serializer.data)
     

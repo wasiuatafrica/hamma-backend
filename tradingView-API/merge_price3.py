@@ -206,7 +206,7 @@ while True:
     today = datetime.today().weekday()
     if is_market_open() and today < 5:
         combined = get_combined()   
-        print(combined)
+        # print(combined)
         write_to_mongodb("livelake3", combined)
         print("Live Price merged")
     else:

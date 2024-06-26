@@ -1588,6 +1588,7 @@ from django.db.models.functions import Rank
 def rank_clans(competition):
     # Group by clans and annotate the total profit for each clan
     competition_summary= CompetitionSummary.objects.filter(competition=competition).exclude(profit=0)
+    print(competition_summary)
     clan_profit_summary = (competition_summary.values('clan')
         # .annotate(total_profit=Sum('profit'))
         # .order_by('-total_profit')  # Order by total profit in descending order

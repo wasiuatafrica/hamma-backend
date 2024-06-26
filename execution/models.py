@@ -44,7 +44,7 @@ class DemoPortfolio(auto_prefetch.Model):
         max_attempts = 5
         for _ in range(max_attempts):
             generated_id = ''.join(random.choices(string.digits, k=6))
-            if not CompetitionPortfolio.objects.filter(account_id=generated_id).exists():
+            if not DemoPortfolio.objects.filter(account_id=generated_id).exists():
                 self.account_id = generated_id
                 return
         raise ValueError("Failed to generate a unique account ID after multiple attempts.")
@@ -76,7 +76,7 @@ class Portfolio(auto_prefetch.Model):
         max_attempts = 5
         for _ in range(max_attempts):
             generated_id = ''.join(random.choices(string.digits, k=6))
-            if not CompetitionPortfolio.objects.filter(account_id=generated_id).exists():
+            if not Portfolio.objects.filter(account_id=generated_id).exists():
                 self.account_id = generated_id
                 return
         raise ValueError("Failed to generate a unique account ID after multiple attempts.")
