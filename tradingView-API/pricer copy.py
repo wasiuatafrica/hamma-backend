@@ -49,10 +49,11 @@ def write_to_mongodb(dbase,data):
     
     
 url = f"https://marketdataapiv3.ngxgroup.com/v3/api/price/pricesRT.json?_t={TOKEN}"
+# print(url)
 payload={}
 headers = {}
 response = requests.request("GET", url, headers=headers, data=payload)
-print(response.text)
+# print(response.text)
 symbol_list = response.json()
 
 # equity = [data for data in symbol_list if data['Asset']=='EQUITY' ]

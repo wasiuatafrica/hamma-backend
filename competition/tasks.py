@@ -43,7 +43,7 @@ def close_competition_trades(competition):
                 amount=position.amount_invested + position.profit_loss,
                 status='completed'
             )
-        activity=UserActivityLog.objects.create(user=position.portfolio.user, action_type="competition_closed_trade",description=f"Open competition trade with symbol {position.stock.symbol} is closed.")
+        # activity=UserActivityLog.objects.create(user=position.portfolio.user, action_type="competition_closed_trade",description=f"Open competition trade with symbol {position.stock.symbol} is closed.")
         position.portfolio.balance += position.amount_invested + position.profit_loss
         position.portfolio.save()
 
