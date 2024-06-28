@@ -1813,8 +1813,8 @@ class TopTraders(APIView):
     permission_classes = (AllowAny,)
     def get(self, request):
         competition = Competition.objects.filter(status='closed').order_by('id').last()
-        accounts= CompetitionSummary.objects.filter(competition=competition).order_by('position')[:1]
-        data = [{'name':f"{account.user.fullname}", 'profit':account.profit, 'position':account.position} for account in accounts]
+        accounts= CompetitionSummary.objects.filter(competition=competition).order_by('position')[:3]
+        data = [{'name':f"{account.user.fullname}", 'profit':account.percent, 'position':account.position} for account in accounts]
         return Response(data)
 
 
