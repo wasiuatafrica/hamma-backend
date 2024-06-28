@@ -4,6 +4,7 @@ from functools import partial
 from multiprocessing import context
 import pytz
 
+from rest_framework import status
 from django.shortcuts import render, redirect,get_object_or_404
 from django.core.paginator import Paginator, EmptyPage,PageNotAnInteger 
 from django.contrib.auth import get_user_model
@@ -674,7 +675,7 @@ class ClanMembers(APIView):
         try:
             clan = Clan.objects.get(id=clan_id)
         except Clan.DoesNotExist:
-            return Response({"detail": f"Clan with id {clan_id} not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": f"Clan with id {clan_id} not found"}, status= status.HTTP_404_NOT_FOUND)
 
         clan_members = clan.member.all()
 
@@ -700,11 +701,22 @@ class ClanMembers(APIView):
             }
         
         else:
-            data={
-                'name':f"{clan.clan_admin.firstname} {clan.clan_admin.lastname}" ,
-                'profit':"",
-                'country':profile.country,
-            }
+            last_account = CompetitionPortfolio.objects.filter(user=clan.clan_admin).order_by('-id').first()
+            if last_account:
+                summary = CompetitionSummary.objects.filter(portfolio=last_account).first()
+                if summary:
+                    percent= summary.percent
+                    data= {
+                        'name':last_account.user.firstname,
+                        'profit':percent,
+                        'country':profile.country,
+                    }
+            else:
+                data={
+                    'name':f"{clan.clan_admin.firstname}" ,
+                    'profit':"",
+                    'country':profile.country,
+                }
             
         clan_member_data[1]['members'].append(data)
         if clan_members:
@@ -723,12 +735,24 @@ class ClanMembers(APIView):
                     }
                 
                 else:
-                    data={
-                        'member_id':member.id,
-                        'name':f"{member.firstname} {member.lastname}" ,
-                        'profit':"",
-                        'country':profile1.country,
-                    }
+                    last_account2 = CompetitionPortfolio.objects.filter(user=member).order_by('-id').first()
+                    if last_account2:
+                        summary = CompetitionSummary.objects.filter(user=member).order_by('id').last()
+                        if summary:
+                            percent= summary.percent
+                            data= {
+                                'member_id':member.id,
+                                'name':member.firstname,
+                                'profit':percent,
+                                'country':profile1.country,
+                            }
+                    else:
+                        data={
+                            'member_id':member.id,
+                            'name':f"{member.firstname} {member.lastname}" ,
+                            'profit':"",
+                            'country':profile1.country,
+                        }
                     
                 clan_member_data[1]['members'].append(data)
 
