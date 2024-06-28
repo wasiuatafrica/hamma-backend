@@ -2603,7 +2603,7 @@ class NewHome(APIView):
 
             # demo_account = self.get_competion_account(id, competition)
             
-            demo_account = CompetitionPortfolio.objects.filter(competition__status='current',active=True, id=id)
+            demo_account = CompetitionPortfolio.objects.filter(active=True, id=id)
             
             if demo_account.exists:
                 demo_account = demo_account.first()
@@ -3556,7 +3556,7 @@ class NewDemoHolding(APIView):
             # get the competion account
             id = kwargs.get("id")
 
-            demo_account = CompetitionPortfolio.objects.filter(competition__status='current',active=True, id=id)
+            demo_account = CompetitionPortfolio.objects.filter(active=True, id=id)
             
             if demo_account.exists:
                 demo_account = demo_account.first()
