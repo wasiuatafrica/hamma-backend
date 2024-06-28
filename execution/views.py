@@ -2618,7 +2618,7 @@ class NewHome(APIView):
             in_competition = demo_account
         
             # in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
-            if in_competition and timezone.now() > competition.start_date:
+            if in_competition:
                 portfolio = in_competition
                 
                 positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open')
@@ -2732,7 +2732,7 @@ class NewHome(APIView):
                     {
                         'date':daily.created.date(),
                         'return':daily.portfolio_returns,
-                    } for daily in daily_profitloss if daily_profitloss.count() > 1 and daily.created > competition.start_date
+                    } for daily in daily_profitloss if daily_profitloss.count() > 1 
                 ]
                 open_balance = sum([position.amount_invested for position in positions])
                 data = {
@@ -2964,7 +2964,7 @@ class NewSupportHome(APIView):
             in_competition = demo_account
         
             # in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
-            if in_competition and timezone.now() > competition.start_date:
+            if in_competition:
                 portfolio = in_competition
                 
                 positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open')
@@ -3078,7 +3078,7 @@ class NewSupportHome(APIView):
                     {
                         'date':daily.created.date(),
                         'return':daily.portfolio_returns,
-                    } for daily in daily_profitloss if daily_profitloss.count() > 1 and daily.created > competition.start_date
+                    } for daily in daily_profitloss if daily_profitloss.count() > 1 
                 ]
                 open_balance = sum([position.amount_invested for position in positions])
                 data = {
@@ -3572,7 +3572,7 @@ class NewDemoHolding(APIView):
         
             
             # in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
-            if in_competition and timezone.now() > competition.start_date:
+            if in_competition:
                 portfolio = in_competition
                     
                 positions =  CompetitionPosition.objects.filter(portfolio=portfolio).order_by("-updated")
@@ -3700,7 +3700,7 @@ class NewSupportDemoHolding(APIView):
         
             
             # in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
-            if in_competition and timezone.now() > competition.start_date:
+            if in_competition:
                 portfolio = in_competition
                     
                 positions =  CompetitionPosition.objects.filter(portfolio=portfolio).order_by("-updated")
