@@ -2582,7 +2582,7 @@ class NewHome(APIView):
         return demo_account if demo_account else None
 
     def get_competion_account(self, id, competion):
-        competition_demo_account = CompetitionPortfolio.objects.filter(competition__status='current',active=True, id=id).first()
+        competition_demo_account = CompetitionPortfolio.objects.filter(active=True, id=id).first()
         return competition_demo_account if competition_demo_account else None
     
     def get(self, request, *args, **kwargs):
@@ -3537,7 +3537,7 @@ class NewDemoHolding(APIView):
         return demo_account if demo_account else None
     
     def get_competion_account(self, id, competion):
-        competition_demo_account = CompetitionPortfolio.objects.filter(competition=competition,active=True, id=id).first()
+        competition_demo_account = CompetitionPortfolio.objects.filter(active=True, id=id).first()
         return competition_demo_account if competition_demo_account else None
     
     def get(self, request, *args, **kwargs):
