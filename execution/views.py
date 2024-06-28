@@ -909,7 +909,7 @@ class SupportHome(APIView):
                     {
                         'date':daily.created.date(),
                         'return':daily.portfolio_returns,
-                    } for daily in daily_profitloss if daily_profitloss.count() > 1 and daily.created > competition.start_date
+                    } for daily in daily_profitloss if daily_profitloss.count() > 1 
                 ]
                 open_balance = sum([position.amount_invested for position in positions])
                 data = {
@@ -1042,7 +1042,7 @@ class SupportHome(APIView):
                     {
                         'date':daily.created.date(),
                         'return':daily.portfolio_returns,
-                    } for daily in daily_profitloss if daily_profitloss.count() > 1 and daily.created > competition.start_date
+                    } for daily in daily_profitloss if daily_profitloss.count() > 1 
                 ]
                 open_balance = sum([position.amount_invested for position in positions])
                 data = {
@@ -1912,9 +1912,9 @@ class SupportDemoPorfoliosAccounts(APIView):
         #     comdata = []
         
         
-        competition_account = CompetitionPortfolio.objects.filter(user__email=email).order_by('id').last()
+        competition_account = CompetitionPortfolio.objects.filter(user__email=email).order_by('id')
         if competition_account.exists():
-            competition_account = competition_account.first()
+            competition_account = competition_account.last()
             
             compositions = CompetitionPosition.objects.filter(portfolio=competition_account, status='open')
             com_open_balance = sum([position.amount_invested for position in compositions])

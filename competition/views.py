@@ -1400,12 +1400,12 @@ class TopTraderPayoutRequest(APIView):
         if not user_acc:
             return Response({"detail": "Account not found. Your account didn't make it to the end of competition."}, status=status.HTTP_404_NOT_FOUND)
         # Get all the profits and prevents duplicates using set
-        trading_days = count_business_days(competition_id.start_date, competition_id.end_date)
+        # trading_days = count_business_days(competition_id.start_date, competition_id.end_date)
+        trading_days = 10
         
         top_3= CompetitionSummary.objects.filter(competition=competition_id,trading_days__gte=trading_days).order_by('position')[:1]
         # top_3=[account.user_account for account in top_]
         
-        trading_days = count_business_days(competition_id.start_date, competition_id.end_date)
         
         has_pending_request=TopTraderPayout.objects.filter( 
             portfolio=user_acc.portfolio,
@@ -1473,12 +1473,13 @@ class SupportTopTraderPayoutRequest(APIView):
         if not user_acc:
             return Response({"detail": "Account not found. Your account didn't make it to the end of competition."}, status=status.HTTP_404_NOT_FOUND)
         # Get all the profits and prevents duplicates using set
-        trading_days = count_business_days(competition_id.start_date, competition_id.end_date)
+        # trading_days = count_business_days(competition_id.start_date, competition_id.end_date)
+        trading_days = 10
         
         top_3= CompetitionSummary.objects.filter(competition=competition_id,trading_days__gte=trading_days).order_by('position')[:1]
         # top_3=[account.user_account for account in top_]
         
-        trading_days = count_business_days(competition_id.start_date, competition_id.end_date)
+        # trading_days = count_business_days(competition_id.start_date, competition_id.end_date)
         
         has_pending_request=TopTraderPayout.objects.filter( 
             portfolio=user_acc.portfolio,
