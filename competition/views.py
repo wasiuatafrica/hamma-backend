@@ -399,7 +399,17 @@ class SupportTradingDays(APIView):
     
         portfolio = CompetitionPortfolio.objects.filter(competition__status='current', user=user,  active=True).first()
         if not portfolio:
-            return Response({"trading_days": []})
+            last_account = CompetitionPortfolio.objects.filter(user=user).order_by('id').last()
+            if last_account:
+                positions = last_account.composition.all()
+                valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
+                
+                days = set([position.updated.date() for position in valid_positions])
+                
+                return Response({"trading_days": days})
+            else:
+                return Response({"trading_days": []})
+
 
         positions = portfolio.composition.all()
         valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
@@ -2046,7 +2056,7 @@ def top_clan_trader(user):
     is_in_top_clan = False
     
     competition =  Competition.objects.filter(status='current')
-    if competition.exists() and  timezone.now() > competition.first().start_date:
+    if competition.exists():
         portfolio = CompetitionPortfolio.objects.filter(competition=competition.first(), active=True)
         
         clan_returns = defaultdict(list)
@@ -2087,7 +2097,7 @@ def top_clan_trader(user):
 
     else:
         competition = Competition.objects.filter(status='closed').order_by('id').last()
-        summary = CompetitionSummary.objects.filter(competition=competition).order_by('profit')
+        summary = CompetitionSummary.objects.filter(competition=competition).order_by('-profit')
         top_trader = summary[0]
         if user.email == top_trader.user.email:
             is_top_trader = True
