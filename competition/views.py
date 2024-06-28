@@ -799,6 +799,7 @@ class LeaderBoardView(APIView):
     
     def get(self, request,*args, **kwargs):
         competition = Competition.objects.filter(status='current').first()
+        # print(competition.status)
         if competition:
             if timezone.now() > competition.start_date:
                 portfolio = CompetitionPortfolio.objects.filter(competition=competition, active=True)
@@ -824,7 +825,23 @@ class LeaderBoardView(APIView):
             else:
                 return Response([])
         else:
-            return Response([])
+            competition = Competition.objects.filter(status='closed').last()
+            leaderboard_list=[]
+            if competition:
+                summary = CompetitionSummary.objects.filter(competition=competition)
+                for account in summary:
+                    profile= Profile.objects.get(user=account.user)
+                    data= {
+                                'name':account.user.firstname,
+                                'profit':account.percent,
+                                'profit_naira':account.profit,
+                                'country':profile.country,
+                                'clan':account.clan.clan_name
+                            }
+                    leaderboard_list.append(data)
+            sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
+
+            return Response(sorted_data)
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -1750,20 +1767,44 @@ class TopClans(APIView):
                 ranked_clans = sorted(ranked_clans, key=lambda x: x['profit'], reverse=True)
                 for data in ranked_clans:
                     clan_name = data['clan_name']
-                    clan = Clan.objects.get(clan_name=clan_name)
-                    data['clan_logo'] = clan.clan_logo.url
-                    data['clan_id'] = clan.id
-                    data['community_link'] = clan.community_link
-                    data['description'] = clan.description
-                    data['members_count'] = clan.member.count() + 1
-                    data['profit_comparison'] = clan.profit_comparison
+                    print(clan_name)
+                    if clan_name:
+                        clan = Clan.objects.get(clan_name=clan_name)
+                        if clan.clan_logo:
+                            data['clan_logo'] = clan.clan_logo.url
+                        else:
+                            data['clan_logo'] = None
+                        data['clan_id'] = clan.id
+                        data['community_link'] = clan.community_link
+                        data['description'] = clan.description
+                        data['members_count'] = clan.member.count() + 1
+                        data['profit_comparison'] = clan.profit_comparison
                 # Return the ranked list of clans
                 return Response(ranked_clans[:3])
 
         else:
             competition = Competition.objects.filter(status='closed').order_by('id').last()
             clans= ClanCompetitionSummary.objects.filter(competition=competition).order_by('position')[:3]
-            data=[{'clan_id':comp.clan.id,'clan_name':comp.clan.clan_name,'community_link':comp.clan.community_link,'clan_logo':comp.clan.clan_logo.url,'description':comp.clan.description, 'profit':comp.profit, 'position':comp.position, 'top_3_count':comp.clan.top_3_count,'profit_comparison':comp.clan.profit_comparison,'members_count':comp.clan.members_count} for comp in clans ]
+            data =[]
+            for comp in clans:
+                id = comp.clan.id
+                name = comp.clan.clan_name
+                link = comp.clan.community_link
+                if comp.clan.clan_logo:
+                    logo = comp.clan.clan_logo.url
+                else:
+                    logo = None
+                description = comp.clan.description
+                profit = comp.profit
+                position = comp.position
+                top3 = comp.clan.top_3_count
+                comparison = comp.clan.profit_comparison
+                members = comp.clan.members_count
+                
+                data2 = {'clan_id':id,'clan_name':name,'community_link':link,'clan_logo':logo,'description':description, 'profit':profit, 'position':position, 'top_3_count':top3,'profit_comparison':comparison,'members_count':members}
+                data.append(data2)
+                
+            # data=[{'clan_id':comp.clan.id,'clan_name':comp.clan.clan_name,'community_link':comp.clan.community_link,'clan_logo':comp.clan.clan_logo.url,'description':comp.clan.description, 'profit':comp.profit, 'position':comp.position, 'top_3_count':comp.clan.top_3_count,'profit_comparison':comp.clan.profit_comparison,'members_count':comp.clan.members_count} for comp in clans ]
             return Response(data)
        
      
@@ -2013,8 +2054,12 @@ def top_clan_trader(user):
 
     else:
         competition = Competition.objects.filter(status='closed').order_by('id').last()
+        summary = CompetitionSummary.objects.filter(competition=competition).order_by('profit')
+        top_trader = summary[0]
+        if user.email == top_trader.user.email:
+            is_top_trader = True
         clans= ClanCompetitionSummary.objects.filter(competition=competition).order_by('position')[:3]
-        data=[{'clan_id':comp.clan.id,'clan_name':comp.clan.clan_name,'community_link':comp.clan.community_link,'clan_logo':comp.clan.clan_logo.url,'description':comp.clan.description, 'profit':comp.profit, 'position':comp.position, 'top_3_count':comp.clan.top_3_count,'profit_comparison':comp.clan.profit_comparison,'members_count':comp.clan.members_count} for comp in clans ]
+        data=[{'clan_id':comp.clan.id,'clan_name':comp.clan.clan_name,'community_link':comp.clan.community_link,'description':comp.clan.description, 'profit':comp.profit, 'position':comp.position, 'top_3_count':comp.clan.top_3_count,'profit_comparison':comp.clan.profit_comparison,'members_count':comp.clan.members_count} for comp in clans ]
         
         top_clan = data[0]
         if top_clan['clan_name'] == user.clans:

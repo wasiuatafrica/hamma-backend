@@ -710,7 +710,7 @@ class UserAssetBreakDown(APIView):
             all_positions .append(holding_data)
             
         for position in competitionpositions:
-            holding_data =       {
+            holding_data2 =       {
                     "user_id":position.portfolio.user.id,
                     "id":position.id,
                     "symbol":position.stock.symbol,
@@ -721,7 +721,7 @@ class UserAssetBreakDown(APIView):
                     "status":position.status,
                     "created":position.created
                 }
-            all_positions .append(holding_data)
+            all_positions .append(holding_data2)
         
         sorted_data = sorted(all_positions , key=lambda x: x['created'], reverse=True)
         return Response(sorted_data)

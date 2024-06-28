@@ -75,7 +75,7 @@ class Command(BaseCommand):
         return competition
 
     def create_competition_portfolios(self, competition):
-        users = User.objects.all()
+        users = User.objects.all()[5:15]
         for user in users:
             portfolio = CompetitionPortfolio.objects.create(
                 competition=competition,
@@ -86,7 +86,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Competition portfolios and positions created successfully.'))
 
     def create_competition_positions(self, portfolio):
-        for _ in range(10):
+        for _ in range(3):
             open_price = round(random.uniform(10, 500), 2)
             close_price = open_price + round(random.uniform(-5, 5), 2)
             quantity = random.randint(100, 10000)
@@ -99,7 +99,7 @@ class Command(BaseCommand):
 
             CompetitionPosition.objects.create(
                 portfolio=portfolio,
-                stock_id=random.randint(1, 130),  # Assuming you have stocks with IDs 1-100
+                stock_id=random.randint(1, 5),  # Assuming you have stocks with IDs 1-100
                 quantity=quantity,
                 open_price=open_price,
                 close_price=close_price if status == 'close' else None,

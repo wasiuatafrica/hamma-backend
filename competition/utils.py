@@ -8,6 +8,8 @@ from . import models
 from accounts import models as acc_models
 from datetime import datetime,time, date, timedelta
 
+import competition
+
 def get_public_holidays(year):
     """
     Returns a list of public holidays for the given year.
@@ -106,11 +108,20 @@ def user_has_atleat_10_min_trading_days(user:any)->bool:
 
     portfolio = models.CompetitionPortfolio.objects.filter(competition__status='current', user=user,  active=True).first()
     if not portfolio:
-        return {
-            "pass":False,
-            "mark":0,
-            "reason":"No on going competition"
-        }
+        last_competition = models.Competition.objects.filter(status='closed').order_by('id').last()
+        summary = models.CompetitionSummary.objects.filter(user=user,competition=last_competition).first()
+        if summary and summary.trading_days >=10:
+            return {
+                "pass":True,
+                "mark":10,
+                "reason":"Has minimum of 10 trading days"
+            }
+        else:
+            return {
+                "pass":False,
+                "mark":0,
+                "reason":"Not in competition or less than 10 days"
+            }
 
     positions = portfolio.composition.all()
     valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']

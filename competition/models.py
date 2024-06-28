@@ -521,7 +521,7 @@ class CompetitionSummary(auto_prefetch.Model):
     portfolio=auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE, blank=True, null=True)
     clan=auto_prefetch.ForeignKey(Clan, on_delete=models.CASCADE, related_name='summary_clan', blank=True, null=True)
     profit=models.FloatField(blank=True,null=True)
-    # percent=models.FloatField(blank=True,null=True)
+    percent=models.FloatField(blank=True,null=True)
     created_at=models.DateTimeField(blank=True,null=True, auto_now_add=True)
     updated_at=models.DateTimeField(blank=True,null=True, auto_now=True)
     position=models.PositiveIntegerField(blank=True, null=True)

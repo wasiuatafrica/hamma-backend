@@ -23,6 +23,9 @@ from django.utils import timezone
 from .managers.utils import sendMail
 from accounts.models import Profile
 
+from collections import defaultdict
+import pandas as pd
+
 User=get_user_model()
 
 logger = get_task_logger(__name__)
@@ -52,21 +55,23 @@ def getProfit(portfolio):
     # print(len(positions))
     
     profit_list = []
-    trading_days = []
+    trading_days = set()
     for position in positions:
         profit_list.append(position.profit_loss)
-        if position.updated - position.created >= timedelta(minutes=5):
-            trading_days.append(position.updated)
+        if position.updated != position.created:
+            trading_days.add(position.updated.date())
     profit = sum(profit_list)
     days = len(trading_days)
     # print(profit)
     return profit,days
 
 def Create_competiton_summary(competition):
+    print('closing open positions')
     close_competition_trades(competition)
-    
+    print('positions closed')
     portfolios = CompetitionPortfolio.objects.filter(competition=competition, active=True)
     
+    print('creating summary')
     for portfolio in portfolios:
         try:
             clan = Clan.objects.filter(member=portfolio.user).first()
@@ -79,36 +84,69 @@ def Create_competiton_summary(competition):
         percent = round(profit / 1000000 * 100, 2)
         
         # Use the single `portfolio` instance here
-        CompetitionSummary.objects.create(portfolio=portfolio, clan=clan, user=portfolio.user, profit=percent, competition=competition, trading_days=trading_days)
-    
-    # close the competition after the loop is completed
-    competition.status = "closed"
-    competition.save()
+        CompetitionSummary.objects.create(portfolio=portfolio, clan=clan, user=portfolio.user, profit=profit, percent=percent, competition=competition, trading_days=trading_days)
 
+        print(f'created summary for {portfolio.user}')
+    # close the competition after the loop is completed
+    # competition.status = "closed"
+    # competition.save()
 
 def rank_clans(competition):
     # Group by clans and annotate the total profit for each clan
-    competition_summary= CompetitionSummary.objects.filter(competition=competition).exclude(profit=0)
-    clan_profit_summary = (competition_summary.values('clan')
-        # .annotate(total_profit=Sum('profit'))
-        # .order_by('-total_profit')  # Order by total profit in descending order
-        .annotate(average_profit=Avg('profit'))
-        .order_by('-average_profit')  # Ord
-    )
-    # print(clan_profit_summary)
-    # Add rank to each clan based on total profit
-    clan_summary = clan_profit_summary.annotate(
-        rank=Window(expression=Rank(), order_by=F('average_profit').desc())
-    )
-    # print(clan_summary)
-    for summary in clan_summary:
+    competition_summary= CompetitionSummary.objects.filter(competition=competition)
+    clan_returns = defaultdict(list)
+                
+    for account in competition_summary:
+        profit = account.profit
+        clan = account.user.clans
+        clan_returns[clan].append(profit/1000000)  
+    
+    ranked_clans = []
+    for clan, returns in clan_returns.items():
+        cumulative_return = (1 + pd.Series(returns)).cumprod() - 1
+        # print(cumulative_return)
+        clan_instance  = Clan.objects.get(clan_name=clan)
+        ranked_clans.append({
+            'clan_name': clan,
+            'clan_id': clan_instance.id,
+            'profit': round(cumulative_return.iloc[-1] * 100, 2)
+        })
+
+    ranked_clans = sorted(ranked_clans, key=lambda x: x['profit'], reverse=True)
+    
+    for i, summary in enumerate(ranked_clans, start=1):
         ClanCompetitionSummary.objects.create(
             competition=competition,
-            clan_id=summary['clan'],
-            profit=summary['average_profit'],
-            position=summary['rank']
+            clan_id=summary['clan_id'],
+            profit=summary['profit'],
+            position=i
         )
-    return clan_summary
+    return ranked_clans
+        
+
+# def rank_clans(competition):
+#     # Group by clans and annotate the total profit for each clan
+#     competition_summary= CompetitionSummary.objects.filter(competition=competition)
+#     clan_profit_summary = (competition_summary.values('clan')
+#         # .annotate(total_profit=Sum('profit'))
+#         # .order_by('-total_profit')  # Order by total profit in descending order
+#         .annotate(average_profit=Avg('profit'))
+#         .order_by('-average_profit')  # Ord
+#     )
+#     # print(clan_profit_summary)
+#     # Add rank to each clan based on total profit
+#     clan_summary = clan_profit_summary.annotate(
+#         rank=Window(expression=Rank(), order_by=F('average_profit').desc())
+#     )
+#     # print(clan_summary)
+#     for summary in clan_summary:
+#         ClanCompetitionSummary.objects.create(
+#             competition=competition,
+#             clan_id=summary['clan'],
+#             profit=summary['average_profit'],
+#             position=summary['rank']
+#         )
+#     return clan_summary
 
  
 def rank_traders(competition): 
@@ -147,17 +185,21 @@ def end_competition(id):
     competition.status='closed'
     competition.save()
     
+    print('competition closed')
     if competition.status=='closed':
+        print('creating competition summary')
         Create_competiton_summary(competition)
+        print('ranking traders')
         rank_traders(competition)
+        print('ranking clans')
         rank_clans(competition)
     
     
     
         
-    user_ids = [id for id in get_user_model().objects.values_list('id', flat=True)]
-    for id in user_ids:
-        save_and_send_notification(id,f"Competition {competition.title.title()} has ended.")
+    # user_ids = [id for id in get_user_model().objects.values_list('id', flat=True)]
+    # for id in user_ids:
+    #     save_and_send_notification(id,f"Competition {competition.title.title()} has ended.")
         
 @shared_task
 def create_returns(portfolio_id):
