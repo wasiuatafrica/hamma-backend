@@ -828,7 +828,7 @@ class LeaderBoardView(APIView):
             competition = Competition.objects.filter(status='closed').last()
             leaderboard_list=[]
             if competition:
-                summary = CompetitionSummary.objects.filter(competition=competition)
+                summary = CompetitionSummary.objects.filter(competition=competition, profit__gt=0)
                 for account in summary:
                     profile= Profile.objects.get(user=account.user)
                     data= {
