@@ -1816,27 +1816,25 @@ class DemoPorfoliosAccounts(APIView):
 
         Get competition account for the current competition. if no competiton return empty
         """
-        competition = competion_models.Competition.objects.filter(status='current').first()
-        if competition:
-            competition_account = CompetitionPortfolio.objects.filter(user=request.user,competition=competition)
-            if competition_account.exists():
-                competition_account = competition_account.first()
-                
-                compositions = CompetitionPosition.objects.filter(portfolio=competition_account, status='open')
-                com_open_balance = sum([position.amount_invested for position in compositions])
-                comdata = {
-                    "id": competition_account.id,
-                    'account_name':competition_account.account_name,
-                    "account_type":competition_account.account_type,
-                    "balance":competition_account.balance + com_open_balance,
-                    "user":competition_account.user.id,
-                    "account_id": competition_account.account_id,
-                    'active':competition_account.active
-                }
-            else:  
-                comdata = []
+        
+        competition_account = CompetitionPortfolio.objects.filter(user=request.user).order_by('id')
+        if competition_account.exists():
+            competition_account = competition_account.last()
+            
+            compositions = CompetitionPosition.objects.filter(portfolio=competition_account, status='open')
+            com_open_balance = sum([position.amount_invested for position in compositions])
+            comdata = {
+                "id": competition_account.id,
+                'account_name':competition_account.account_name,
+                "account_type":competition_account.account_type,
+                "balance":competition_account.balance + com_open_balance,
+                "user":competition_account.user.id,
+                "account_id": competition_account.account_id,
+                'active':competition_account.active
+            }
         else:  
             comdata = []
+       
 
         demo_accounts = DemoPortfolio.objects.filter(user=request.user)
         demo_data = []
@@ -1891,27 +1889,47 @@ class SupportDemoPorfoliosAccounts(APIView):
         """
         email = kwargs.get("email")
         
-        competition = competion_models.Competition.objects.filter(status='current').first()
-        if competition:
-            competition_account = CompetitionPortfolio.objects.filter(user__email=email,competition=competition)
-            if competition_account.exists():
-                competition_account = competition_account.first()
+        # competition = competion_models.Competition.objects.filter(status='current').first()
+        # if competition:
+        #     competition_account = CompetitionPortfolio.objects.filter(user__email=email,competition=competition)
+        #     if competition_account.exists():
+        #         competition_account = competition_account.first()
                 
-                compositions = CompetitionPosition.objects.filter(portfolio=competition_account, status='open')
-                com_open_balance = sum([position.amount_invested for position in compositions])
-                comdata = {
-                    "id": competition_account.id,
-                    'account_name':competition_account.account_name,
-                    "account_type":competition_account.account_type,
-                    "balance":competition_account.balance + com_open_balance,
-                    "user":competition_account.user.id,
-                    "account_id": competition_account.account_id,
-                    'active':competition_account.active
-                }
-            else:  
-                comdata = []
+        #         compositions = CompetitionPosition.objects.filter(portfolio=competition_account, status='open')
+        #         com_open_balance = sum([position.amount_invested for position in compositions])
+        #         comdata = {
+        #             "id": competition_account.id,
+        #             'account_name':competition_account.account_name,
+        #             "account_type":competition_account.account_type,
+        #             "balance":competition_account.balance + com_open_balance,
+        #             "user":competition_account.user.id,
+        #             "account_id": competition_account.account_id,
+        #             'active':competition_account.active
+        #         }
+        #     else:  
+        #         comdata = []
+        # else:  
+        #     comdata = []
+        
+        
+        competition_account = CompetitionPortfolio.objects.filter(user__email=email).order_by('id').last()
+        if competition_account.exists():
+            competition_account = competition_account.first()
+            
+            compositions = CompetitionPosition.objects.filter(portfolio=competition_account, status='open')
+            com_open_balance = sum([position.amount_invested for position in compositions])
+            comdata = {
+                "id": competition_account.id,
+                'account_name':competition_account.account_name,
+                "account_type":competition_account.account_type,
+                "balance":competition_account.balance + com_open_balance,
+                "user":competition_account.user.id,
+                "account_id": competition_account.account_id,
+                'active':competition_account.active
+            }
         else:  
             comdata = []
+        
 
         demo_accounts = DemoPortfolio.objects.filter(user__email=email)
         demo_data = []
