@@ -627,14 +627,51 @@ class UserTradeActivityLog(APIView):
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
 
     def get(self, request, *args, **kwargs):
+        # id=kwargs.get("id")
+        # filter=request.GET.get('filter')
+        # if filter:
+        #     trade_history= exec_models.DemoPosition.objects.filter(portfolio__user__id=id,order_type__icontains=filter).order_by("-id")
+        # else:
+        #     trade_history= exec_models.DemoPosition.objects.filter(portfolio__user__id=id).order_by("-id")
+        # serializer=self.serializer_class(trade_history,many=True)
+        # return Response(serializer.data)
+        
         id=kwargs.get("id")
-        filter=request.GET.get('filter')
-        if filter:
-            trade_history= exec_models.DemoPosition.objects.filter(portfolio__user__id=id,order_type__icontains=filter).order_by("-id")
-        else:
-            trade_history= exec_models.DemoPosition.objects.filter(portfolio__user__id=id).order_by("-id")
-        serializer=self.serializer_class(trade_history,many=True)
-        return Response(serializer.data)
+        all_positions = []
+        demopositions =  exec_models.DemoPosition.objects.filter(portfolio__user__id=id)
+        competitionpositions = CompetitionPosition.objects.filter(portfolio__user__id=id)
+        
+        for position in demopositions:
+            holding_data =       {
+                    "user_id":position.portfolio.user.id,
+                    "id":position.id,
+                    "symbol":position.stock.symbol,
+                    "order_type":position.order_type,
+                    "quantity":position.quantity,
+                    "open_price":position.open_price,
+                    "close_price":position.close_price,
+                    "status":position.status,
+                    "created":position.created
+                } 
+            all_positions .append(holding_data)
+            
+        for position in competitionpositions:
+            holding_data2 =       {
+                    "user_id":position.portfolio.user.id,
+                    "id":position.id,
+                    "symbol":position.stock.symbol,
+                    "order_type":position.order_type,
+                    "quantity":position.quantity,
+                    "open_price":position.open_price,
+                    "close_price":position.close_price,
+                    "status":position.status,
+                    "created":position.created
+                }
+            all_positions .append(holding_data2)
+        
+        sorted_data = sorted(all_positions , key=lambda x: x['created'], reverse=True)
+        return Response(sorted_data)
+        
 
 class UserPaymentActivityLog(APIView):
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
