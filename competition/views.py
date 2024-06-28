@@ -372,7 +372,7 @@ class TradingDays(APIView):
         if not portfolio:
             last_account = CompetitionPortfolio.objects.filter(user=request.user).order_by('id').last()
             if last_account:
-                positions = portfolio.composition.all()
+                positions = last_account.composition.all()
                 valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
                 
                 days = [position.updated.date() for position in valid_positions]
