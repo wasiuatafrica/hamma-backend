@@ -370,7 +370,16 @@ class TradingDays(APIView):
     
         portfolio = CompetitionPortfolio.objects.filter(competition__status='current', user=request.user,  active=True).first()
         if not portfolio:
-            return Response({"trading_days": []})
+            last_account = CompetitionPortfolio.objects.filter(user=request.user).order_by('id').last()
+            if last_account:
+                positions = portfolio.composition.all()
+                valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
+                
+                days = [position.updated.date() for position in valid_positions]
+                
+                return Response({"trading_days": days})
+            else:
+                return Response({"trading_days": []})
 
         positions = portfolio.composition.all()
         valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
