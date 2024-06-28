@@ -1814,7 +1814,7 @@ class TopTraders(APIView):
     def get(self, request):
         competition = Competition.objects.filter(status='closed').order_by('id').last()
         accounts= CompetitionSummary.objects.filter(competition=competition).order_by('position')[:3]
-        data = [{'name':f"{account.user.fullname}", 'profit':account.percent, 'position':account.position} for account in accounts]
+        data = [{'name':f"{account.user.firstname}", 'profit':account.percent, 'position':account.position} for account in accounts]
         return Response(data)
 
 
