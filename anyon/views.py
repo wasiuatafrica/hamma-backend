@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from accounts.models import Referral as acc_Referral, UserActivityLog 
 # from accounts import models 
 from accounts import serializers as acc_serializers
+import competition
 from competition.models import CompetitionPosition, CompetitionTransaction
 from . import serializers
 from rest_framework.views import APIView
@@ -690,28 +691,62 @@ class UserAssetBreakDown(APIView):
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
     def get(self, request, *args, **kwargs):
         id=kwargs.get("id")
-        portfolio = Portfolio.objects.get(user__id=id)
-        holding=portfolio.holdings.all()
+        all_positions = []
+        demopositions =  exec_models.DemoPosition.objects.filter(portfolio__user__id=id)
+        competitionpositions = CompetitionPosition.objects.filter(portfolio__user__id=id)
         
-        holding_data=[
+        for position in demopositions:
+            holding_data =       {
+                    "user_id":position.portfolio.user.id,
+                    "id":position.id,
+                    "symbol":position.stock.symbol,
+                    "order_type":position.order_type,
+                    "quantity":position.quantity,
+                    "open_price":position.open_price,
+                    "close_price":position.close_price,
+                    "status":position.status,
+                    "created":position.created
+                } 
+            all_positions .append(holding_data)
+            
+        for position in competitionpositions:
+            holding_data =       {
+                    "user_id":position.portfolio.user.id,
+                    "id":position.id,
+                    "symbol":position.stock.symbol,
+                    "order_type":position.order_type,
+                    "quantity":position.quantity,
+                    "open_price":position.open_price,
+                    "close_price":position.close_price,
+                    "status":position.status,
+                    "created":position.created
+                }
+            all_positions .append(holding_data)
         
-            {
-                "symbol":data.stock.symbol,
-                "company":data.stock.company,
-                "value":round(float(data.cur_val),2),
-                "amount":data.quantity,
-                "seven_days":"47.6"
-            } for data in holding]
-        # print(holding_data)
-        wallet = Wallet.objects.get(user__id=id)
-        acc_summary={
-            "fiat_acc_balance":wallet.balance,
-            "no_of_stocks_owned" : holding.count(),
-            "total_val_of_stocks_owned": portfolio.portfolio_value(),
-            "seven_days":"47.6"
-        }
-        print(acc_summary)
-        return Response({"acc_summary":acc_summary, "stock_history":holding_data})
+        sorted_data = sorted(all_positions , key=lambda x: x['created'], reverse=True)
+        return Response(sorted_data)
+        
+        # holding=portfolio.holdings.all()
+        
+        # holding_data=[
+        
+        #     {
+        #         "symbol":data.stock.symbol,
+        #         "company":data.stock.company,
+        #         "value":round(float(data.cur_val),2),
+        #         "amount":data.quantity,
+        #         "seven_days":"47.6"
+        #     } for data in holding]
+        # # print(holding_data)
+        # wallet = Wallet.objects.get(user__id=id)
+        # acc_summary={
+        #     "fiat_acc_balance":wallet.balance,
+        #     "no_of_stocks_owned" : holding.count(),
+        #     "total_val_of_stocks_owned": portfolio.portfolio_value(),
+        #     "seven_days":"47.6"
+        # }
+        # print(acc_summary)
+        # return Response({"acc_summary":acc_summary, "stock_history":holding_data})
 
     
 
