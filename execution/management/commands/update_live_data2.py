@@ -29,7 +29,7 @@ def retrieve_today_live(symbol):
                     "$objectToArray": "$$ROOT"
                 }
             }
-        },
+        }, 
         {
             "$unwind": "$documents"
         },
