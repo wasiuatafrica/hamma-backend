@@ -4,6 +4,10 @@ import pytz
 import pandas as pd
 from datetime import datetime
 from pymongo import MongoClient
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     # Extract symbol from the event
@@ -108,5 +112,5 @@ def update_document(symbol, dbase, new_data):
                 else:
                     existing_document[key] = new_data[key]
         collection.update_one({"_id": id}, {"$set": existing_document})
-    else:
-        collection.insert_one(new_data)
+        logger.info(f"{symbol} updated")
+   

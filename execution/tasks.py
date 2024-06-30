@@ -2,17 +2,15 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from django.core.management import call_command
 from django.shortcuts import get_object_or_404
+import boto3
 
 from execution.utils import competition_daily_returns4, daily_returns5, get_positions, daily_returns3, competition_daily_returns3
-from .serializers import DemoPositionSerializer
+
 from anyon.views import User
 from portfolio.models import Message, Conversation, Stock, MarketAI,DemoTransaction
 from .models import   DemoPortfolio,DemoPosition, DemoDailyReturns, DemoCumulativeReturns
 from random import uniform
-from django.db import transaction
-from time import sleep
 from decimal import Decimal
 from datetime import datetime, timedelta,time
 from portfolio.utils import get_price, get_stockdata2
@@ -29,6 +27,7 @@ from competition.models import Competition, CompetitionPortfolio, CompetitionPos
 import pandas as pd
 import os
 from pymongo import MongoClient
+from concurrent.futures import ThreadPoolExecutor
 
 logger = get_task_logger(__name__)
 channel_layer = get_channel_layer()
@@ -54,6 +53,7 @@ BANK_HOLIDAYS = [
 lagos_tz = pytz.timezone('Africa/Lagos')
 BANK_HOLIDAYS = [lagos_tz.localize(date) for date in BANK_HOLIDAYS]
 # print(BANK_HOLIDAYS)
+
 def get_equity_data(user):
         portfolio = DemoPortfolio.objects.get(user=user)
         
@@ -1161,6 +1161,41 @@ def update_live_1m():
 
         update_document(symbol,'chartdata_5', new_data) 
         print('updated 1m', symbol)
+
+
+
+@shared_task
+def update_live_1m_lambda():
+    lagos_tz = pytz.timezone("Africa/Lagos")
+    today = datetime.now(lagos_tz).date()
+    lambda_client = boto3.client('lambda',region_name='eu-north-1')
+    
+    def invoke_lambda(symbol):
+        event_payload = {
+            'symbol': symbol,
+        }
+        response = lambda_client.invoke(
+                    # FunctionName='gen_data_test',
+                    FunctionName='update_live_1m',
+                    InvocationType='Event',  # Async invocation
+                    Payload=json.dumps(event_payload)
+                )
+        print(f"{symbol} triggerred")
+        
+    if today in [holiday.date() for holiday in BANK_HOLIDAYS]:
+        print(f"Today {today} is a bank holiday. Skipping update_live_1m task.")
+        return
+    
+    if today.weekday() < 6: 
+        stocks = [stock.symbol for stock in Stock.objects.filter(active=True).order_by('symbol')]
+        with ThreadPoolExecutor() as executor:
+            futures = [executor.submit(invoke_lambda, symbol) for symbol in stocks]
+
+            for future in futures:
+                # This will block until each future is done and will raise exceptions if any occurred
+                future.result()
+    else:
+        print('Update will not run on weekends')
 
 def last_data(last_item,symbol):
     
