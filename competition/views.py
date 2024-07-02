@@ -1391,43 +1391,50 @@ class TopTraderPayoutRequest(APIView):
 
     def get(self, request,*args, **kwargs):
         
-        competition_id=Competition.objects.filter(id=kwargs.get("competition_id")).first()
-        if not competition_id:
-            return Response({"detail":"competiton with this ID not found"}, status=status.HTTP_404_NOT_FOUND)
-        # Prevent others from making request for another trader's payout
-        user_acc=CompetitionSummary.objects.filter(competition=competition_id, user=request.user).first()
+        # competition_id=Competition.objects.filter(id=kwargs.get("competition_id")).first()
+        # if not competition_id:
+        #     return Response({"detail":"competiton with this ID not found"}, status=status.HTTP_404_NOT_FOUND)
+        # # Prevent others from making request for another trader's payout
+        # user_acc=CompetitionSummary.objects.filter(competition=competition_id, user=request.user).first()
         
-        if not user_acc:
-            return Response({"detail": "Account not found. Your account didn't make it to the end of competition."}, status=status.HTTP_404_NOT_FOUND)
-        # Get all the profits and prevents duplicates using set
-        # trading_days = count_business_days(competition_id.start_date, competition_id.end_date)
-        trading_days = 10
+        # if not user_acc:
+        #     return Response({"detail": "Account not found. Your account didn't make it to the end of competition."}, status=status.HTTP_404_NOT_FOUND)
+        # # Get all the profits and prevents duplicates using set
+        # # trading_days = count_business_days(competition_id.start_date, competition_id.end_date)
+        # trading_days = 10
         
-        top_3= CompetitionSummary.objects.filter(competition=competition_id,trading_days__gte=trading_days).order_by('position')[:1]
-        # top_3=[account.user_account for account in top_]
+        # top_3= CompetitionSummary.objects.filter(competition=competition_id,trading_days__gte=trading_days).order_by('position')[:1]
+        # # top_3=[account.user_account for account in top_]
         
         
-        has_pending_request=TopTraderPayout.objects.filter( 
-            portfolio=user_acc.portfolio,
-            status="pending",
-            competition=competition_id).first()
-        if has_pending_request:
-                return Response({'status':False, 'reason': 'has pending payout request' },status=status.HTTP_200_OK)
-        desired_time = time(12, 0)
-        wat_timezone = pytz.timezone('Africa/Lagos')
-        #print(wat_timezone, "timeeeee")
-        current_time_wat = datetime.now(wat_timezone)
-        is_friday = current_time_wat.weekday() == 4  # 4 represents Friday
-        is_after_12pm_wat = current_time_wat.time() > desired_time
-        is_weekend = datetime.now().weekday() > 5
-        requested_today= TopTraderPayoutButtonShows.objects.filter(portfolio=user_acc.portfolio, paydate = datetime.now().date()).exists()
-        if (is_friday and is_after_12pm_wat) or is_weekend:
-                return Response({'status':False, 'reason': 'Can only request mon-fri 12pm' },status=status.HTTP_200_OK)
+        # has_pending_request=TopTraderPayout.objects.filter( 
+        #     portfolio=user_acc.portfolio,
+        #     status="pending",
+        #     competition=competition_id).first()
+        # if has_pending_request:
+        #         return Response({'status':False, 'reason': 'has pending payout request' },status=status.HTTP_200_OK)
+        # desired_time = time(12, 0)
+        # wat_timezone = pytz.timezone('Africa/Lagos')
+        # #print(wat_timezone, "timeeeee")
+        # current_time_wat = datetime.now(wat_timezone)
+        # is_friday = current_time_wat.weekday() == 4  # 4 represents Friday
+        # is_after_12pm_wat = current_time_wat.time() > desired_time
+        # is_weekend = datetime.now().weekday() > 5
+        # requested_today= TopTraderPayoutButtonShows.objects.filter(portfolio=user_acc.portfolio, paydate = datetime.now().date()).exists()
+        # if (is_friday and is_after_12pm_wat) or is_weekend:
+        #         return Response({'status':False, 'reason': 'Can only request mon-fri 12pm' },status=status.HTTP_200_OK)
             
-        if user_acc not in top_3:
-            return Response({'status':False, 'reason': 'Ineligible' },status=status.HTTP_200_OK)
+        # is_top_trader= top_clan_trader(request.user)[0]
+        # if not is_top_trader:
+        #     return Response({'status':False, 'reason': 'Not a top trader' }, status=status.HTTP_200_OK)
         
-        return Response({'status':True, 'reason': '' })
+        # if user_acc not in top_3:
+        #     return Response({'status':False, 'reason': 'Ineligible' },status=status.HTTP_200_OK)
+        
+        # return Response({'status':True, 'reason': '' })
+        
+        return Response({'status':False, 'reason': 'Ineligible' },status=status.HTTP_200_OK)
+    
     def post(self, request,*args, **kwargs):
         competition_id=Competition.objects.filter(id=kwargs.get("competition_id")).first()
         if not competition_id:
@@ -1509,40 +1516,43 @@ class TopClanPayoutRequest(APIView):
     queryset = ClanCompetitionSummary.objects.all()
 
     def get(self, request,*args, **kwargs):
-        competition_id=Competition.objects.filter(id=kwargs.get("competition_id")).first()
-        if not competition_id:
-            return Response({"detail":"competiton with this ID not found"}, status=status.HTTP_404_NOT_FOUND)
-        # Prevent others from making request for another trader's payout
-        try:
-            clan=Clan.objects.get(clan_admin=request.user)
-        except Clan.DoesNotExist:
-            clan=None
-            return Response({'status':False, 'reason': 'Ineligible' }, status=status.HTTP_200_OK)
-        if clan:
-            top_3 = [summary.clan for summary in ClanCompetitionSummary.objects.filter(competition=competition_id).order_by('position')[:3]]
+        # competition_id=Competition.objects.filter(id=kwargs.get("competition_id")).first()
+        # if not competition_id:
+        #     return Response({"detail":"competiton with this ID not found"}, status=status.HTTP_404_NOT_FOUND)
+        # # Prevent others from making request for another trader's payout
+        # try:
+        #     clan=Clan.objects.get(clan_admin=request.user)
+        # except Clan.DoesNotExist:
+        #     clan=None
+        #     return Response({'status':False, 'reason': 'Ineligible' }, status=status.HTTP_200_OK)
+        # if clan:
+        #     top_3 = [summary.clan for summary in ClanCompetitionSummary.objects.filter(competition=competition_id).order_by('position')[:3]]
         
-            has_pending_request=TopClanPayout.objects.filter( 
-                clan__clan_admin=request.user,
-                status="pending",
-                competition=competition_id).first()
-            if has_pending_request:
-                return Response({'status':False, 'reason': 'has pending payout request' },status=status.HTTP_200_OK)
-            desired_time = time(12, 0)
-            wat_timezone = pytz.timezone('Africa/Lagos')
-            #print(wat_timezone, "timeeeee")
-            current_time_wat = datetime.now(wat_timezone)
-            is_friday = current_time_wat.weekday() == 4  # 4 represents Friday
-            is_after_12pm_wat = current_time_wat.time() > desired_time
-            is_weekend = datetime.now().weekday() > 5
-            requested_today= TopClanPayoutButtonShows.objects.filter(clan=clan, paydate = datetime.now().date()).exists()
+        #     has_pending_request=TopClanPayout.objects.filter( 
+        #         clan__clan_admin=request.user,
+        #         status="pending",
+        #         competition=competition_id).first()
+        #     if has_pending_request:
+        #         return Response({'status':False, 'reason': 'has pending payout request' },status=status.HTTP_200_OK)
+        #     desired_time = time(12, 0)
+        #     wat_timezone = pytz.timezone('Africa/Lagos')
+        #     #print(wat_timezone, "timeeeee")
+        #     current_time_wat = datetime.now(wat_timezone)
+        #     is_friday = current_time_wat.weekday() == 4  # 4 represents Friday
+        #     is_after_12pm_wat = current_time_wat.time() > desired_time
+        #     is_weekend = datetime.now().weekday() > 5
+        #     requested_today= TopClanPayoutButtonShows.objects.filter(clan=clan, paydate = datetime.now().date()).exists()
 
-            if (is_friday and is_after_12pm_wat) or is_weekend:
-                return Response({'status':False, 'reason': 'Can only request mon-fri 12pm' },status=status.HTTP_200_OK)
+        #     if (is_friday and is_after_12pm_wat) or is_weekend:
+        #         return Response({'status':False, 'reason': 'Can only request mon-fri 12pm' },status=status.HTTP_200_OK)
             
-            if clan not in top_3:
-                return Response({'status':False, 'reason': 'Ineligible' },status=status.HTTP_200_OK)
+        #     if clan not in top_3:
+        #         return Response({'status':False, 'reason': 'Ineligible' },status=status.HTTP_200_OK)
+
+        #     in_top_clan = top_clan_trader(request.user)
+        #     return Response({'status':True, 'reason': '' })
         
-            return Response({'status':True, 'reason': '' })
+        return Response({'status':False, 'reason': 'Ineligible' },status=status.HTTP_200_OK)
         
     def post(self, request,*args, **kwargs):
         competition_id=Competition.objects.filter(id=kwargs.get("competition_id")).first()

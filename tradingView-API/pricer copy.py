@@ -57,7 +57,7 @@ response = requests.request("GET", url, headers=headers, data=payload)
 symbol_list = response.json()
 
 # equity = [data for data in symbol_list if data['Asset']=='EQUITY' ]
-json_file_path = "symbol_list.json-" + datetime.now().strftime("%Y-%m-%d %H:%M")
+json_file_path = "symbol_list-" +  datetime.now().strftime("%Y-%m-%d %H:%M") + ".json"
 with open(json_file_path, "w") as json_file:
     json.dump(symbol_list, json_file, indent=4)
 
