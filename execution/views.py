@@ -3609,8 +3609,8 @@ class NewDemoHolding(APIView):
                     hold_data ={
                         'balance':balance,
                         'floating_pl':0,
-                        'closed_pl':balance,
-                        'equity':0,
+                        'closed_pl':0,
+                        'equity':balance,
                         'holdings':[]
                         
                     }
