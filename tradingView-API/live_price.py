@@ -32,39 +32,119 @@ def write_to_mongodb(dbase,data):
     collection.insert_one(data)
     
 
-def get_live_data()    :
+# def get_live_data()    :
+#     url = f"https://marketdataapiv3.ngxgroup.com/v3/api/price/pricesRT.json?_t={TOKEN}"
+#     payload={}
+#     headers = {}
+#     response = requests.request("GET", url, headers=headers, data=payload)
+#     symbol_list = response.json()
+
+#     lagos_now = datetime.now(lagos_tz)
+    
+#     # equity = [data for data in symbol_list if data['Asset']=='EQUITY' and datetime.fromisoformat(data["TradeDate"]).date() ==  lagos_now.date() ]
+#     equity = []
+#     for data in symbol_list:
+#         if data['Asset'] == 'EQUITY':
+#             try:
+#                 timestamp_str = data["Timestamp"]
+                
+#                 # Split the timestamp string into date and time parts
+#                 date_part, time_part = timestamp_str.split('T')
+                
+#                 # Parse the date part
+#                 data_date = datetime.strptime(date_part, '%Y-%m-%d').date()
+                
+#                 if data_date == lagos_now.date():
+#                     equity.append(data)
+#             except (ValueError, KeyError) as e:
+#                 print(f"Error processing data: {data}, error: {e}")
+        
+        
+
+#     combined = {}
+
+#     for data in equity:
+        
+#         symbol=data['Symbol'].split(' ')[0]
+        
+#         current_time = datetime.fromisoformat(data["Timestamp"].split('+')[0]).time()
+        
+#         data1= {
+#             'datetime': current_time.strftime("%Y-%m-%d %H:%M:%S"),  
+#             'open': data['Open'], 
+#             'high': data['High'] if data['High']  else round(data['Open']*1.01,2) , 
+#             'low': data['Low'] if data['Low'] else round(data['Close']*0.99, 2),
+#             'close': data['Close'], 
+#             'volume': data['Volume'], 
+#             'symbol': symbol,
+#             'change': data['Change'],
+#             'percent': data['PerChange']
+#             }
+        
+#         combined[symbol] = data1
+#     print(combined)     
+#     # write_to_mongodb("livelake3", combined)
+
+def get_live_data():
     url = f"https://marketdataapiv3.ngxgroup.com/v3/api/price/pricesRT.json?_t={TOKEN}"
-    payload={}
+    payload = {}
     headers = {}
     response = requests.request("GET", url, headers=headers, data=payload)
     symbol_list = response.json()
 
+    lagos_tz = pytz.timezone('Africa/Lagos')
     lagos_now = datetime.now(lagos_tz)
     
-    equity = [data for data in symbol_list if data['Asset']=='EQUITY' and datetime.fromisoformat(data["TradeDate"]).date() ==  lagos_now.date() ]
-    
-    
-
+    equity = []
+    for data in symbol_list:
+        # print(data)
+        if data['Asset'] == 'EQUITY':
+            try:
+                timestamp_str = data["Timestamp"]
+                
+                # Split the timestamp string into date and time parts
+                date_part, time_part = timestamp_str.split('T')
+                time_part = time_part.split('+')[0].split('-')[0].split('.')[0]
+                
+                # Parse the date part
+                data_date = datetime.strptime(date_part, '%Y-%m-%d').date()
+                
+                if data_date == lagos_now.date():
+                    equity.append(data)
+            except (ValueError, KeyError) as e:
+                print(f"Error processing data: {data}, error: {e}")
+        
     combined = {}
 
     for data in equity:
+        symbol = data['Symbol'].split(' ')[0]
         
-        symbol=data['Symbol'].split(' ')[0]
-        
-        
-        data1= {
-            'datetime': lagos_now.strftime("%Y-%m-%d %H:%M:%S"),  
-            'open': data['Open'], 
-            'high': data['High'] if data['High']  else round(data['Open']*1.01,2) , 
-            'low': data['Low'] if data['Low'] else round(data['Close']*0.99, 2),
-            'close': data['Close'], 
-            'volume': data['Volume'], 
-            'symbol': symbol
+        try:
+            # Manually handle the time part to avoid ValueError
+            date_part, time_part = data["Timestamp"].split('T')
+            time_part = time_part.split('+')[0].split('-')[0].split('.')[0]
+            formatted_datetime = f"{date_part} {time_part}"
+            current_time = datetime.strptime(formatted_datetime, '%Y-%m-%d %H:%M:%S')
+            
+            data1 = {
+                'datetime': current_time.strftime("%Y-%m-%d %H:%M:%S"),
+                'open': data['Open'], 
+                'high': data['High'] if data['High'] else round(data['Open'] * 1.01, 2), 
+                'low': data['Low'] if data['Low'] else round(data['Close'] * 0.99, 2),
+                'close': data['Close'], 
+                'volume': data['Volume'], 
+                'symbol': symbol,
+                'change': data['Change'],
+                'percent': data['PerChange']
             }
-        
-        combined[symbol] = data1
-    # print(combined)     
-    write_to_mongodb("livelake3", combined)
+            
+            combined[symbol] = data1
+        except ValueError as e:
+            print(f"Error processing datetime for data: {data}, error: {e}")
+    
+    print(combined)
+
+
       
 def is_market_open():
     lagos_timezone = pytz.timezone('Africa/Lagos')
@@ -73,9 +153,9 @@ def is_market_open():
     if datetime.today().weekday() < 5:
         market_open_time = time(10, 0)
         
-        market_close_time = time(14, 31)
+        # market_close_time = time(14, 40)
         # market_open_time = time(7, 0)
-        # market_close_time = time(22, 30)
+        market_close_time = time(22, 30)
 
         if market_open_time <= current_time_lagos <= market_close_time:
             return True

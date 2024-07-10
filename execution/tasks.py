@@ -1176,7 +1176,7 @@ def update_live_1m_lambda():
         }
         response = lambda_client.invoke(
                     # FunctionName='gen_data_test',
-                    FunctionName='update_live_1m',
+                    FunctionName='fetch_live',
                     InvocationType='Event',  # Async invocation
                     Payload=json.dumps(event_payload)
                 )

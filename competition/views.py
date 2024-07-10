@@ -843,30 +843,52 @@ class LeaderBoardView(APIView):
     def get(self, request,*args, **kwargs):
         competition = Competition.objects.filter(status='current').first()
         # print(competition.status)
-        if competition:
-            if timezone.now() > competition.start_date:
-                portfolio = CompetitionPortfolio.objects.filter(competition=competition, active=True)
+        # if competition:
+        #     if timezone.now() > competition.start_date:
+        #         portfolio = CompetitionPortfolio.objects.filter(competition=competition, active=True)
                 
-                leaderboard_list=[]
-                for account in portfolio:
-                    profit,status = getProfit(account)
-                    if status:
-                        percent= round((profit/1000000)*100,2)
-                        if percent >= -5:
-                            profile= Profile.objects.get(user=account.user)
-                            data= {
-                                'name':account.user.firstname,
-                                'profit':percent,
-                                'profit_naira':profit,
-                                'country':profile.country,
-                                'clan':account.user.clans
-                            }
-                            leaderboard_list.append(data)
-                sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
+        #         leaderboard_list=[]
+        #         for account in portfolio:
+        #             profit,status = getProfit(account)
+        #             if status:
+        #                 percent= round((profit/1000000)*100,2)
+        #                 if percent >= -5:
+        #                     profile= Profile.objects.get(user=account.user)
+        #                     data= {
+        #                         'name':account.user.firstname,
+        #                         'profit':percent,
+        #                         'profit_naira':profit,
+        #                         'country':profile.country,
+        #                         'clan':account.user.clans
+        #                     }
+        #                     leaderboard_list.append(data)
+        #         sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
 
-                return Response(sorted_data)
-            else:
-                return Response([])
+        #         return Response(sorted_data)
+        #     else:
+        #         return Response([])
+        if competition and timezone.now() > competition.start_date:
+            portfolio = CompetitionPortfolio.objects.filter(competition=competition, active=True)
+            
+            leaderboard_list=[]
+            for account in portfolio:
+                profit,status = getProfit(account)
+                if status:
+                    percent= round((profit/1000000)*100,2)
+                    if percent >= -5:
+                        profile= Profile.objects.get(user=account.user)
+                        data= {
+                            'name':account.user.firstname,
+                            'profit':percent,
+                            'profit_naira':profit,
+                            'country':profile.country,
+                            'clan':account.user.clans
+                        }
+                        leaderboard_list.append(data)
+            sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
+
+            return Response(sorted_data)
+            
         else:
             competition = Competition.objects.filter(status='closed').last()
             leaderboard_list=[]
