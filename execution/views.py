@@ -2170,6 +2170,11 @@ class SingleDemoTradeAPIView(APIView):
                 return Response("Permission denied",status.HTTP_403_FORBIDDEN)
 
             positions = DemoPosition.objects.filter(portfolio=demo_account,status='open')
+            all_prices = get_stockdata2()
+        
+            position_data_list = [get_position(all_prices, positions)]
+                
+            return Response(position_data_list)
 
         else:
 
@@ -2203,11 +2208,11 @@ class SingleDemoTradeAPIView(APIView):
                 positions = CompetitionPosition.objects.filter(portfolio=portfolio, status='open')
         
             
-        all_prices = get_stockdata2()
-        
-        position_data_list = [get_position(all_prices, positions)]
+            all_prices = get_stockdata2()
             
-        return Response(position_data_list)
+            position_data_list = [get_position(all_prices, positions)]
+                
+            return Response(position_data_list)
     
     def post(self, request, *args, **kwargs):
 
@@ -3602,9 +3607,9 @@ class NewDemoHolding(APIView):
                     return Response(hold_data)
                 else:
                     hold_data ={
-                        'balance':0,
+                        'balance':balance,
                         'floating_pl':0,
-                        'closed_pl':0,
+                        'closed_pl':balance,
                         'equity':0,
                         'holdings':[]
                         
