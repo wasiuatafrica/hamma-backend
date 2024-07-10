@@ -166,7 +166,7 @@ def create_competition(id,datestart):
     competition = Competition.objects.get(id=id)
     user_ids = [id for id in get_user_model().objects.values_list('id', flat=True)]
     formatted_start_date = datestart.strftime("%B %d, %Y at %I:%M %p")
-    message= f"New Competition {competition.title.title()} will commence on {formatted_start_date}.\n {competition.message}"
+    message= f"{competition.title.title()} will commence on {formatted_start_date}.\n {competition.message}"
     for id in user_ids:
         save_and_send_notification(id,message)
 
