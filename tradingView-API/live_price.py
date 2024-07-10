@@ -143,6 +143,7 @@ def get_live_data():
             print(f"Error processing datetime for data: {data}, error: {e}")
     
     print(combined)
+    write_to_mongodb("livelake3", combined)
 
 
       
@@ -151,11 +152,11 @@ def is_market_open():
     current_time_lagos = datetime.now(lagos_timezone).time()
 
     if datetime.today().weekday() < 5:
-        market_open_time = time(10, 0)
+        # market_open_time = time(10, 2)
         
-        # market_close_time = time(14, 40)
-        # market_open_time = time(7, 0)
-        market_close_time = time(22, 30)
+        market_close_time = time(14, 40)
+        market_open_time = time(7, 0)
+        # market_close_time = time(22, 30)
 
         if market_open_time <= current_time_lagos <= market_close_time:
             return True

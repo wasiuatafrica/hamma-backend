@@ -366,12 +366,62 @@ class ClanMemeberRemoverRequest(APIView):
 
 
 
+# class TradingDays(APIView):
+#     def get(self, request):
+        
+#         portfolio = CompetitionPortfolio.objects.filter(competition__status='current', user=request.user,  active=True).first()
+#         if not portfolio:
+#             last_account = CompetitionPortfolio.objects.filter(user=request.user).order_by('id').last()
+#             if last_account:
+#                 positions = last_account.composition.all()
+#                 valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
+                
+#                 days = set([position.updated.date() for position in valid_positions])
+                
+#                 return Response({"trading_days": days})
+#             else:
+#                 return Response({"trading_days": []})
+
+#         positions = portfolio.composition.all()
+#         valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
+        
+#         days = [position.updated.date() for position in valid_positions]
+        
+#         return Response({"trading_days": days})
+
 class TradingDays(APIView):
     def get(self, request):
-    
-        portfolio = CompetitionPortfolio.objects.filter(competition__status='current', user=request.user,  active=True).first()
-        if not portfolio:
-            last_account = CompetitionPortfolio.objects.filter(user=request.user).order_by('id').last()
+        competition = Competition.objects.filter(status='current').first()
+        if competition :
+            print('here1')
+            if  timezone.now() > competition.start_date:
+                print('here2')
+                portfolio = CompetitionPortfolio.objects.filter(competition__status='current', user=request.user,  active=True).first()
+                if portfolio:
+                    
+                    positions = portfolio.composition.all()
+                    valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
+                    
+                    days = [position.updated.date() for position in valid_positions]
+                    
+                    return Response({"trading_days": days})
+                else:
+                    return Response({"trading_days": []})
+            else:
+                print('here3')
+                last_account = CompetitionPortfolio.objects.filter(user=request.user, competition__status='closed',  active=True).order_by('id').last()
+                if last_account:
+                    
+                    positions = last_account.composition.all()
+                    valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
+                    
+                    days = set([position.updated.date() for position in valid_positions])
+                    
+                    return Response({"trading_days": days})
+                else:
+                    return Response({"trading_days": []})
+        else:
+            last_account = CompetitionPortfolio.objects.filter(user=request.user, competition__status='closed',  active=True).order_by('id').last()
             if last_account:
                 positions = last_account.composition.all()
                 valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
@@ -381,13 +431,6 @@ class TradingDays(APIView):
                 return Response({"trading_days": days})
             else:
                 return Response({"trading_days": []})
-
-        positions = portfolio.composition.all()
-        valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
-        
-        days = [position.updated.date() for position in valid_positions]
-        
-        return Response({"trading_days": days})
 
 class SupportTradingDays(APIView):
     def get(self, request, *args, **kwargs):
