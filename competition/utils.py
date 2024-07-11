@@ -106,7 +106,7 @@ def trader_has_completed_kyc(user:Any)->bool:
 def user_has_atleat_10_min_trading_days(user:any)->bool:
     competition = models.Competition.objects.filter(status='current').first()
     if competition:
-        if competition.start_date > timezone.now():
+        if timezone.now() > competition.start_date:
             
             portfolio = models.CompetitionPortfolio.objects.filter(competition__status='current', user=user,  active=True).first()
             if portfolio:
