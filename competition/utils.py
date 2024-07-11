@@ -102,12 +102,47 @@ def trader_has_completed_kyc(user:Any)->bool:
         "mark":mark,
         "reason":f"Has {mark} of the kyc requirements"
     }
-    
-    
-def user_has_atleat_10_min_trading_days(user:any)->bool:
 
-    portfolio = models.CompetitionPortfolio.objects.filter(competition__status='current', user=user,  active=True).first()
-    if not portfolio:
+def user_has_atleat_10_min_trading_days(user:any)->bool:
+    competition = models.Competition.objects.filter(status='current').first()
+    if competition:
+        if competition.start_date > timezone.now():
+            
+            portfolio = models.CompetitionPortfolio.objects.filter(competition__status='current', user=user,  active=True).first()
+            if portfolio:
+                positions = portfolio.composition.all()
+                valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
+
+                days = [position.updated.date() for position in valid_positions]
+                
+                return {
+                        "pass":True if len(days) >=10 else False,
+                        "mark":10 if len(days) >=10 else len(days),
+                        "reason":f"Has only {len(days)} trading days" if len(days)<10 else "Has minimum of 10 trading days"
+                    }
+            else:
+                return {
+                    "pass":False,
+                    "mark":0,
+                    "reason":"Not in competition"
+                }
+        else:
+            last_competition = models.Competition.objects.filter(status='closed').order_by('id').last()
+            summary = models.CompetitionSummary.objects.filter(user=user,competition=last_competition).first()
+            if summary and summary.trading_days >=10:
+                return {
+                    "pass":True,
+                    "mark":10,
+                    "reason":"Has minimum of 10 trading days"
+                }
+            else:
+                return {
+                    "pass":False,
+                    "mark":0,
+                    "reason":"Not in competition or less than 10 days"
+                }
+    else:
+    
         last_competition = models.Competition.objects.filter(status='closed').order_by('id').last()
         summary = models.CompetitionSummary.objects.filter(user=user,competition=last_competition).first()
         if summary and summary.trading_days >=10:
@@ -123,16 +158,36 @@ def user_has_atleat_10_min_trading_days(user:any)->bool:
                 "reason":"Not in competition or less than 10 days"
             }
 
-    positions = portfolio.composition.all()
-    valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
-
-    days = [position.updated.date() for position in valid_positions]
     
-    return {
-            "pass":True if len(days) >=10 else False,
-            "mark":10 if len(days) >=10 else len(days),
-            "reason":f"Has only {len(days)} trading days" if len(days)<10 else "Has minimum of 10 trading days"
-        }
+# def user_has_atleat_10_min_trading_days(user:any)->bool:
+
+#     portfolio = models.CompetitionPortfolio.objects.filter(competition__status='current', user=user,  active=True).first()
+#     if not portfolio:
+#         last_competition = models.Competition.objects.filter(status='closed').order_by('id').last()
+#         summary = models.CompetitionSummary.objects.filter(user=user,competition=last_competition).first()
+#         if summary and summary.trading_days >=10:
+#             return {
+#                 "pass":True,
+#                 "mark":10,
+#                 "reason":"Has minimum of 10 trading days"
+#             }
+#         else:
+#             return {
+#                 "pass":False,
+#                 "mark":0,
+#                 "reason":"Not in competition or less than 10 days"
+#             }
+
+#     positions = portfolio.composition.all()
+#     valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
+
+#     days = [position.updated.date() for position in valid_positions]
+    
+#     return {
+#             "pass":True if len(days) >=10 else False,
+#             "mark":10 if len(days) >=10 else len(days),
+#             "reason":f"Has only {len(days)} trading days" if len(days)<10 else "Has minimum of 10 trading days"
+#         }
 
 
     # competion_summary = models.CompetitionSummary.objects.filter(user=user).first()

@@ -1490,3 +1490,39 @@ def close_position(position, current_price):
     # Update portfolio balance
     position.portfolio.balance += position.amount_invested + position.profit_loss
     position.portfolio.save()
+
+AWS_REGION = 'eu-north-1'
+INSTANCE_ID = 'i-0fe3aa2463362dc9a'
+
+ec2 = boto3.client('ec2', region_name=AWS_REGION)
+
+@shared_task
+def start_ec2_instance():
+    
+
+    ec2.start_instances(InstanceIds=[INSTANCE_ID])
+    print(f'Starting EC2 instance {INSTANCE_ID}')
+    # Wait for the instance to start
+    waiter = ec2.get_waiter('instance_running')
+    waiter.wait(InstanceIds=[INSTANCE_ID])
+    print(f'EC2 instance {INSTANCE_ID} is running')
+    # run_scripts()
+    
+def run_scripts():
+    commands = [
+        'nohup python3 live_price.py &',
+        'nohup python3 merge_price4.py &'
+    ]
+    ssm = boto3.client('ssm', region_name=AWS_REGION)
+    for command in commands:
+        response = ssm.send_command(
+            InstanceIds=[INSTANCE_ID],
+            DocumentName='AWS-RunShellScript',
+            Parameters={'commands': [command]}
+        )
+        print(f'Running command: {command}')
+        
+@shared_task      
+def stop_ec2_instance():
+    ec2.stop_instances(InstanceIds=[INSTANCE_ID])
+    print(f'Stopping EC2 instance {INSTANCE_ID}')

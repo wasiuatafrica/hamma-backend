@@ -504,7 +504,7 @@ def competition_daily_returns4():
                     
         tv = TvDatafeed()
         
-        days_passed = days_since_date('2024-05-1')
+        days_passed = days_since_date('2024-07-15')
         # print('days',days_passed)
         n_bars=1 + days_passed 
         df2 = tv.get_hist(symbol="ASI", exchange='NSENG', interval=Interval.in_daily, n_bars=n_bars)
