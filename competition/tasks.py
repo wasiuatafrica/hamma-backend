@@ -210,6 +210,7 @@ def create_returns(portfolio_id):
 @shared_task
 def two_days_before_start(): #2
     users = User.objects.all()
+    print(f"sending for {user.email}")
     for user in users:
         context={
         "firstname":user.firstname.title(),

@@ -35,6 +35,7 @@ class Command(BaseCommand):
             event_payload = {
                 'symbol': symbol,
             }
+            lambda_client = boto3.client('lambda',region_name='eu-north-1')
             response = lambda_client.invoke(
                         FunctionName='fetch_live',
                         InvocationType='Event',  # Async invocation
