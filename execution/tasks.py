@@ -5,7 +5,7 @@ from asgiref.sync import async_to_sync
 from django.shortcuts import get_object_or_404
 import boto3
 
-from execution.utils import competition_daily_returns4, daily_returns5, get_positions, daily_returns3, competition_daily_returns3
+from execution.utils import competition_daily_returns4, daily_returns5, get_positions, daily_returns3, competition_daily_returns3,competition_daily_returns7
 
 from anyon.views import User
 from portfolio.models import Message, Conversation, Stock, MarketAI,DemoTransaction
@@ -1028,7 +1028,9 @@ def competition_returns3():
 def competition_returns4():
     competition_daily_returns4()
 
-
+@shared_task                
+def competition_returns7():
+    competition_daily_returns7()
 
 def update_document(symbol,dbase, new_data):
 

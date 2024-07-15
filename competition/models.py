@@ -150,7 +150,7 @@ class CompetitionPosition(auto_prefetch.Model):
         return get_price(self.stock.symbol)['current_price']
 
 class CompetitionProfitLoss(auto_prefetch.Model):
-    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='comprofitloss')
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='comprofit_loss')
     profit_loss = models.IntegerField(default=0)
     created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
@@ -161,7 +161,8 @@ class CompetitionDailyReturns(auto_prefetch.Model):
     ngx_price = models.FloatField(default=0.0)
     created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
     portfolio = auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE, related_name='returns', blank=True, null=True )
-
+    first_entry=models.BooleanField(default=True)
+    
     
 
     def __str__(self):
@@ -178,6 +179,7 @@ class CompetitionCumulativeReturns(auto_prefetch.Model):
     ngx_price = models.FloatField(default=0.0)
     created =models.DateTimeField(auto_now_add=True, null=True, blank=True)
     portfolio = auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE, related_name='cumureturns', blank=True, null=True )
+    first_entry=models.BooleanField(default=True)
 
     
 
@@ -561,8 +563,9 @@ class ClanCompetitionSummary(auto_prefetch.Model):
         return f"{self.competition.title} - {self.clan} - {self.position}"
     
 class CompetitionDailyReturns2(auto_prefetch.Model):
-    # user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='compreturns2')
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='compreturns2',null=True)
     portfolio_returns = models.FloatField(default=0.0)
+    market_returns = models.FloatField(default=0.0)
     portfolio=auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE, blank=True, null=True)
     created =models.DateTimeField(null=True, blank=True)
     first_entry=models.BooleanField(default=True)
@@ -574,9 +577,10 @@ class CompetitionDailyReturns2(auto_prefetch.Model):
             return f"{self.portfolio_returns}"
     
 class CompetitionCumulativeReturns2(auto_prefetch.Model):
-    # user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name='compcumureturns2')
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE,null=True,related_name='compcumureturns2')
     portfolio=auto_prefetch.ForeignKey(CompetitionPortfolio, on_delete=models.CASCADE, blank=True, null=True)
     portfolio_returns = models.FloatField(default=0.0)
+    market_returns = models.FloatField(default=0.0)
     created =models.DateTimeField(null=True, blank=True)
     first_entry=models.BooleanField(default=True)
     

@@ -703,24 +703,26 @@ def daily_returns5():
                     c_returns.save()
                     
         print('all demo returns calculated')
-                        
-def competition_daily_returns5():
+
+def competition_daily_returns7():
     from tvDatafeed import TvDatafeed, Interval
     
     today = timezone.now().date()
-    
+     
     lagos_timezone = pytz.timezone('Africa/Lagos')
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
     # print(current_time_lagos)
-    if current_time_lagos.time() >= datetime.strptime('10:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:31 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
+    
+    if current_time_lagos.time() >= datetime.strptime('10:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('11:31 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
+    # if current_time_lagos.time() >= datetime.strptime('7:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:30 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
         
-        portfolios = CompetitionPortfolio.objects.filter(competition__status='current', active=True)
+        portfolios = CompetitionPortfolio.objects.filter(active=True, competition__status='current')
         for portfolio in portfolios:
-            # print(user)
             positions_today = CompetitionPosition.objects.filter(portfolio=portfolio, status='close', updated__date=today)
             
             if positions_today.exists():
-                positions = CompetitionPosition.objects.filter(portfolio=portfolio, status='close')
+                print(f"{portfolio.user} closed position today")
+                positions =CompetitionPosition.objects.filter(portfolio=portfolio, status='close')
             
                 
                 data = {
@@ -736,21 +738,26 @@ def competition_daily_returns5():
                 'Profit_Loss': [float(position.profit_loss) for position in positions],
             }
                 df = pd.DataFrame(data)
-                
-                df["Balance"]= 1000000 
+        
+                df["Balance"]= df['Amount_Invested'] + df['Profit_Loss']
                 df['Closedate'] = df['closedatetime'].dt.date
-                df = df[["Stock", "Balance", "Amount_Invested", "Closedate", "closedatetime","Profit_Loss"]]
+                
+                df = df[["Stock", "Balance", "Amount_Invested", "Closedate", "closedatetime"]]
                 df = df.reset_index(drop=True)
                 df = df.sort_values(by='closedatetime')
-                df['Sum_Profit_Loss'] = df.groupby('Closedate')['Profit_Loss'].cumsum()
-                df['Daily_PortfolioReturns'] = df['Sum_Profit_Loss']/ df['Balance'] * 100
-                # print(df)
-                            
-                df_final = df.groupby('Closedate').tail(1).reset_index(drop=True)
-                # print(df_final)
+                
+                df['Sum_Balance'] = df.groupby('Closedate')['Balance'].cumsum()
+                df['Sum_Invested'] = df.groupby('Closedate')['Amount_Invested'].cumsum()
+                
+                df['Daily_PortfolioReturns'] = ((df['Sum_Balance']/df['Sum_Invested'])-1)*100
+                
+                idx_max_time = df.groupby('Closedate')['closedatetime'].idxmax()
+
+                max_time = df.loc[idx_max_time].reset_index(drop=True).sort_values(by='closedatetime')
                 
                 # Save the last row to the database
-                last_row = df_final.iloc[-1]
+                last_row = max_time.iloc[-1]
+                
                 d_returns = CompetitionDailyReturns2.objects.filter(
                     # user=portfolio.user,
                     portfolio=portfolio,
@@ -759,6 +766,7 @@ def competition_daily_returns5():
                 ).order_by('-created')
                 
                 if d_returns.exists():
+                    # print('daily returns exist today')
                     if len(d_returns) > 1:
                         d_returns = d_returns.order_by('-created')[1]
                     d_returns= d_returns.first()
@@ -766,20 +774,23 @@ def competition_daily_returns5():
                     d_returns.created = timezone.now()
                     d_returns.save()
                 else:
-                    CompetitionDailyReturns2.objects.create(
-                    # user=portfolio.user,
+                    print('daily returns created first time today')
+                    
+                    d_returns = CompetitionDailyReturns2.objects.create(
+                    user=portfolio.user,
                     portfolio=portfolio,
                     portfolio_returns=round(last_row['Daily_PortfolioReturns'], 2),
                     created=timezone.now(),
                     first_entry=False
                     )
                     
-                cum_table = df_final[["closedatetime","Sum_Profit_Loss","Balance"]]
+                cum_table = max_time[['closedatetime', 'Sum_Balance','Sum_Invested']]
                 cum_table = cum_table.reset_index(drop=True)
-                cum_table['running_pl'] = cum_table['Sum_Profit_Loss'].cumsum()
-                cum_table['cum_returns'] = (cum_table.running_pl/cum_table.Balance)*100
                 
-                print(cum_table)
+                cum_table['running_Balance'] = cum_table['Sum_Balance'].cumsum()
+                cum_table['running_Invested'] = cum_table['Sum_Invested'].cumsum()
+                cum_table['cum_returns'] = ((cum_table.running_Balance/cum_table.running_Invested)-1)*100
+                
                 last_row_cum = cum_table.iloc[-1]
                 
                 c_returns = CompetitionCumulativeReturns2.objects.filter(
@@ -795,61 +806,52 @@ def competition_daily_returns5():
                     c_returns.created = timezone.now()
                     c_returns.save()
                 else:
-                    CompetitionCumulativeReturns2.objects.create(
-                    # user=portfolio.user,
+                    c_returns = CompetitionCumulativeReturns2.objects.create(
+                    user=portfolio.user,
                     portfolio=portfolio,
                     portfolio_returns=round(last_row_cum['cum_returns'], 2),
                     created=timezone.now(),
                     first_entry=False)
                     
-            tv = TvDatafeed()
-            
-            # days_passed = days_since_date('2024-05-1')
-            portfolio_creation_date = portfolio.created.date().strftime('%Y-%m-%d')
-            days_passed = days_since_date(portfolio_creation_date)
-            # print('days',days_passed)
-            n_bars=1 + days_passed 
-            df2 = tv.get_hist(symbol="ASI", exchange='NSENG', interval=Interval.in_daily, n_bars=n_bars)
-            ASI_daily_selected = df2.reset_index()
-            ASI_daily_selected['ASI_daily_retuns'] = ASI_daily_selected['close'].pct_change() * 100
-            ASI_daily_selected['Date'] = ASI_daily_selected['datetime'].dt.strftime('%Y-%m-%d')
-
-            print(ASI_daily_selected)
-            # # Save the last row to the database
-            last_row_market = ASI_daily_selected.iloc[-1]
-            # # print(last_row_market)
-            
-            market_returns = last_row_market['ASI_daily_retuns']
-            if np.isnan(market_returns):
-                market_returns = 0
+                tv = TvDatafeed()
                 
-            comp_market = CompetitionMarketReturns.objects.filter(created__date=timezone.now().date(),portfolio=portfolio)
-            if comp_market.exists():
-                comp_market2 = comp_market.first()
-            else:
-                comp_market2 = CompetitionMarketReturns.objects.create(created=timezone.now(),portfolio=portfolio)
-            
-            comp_market2.market_returns = round(market_returns, 2)
-            comp_market2.save()
+                # days_passed = days_since_date('2024-05-1')
+                portfolio_creation_date = portfolio.created.date().strftime('%Y-%m-%d')
+                # days_passed = days_since_date(portfolio_creation_date)
+                days_passed = days_since_date("2024-07-15")
+                # print('days',days_passed)
+                n_bars=1 + days_passed 
+                df2 = tv.get_hist(symbol="ASI", exchange='NSENG', interval=Interval.in_daily, n_bars=n_bars)
+                ASI_daily_selected = df2.reset_index()
+                ASI_daily_selected['ASI_daily_retuns'] = ASI_daily_selected['close'].pct_change() * 100
+                ASI_daily_selected['Date'] = ASI_daily_selected['datetime'].dt.strftime('%Y-%m-%d')
 
-            cum_mark_table = ASI_daily_selected[['Date', 'ASI_daily_retuns']]
-            cum_mark_table['cum_ASI_daily_retuns'] = (1 + cum_mark_table.ASI_daily_retuns / 100).cumprod() - 1
-            cum_mark_table['cum_ASI_daily_retuns'] = cum_mark_table.cum_ASI_daily_retuns * 100
+                # print(ASI_daily_selected)
+                # # Save the last row to the database
+                last_row_market = ASI_daily_selected.iloc[-1]
+                # # print(last_row_market)
+                
+                market_returns = last_row_market['ASI_daily_retuns']
+                if np.isnan(market_returns):
+                    market_returns = 0
+                    
+                
+                d_returns.market_returns = round(market_returns, 2)
+                d_returns.save()
 
-            # print(cum_mark_table)
-            last_row_cum_market = cum_mark_table.iloc[-1]
-            # print(last_row_cum_market)
-            cum_market_returns = last_row_cum_market['cum_ASI_daily_retuns']
-            if np.isnan(cum_market_returns):
-                cum_market_returns = 0 
-            comp_market_cum = CompetitionCumulativeMarketReturns.objects.filter(created__date=timezone.now().date(),portfolio=portfolio)
-            if comp_market_cum.exists():
-                comp_market_cum2 = comp_market_cum.first()
-            else:
-                comp_market_cum2 = CompetitionCumulativeMarketReturns.objects.create(created=timezone.now(),portfolio=portfolio)
-            
-            comp_market_cum2.market_returns = round(cum_market_returns, 2)
-            comp_market_cum2.save()   
-            
-        print('all calculated')
-        
+                cum_mark_table = ASI_daily_selected[['Date', 'ASI_daily_retuns']]
+                cum_mark_table['cum_ASI_daily_retuns'] = (1 + cum_mark_table.ASI_daily_retuns / 100).cumprod() - 1
+                cum_mark_table['cum_ASI_daily_retuns'] = cum_mark_table.cum_ASI_daily_retuns * 100
+
+                # print(cum_mark_table)
+                last_row_cum_market = cum_mark_table.iloc[-1]
+                # print(last_row_cum_market)
+                cum_market_returns = last_row_cum_market['cum_ASI_daily_retuns']
+                if np.isnan(cum_market_returns):
+                    cum_market_returns = 0 
+                
+                c_returns.market_returns = round(cum_market_returns, 2)
+                c_returns.save()
+                
+        print('all demo returns calculated')
+  
