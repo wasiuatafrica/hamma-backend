@@ -3,6 +3,8 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.contrib.auth import get_user_model
 from numpy import half
+from websocket import send
+import competition
 from notifications.utils import save_and_send_notification
 from decimal import Decimal
 
@@ -214,7 +216,9 @@ def create_crontab(target_time):
 @shared_task
 def trading_rule_task(user_id):
     user = User.objects.get(id=user_id)
+    print(user.id)
     send_trading_rules(user)
+    print('sent trading rule')
   
 @shared_task
 def create_returns(portfolio_id):
@@ -623,3 +627,35 @@ def auto_approve_join_clan_requests(id):
     save_and_send_notification(join_request.user.id, f"Your request to join  {join_request.clan.clan_name.title()}  has been approved")
     mail=sendMail("competition/joinClanApproved.html","Join a Clan (Approved)",[join_request.user.email],{"first_name":join_request.user.firstname, "clan_name":join_request.clan.clan_name})
     print("request approved")
+    
+@shared_task
+def trade_reminder():
+    portfolios = CompetitionPortfolio.objects.filter(active=True, competition__status='current')
+    for portfolio in portfolios:
+        positions = portfolio.composition.all()
+        if not positions:
+            send_trade_reminder(portfolio.user)
+            
+@shared_task
+def trading_ideas_task():
+    users = User.objects.filter(is_active=True)
+    for user in users:
+        send_trading_idea(user)
+        
+@shared_task
+def first_daily_trade(portfolio_id):
+    portfolio = CompetitionPortfolio.objects.get(id=portfolio_id)
+    positions = portfolio.composition.filter(status='open', created__date=timezone.now().date())
+   
+    if len(positions) == 1:
+        position = positions.first()
+        context ={
+        'first_name':portfolio.user.firstname.title(),
+        'date':position.created,  
+        'stock':position.stock.symbol,  
+        'type':position.action.title(),
+        'price':position.open_price,  
+        'quantity':position.quantity,
+        'id':position.order_id
+    }
+        send_daily_trade_confirmation(portfolio.user, context)
