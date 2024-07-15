@@ -2023,7 +2023,7 @@ class ButtonClickSummaryAPIView2(APIView):
 #################################
 ###############################
 from django.db.models import Q
-from competition import start_competition_mails as mails
+
 
 class AdminManageUser2(APIView):
     serializer_class= acc_serializers.AdminCustomUserSerializer
@@ -2035,6 +2035,7 @@ class AdminManageUser2(APIView):
 
     def get(self, request, user_id=None):
         paginator = CustomizedPaginator()  # Instantiate your custom paginator
+
         # filter user by email
         email=request.GET.get("email")
         name = request.GET.get("name")

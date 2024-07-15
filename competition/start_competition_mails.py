@@ -27,3 +27,12 @@ def send_daily_trade_confirmation(user, context:dict):
         template="competition/daily_trade_confirmation.html",
     )
     return
+
+def send_trading_idea(user, context:dict={}):
+    send= sendTemplateMail(
+        subject="New trading idea",
+        recipient_list=[user.email],
+        context=context,
+        template="competition/trading_idea.html",
+    )
+    return
