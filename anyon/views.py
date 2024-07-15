@@ -86,7 +86,7 @@ class AdminManageUser(APIView):
     def get(self, request, user_id=None):
 
         # filter user by email
-        
+        email=request.GET.get("email")
         if email:
             user=User.objects.filter(email=email)
             serialized_data = self.serializer_class(users, many=True).data

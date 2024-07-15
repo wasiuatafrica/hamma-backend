@@ -8,7 +8,7 @@ from decimal import Decimal
 
 from .models import (Competition, CompetitionCumulativeReturns2, CompetitionDailyReturns2, CompetitionPortfolio, JoinClanRequest, get_price, CompetitionDailyReturns, ClanCompetitionSummary, CompetitionSummary, Clan, 
                      CompetitionPosition, CompetitionTransaction, CompetitionCumulativeReturns)
-
+from .start_competition_mails import send_trade_reminder, send_trading_idea, send_trading_rules, send_daily_trade_confirmation
 from django.db.models import Sum, Avg
 from django.db.models.expressions import Window,F 
 from django.db.models.functions import Rank
@@ -25,6 +25,7 @@ from accounts.models import Profile
 
 from collections import defaultdict
 import pandas as pd
+import json
 
 User=get_user_model()
 
@@ -200,12 +201,38 @@ def end_competition(id):
     # user_ids = [id for id in get_user_model().objects.values_list('id', flat=True)]
     # for id in user_ids:
     #     save_and_send_notification(id,f"Competition {competition.title.title()} has ended.")
-        
+
+def create_crontab(target_time):
+    start_schedule, created1 = CrontabSchedule.objects.get_or_create(
+            minute=target_time.minute,
+            hour=target_time.hour,
+            day_of_month=target_time.day,
+            month_of_year=target_time.month
+            )
+    return start_schedule
+
+@shared_task
+def trading_rule_task(user_id):
+    user = User.objects.get(id=user_id)
+    send_trading_rules(user)
+  
 @shared_task
 def create_returns(portfolio_id):
     portfolio=CompetitionPortfolio.objects.get(id=portfolio_id)
     CompetitionDailyReturns2 .objects.create(portfolio=portfolio,created=timezone.now())
     CompetitionCumulativeReturns2.objects.create(portfolio=portfolio, created=timezone.now())
+    
+    schedule1 = create_crontab(timezone.now()  + timedelta(days=14))
+    
+    PeriodicTask.objects.create(
+        name=f"Send trading rules to  {portfolio.user.email} email",
+        task='competition.tasks.trading_rule_task',
+        one_off=True,
+        crontab = schedule1,
+        args=json.dumps([portfolio.user.id])
+        
+    )
+    
     
 @shared_task
 def two_days_before_start(): #2
