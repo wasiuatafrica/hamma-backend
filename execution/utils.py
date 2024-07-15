@@ -829,7 +829,7 @@ def competition_daily_returns7():
                 # print(ASI_daily_selected)
                 # # Save the last row to the database
                 last_row_market = ASI_daily_selected.iloc[-1]
-                # # print(last_row_market)
+                # print(last_row_market)
                 
                 market_returns = last_row_market['ASI_daily_retuns']
                 if np.isnan(market_returns):

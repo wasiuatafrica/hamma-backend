@@ -223,8 +223,8 @@ def trading_rule_task(user_id):
 @shared_task
 def create_returns(portfolio_id):
     portfolio=CompetitionPortfolio.objects.get(id=portfolio_id)
-    CompetitionDailyReturns2 .objects.create(portfolio=portfolio,created=timezone.now())
-    CompetitionCumulativeReturns2.objects.create(portfolio=portfolio, created=timezone.now())
+    CompetitionDailyReturns2 .objects.create(portfolio=portfolio,user=portfolio.user,created=timezone.now())
+    CompetitionCumulativeReturns2.objects.create(portfolio=portfolio, user=portfolio.user,created=timezone.now())
     
     schedule1 = create_crontab(timezone.now()  + timedelta(days=14))
     
