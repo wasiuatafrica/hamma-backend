@@ -29,23 +29,21 @@ class Command(BaseCommand):
           "UNITYBNK", "UNIVINSURE", "UPL", "UPDC", "UPDCREIT", "VERITASKAP", "VFDGROUP", "VITAFOAM", 
           "WEMABANK", "ZENITHBANK"]
         
-        lambda_client = boto3.client('lambda',region_name='eu-north-1')
+        event_payload = {
+            'symbol': stocks,
+        }
         
-        def invoke_lambda(symbol):
-            event_payload = {
-                'symbol': symbol,
-            }
-            lambda_client = boto3.client('lambda',region_name='eu-north-1')
-            response = lambda_client.invoke(
-                        FunctionName='fetch_live',
-                        InvocationType='Event',  # Async invocation
-                        Payload=json.dumps(event_payload)
-                    )
-            print(f"{symbol} triggerred")
-            
-        with ThreadPoolExecutor() as executor:
-            futures = [executor.submit(invoke_lambda, symbol) for symbol in stocks]
+        lambda_client = boto3.client('lambda', region_name='eu-north-1')
+        response = lambda_client.invoke(
+            FunctionName='fetch_live',
+            InvocationType='RequestResponse',  # Synchronous invocation
+            Payload=json.dumps(event_payload)
+        )
+        
+        print("Lambda function triggered")
+        
+        # Process the response if needed
+        response_payload = json.loads(response['Payload'].read())
+        print(f"Lambda function response: {response_payload}")
 
-            for future in futures:
-                future.result()
-        print('all done')
+        print('All done')

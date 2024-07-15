@@ -1168,32 +1168,31 @@ def update_live_1m():
 def update_live_1m_lambda():
     lagos_tz = pytz.timezone("Africa/Lagos")
     today = datetime.now(lagos_tz).date()
-    lambda_client = boto3.client('lambda',region_name='eu-north-1')
     
-    def invoke_lambda(symbol):
-        event_payload = {
-            'symbol': symbol,
-        }
-        response = lambda_client.invoke(
-                    # FunctionName='gen_data_test',
-                    FunctionName='fetch_live',
-                    InvocationType='Event',  # Async invocation
-                    Payload=json.dumps(event_payload)
-                )
-        print(f"{symbol} triggerred")
-        
     if today in [holiday.date() for holiday in BANK_HOLIDAYS]:
         print(f"Today {today} is a bank holiday. Skipping update_live_1m task.")
         return
     
-    if today.weekday() < 6: 
+    if today.weekday() < 5: 
         stocks = [stock.symbol for stock in Stock.objects.filter(active=True).order_by('symbol')]
-        with ThreadPoolExecutor() as executor:
-            futures = [executor.submit(invoke_lambda, symbol) for symbol in stocks]
+        event_payload = {
+            'symbol': stocks,
+        }
+        
+        lambda_client = boto3.client('lambda', region_name='eu-north-1')
+        response = lambda_client.invoke(
+            FunctionName='fetch_live',
+            InvocationType='RequestResponse',  # Synchronous invocation
+            Payload=json.dumps(event_payload)
+        )
+        
+        print("Lambda function triggered")
+        
+        # Process the response if needed
+        response_payload = json.loads(response['Payload'].read())
+        print(f"Lambda function response: {response_payload}")
 
-            for future in futures:
-                # This will block until each future is done and will raise exceptions if any occurred
-                future.result()
+        print('All done')
     else:
         print('Update will not run on weekends')
 
