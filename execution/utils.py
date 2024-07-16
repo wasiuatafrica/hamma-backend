@@ -713,8 +713,8 @@ def competition_daily_returns7():
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
     # print(current_time_lagos)
     
-    if current_time_lagos.time() >= datetime.strptime('10:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('11:31 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
-    # if current_time_lagos.time() >= datetime.strptime('7:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:30 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
+    # if current_time_lagos.time() >= datetime.strptime('8:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('11:31 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
+    if current_time_lagos.time() >= datetime.strptime('10:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:30 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
         
         portfolios = CompetitionPortfolio.objects.filter(active=True, competition__status='current')
         for portfolio in portfolios:
@@ -816,9 +816,12 @@ def competition_daily_returns7():
                 tv = TvDatafeed()
                 
                 # days_passed = days_since_date('2024-05-1')
+                comparison_date = "2024-07-15"
                 portfolio_creation_date = portfolio.created.date().strftime('%Y-%m-%d')
-                # days_passed = days_since_date(portfolio_creation_date)
-                days_passed = days_since_date("2024-07-15")
+                if portfolio_creation_date < comparison_date:
+                    days_passed = days_since_date(comparison_date)
+                else:
+                    days_passed = days_since_date(portfolio_creation_date)
                 # print('days',days_passed)
                 n_bars=1 + days_passed 
                 df2 = tv.get_hist(symbol="ASI", exchange='NSENG', interval=Interval.in_daily, n_bars=n_bars)
