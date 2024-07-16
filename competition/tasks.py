@@ -659,3 +659,5 @@ def first_daily_trade(portfolio_id):
         'id':position.order_id
     }
         send_daily_trade_confirmation(portfolio.user, context)
+    else:
+        print("No trades to confirm today or this is not first trade")

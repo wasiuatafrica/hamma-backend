@@ -2350,7 +2350,7 @@ class SingleDemoTradeAPIView(APIView):
                         
                         activity=UserActivityLog.objects.create(user=request.user, action_type="competition_open_trade",description=f"User opened competition trade with amount {amount} on symbol {symbol}.",device_type=device_type)
                         positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open')
-                        competition_task.first_daily_trade.delay(portfolio.id)
+                        # competition_task.first_daily_trade.delay(portfolio.id)
                         
                         
                         
