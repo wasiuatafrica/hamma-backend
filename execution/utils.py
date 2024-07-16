@@ -739,25 +739,20 @@ def competition_daily_returns7():
             }
                 df = pd.DataFrame(data)
         
-                df["Balance"]= df['Amount_Invested'] + df['Profit_Loss']
+                df["Balance"]= 1000000 
                 df['Closedate'] = df['closedatetime'].dt.date
-                
-                df = df[["Stock", "Balance", "Amount_Invested", "Closedate", "closedatetime"]]
+                df = df[["Stock", "Balance", "Amount_Invested", "Closedate", "closedatetime","Profit_Loss"]]
                 df = df.reset_index(drop=True)
                 df = df.sort_values(by='closedatetime')
-                
-                df['Sum_Balance'] = df.groupby('Closedate')['Balance'].cumsum()
-                df['Sum_Invested'] = df.groupby('Closedate')['Amount_Invested'].cumsum()
-                
-                df['Daily_PortfolioReturns'] = ((df['Sum_Balance']/df['Sum_Invested'])-1)*100
-                
-                idx_max_time = df.groupby('Closedate')['closedatetime'].idxmax()
-
-                max_time = df.loc[idx_max_time].reset_index(drop=True).sort_values(by='closedatetime')
+                df['Sum_Profit_Loss'] = df.groupby('Closedate')['Profit_Loss'].cumsum()
+                df['Daily_PortfolioReturns'] = df['Sum_Profit_Loss']/ df['Balance'] * 100
+                # print(df)
+                            
+                df_final = df.groupby('Closedate').tail(1).reset_index(drop=True)
+                # print(df_final)
                 
                 # Save the last row to the database
-                last_row = max_time.iloc[-1]
-                
+                last_row = df_final.iloc[-1]
                 d_returns = CompetitionDailyReturns2.objects.filter(
                     # user=portfolio.user,
                     portfolio=portfolio,
@@ -766,7 +761,6 @@ def competition_daily_returns7():
                 ).order_by('-created')
                 
                 if d_returns.exists():
-                    # print('daily returns exist today')
                     if len(d_returns) > 1:
                         d_returns = d_returns.order_by('-created')[1]
                     d_returns= d_returns.first()
@@ -774,23 +768,20 @@ def competition_daily_returns7():
                     d_returns.created = timezone.now()
                     d_returns.save()
                 else:
-                    print('daily returns created first time today')
-                    
-                    d_returns = CompetitionDailyReturns2.objects.create(
-                    user=portfolio.user,
+                    CompetitionDailyReturns2.objects.create(
+                    # user=portfolio.user,
                     portfolio=portfolio,
                     portfolio_returns=round(last_row['Daily_PortfolioReturns'], 2),
                     created=timezone.now(),
                     first_entry=False
                     )
                     
-                cum_table = max_time[['closedatetime', 'Sum_Balance','Sum_Invested']]
+                cum_table = df_final[["closedatetime","Sum_Profit_Loss","Balance"]]
                 cum_table = cum_table.reset_index(drop=True)
+                cum_table['running_pl'] = cum_table['Sum_Profit_Loss'].cumsum()
+                cum_table['cum_returns'] = (cum_table.running_pl/cum_table.Balance)*100
                 
-                cum_table['running_Balance'] = cum_table['Sum_Balance'].cumsum()
-                cum_table['running_Invested'] = cum_table['Sum_Invested'].cumsum()
-                cum_table['cum_returns'] = ((cum_table.running_Balance/cum_table.running_Invested)-1)*100
-                
+                print(cum_table)
                 last_row_cum = cum_table.iloc[-1]
                 
                 c_returns = CompetitionCumulativeReturns2.objects.filter(
@@ -806,8 +797,8 @@ def competition_daily_returns7():
                     c_returns.created = timezone.now()
                     c_returns.save()
                 else:
-                    c_returns = CompetitionCumulativeReturns2.objects.create(
-                    user=portfolio.user,
+                    CompetitionCumulativeReturns2.objects.create(
+                    # user=portfolio.user,
                     portfolio=portfolio,
                     portfolio_returns=round(last_row_cum['cum_returns'], 2),
                     created=timezone.now(),
