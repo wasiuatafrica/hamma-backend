@@ -3,7 +3,7 @@ from django.contrib import admin
 
 from .models import (
     ButtonClick, DashboardFeed, Stock, PayStackReceipts, Receipts, WithdrawalOTPRequest, Wallet,
-    Transaction,  Alert, AlertAI, AlertAITracker,  Conversation, Message, DemoTransaction
+    Transaction,  Alert, AlertAI, AlertAITracker,  Conversation, Message, DemoTransaction, FeedsCategory
 )
 
 
@@ -31,6 +31,7 @@ class TransactionAdmin(admin.ModelAdmin):
 # Registering the admin model with the Transaction model
 admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(Alert)
+admin.site.register(FeedsCategory)
 admin.site.register(AlertAI)
 admin.site.register(AlertAITracker)
 admin.site.register(Message)

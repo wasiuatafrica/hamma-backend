@@ -5,16 +5,33 @@ from competition.tasks import trading_rule_task, trading_ideas_task
 from competition.start_competition_mails import send_trade_reminder, send_daily_trade_confirmation, send_trading_rules, send_trading_idea
 
 from django.utils import timezone
-
+from .convert_to_png_upload_s3 import run_process
+from portfolio.models import Stock
+import json
 from portfolio.models import DashboardFeed
 User =get_user_model()
 
+
+def load_dict_from_file(file_path):
+    """
+    Load dictionary from a JSON file.
+
+    :param file_path: str - Path to the JSON file
+    :return: dict - Dictionary loaded from the file
+    """
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+    return data
+
+file_a_path = 'stock_icons.json'
+stock_icons = load_dict_from_file(file_a_path)
 
 class Command (BaseCommand):
     help = ''
 
     def handle (self, *args, **options):
-        user = User.objects.get(email='nexxyb@gmail.com')
+        user = User.objects.get(email='nwaforglory6@gmail.com')
+        # user = User.objects.get(email='nexxyb@gmail.com')
         # user = User.objects.get(email='teamgohamma@gmail.com')
         # user = User.objects.get(email='teamft9ja@gmail.com')
         # user = User.objects.get(email='ideafabulous@gmail.com')
@@ -45,6 +62,22 @@ class Command (BaseCommand):
         'point1':feed.bullet_1,
         'point2':feed.bullet_2,
         'point3':feed.bullet_3,
-    }
-        print(context)
-        send_trading_idea(user, context)
+    }   
+        # uncomment this to send mail
+        # print(context)
+        # send_trading_idea(user, context)
+
+    # uncomment this to run upload for S3
+
+    stocks = Stock.objects.filter(converted_png=False)
+    index = 0
+    print(stock_icons,"asdvas")
+    for stock in stocks:
+        # stock_url = stock_icons.get(f"{stock.symbol}")
+        # stock.logo_url = stock_url
+        # stock.save()
+        if stock.logo_url:
+            index +=1
+            process = run_process(stock.logo_url, stock)
+    print(f"complete {index} uploads")
+            
