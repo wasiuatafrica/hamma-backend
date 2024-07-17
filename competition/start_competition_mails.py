@@ -21,7 +21,7 @@ def send_trade_reminder(user):
 
 def send_daily_trade_confirmation(user, context:dict):
     send= sendTemplateMail(
-        subject="A New Day With A New Trade",
+        subject="A New Day with a New Trade",
         recipient_list=[user.email],
         context=context,
         template="competition/daily_trade_confirmation.html",

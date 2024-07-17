@@ -23,7 +23,7 @@ from django.db.models import F, Window
 from django.db.models.functions import Rank
 from django.utils import timezone
 from .managers.utils import sendMail
-from accounts.models import Profile
+from portfolio.models import DashboardFeed
 
 from collections import defaultdict
 import pandas as pd
@@ -636,11 +636,23 @@ def trade_reminder():
         if not positions:
             send_trade_reminder(portfolio.user)
             
-@shared_task
-def trading_ideas_task():
+# @shared_task
+def trading_ideas_task(feed_id):
+    feed = DashboardFeed.objects.get(id=feed_id)
+    context = {
+        'topic':feed.topic,
+        'symbol_url':feed.stock.logo_url,
+        'posted_date':feed.published_date,
+        'title':feed.title,
+        'image_url':feed.image.url,
+        'image_caption':feed.image_caption,
+        'point1':feed.bullet_1,
+        'point2':feed.bullet_2,
+        'point3':feed.bullet_3,
+    }
     users = User.objects.filter(is_active=True)
     for user in users:
-        send_trading_idea(user)
+        send_trading_idea(user, context)
         
 @shared_task
 def first_daily_trade(portfolio_id):
