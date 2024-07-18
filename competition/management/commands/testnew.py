@@ -30,6 +30,7 @@ class Command (BaseCommand):
     help = ''
 
     def handle (self, *args, **options):
+
         # user = User.objects.get(email='nwaforglory6@gmail.com')
         user = User.objects.get(email='nexxyb@gmail.com')
         # user = User.objects.get(email='wasiu@atafrica.org')
@@ -50,12 +51,13 @@ class Command (BaseCommand):
     # }
     #     send_daily_trade_confirmation(user,context)
         # send_trading_rules(user)
-        
+
         feed1 = DashboardFeed.objects.last()
         # print(feed.stock.logo_url)
         process = run_process(feed1.stock.logo_url, feed1.stock)
         feed = DashboardFeed.objects.last()
         
+
         context = {
         'topic':feed.topic,
         'symbol_url':feed.stock.logo_url,
@@ -68,12 +70,13 @@ class Command (BaseCommand):
         'point3':feed.bullet_3,
     }   
         # uncomment this to send mail
-        # print(context)
+
         send_trading_idea(user, context)
 
     # uncomment this to run upload for S3
 
     # stocks = Stock.objects.filter(converted_png=False)
+
     # index = 0
     # print(stock_icons,"asdvas")
     # for stock in stocks:
