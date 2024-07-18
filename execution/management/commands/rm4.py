@@ -10,11 +10,9 @@ class Command(BaseCommand):
         # Connect to MongoDB
         MONGO_URL = os.environ.get('MONGO_STRING')
         
-        symbols= ["MEDVIEWAIR", "MEYER", "MORISON", "MRS", 
-          "MTNN", "MULTITREX", "MULTIVERSE", "MBENEFIT", "NNFM", "NASCON", "NCR", "NEIMETH", "NEM", "NESTLE", 
-          "NIGERINS", "NAHCO", "NB", "ENAMELWA", "NGXGROUP", "NOTORE", "NPFMCRFBK", "OANDO", 
-          "OKOMUOIL", "OMATEK", "PZ", "PHARMDEKO", "PREMPAINTS", "PRESCO", "PRESTIGE", "RTBRISCOE", "RAKUNITY", 
-          "REDSTAREX", "REGALINS", "RESORTSAL", "RONCHESS", "ROYALEX", "SCOA", "NSLTECH", "SEPLAT", "SFSREIT",
+        symbols= ["NGXGROUP", "NOTORE", "NPFMCRFBK", "OANDO", 
+          "OKOMUOIL", "OMATEK", "PZ", "PHARMDEKO", "PREMPAINTS", "PRESCO", "PRESTIGE", "RTBRISCOE", 
+          "REDSTAREX", "REGALINS", "RONCHESS", "ROYALEX", "SCOA", "NSLTECH", "SEPLAT", "SFSREIT",
           "SKYAVN", "SMURFIT", "SOVRENINS", "STACO", "STANBIC", "STDINSURE", "STERLINGNG", "SUNUASSUR", 
           "TANTALIZER", "TIP", "THOMASWY", "TOTAL", "TOURIST", "TRANSEXPR", "TRANSCOHOT", "TRANSCORP", 
           "TRIPPLEG", "UACN", "UHOMREIT", "UNILEVER", "UNIONDICON", "UNHOMES", "UBA", "UCAP", 
@@ -50,6 +48,7 @@ class Command(BaseCommand):
 
             print(new_data)
 
-            update_document(symbol, 'chartdata_5', new_data) 
+            # update_document(symbol, 'chartdata_5', new_data) 
+            update_document(symbol, 'chartdata_1D', new_data) 
             print('updated 5m', symbol)
            
