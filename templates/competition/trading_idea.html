@@ -57,6 +57,12 @@
       @media (max-width: 700px) {
         .desktop_view{
             text-align: left;
+
+        }
+        .desktop_view img{
+            width: 40px  !important ;
+            height: 40px !important
+            
         }
         .desktop_hide table.icons-outer {
           display: inline-table !important;
@@ -125,6 +131,7 @@
 
         .row-17 .column-1 .block-1.paragraph_block td.pad {
           padding: 10px 25px !important;
+          padding-top: 0 !important;
         }
 
         .row-20 .column-1 .block-6.paragraph_block td.pad > div,
@@ -135,6 +142,13 @@
 
         .row-4 .column-1 {
           padding: 5px 0 !important;
+        }
+      }
+      @media (max-width: 400px) {
+        .topic_mobile{
+          padding-top: 14px !important;
+          line-height: 7px !important;
+          font-size: 14px !important;
         }
       }
     </style>
@@ -259,6 +273,8 @@
                                           height: auto;
                                           border: 0;
                                           width: 100%;
+                                          margin-top: 3px;
+                                          margin-bottom: 3px;
                                         "
                                         width="170"
                                         height="auto"
@@ -521,43 +537,46 @@
                                     </p> -->
                                     <!-- <p style="margin: 0; margin-bottom: 15px;">Welcome to Hamma Stock Trading Competition🏆</p> -->
                                     <table
-                                      class="paragraph_block block-1"
-                                      width="100%"
-                                      border="0"
-                                      cellpadding="0"
-                                      cellspacing="0"
-                                      role="presentation"
-                                      style="
-                                        mso-table-lspace: 0pt;
-                                        mso-table-rspace: 0pt;
-                                        word-break: break-word;
-                                      "
-                                    >
-                                      <tr>
-                                        <td class="desktop_view">
-                                          <img
-                                            src="{{symbol_url}}"
-                                            alt=""
-                                            style="width: 50px; height: 50px"
-                                          />
-                                        </td>
-                                        <td>
-                                          <p
-                                            style="
-                                              margin: 0;
-                                              margin-bottom: 1px;
-                                              font-weight: 700;
-                                              font-size: 25px;
-                                            "
-                                          >
-                                           {{topic}}
-                                          </p>
-                                          <p style="margin: 0; font-size: 12px">
-                                            {{posted_date}}
-                                          </p>
-                                        </td>
-                                      </tr>
-                                    </table>
+  class="paragraph_block block-1"
+  width="100%"
+  border="0"
+  cellpadding="0"
+  cellspacing="0"
+  role="presentation"
+  style="
+    mso-table-lspace: 0pt;
+    mso-table-rspace: 0pt;
+    word-break: break-word;
+  "
+>
+  <tr>
+    <td class="desktop_view" style="padding-right: 10px; vertical-align: middle;">
+      <img
+        src="{{symbol_url}}"
+        alt=""
+        style="width: 50px; height: 50px; vertical-align: middle;"
+      />
+    </td>
+    <td style="evertical-align: middle;">
+      <p class="topic_mobile"
+        style="
+          margin: 0;
+          margin-bottom: 0px;
+          font-weight: 580;
+          font-size: 15px;
+          line-height: 30px;
+        "
+      >
+      	
+      {{topic}}
+      </p>
+      <p style="margin: 0; font-size: 12px; line-height: 30px;">
+        {{posted_date}}
+      </p>
+    </td>
+  </tr>
+</table>
+
 
                                     <!-- <p style="margin: 0; margin-bottom: 15px">
                                       <span>
@@ -835,7 +854,7 @@
                                         {{point3}}
                                       </li>
                                     </ul>
-                                    <p style="margin: 0; margin-bottom: 15px">
+                                    <p style="margin: 0; margin-bottom: 0px">
                                       PS: Not financial advice and be sure to do
                                       your due diligence.
                                     </p>
@@ -1277,23 +1296,21 @@
                                           font-size: 24px;
                                           padding: 0.5rem 1rem;
                                           margin: 0 auto;
+                                          border-radius: 10px;
                                         "
                                       >
-                                        Review other ideas
+                                        Review other Ideas
                                       </button>
                                     </a>
                                     <div
                                       style="
                                         width: 100%;
-                                        margin-top: 1rem;
+                                        margin-top: 10px;
                                         text-align: left;
                                       "
                                     >
-                                      <p style="margin: 0; margin-bottom: 18px">
-                                        Thank you for trading with us!
-                                      </p>
                                       <p style="margin: 0">
-                                        Best regards, <br />Team Hamma
+                                        Happy Trading! <br />Team Hamma
                                       </p>
                                     </div>
                                   </div>
