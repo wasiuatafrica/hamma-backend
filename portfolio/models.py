@@ -108,6 +108,7 @@ class Stock(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     active = models.BooleanField(default=True)
     logo_url = models.TextField(blank=True, null=True) 
+    converted_png =  models.BooleanField(default=False)
     
     def __str__(self):
         return  self.symbol
