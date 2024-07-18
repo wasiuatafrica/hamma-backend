@@ -31,7 +31,7 @@ def send_daily_trade_confirmation(user, context:dict):
 def send_trading_idea(user, context:dict={}):
     send= sendTemplateMail(
         subject="New Trading Idea",
-        recipient_list=[user.email, "akwasonhumbile@gmail.com"],
+        recipient_list=[user.email],
         context=context,
         template="competition/trading_idea.html",
     )
