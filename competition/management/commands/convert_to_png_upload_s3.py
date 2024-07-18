@@ -1,44 +1,27 @@
 import requests
 import boto3
 from io import BytesIO
-from svglib.svglib import svg2rlg
-from reportlab.graphics import renderPM
 import cairosvg
-import os
-import requests
 from PIL import Image
 from urllib.parse import urlparse
 from django.conf import settings
 from portfolio.models import Stock
 
-AWS_ACCESS_KEY_ID= settings.AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY=settings.AWS_SECRET_ACCESS_KEY
-AWS_REGION=settings.AWS_S3_REGION_NAME
-AWS_BUCKET=settings.AWS_STORAGE_BUCKET_NAME
-
+AWS_ACCESS_KEY_ID = settings.AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY = settings.AWS_SECRET_ACCESS_KEY
+AWS_REGION = settings.AWS_S3_REGION_NAME
+AWS_BUCKET = settings.AWS_STORAGE_BUCKET_NAME
 
 def contains_svg(url):
-    """
-    Check if the URL contains an SVG file.
-
-    :param url: str - The URL to be checked
-    :return: bool - True if the URL contains an SVG file, False otherwise
-    """
     try:
-        # Parse the URL
         parsed_url = urlparse(url)
-        # Extract the path from the parsed URL
         path = parsed_url.path
-
-        # Check if the path ends with '.svg'
         return path.lower().endswith('.svg')
     except Exception as e:
-        # Log the error if necessary
         print(f"An error occurred: {e}")
         return False
 
-class ConvertOthersToPng:
-
+class ConvertOthersToJpeg:
     def __init__(self, image_url, s3_key, stock):
         self.image_url = image_url
         self.s3_key = s3_key
@@ -51,56 +34,45 @@ class ConvertOthersToPng:
 
     def download_image_to_memory(self, url):
         response = requests.get(url)
-        response.raise_for_status()  # Check if the request was successful
+        response.raise_for_status()
         content_type = response.headers.get('Content-Type', '').lower()
         if 'image' not in content_type:
             raise ValueError(f"The URL '{url}' does not point to an image file.")
         return BytesIO(response.content), content_type
 
-    def convert_to_png(self, image_content, image_format):
-        # Open image from memory
+    def convert_to_jpeg(self, image_content, image_format):
         image = Image.open(image_content)
-
-        # Convert to PNG in memory
-        png_output = BytesIO()
-        image.save(png_output, format='PNG')
-        png_output.seek(0)  # Reset file pointer to beginning
-        return png_output
+        jpeg_output = BytesIO()
+        image.save(jpeg_output, format='JPEG', quality=95)  # High-quality parameter
+        jpeg_output.seek(0)
+        return jpeg_output
 
     def upload_file_to_s3(self, file_content, bucket_name, s3_key):
         s3 = boto3.client('s3', aws_access_key_id=self.AWS_ACCESS_KEY_ID, aws_secret_access_key=self.AWS_SECRET_ACCESS_KEY)
-        # Upload PNG content to S3 with explicit content type
         s3.upload_fileobj(
             file_content,
             bucket_name,
             s3_key,
-            ExtraArgs={'ContentType': 'image/png'}
+            ExtraArgs={'ContentType': 'image/jpeg'}
         )
         s3_url = f"https://{bucket_name}.s3.{self.AWS_REGION}.amazonaws.com/{s3_key}"
         return s3_url
 
     def process_image(self):
         try:
-            # Download the image file to memory
             image_content, image_format = self.download_image_to_memory(self.image_url)
-
-            # Convert the image content to PNG in memory
-            png_content = self.convert_to_png(image_content, image_format)
-
-            # Upload the PNG content to S3 with the correct content type
-            uploaded_url = self.upload_file_to_s3(png_content, self.AWS_BUCKET, self.s3_key)
-            self.stock.logo_url =uploaded_url
-            self.stock.converted_png = True
+            jpeg_content = self.convert_to_jpeg(image_content, image_format)
+            uploaded_url = self.upload_file_to_s3(jpeg_content, self.AWS_BUCKET, self.s3_key)
+            self.stock.logo_url = uploaded_url
+            self.stock.converted_jpeg = True
             self.stock.save()
-            print(f"Uploaded PNG file to S3 with URL: {uploaded_url}")
-
+            print(f"Uploaded JPEG file to S3 with URL: {uploaded_url}")
         except ValueError as e:
-            print(e)  # Handle the case where the URL is not an image file or other errors
+            print(e)
         except Exception as e:
-            print(f"Error: {e}")  # Handle any other exceptions during processing
+            print(f"Error: {e}")
 
-class ConvertFromSVGToPng:
-
+class ConvertFromSVGToJpeg:
     def __init__(self, image_url, s3_key, stock):
         self.image_url = image_url
         self.s3_key = s3_key
@@ -111,61 +83,55 @@ class ConvertFromSVGToPng:
         self.stock = stock
         self.process_image()
 
-
     def download_svg_to_memory(self, url):
         response = requests.get(url)
-        response.raise_for_status()  # Check if the request was successful
+        response.raise_for_status()
         content_type = response.headers.get('Content-Type', '')
         if 'image/svg+xml' not in content_type:
             raise ValueError(f"The URL '{url}' does not point to an SVG file.")
         return BytesIO(response.content)
 
-    def convert_svg_to_png(self, svg_content):
-        # Convert SVG to PNG using cairosvg
+    def convert_svg_to_jpeg(self, svg_content):
         png_output = BytesIO()
-        cairosvg.svg2png(file_obj=svg_content, write_to=png_output)
-        png_output.seek(0)  # Reset file pointer to beginning
-        return png_output
+        cairosvg.svg2png(file_obj=svg_content, write_to=png_output, dpi=300, output_width=1024, output_height=1024)
+        png_output.seek(0)
+        image = Image.open(png_output)
+        jpeg_output = BytesIO()
+        image.save(jpeg_output, format='JPEG', quality=95)  # High-quality parameter
+        jpeg_output.seek(0)
+        return jpeg_output
 
     def upload_file_to_s3(self, file_content, bucket_name, s3_key):
         s3 = boto3.client('s3', aws_access_key_id=self.AWS_ACCESS_KEY_ID, aws_secret_access_key=self.AWS_SECRET_ACCESS_KEY)
-        # Upload PNG content to S3 with explicit content type
         s3.upload_fileobj(
             file_content,
             bucket_name,
             s3_key,
-            ExtraArgs={'ContentType': 'image/png'}
+            ExtraArgs={'ContentType': 'image/jpeg'}
         )
         s3_url = f"https://{bucket_name}.s3.{self.AWS_REGION}.amazonaws.com/{s3_key}"
         return s3_url
 
     def process_image(self):
         try:
-            # Download the SVG file to memory
             svg_content = self.download_svg_to_memory(self.image_url)
-
-            # Convert the SVG content to PNG in memory
-            png_content = self.convert_svg_to_png(svg_content)
-
-            # Upload the PNG content to S3 with the correct content type
-            uploaded_url = self.upload_file_to_s3(png_content, self.AWS_BUCKET, self.s3_key)
+            jpeg_content = self.convert_svg_to_jpeg(svg_content)
+            uploaded_url = self.upload_file_to_s3(jpeg_content, self.AWS_BUCKET, self.s3_key)
             self.stock.logo_url = uploaded_url
-            self.stock.converted_png = True
+            self.stock.converted_jpeg = True
             self.stock.save()
-            print(f"Uploaded PNG file to S3 with URL: {uploaded_url}")
-
+            print(f"Uploaded JPEG file to S3 with URL: {uploaded_url}")
         except ValueError as e:
-            print(e)  # Handle the case where the URL is not an SVG file or other errors
+            print(e)
         except Exception as e:
-            print(f"Error: {e}")  # Handle any other exceptions during processing
+            print(f"Error: {e}")
 
 def run_process(url, stock):
     is_svg = contains_svg(url)
-    s3_key = f'new_stock_images/image_{stock.symbol}.png'  # Specify your desired key structure
+    s3_key = f'new_stock_images/image_{stock.symbol}.jpg'
     if is_svg:
-        print(True) 
-        converter = ConvertFromSVGToPng(url, s3_key, stock)
+        print(True)
+        converter = ConvertFromSVGToJpeg(url, s3_key, stock)
     else:
         print(False)
-        converter = ConvertOthersToPng(url, s3_key, stock)
-
+        converter = ConvertOthersToJpeg(url, s3_key, stock)
