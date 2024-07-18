@@ -180,7 +180,7 @@ class WalletWithdraw(APIView):
                 save_and_send_notification(request.user.id, 'Your withdrawal is processing.')
                 UserActivityLog.objects.create(user=request.user, action_type="withdrawal_request_initaiated",description="User requested for a withdrawal",device_type=device_type)
                 Transaction.objects.create(user=request.user,transaction_type="initiate_wallet_withdrawal", amount=amount, status='completed')
-                mail=sendMail("general/WIthdrawalRequesReceived.html","Withdrawal request received",[request.user.email],{"first_name":request.user.firstname,"amount":amount})
+                mail=sendMail("general/WIthdrawalRequesReceived.html","Withdrawal Request Received",[request.user.email],{"first_name":request.user.firstname,"amount":amount})
                 
                 return Response({"detail": "Withdrawal request has been created successfully."},
                                 status=status.HTTP_200_OK)
@@ -448,7 +448,7 @@ class ReceiptsView(APIView):
             # sendreciptsmail(request,image)
             save_and_send_notification(request.user.id, "Receipt Upload Successful.")
             activity=UserActivityLog.objects.create(user=request.user, action_type="receipt",description="User uploaded a payment receipt.",device_type=device_type)
-            mail=sendMail("general/depositRecieptRecieved.html","Deposit receipt reviewed",[request.user.email],{"first_name":request.user.firstname})
+            mail=sendMail("general/depositRecieptRecieved.html","Deposit Receipt Reviewed",[request.user.email],{"first_name":request.user.firstname})
             return Response({"message": "File uploaded successfully"})
         return Response(serializers.errors)
     
