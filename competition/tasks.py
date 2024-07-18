@@ -636,7 +636,7 @@ def trade_reminder():
         if not positions:
             send_trade_reminder(portfolio.user)
             
-# @shared_task
+@shared_task
 def trading_ideas_task(feed_id):
     feed = DashboardFeed.objects.get(id=feed_id)
     context = {

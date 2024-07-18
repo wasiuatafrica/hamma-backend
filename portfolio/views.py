@@ -1026,16 +1026,16 @@ class PublishFeed(APIView):
         feed.published_date = datetime.now()
         feed.save()
         
-        # schedule3 = create_crontab(timezone.now() + timedelta(hours=1))
+        schedule3 = create_crontab(timezone.now() + timedelta(hours=1))
         
-        # PeriodicTask.objects.create(
-        #     name=f"published {timezone.now()} trading idea",
-        #     task='competition.tasks.trading_ideas_task',
-        #     one_off=True,
-        #     crontab = schedule3,
-        #     args=json.dumps([feed.id])
+        PeriodicTask.objects.create(
+            name=f"published {timezone.now()} trading idea",
+            task='competition.tasks.trading_ideas_task',
+            one_off=True,
+            crontab = schedule3,
+            args=json.dumps([feed.id])
             
-        # )
+        )
         
         return Response(status=status.HTTP_200_OK)
     
