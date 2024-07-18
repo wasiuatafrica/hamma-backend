@@ -51,35 +51,35 @@ class Command (BaseCommand):
     #     send_daily_trade_confirmation(user,context)
         # send_trading_rules(user)
         
-        feed = DashboardFeed.objects.last()
-        # print(feed.stock.logo_url)
-        # process = run_process(feed.stock.logo_url, feed.stock)
-        context = {
-        'topic':feed.topic,
-        'symbol_url':feed.stock.logo_url,
-        'posted_date':feed.published_date,
-        'title':feed.title,
-        'image_url':feed.image.url,
-        'image_caption':feed.image_caption,
-        'point1':feed.bullet_1,
-        'point2':feed.bullet_2,
-        'point3':feed.bullet_3,
-    }   
-        # uncomment this to send mail
-        # print(context)
-        send_trading_idea(user, context)
+    #     feed = DashboardFeed.objects.last()
+    #     # print(feed.stock.logo_url)
+    #     # process = run_process(feed.stock.logo_url, feed.stock)
+    #     context = {
+    #     'topic':feed.topic,
+    #     'symbol_url':feed.stock.logo_url,
+    #     'posted_date':feed.published_date,
+    #     'title':feed.title,
+    #     'image_url':feed.image.url,
+    #     'image_caption':feed.image_caption,
+    #     'point1':feed.bullet_1,
+    #     'point2':feed.bullet_2,
+    #     'point3':feed.bullet_3,
+    # }   
+    #     # uncomment this to send mail
+    #     # print(context)
+    #     send_trading_idea(user, context)
 
     # uncomment this to run upload for S3
 
-    # stocks = Stock.objects.filter(converted_png=False)
-    # index = 0
-    # print(stock_icons,"asdvas")
-    # for stock in stocks:
-    #     # stock_url = stock_icons.get(f"{stock.symbol}")
-    #     # stock.logo_url = stock_url
-    #     # stock.save()
-    #     if stock.logo_url:
-    #         index +=1
-    #         process = run_process(stock.logo_url, stock)
-    # print(f"complete {index} uploads")
+    stocks = Stock.objects.filter(converted_png=False)
+    index = 0
+    print(stock_icons,"asdvas")
+    for stock in stocks:
+        # stock_url = stock_icons.get(f"{stock.symbol}")
+        # stock.logo_url = stock_url
+        # stock.save()
+        if stock.logo_url:
+            index +=1
+            process = run_process(stock.logo_url, stock)
+    print(f"complete {index} uploads")
             
