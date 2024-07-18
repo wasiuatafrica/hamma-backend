@@ -30,11 +30,12 @@ class Command (BaseCommand):
     help = ''
 
     def handle (self, *args, **options):
-        user = User.objects.get(email='nwaforglory6@gmail.com')
+        # user = User.objects.get(email='nwaforglory6@gmail.com')
         # user = User.objects.get(email='nexxyb@gmail.com')
+        # user = User.objects.get(email='wasiu@atafrica.org')
         # user = User.objects.get(email='teamgohamma@gmail.com')
         # user = User.objects.get(email='teamft9ja@gmail.com')
-        # user = User.objects.get(email='ideafabulous@gmail.com')
+        user = User.objects.get(email='ideafabulous@gmail.com')
         
         # print(user.firstname)
         # send_trade_reminder(user)
@@ -52,6 +53,7 @@ class Command (BaseCommand):
         
         feed = DashboardFeed.objects.last()
         # print(feed.stock.logo_url)
+        # process = run_process(feed.stock.logo_url, feed.stock)
         context = {
         'topic':feed.topic,
         'symbol_url':feed.stock.logo_url,
@@ -65,19 +67,19 @@ class Command (BaseCommand):
     }   
         # uncomment this to send mail
         # print(context)
-        # send_trading_idea(user, context)
+        send_trading_idea(user, context)
 
     # uncomment this to run upload for S3
 
-    stocks = Stock.objects.filter(converted_png=False)
-    index = 0
-    print(stock_icons,"asdvas")
-    for stock in stocks:
-        # stock_url = stock_icons.get(f"{stock.symbol}")
-        # stock.logo_url = stock_url
-        # stock.save()
-        if stock.logo_url:
-            index +=1
-            process = run_process(stock.logo_url, stock)
-    print(f"complete {index} uploads")
+    # stocks = Stock.objects.filter(converted_png=False)
+    # index = 0
+    # print(stock_icons,"asdvas")
+    # for stock in stocks:
+    #     # stock_url = stock_icons.get(f"{stock.symbol}")
+    #     # stock.logo_url = stock_url
+    #     # stock.save()
+    #     if stock.logo_url:
+    #         index +=1
+    #         process = run_process(stock.logo_url, stock)
+    # print(f"complete {index} uploads")
             

@@ -2395,7 +2395,7 @@ class SingleDemoTradeAPIView(APIView):
                             args=json.dumps([position.id, True])
                         )
                     
-                    positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open',active=True)
+                    # positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open',active=True)
                     
                     
                     save_and_send_notification(request.user.id,f' COMPETITION: Your limit order will be opened when the condition you set is met.')
