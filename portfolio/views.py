@@ -29,10 +29,13 @@ from django.db.models import Exists, OuterRef
 from accounts.models import UserActivityLog,Referral
 from affilate.models import ReferralWallet,RewardActivities
 from execution import models as exec_models
-from django_celery_beat.models import PeriodicTask, IntervalSchedule
+from django_celery_beat.models import PeriodicTask, IntervalSchedule, CrontabSchedule
 from competition.managers.utils import sendMail 
 from django.db.models import Sum, F, Count, Q
 from datetime import datetime, timedelta
+from competition.tasks import create_crontab
+import json 
+
 
 from rest_framework.permissions import BasePermission
 
@@ -1022,6 +1025,18 @@ class PublishFeed(APIView):
         feed.status = 'published'
         feed.published_date = datetime.now()
         feed.save()
+        
+        # schedule3 = create_crontab(timezone.now() + timedelta(hours=1))
+        
+        # PeriodicTask.objects.create(
+        #     name=f"published {timezone.now()} trading idea",
+        #     task='competition.tasks.trading_ideas_task',
+        #     one_off=True,
+        #     crontab = schedule3,
+        #     args=json.dumps([feed.id])
+            
+        # )
+        
         return Response(status=status.HTTP_200_OK)
     
 class UnpublishFeed(APIView):
