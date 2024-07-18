@@ -51,8 +51,13 @@
       .image_block img + div {
         display: none;
       }
-
+      .desktop_view{
+            text-align: center;
+        }
       @media (max-width: 700px) {
+        .desktop_view{
+            text-align: left;
+        }
         .desktop_hide table.icons-outer {
           display: inline-table !important;
         }
@@ -529,7 +534,7 @@
                                       "
                                     >
                                       <tr>
-                                        <td>
+                                        <td class="desktop_view">
                                           <img
                                             src="{{symbol_url}}"
                                             alt=""

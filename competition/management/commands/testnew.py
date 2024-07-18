@@ -30,12 +30,12 @@ class Command (BaseCommand):
     help = ''
 
     def handle (self, *args, **options):
-        # user = User.objects.get(email='nwaforglory6@gmail.com')
+        user = User.objects.get(email='nwaforglory6@gmail.com')
         # user = User.objects.get(email='nexxyb@gmail.com')
         # user = User.objects.get(email='wasiu@atafrica.org')
         # user = User.objects.get(email='teamgohamma@gmail.com')
         # user = User.objects.get(email='teamft9ja@gmail.com')
-        user = User.objects.get(email='ideafabulous@gmail.com')
+        # user = User.objects.get(email='ideafabulous@gmail.com')
         
         # print(user.firstname)
         # send_trade_reminder(user)
