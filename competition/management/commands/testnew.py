@@ -10,7 +10,7 @@ from portfolio.models import Stock
 import json
 from portfolio.models import DashboardFeed
 User =get_user_model()
-
+from competition.start_competition_mails import simulate__mail
 
 def load_dict_from_file(file_path):
     """
@@ -72,6 +72,7 @@ class Command (BaseCommand):
         # uncomment this to send mail
 
         send_trading_idea(user, context)
+        # simulate__mail(id=1)
 
     # # uncomment this to run upload for S3
 

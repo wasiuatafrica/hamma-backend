@@ -241,7 +241,7 @@ def create_returns(portfolio_id):
 @shared_task
 def two_days_before_start(): #2
     users = User.objects.all()
-    print(f"sending for {user.email}")
+    # print(f"sending for {user.email}")
     for user in users:
         context={
         "firstname":user.firstname.title(),
@@ -249,7 +249,7 @@ def two_days_before_start(): #2
     }
         html_message = render_to_string('competition/two_days_before_start.html', context)
         plain_message = ""
-        subject = 'BEFORE STEPPING ON HAMMA STAGE!'
+        subject = 'Before Stepping on Hamma Stage!'
         from_email = "Hamma <teamgohamma@gmail.com>"
         recipient_list = [user.email]
         send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
@@ -270,7 +270,7 @@ def saturday_evening(): #3
             html_message = render_to_string('competition/saturday_evening.html', context)
             plain_message = ""
             
-            subject = " GET TO THE TOP OF THE LEADERBOARD WITH THESE PRO TIPS!"
+            subject = "Get to the Top of the Leaderboard with these Pro Tips"
             from_email = "Hamma <teamgohamma@gmail.com>"
             recipient_list = [user.email]
             send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
@@ -278,6 +278,7 @@ def saturday_evening(): #3
 @shared_task
 def four_days_before_end(): #4
     users = User.objects.all()
+    
     for user in users:
         context={
         "firstname":user.firstname.title(),
@@ -406,7 +407,7 @@ def friday_evening(): #5
         }
             html_message = render_to_string('competition/friday_evening.html', context)
             plain_message = ""
-            subject = 'GUESS WHO MADE TOP TRADER FOR THE WEEK?'
+            subject = 'Guess Who Made Top Trader for the Week?'
             from_email = "Hamma <teamgohamma@gmail.com>"
             recipient_list = [user.email]
             send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
@@ -426,7 +427,7 @@ def mid_competition(): #7
     }
         html_message = render_to_string('competition/mid_competition.html', context)
         plain_message = ""
-        subject = f' {user.firstname.title()}, WHERE DO YOU STAND?'
+        subject = f' {user.firstname.title()}, Where Do You Stand?'
         # subject = "DO THIS IF YOU DON'T WANT TO WIN"
         from_email = "Hamma <teamgohamma@gmail.com>"
         recipient_list = [user.email]
@@ -482,7 +483,7 @@ def three_days_after_end(): #10
     }
         html_message = render_to_string('competition/three_days_after_end.html', context)
         plain_message = ""
-        subject = "Reflecting on the Hamma Trading Competition Journey"
+        subject = "A Peak into the Past"
         from_email = "Hamma <teamgohamma@gmail.com>"
         recipient_list = [user.email]
         send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
@@ -613,7 +614,7 @@ def check_pending_join_clan_requests():
             req.status = 'rejected'
             req.save()
             save_and_send_notification(req.user.id, "Your clan join request has been rejected")
-            mail=sendMail("competition/joinClanRejected.html","Join a Clan (Rejected)",[req.user.email],{"first_name":req.user.firstname.title(), "clan_name":req.clan.clan_name.title()})
+            mail=sendMail("competition/joinClanRejected.html","Request to Join a Clan - Rejected",[req.user.email],{"first_name":req.user.firstname.title(), "clan_name":req.clan.clan_name.title()})
     print("check pending join clan requests done for today")
     
 @shared_task
@@ -625,7 +626,7 @@ def auto_approve_join_clan_requests(id):
     join_request.save()
     join_request.clan.member.add(account)
     save_and_send_notification(join_request.user.id, f"Your request to join  {join_request.clan.clan_name.title()}  has been approved")
-    mail=sendMail("competition/joinClanApproved.html","Join a Clan (Approved)",[join_request.user.email],{"first_name":join_request.user.firstname, "clan_name":join_request.clan.clan_name})
+    mail=sendMail("competition/joinClanApproved.html","Request to Join a Clan - Approved",[join_request.user.email],{"first_name":join_request.user.firstname, "clan_name":join_request.clan.clan_name})
     print("request approved")
     
 @shared_task

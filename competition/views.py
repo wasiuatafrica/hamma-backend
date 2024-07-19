@@ -545,7 +545,7 @@ class JoinClanRequestView(APIView):
             join_request.clan.member.add(account)
             # Send the clan member a notfication
             save_and_send_notification(join_request.user.id, f"Your membership request has been approved by the admin of {join_request.clan.clan_name}")
-            mail=sendMail("competition/joinClanApproved.html","Join a Clan (Approved)",[join_request.user.email],{"first_name":join_request.user.firstname, "clan_name":join_request.clan.clan_name})
+            mail=sendMail("competition/joinClanApproved.html","Request to Join a Clan - Approved",[join_request.user.email],{"first_name":join_request.user.firstname, "clan_name":join_request.clan.clan_name})
         elif join_request.approved in ['leave', 'remove']:
             join_request.clan.member.remove(account)
             # Send the clan member a notfication
@@ -553,7 +553,7 @@ class JoinClanRequestView(APIView):
         elif join_request.approved == "rejected":
             # Send the clan member a notfication
             save_and_send_notification(join_request.user.id, f"Your clan join request to {join_request.clan.clan_name.title()} has been rejected.")
-            mail=sendMail("competition/joinClanRejected.html","Join a Clan (Rejected)",[join_request.user.email],{"first_name":join_request.user.firstname, "clan_name":join_request.clan.clan_name})
+            mail=sendMail("competition/joinClanRejected.html","Request to Join a Clan - Rejected",[join_request.user.email],{"first_name":join_request.user.firstname, "clan_name":join_request.clan.clan_name})
         elif action == "withdraw":
             # Trader wants to withdraw his request
             admin=join_request.clan.clan_admin.id #save admin id before delete
@@ -1944,7 +1944,7 @@ from django.template.loader import render_to_string
 
 def send_top_clan_payment_processing_mail(user):
      # render email text
-    subject="Hamma Top Clan PAYMENT PROCESSING"
+    subject="Hamma Top Clan Payment Processing"
     html_content = render_to_string('custom/PaymentProcessing.html')
 
     # Create the EmailMultiAlternatives object
@@ -1958,7 +1958,7 @@ def send_top_clan_payment_processing_mail(user):
     email_message.send()
 def send_top_trader_payment_processing_mail(user):
      # render email text
-    subject="Hamma Top Trader PAYMENT PROCESSING"
+    subject="Hamma Top Trader Payment Processing"
     html_content = render_to_string('custom/PaymentProcessing.html')
 
     # Create the EmailMultiAlternatives object
