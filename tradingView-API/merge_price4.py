@@ -61,6 +61,7 @@ def get_combined():
     # all_live_data = get_live()
     # print('all live gotten')
     live_data = get_last_live()
+    print('live_data', live_data)
     print('last live gotten')
 
     # Combined data storage
@@ -211,9 +212,12 @@ while True:
     today = datetime.today().weekday()
     if is_market_open() and today < 5:
         combined = get_combined()   
-        # print(combined)
-        write_to_mongodb("livelake3", combined)
-        print("Live Price merged")
+        print(combined)
+        if combined:
+            write_to_mongodb("livelake3", combined)
+            print("Live Price merged")
+        else:
+            print("No data to merge")
     else:
         print("Market closed - Merge")
     module_time.sleep(58)
