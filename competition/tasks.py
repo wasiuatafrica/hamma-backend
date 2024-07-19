@@ -241,7 +241,7 @@ def create_returns(portfolio_id):
 @shared_task
 def two_days_before_start(): #2
     users = User.objects.all()
-    print(f"sending for {user.email}")
+    # print(f"sending for {user.email}")
     for user in users:
         context={
         "firstname":user.firstname.title(),
@@ -278,6 +278,7 @@ def saturday_evening(): #3
 @shared_task
 def four_days_before_end(): #4
     users = User.objects.all()
+    
     for user in users:
         context={
         "firstname":user.firstname.title(),
@@ -613,7 +614,7 @@ def check_pending_join_clan_requests():
             req.status = 'rejected'
             req.save()
             save_and_send_notification(req.user.id, "Your clan join request has been rejected")
-            mail=sendMail("competition/joinClanRejected.html","Join a Clan (Rejected)",[req.user.email],{"first_name":req.user.firstname.title(), "clan_name":req.clan.clan_name.title()})
+            mail=sendMail("competition/joinClanRejected.html","Request to Join a Clan - Rejected",[req.user.email],{"first_name":req.user.firstname.title(), "clan_name":req.clan.clan_name.title()})
     print("check pending join clan requests done for today")
     
 @shared_task
@@ -625,7 +626,7 @@ def auto_approve_join_clan_requests(id):
     join_request.save()
     join_request.clan.member.add(account)
     save_and_send_notification(join_request.user.id, f"Your request to join  {join_request.clan.clan_name.title()}  has been approved")
-    mail=sendMail("competition/joinClanApproved.html","Join a Clan (Approved)",[join_request.user.email],{"first_name":join_request.user.firstname, "clan_name":join_request.clan.clan_name})
+    mail=sendMail("competition/joinClanApproved.html","Request to Join a Clan - Approved",[join_request.user.email],{"first_name":join_request.user.firstname, "clan_name":join_request.clan.clan_name})
     print("request approved")
     
 @shared_task

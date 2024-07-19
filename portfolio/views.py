@@ -443,6 +443,7 @@ class ReceiptsView(APIView):
         device_type=request.data.get("device_type",None)
         if serializers.is_valid():
             image = serializers.validated_data["image"]
+            print(image,"sadbscv")
             receipt=Receipts.objects.create(user=request.user, image=image)
             # sendreciptsmail(request,receipt)
             # sendreciptsmail(request,image)
