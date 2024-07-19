@@ -395,7 +395,7 @@ def get_top():
 def friday_evening(): #5
     competition = Competition.objects.filter(status='current')
     if competition.exists() and timezone.now() > competition.first().start_date:
-        users = User.objects.all()
+        users = User.objects.filter(is_active=True)
         trader,clan = get_top()
         for user in users:
             context={
