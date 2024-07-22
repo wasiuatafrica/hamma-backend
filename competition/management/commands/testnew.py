@@ -60,7 +60,7 @@ class Command (BaseCommand):
 
         context = {
         'topic':feed.topic,
-        'symbol_url':feed.stock.logo_url,
+        'symbol_url':feed.stock.email_logo_url,
         'posted_date':feed.published_date,
         'title':feed.title,
         'image_url':feed.image.url,
@@ -71,22 +71,22 @@ class Command (BaseCommand):
     }   
         # uncomment this to send mail
 
-        # send_trading_idea(user, context)
+        send_trading_idea(user, context)
         # simulate__mail(id=1)
 
     # # uncomment this to run upload for S3
 
-    stocks = Stock.objects.filter(reversed_to_svg=False)[:3]
+    # stocks = Stock.objects.filter(reversed_to_svg=False)[:3]
 
-    # index = 0
-    # for stock in stocks:
-    #     # stock_url = stock_icons.get(f"{stock.symbol}")
-    #     # stock.logo_url = stock_url
-    #     # stock.save()
-    #     if stock.logo_url:
-    #         index +=1
-    #         process = run_process(stock.logo_url, stock)
-    # print(f"complete {index} uploads")
-    return_svg_logo(stocks)
+    # # index = 0
+    # # for stock in stocks:
+    # #     # stock_url = stock_icons.get(f"{stock.symbol}")
+    # #     # stock.logo_url = stock_url
+    # #     # stock.save()
+    # #     if stock.logo_url:
+    # #         index +=1
+    # #         process = run_process(stock.logo_url, stock)
+    # # print(f"complete {index} uploads")
+    # return_svg_logo(stocks)
     
             
