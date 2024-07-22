@@ -111,9 +111,9 @@ def user_has_atleat_10_min_trading_days(user:any)->bool:
             portfolio = models.CompetitionPortfolio.objects.filter(competition__status='current', user=user,  active=True).first()
             if portfolio:
                 positions = portfolio.composition.all()
-                valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
+                valid_positions = [position for position in positions if position.updated != position.created and position.status=='close']
 
-                days = [position.updated.date() for position in valid_positions]
+                days = set([position.updated.date() for position in valid_positions])
                 
                 return {
                         "pass":True if len(days) >=10 else False,
