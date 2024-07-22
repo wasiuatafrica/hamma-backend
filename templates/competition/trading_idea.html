@@ -146,9 +146,13 @@
       }
       @media (max-width: 400px) {
         .topic_mobile{
-          padding-top: 14px !important;
-          line-height: 7px !important;
-          font-size: 14px !important;
+          padding-top: 11px !important;
+          line-height: 10px !important;
+          font-size: 12px !important;
+        }
+        .mobile_date{
+          font-size: 8px !important;
+          line-height: 21px !important;
         }
       }
     </style>
@@ -568,10 +572,12 @@
         "
       >
       	
-      {{topic}}
+      <!-- YOU'VE RECEIVED THIS NOTIFICATION. -->
+       {{topic}}
       </p>
-      <p style="margin: 0; font-size: 12px; line-height: 30px;">
-        {{posted_date}}
+      <p style="margin: 0; font-size: 12px; line-height: 30px;" class="mobile_date">
+        <!-- July 22, 2024, 9:51 a.m. -->
+         {{posted_date}}
       </p>
     </td>
   </tr>
