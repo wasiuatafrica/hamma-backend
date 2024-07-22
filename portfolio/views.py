@@ -35,6 +35,7 @@ from django.db.models import Sum, F, Count, Q
 from datetime import datetime, timedelta
 from competition.tasks import create_crontab
 import json 
+import pytz
 
 
 from rest_framework.permissions import BasePermission
@@ -1027,10 +1028,13 @@ class PublishFeed(APIView):
         feed.published_date = datetime.now()
         feed.save()
         
-        schedule3 = create_crontab(timezone.now() + timedelta(hours=1))
+        lagos_tz = pytz.timezone('Africa/Lagos')
+        now_lagos = datetime.now(lagos_tz)
+        
+        schedule3 = create_crontab(now_lagos + timedelta(hours=1))
         
         PeriodicTask.objects.create(
-            name=f"published {timezone.now()} trading idea",
+            name=f"published {now_lagos.strftime('%Y-%m-%d %H:%M')} trading idea",
             task='competition.tasks.trading_ideas_task',
             one_off=True,
             crontab = schedule3,
