@@ -5,7 +5,7 @@ from competition.tasks import trading_rule_task, trading_ideas_task
 from competition.start_competition_mails import send_trade_reminder, send_daily_trade_confirmation, send_trading_rules, send_trading_idea
 
 from django.utils import timezone
-from .convert_to_png_upload_s3 import run_process
+from .convert_to_png_upload_s3 import run_process, return_svg_logo
 from portfolio.models import Stock
 import json
 from portfolio.models import DashboardFeed
@@ -71,12 +71,12 @@ class Command (BaseCommand):
     }   
         # uncomment this to send mail
 
-        send_trading_idea(user, context)
+        # send_trading_idea(user, context)
         # simulate__mail(id=1)
 
     # # uncomment this to run upload for S3
 
-    # stocks = Stock.objects.filter(converted_png=False)
+    stocks = Stock.objects.filter(reversed_to_svg=False)[:3]
 
     # index = 0
     # for stock in stocks:
@@ -87,4 +87,6 @@ class Command (BaseCommand):
     #         index +=1
     #         process = run_process(stock.logo_url, stock)
     # print(f"complete {index} uploads")
+    return_svg_logo(stocks)
+    
             
