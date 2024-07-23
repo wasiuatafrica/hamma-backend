@@ -5,7 +5,7 @@ from competition.tasks import trading_rule_task, trading_ideas_task
 from competition.start_competition_mails import send_trade_reminder, send_daily_trade_confirmation, send_trading_rules, send_trading_idea
 
 from django.utils import timezone
-from .convert_to_png_upload_s3 import run_process
+from .convert_to_png_upload_s3 import run_process, return_svg_logo
 from portfolio.models import Stock
 import json
 from portfolio.models import DashboardFeed
@@ -31,8 +31,8 @@ class Command (BaseCommand):
 
     def handle (self, *args, **options):
 
-        # user = User.objects.get(email='nwaforglory6@gmail.com')
-        user = User.objects.get(email='nexxyb@gmail.com')
+        user = User.objects.get(email='nwaforglory6@gmail.com')
+        # user = User.objects.get(email='nexxyb@gmail.com')
         # user = User.objects.get(email='wasiu@atafrica.org')
         # user = User.objects.get(email='teamgohamma@gmail.com')
         # user = User.objects.get(email='teamft9ja@gmail.com')
@@ -60,7 +60,7 @@ class Command (BaseCommand):
 
         context = {
         'topic':feed.topic,
-        'symbol_url':feed.stock.logo_url,
+        'symbol_url':feed.stock.email_logo_url,
         'posted_date':feed.published_date,
         'title':feed.title,
         'image_url':feed.image.url,
@@ -76,15 +76,17 @@ class Command (BaseCommand):
 
     # # uncomment this to run upload for S3
 
-    # stocks = Stock.objects.filter(converted_png=False)
+    # stocks = Stock.objects.filter(reversed_to_svg=False)[:3]
 
-    # index = 0
-    # for stock in stocks:
-    #     # stock_url = stock_icons.get(f"{stock.symbol}")
-    #     # stock.logo_url = stock_url
-    #     # stock.save()
-    #     if stock.logo_url:
-    #         index +=1
-    #         process = run_process(stock.logo_url, stock)
-    # print(f"complete {index} uploads")
+    # # index = 0
+    # # for stock in stocks:
+    # #     # stock_url = stock_icons.get(f"{stock.symbol}")
+    # #     # stock.logo_url = stock_url
+    # #     # stock.save()
+    # #     if stock.logo_url:
+    # #         index +=1
+    # #         process = run_process(stock.logo_url, stock)
+    # # print(f"complete {index} uploads")
+    # return_svg_logo(stocks)
+    
             
