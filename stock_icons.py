@@ -6,7 +6,7 @@ ICON_LINKS= {
     "AFRINSURE": "https://s3-symbol-logo.tradingview.com/african-alliance-insurance-co-plc.svg",
     "AFROMEDIA": "https://s3-symbol-logo.tradingview.com/afromedia-plc.svg",
     "AIICO":"https://s3-symbol-logo.tradingview.com/aiico-insurance-plc.svg",
-    "AIRTELAFRI":"https://s3-symbol-logo.tradingview.com/airtel-africa-plc-ord-usd0-50.sv",
+    "AIRTELAFRI":"https://s3-symbol-logo.tradingview.com/airtel-africa-plc-ord-usd0-50.svg",
     "ALEX":"https://s3-symbol-logo.tradingview.com/aluminium-extrusion-industries-plc.svg",
     "ARBICO": "https://s3-symbol-logo.tradingview.com/arbico-plc.svg",
     "ASOSAVINGS":"",

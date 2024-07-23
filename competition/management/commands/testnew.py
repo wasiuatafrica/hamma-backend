@@ -52,31 +52,31 @@ class Command (BaseCommand):
     #     send_daily_trade_confirmation(user,context)
         # send_trading_rules(user)
 
-        feed1 = DashboardFeed.objects.last()
-    #     # print(feed.stock.logo_url)
-    #     # process = run_process(feed1.stock.logo_url, feed1.stock)
-        feed = DashboardFeed.objects.last()
+    #     feed1 = DashboardFeed.objects.last()
+    # #     # print(feed.stock.logo_url)
+    # #     # process = run_process(feed1.stock.logo_url, feed1.stock)
+    #     feed = DashboardFeed.objects.last()
         
 
-        context = {
-        'topic':feed.topic,
-        'symbol_url':feed.stock.email_logo_url,
-        'posted_date':feed.published_date,
-        'title':feed.title,
-        'image_url':feed.image.url,
-        'image_caption':feed.image_caption,
-        'point1':feed.bullet_1,
-        'point2':feed.bullet_2,
-        'point3':feed.bullet_3,
-    }   
-        # uncomment this to send mail
+    #     context = {
+    #     'topic':feed.topic,
+    #     'symbol_url':feed.stock.email_logo_url,
+    #     'posted_date':feed.published_date,
+    #     'title':feed.title,
+    #     'image_url':feed.image.url,
+    #     'image_caption':feed.image_caption,
+    #     'point1':feed.bullet_1,
+    #     'point2':feed.bullet_2,
+    #     'point3':feed.bullet_3,
+    # }   
+    #     # uncomment this to send mail
 
-        send_trading_idea(user, context)
-        # simulate__mail(id=1)
+    #     send_trading_idea(user, context)
+    #     # simulate__mail(id=1)
 
     # # uncomment this to run upload for S3
 
-    # stocks = Stock.objects.filter(reversed_to_svg=False)[:3]
+    stocks = Stock.objects.all()
 
     # # index = 0
     # # for stock in stocks:
@@ -87,6 +87,6 @@ class Command (BaseCommand):
     # #         index +=1
     # #         process = run_process(stock.logo_url, stock)
     # # print(f"complete {index} uploads")
-    # return_svg_logo(stocks)
+    return_svg_logo(stocks)
     
             

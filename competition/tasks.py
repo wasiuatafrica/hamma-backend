@@ -642,7 +642,7 @@ def trading_ideas_task(feed_id):
     feed = DashboardFeed.objects.get(id=feed_id)
     context = {
         'topic':feed.topic,
-        'symbol_url':feed.stock.logo_url,
+        'symbol_url':feed.stock.email_logo_url,
         'posted_date':feed.published_date,
         'title':feed.title,
         'image_url':feed.image.url,
