@@ -296,7 +296,7 @@ class DashboardFeed(auto_prefetch.Model):
     
     
     def __str__(self):
-        return self.title
+        return f"{self.title} - {self.status}"
 
 class FeedReaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

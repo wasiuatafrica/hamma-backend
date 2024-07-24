@@ -215,7 +215,7 @@ class WalletWithdraw(APIView):
         html_message = render_to_string('portfolio/token.html', context)
         plain_message = ""
         subject = 'Gohamma Withdrawal OTP'
-        from_email = "teamgohamma@gmail.com"
+        from_email = "Hamma Team <teamgohamma@gmail.com>"
         recipient_list = [user.email]
         send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
         
@@ -256,7 +256,7 @@ class ResendWithdrawalOtp(APIView):
         html_message = render_to_string("portfolio/token.html", context)
         plain_message = ""
         subject = "Gohamma Withdrawal OTP"
-        from_email = "teamgohamma@gmail.com"
+        from_email = "Hamma Team <teamgohamma@gmail.com>"
         recipient_list = [user.email]
         send_mail(
             subject,

@@ -1949,7 +1949,7 @@ def send_top_clan_payment_processing_mail(user):
 
     # Create the EmailMultiAlternatives object
     email_message = EmailMultiAlternatives(subject=subject,
-        from_email="hello@gohamma.com",
+        from_email="Hamma <hello@gohamma.com>",
         to=[user],
     )
     # Attach the HTML content to the email message
