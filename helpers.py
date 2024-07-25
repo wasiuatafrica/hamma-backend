@@ -27,7 +27,7 @@ def sendTemplateMail(template: str,
                      recipient_list: list, 
                      subject: str, 
                      context: dict, 
-                     from_email: str = "teamgohamma@gmail.com"
+                     from_email: str = "Hamma <teamgohamma@gmail.com>"
                      ):
     """_summary_ send a template email by calling this function and passing the 
     param, to save duplivate functions.
