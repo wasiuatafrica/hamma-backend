@@ -1335,6 +1335,9 @@ def clan_payout_detail(request,payout_id):
         # print(payout.status)
         if comment:
             save_and_send_notification(payout.user.id,f"Top Clan Payout: {comment}")
+        if status == "Paid":
+            send_top_clan_payment_processing_mail(payout.user.email)
+
     top_clan_payout=TopClanPayout.objects.get(id=payout_id)
     payouts=TopClanMembersPayout.objects.filter(top_clan_payout=top_clan_payout)
     q=request.GET.get("filter")
@@ -1344,7 +1347,8 @@ def clan_payout_detail(request,payout_id):
 
     # competition_details = CompetitionSummary.objects.filter(clan=clan, competition=competition)
     return render(request, 'leaderboard/clan-payout-detail.html',{'payouts':payouts,'clan_name':top_clan_payout.clan.clan_name, 'competition':top_clan_payout.competition.title.title()})
-    
+
+
 
 @login_required
 def trader_payout(request):
@@ -1362,7 +1366,9 @@ def trader_payout(request):
         payout.save()
         # print(payout.status)
         if comment:
-            save_and_send_notification(payout.useracc.user.id,f"Top Trader Payout: {comment}")
+            save_and_send_notification(payout.portfolio.user.id,f"Top Trader Payout: {comment}")
+        if status == "Paid":
+            send_top_trader_payment_processing_mail(payout.portfolio.user.email)
     q=request.GET.get("filter")
     if q:
         payouts=TopTraderPayout.objects.filter(status__icontains=q).order_by('-id')
@@ -1522,7 +1528,7 @@ class TopTraderPayoutRequest(APIView):
         save_and_send_notification(request.user.id, f"You have requested for Top Trader Prize payout in the '{competition_id.title.title()}' competition")
         TopTraderPayoutButtonShows.objects.create(portfolio=user_acc.portfolio)
         TopTraderPayoutImg.objects.create(payout=top_trader_payout)
-        send_top_trader_payment_processing_mail(request.user.email)
+        # send_top_trader_payment_processing_mail(request.user.email)
         return Response({"detail":"Request sent"})
 
 class SupportTopTraderPayoutRequest(APIView):
@@ -1644,7 +1650,7 @@ class TopClanPayoutRequest(APIView):
             
             save_and_send_notification(summary.user.id, f"Clan admin has requested for Top Clan Prize Payout in '{competition_id.title.title()}' competition.")
 
-        send_top_clan_payment_processing_mail(request.user.email)
+        # send_top_clan_payment_processing_mail(request.user.email)
         return Response({"detail":"Request sent"})
         
 class SupportTopClanPayoutRequest(APIView):
