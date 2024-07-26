@@ -31,7 +31,7 @@ class Command (BaseCommand):
 
     def handle (self, *args, **options):
 
-        user = User.objects.get(email='nwaforglory6@gmail.com')
+        # user = User.objects.get(email='nwaforglory6@gmail.com')
         # user = User.objects.get(email='nexxyb@gmail.com')
         # user = User.objects.get(email='wasiu@atafrica.org')
         # user = User.objects.get(email='teamgohamma@gmail.com')
@@ -72,11 +72,11 @@ class Command (BaseCommand):
     #     # uncomment this to send mail
 
     #     send_trading_idea(user, context)
-    #     # simulate__mail(id=1)
+        simulate__mail(id=1)
 
     # # uncomment this to run upload for S3
 
-    stocks = Stock.objects.all()
+    # stocks = Stock.objects.all()
 
     # # index = 0
     # # for stock in stocks:
@@ -87,6 +87,6 @@ class Command (BaseCommand):
     # #         index +=1
     # #         process = run_process(stock.logo_url, stock)
     # # print(f"complete {index} uploads")
-    return_svg_logo(stocks)
+    # return_svg_logo(stocks)
     
             

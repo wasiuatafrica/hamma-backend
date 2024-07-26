@@ -1522,7 +1522,7 @@ class TopTraderPayoutRequest(APIView):
         save_and_send_notification(request.user.id, f"You have requested for Top Trader Prize payout in the '{competition_id.title.title()}' competition")
         TopTraderPayoutButtonShows.objects.create(portfolio=user_acc.portfolio)
         TopTraderPayoutImg.objects.create(payout=top_trader_payout)
-        # send_top_trader_payment_processing_mail(request.user.email)
+        send_top_trader_payment_processing_mail(request.user.email)
         return Response({"detail":"Request sent"})
 
 class SupportTopTraderPayoutRequest(APIView):
@@ -1644,7 +1644,7 @@ class TopClanPayoutRequest(APIView):
             
             save_and_send_notification(summary.user.id, f"Clan admin has requested for Top Clan Prize Payout in '{competition_id.title.title()}' competition.")
 
-        # send_top_clan_payment_processing_mail(request.user.email)
+        send_top_clan_payment_processing_mail(request.user.email)
         return Response({"detail":"Request sent"})
         
 class SupportTopClanPayoutRequest(APIView):
@@ -1945,7 +1945,7 @@ from django.template.loader import render_to_string
 def send_top_clan_payment_processing_mail(user):
      # render email text
     subject="Hamma Top Clan Payment Processing"
-    html_content = render_to_string('custom/PaymentProcessing.html')
+    html_content = render_to_string('competition/top_clan_payment_processing.html')
 
     # Create the EmailMultiAlternatives object
     email_message = EmailMultiAlternatives(subject=subject,
@@ -1959,7 +1959,7 @@ def send_top_clan_payment_processing_mail(user):
 def send_top_trader_payment_processing_mail(user):
      # render email text
     subject="Hamma Top Trader Payment Processing"
-    html_content = render_to_string('custom/PaymentProcessing.html')
+    html_content = render_to_string('competition/top_trader_payment_processing.html')
 
     # Create the EmailMultiAlternatives object
     email_message = EmailMultiAlternatives(subject=subject,

@@ -2,6 +2,7 @@ from helpers import sendTemplateMail
 from accounts.models import CustomUser
 
 
+
 def send_trading_rules(user):
     send= sendTemplateMail(
         subject="Rules of Engagement",
@@ -42,10 +43,11 @@ def send_trading_idea(user, context:dict={}):
 # simulate mails to test changes of healines
 
 from accounts import tasks as mail_tasks
-from competition import tasks as com_task_mails
+from competition import tasks as com_task_mails 
 from portfolio import tasks as port_task_mails
 
 def simulate__mail(payload: any = None, id:int=1):
+    from competition import views
     # mail_tasks.after_signup_36h(id=1)
     # mail_tasks.welcome_1c(id=1)
     # mail_tasks.welcome_1b(id)
@@ -72,6 +74,9 @@ def simulate__mail(payload: any = None, id:int=1):
     # com_task_mails.two_days_before_end()
     # 18
     # com_task_mails.three_days_after_end()
+    # 19
+    views.send_top_trader_payment_processing_mail("nwaforglory6@gmail.com")
+# send_top_trader_payment_processing_mail
 
     # 21
     # user= CustomUser.objects.get(id=1)
