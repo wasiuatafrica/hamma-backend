@@ -3795,6 +3795,7 @@ class AddTrailingStopLoss(APIView):
         id = kwargs.get("id")
         account_type= request.data.get("account_type")
         trailing_sl = request.data.get("trailing_sl")
+        
 
         if account_type == "competition_account":
             account = self.get_competion_account(id)
@@ -3803,6 +3804,9 @@ class AddTrailingStopLoss(APIView):
             
         if not account:
             return Response("Position not found", status.HTTP_404_NOT_FOUND)
+        
+        sl = request.data.get("stop_loss", account.stop_loss)
+        tp = request.data.get("take_profit", account.take_profit)
         
         if account.status != 'open':
             return Response("Position is not open", status.HTTP_400_BAD_REQUEST)
@@ -3814,7 +3818,9 @@ class AddTrailingStopLoss(APIView):
         # if account.updated.date()== today.date() and account.trailing_stop_loss:
         #     return Response("Trailing stop loss can be added once a day.", status.HTTP_400_BAD_REQUEST)
         
-        account.trailing_stop_loss = Decimal(trailing_sl)
+        account.trailing_stop_loss = Decimal(trailing_sl)  
+        account.take_profit = tp
+        account.stop_loss =  sl
         account.last_price = 0
         account.save()
         
