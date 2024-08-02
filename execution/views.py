@@ -2778,7 +2778,8 @@ class NewHome(APIView):
                     'current_value':current_value_list,
                     "overview":overview,
                     "cumulative_overview":cumulative_overview,
-                    "calendar":calendar
+                    "calendar":calendar,
+                    "remaining_balance":balance
                 }
                 
                 return Response(data)
@@ -2910,7 +2911,8 @@ class NewHome(APIView):
                 'current_value':current_value_list,
                 "overview":overview,
                 "cumulative_overview":cumulative_overview,
-                "calendar":calendar
+                "calendar":calendar,
+                "remaining_balance":balance
             }
             
             return Response(data)
@@ -3087,7 +3089,8 @@ class NewSupportHome(APIView):
                     'current_value':current_value_list,
                     "overview":overview,
                     "cumulative_overview":cumulative_overview,
-                    "calendar":calendar
+                    "calendar":calendar,
+                    "remaining_balance":balance
                 }
                 
                 return Response(data)
@@ -3209,7 +3212,8 @@ class NewSupportHome(APIView):
                 'current_value':current_value_list,
                 "overview":overview,
                 "cumulative_overview":cumulative_overview,
-                "calendar":calendar
+                "calendar":calendar,
+                "remaining_balance":balance
             }
             
             return Response(data)
