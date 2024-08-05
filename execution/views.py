@@ -3794,7 +3794,7 @@ class AddTrailingStopLoss(APIView):
 
         id = kwargs.get("id")
         account_type= request.data.get("account_type")
-        trailing_sl = request.data.get("trailing_sl")
+        
         
 
         if account_type == "competition_account":
@@ -3807,12 +3807,13 @@ class AddTrailingStopLoss(APIView):
         
         sl = request.data.get("stop_loss", account.stop_loss)
         tp = request.data.get("take_profit", account.take_profit)
+        trailing_sl = request.data.get("trailing_sl", account.trailing_stop_loss )
         
         if account.status != 'open':
             return Response("Position is not open", status.HTTP_400_BAD_REQUEST)
         
-        if not trailing_sl:
-            return Response("Trailing stop loss is required", status.HTTP_400_BAD_REQUEST)
+        # if not trailing_sl:
+        #     return Response("Trailing stop loss is required", status.HTTP_400_BAD_REQUEST)
         
         # today = timezone.now()
         # if account.updated.date()== today.date() and account.trailing_stop_loss:
