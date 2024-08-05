@@ -3805,12 +3805,23 @@ class AddTrailingStopLoss(APIView):
         if not account:
             return Response("Position not found", status.HTTP_404_NOT_FOUND)
         
-        sl = request.data.get("stop_loss", account.stop_loss)
-        tp = request.data.get("take_profit", account.take_profit)
-        trailing_sl = request.data.get("trailing_sl", account.trailing_stop_loss )
+        # sl = request.data.get("stop_loss", account.stop_loss)
+        # tp = request.data.get("take_profit", account.take_profit)
+        # trailing_sl = request.data.get("trailing_sl", account.trailing_stop_loss )
         
         if account.status != 'open':
             return Response("Position is not open", status.HTTP_400_BAD_REQUEST)
+        
+        sl = request.data.get("stop_loss")
+        if sl:
+            account.stop_loss =  sl
+        tp = request.data.get("take_profit")
+        if tp:
+            account.take_profit = tp
+        trailing_sl = request.data.get("trailing_sl")
+        if trailing_sl:
+            account.trailing_stop_loss = Decimal(trailing_sl) 
+        
         
         # if not trailing_sl:
         #     return Response("Trailing stop loss is required", status.HTTP_400_BAD_REQUEST)
@@ -3819,9 +3830,6 @@ class AddTrailingStopLoss(APIView):
         # if account.updated.date()== today.date() and account.trailing_stop_loss:
         #     return Response("Trailing stop loss can be added once a day.", status.HTTP_400_BAD_REQUEST)
         
-        account.trailing_stop_loss = Decimal(trailing_sl)  
-        account.take_profit = tp
-        account.stop_loss =  sl
         account.last_price = 0
         account.save()
         
