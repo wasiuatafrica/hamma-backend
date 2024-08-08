@@ -309,6 +309,10 @@ def process_limit_order(id, in_competition=False):
                                     amount=position.amount_invested,
                                     status='completed'
                                 )
+                            
+                            position.portfolio.balance -= total
+                            position.portfolio.save()
+                            
                             activity=UserActivityLog.objects.create(user=user, action_type="demo_open_trade",description=f"User opened demo trade with  {position.amount_invested}naira on {position.stock.symbol}.")
                             
                             save_and_send_notification(user.id,f' DEMO: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value:{position.amount_invested}naira ')
@@ -326,6 +330,10 @@ def process_limit_order(id, in_competition=False):
                                     amount=position.amount_invested,
                                     status='completed'
                                 )
+                            
+                            position.portfolio.balance -= total
+                            position.portfolio.save()
+                            
                             save_and_send_notification(user.id,f' DEMO: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value:{position.amount_invested}naira ')
                     print(f"limit order {position.alert_name} checked")
             else:
