@@ -25,14 +25,15 @@ symbols= ["ASI", "ABBEYBDS", "ACADEMY", "ACCESSCORP", "AFRIPRUD", "AFRINSURE", "
           "JAPAULGOLD", "JOHNHOLT", "JULI", "JBERGER", "WAPCO", "LASACO", "LEARNAFRCA", "LINKASSURE", 
           "LIVESTOCK", "LIVINGTRUST", "MAYBAKER", "MCNICHOLS", "MEDVIEWAIR", "MEYER", "MORISON", "MRS", 
           "MTNN", "MULTITREX", "MULTIVERSE", "MBENEFIT", "NNFM", "NASCON", "NCR", "NEIMETH", "NEM", "NESTLE", 
-          "NIGERINS", "NESF", "NAHCO", "NB", "ENAMELWA", "NGXGROUP", "NOTORE", "NPFMCRFBK", "OANDO", 
-          "OKOMUOIL", "OMATEK", "PZ", "PHARMDEKO", "PREMPAINTS", "PRESCO", "PRESTIGE", "RTBRISCOE", "RAKUNITY", 
-          "REDSTAREX", "REGALINS", "RESORTSAL", "RONCHESS", "ROYALEX", "SCOA", "NSLTECH", "SEPLAT", "SFSREIT",
+          "NESF", "NAHCO", "NB", "ENAMELWA", "NGXGROUP", "NOTORE", "NPFMCRFBK", "OANDO", 
+          "OKOMUOIL", "OMATEK", "PZ", "PHARMDEKO", "PREMPAINTS", "PRESCO", "PRESTIGE", "RTBRISCOE", 
+          "REDSTAREX", "REGALINS", "RONCHESS", "ROYALEX", "SCOA", "NSLTECH", "SEPLAT", "SFSREIT",
           "SKYAVN", "SMURFIT", "SOVRENINS", "STACO", "STANBIC", "STDINSURE", "STERLINGNG", "SUNUASSUR", 
           "TANTALIZER", "TIP", "THOMASWY", "TOTAL", "TOURIST", "TRANSEXPR", "TRANSCOHOT", "TRANSCORP", 
           "TRIPPLEG", "UACN", "UHOMREIT", "UNILEVER", "UBN", "UNIONDICON", "UNHOMES", "UBA", "UCAP", 
           "UNITYBNK", "UNIVINSURE", "UPL", "UPDC", "UPDCREIT", "VERITASKAP", "VFDGROUP", "VITAFOAM", 
           "WEMABANK", "ZENITHBANK"]
+
 # symbols = ["WEMABANK", "ZENITHBANK"]
 
 
@@ -41,29 +42,6 @@ def write_to_mongodb(data):
     collection = db["price_combined"]
     collection.insert_one(data)
 
-# def calculate_volatility_momentum(data, period):
-#     now = datetime.now()
-#     # data['datetime'] = pd.to_datetime(data.index)
-#     data.loc[:, 'datetime'] = pd.to_datetime(data.index)
-
-#     filtered_data = data[data['datetime'] >= (now - timedelta(days=period))].copy()
-    
-#     if len(filtered_data) < 3:
-#         return None, None, None, None, None
-    
-#     filtered_data['returns'] = (filtered_data['close'] - filtered_data['open']) / filtered_data['open']
-#     volatility = filtered_data['returns'].std() * np.sqrt(252 / period)
-#     start_price = filtered_data['close'].iloc[0]
-#     end_price = filtered_data['close'].iloc[-1]
-#     momentum_change = end_price - start_price
-#     momentum = momentum_change / start_price * 100
-    
-#     start_volume = filtered_data['volume'].iloc[0]
-#     end_volume = filtered_data['volume'].iloc[-1]
-#     volume_momentum_change = end_volume - start_volume
-#     volume_momentum = volume_momentum_change / start_volume * 100
-    
-#     return round(volatility, 2), round(momentum, 2), round(momentum_change, 2), round(volume_momentum, 2), round(volume_momentum_change, 2)
 
 def calculate_volatility_momentum(data, period):
     now = datetime.now()
@@ -78,10 +56,11 @@ def calculate_volatility_momentum(data, period):
     filtered_data = filtered_data.fillna(method='ffill').fillna(method='bfill')
     
     # Calculate returns
-    filtered_data['returns'] = (filtered_data['close'] - filtered_data['open']) / filtered_data['open']
+    # filtered_data['returns'] = (filtered_data['close'] - filtered_data['open']) / filtered_data['open']
+    filtered_data['returns'] = filtered_data['close'].pct_change()
     
     # Handle potential NaN values in returns calculation
-    filtered_data['returns'].replace([np.inf, -np.inf], np.nan, inplace=True)
+    # filtered_data['returns'].replace([np.inf, -np.inf], np.nan, inplace=True)
     filtered_data['returns'].fillna(0, inplace=True)
     
     # Calculate annualized volatility for the period
@@ -97,7 +76,7 @@ def calculate_volatility_momentum(data, period):
     start_volume = filtered_data['volume'].iloc[0]
     end_volume = filtered_data['volume'].iloc[-1]
     volume_momentum_change = end_volume - start_volume
-    volume_momentum = volume_momentum_change / start_volume * 100
+    volume_momentum = (volume_momentum_change / start_volume) * 100
     
     return round(volatility, 2), round(momentum, 2), round(momentum_change, 2), round(volume_momentum, 2), round(volume_momentum_change, 2)
 
@@ -128,44 +107,30 @@ def get_data(symbol):
         if isinstance(data2, dict):
             return data2
         
-def calculate_volatility_momentum_24hr(symbol):
+def calculate_volatility_momentum_24hr(symbol,data):
     
-    
-    collection = db_merged["merged_live_price"]
-        
-    data = list(collection.find().sort([('_id', -1)]).limit(270))
-    # print(len(data ))
-    
-    if not data:
-        print(f"No data found for symbol {symbol}")
-        return None, None, None, None, None
-    
-    symbol_data = [entry[symbol] for entry in reversed(data) if symbol in entry]
-    
-    if not symbol_data:
-        print(f"No data found for symbol {symbol}")
-        return None, None, None, None, None
-    
-    df = pd.DataFrame(symbol_data)
-    # print('df',df)
+
+    df = data[-3:]
     df = df.dropna(subset=['open', 'close'])
     
     if df is None or df.empty:
         return None, None, None, None, None
     
-    df['returns'] = (df['close'] - df['open']) / df['open']
-    volatility = df['returns'].std() * np.sqrt(252)
+    # df['returns'] = (df['close'] - df['open']) / df['open']
+    df['returns'] = df['close'].pct_change() 
+    # print(df)
+    volatility = df['returns'].std() * np.sqrt(252/2)
     # momentum = df['returns'].mean() * 100
     
-    start_price = df['close'].iloc[0]
+    start_price = df['close'].iloc[1]
     end_price = df['close'].iloc[-1]
     momentum_change = end_price - start_price
-    momentum = momentum_change / start_price * 100
+    momentum = (momentum_change / start_price) * 100
     
-    start_volume = df['volume'].iloc[0]
+    start_volume = df['volume'].iloc[1]
     end_volume = df['volume'].iloc[-1]
     volume_momentum_change = end_volume - start_volume
-    volume_momentum = volume_momentum_change / start_volume * 100
+    volume_momentum = (volume_momentum_change / start_volume) * 100
     
     return round(volatility, 2), round(momentum, 2), round(momentum_change,2) , round(volume_momentum, 2), round(volume_momentum_change, 2)
 
@@ -175,8 +140,8 @@ def is_market_open():
 
     if datetime.today().weekday() < 5:
         # market_open_time = time(4, 5)
-        market_open_time = time(10, 5)
-        market_close_time = time(14, 30)
+        market_open_time = time(10, 7)
+        market_close_time = time(14, 40)
 
         if market_open_time <= current_time_lagos <= market_close_time:
             return True
@@ -200,7 +165,7 @@ while True:
                     current_year = datetime.now().year
                     data_ytd = data_full[data_full.index.year == current_year]
                     vol_mom_ytd = calculate_volatility_momentum(data_ytd, len(data_ytd))
-                    vol_mom_24hr = calculate_volatility_momentum_24hr(symbol)
+                    vol_mom_24hr = calculate_volatility_momentum_24hr(symbol,data_ytd)
                     
                     data3['volatility_1week'] = vol_mom_1week[0] if vol_mom_1week else None
                     data3['momentum_1week'] = vol_mom_1week[1] if vol_mom_1week else None
