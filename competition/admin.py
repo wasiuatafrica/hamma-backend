@@ -68,7 +68,7 @@ class CompetitionCumulativeReturns2Admin(admin.ModelAdmin):
 admin.site.register(CompetitionCumulativeReturns2,CompetitionCumulativeReturns2Admin)
 
 class CompetitionDailyReturns2Admin(admin.ModelAdmin):
-    search_fields = ['portfolio_user__email']
+    search_fields = ['portfolio__user__email']
     list_display = ('user', 'portfolio_returns','market_returns','created',)
 
 admin.site.register(CompetitionDailyReturns2,CompetitionDailyReturns2Admin)
