@@ -53,9 +53,24 @@ admin.site.register(TopClanMembersPayout)
 admin.site.register(TopClanMembersPayoutImg)
 admin.site.register(TopClanPayoutButtonShows)
 admin.site.register(TopTraderPayoutButtonShows)
-admin.site.register(CompetitionPosition)
+
+class CompetitionPositionAdmin(admin.ModelAdmin):
+    search_fields = ['portfolio__user__email']
+    list_display = ('portfolio', 'status', 'created', 'updated',)
+    list_filter = ('status,')
+admin.site.register(CompetitionPosition,CompetitionPositionAdmin)
+
 admin.site.register(CompetitionTransaction)
-admin.site.register(CompetitionCumulativeReturns2)
-admin.site.register(CompetitionDailyReturns2)
+
+class CompetitionCumulativeReturns2Admin(admin.ModelAdmin):
+    search_fields = ['user__email']
+
+admin.site.register(CompetitionCumulativeReturns2,CompetitionCumulativeReturns2Admin)
+
+class CompetitionDailyReturns2Admin(admin.ModelAdmin):
+    search_fields = ['user__email']
+    list_display = ('user', 'portfolio_returns','market_returns','created',)
+
+admin.site.register(CompetitionDailyReturns2,CompetitionDailyReturns2Admin)
 admin.site.register(CompetitionCumulativeMarketReturns)
 admin.site.register(CompetitionMarketReturns)

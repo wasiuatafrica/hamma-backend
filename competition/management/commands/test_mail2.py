@@ -15,7 +15,7 @@ def test_email3(email,firstname):
     context={
             "first_name":firstname
         }
-    html_message = render_to_string('competition/update.html', context)
+    html_message = render_to_string('competition/update4.html', context)
     plain_message = ""
     subject = "Last Chance to Compete and Win Up to N1,000,000  in the Hamma Nigerian Stocks Competition!"
     from_email = "Hamma <hamma@gohamma.com>"
@@ -27,16 +27,18 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # test_email3('odebunmiwasiu124@gmail.com', 'Wasiu')
+        # test_email3('edetjoseph05@gmail.com', 'Joseph')
         # test_email3('ayo@gohamma.com', 'Ayo')
+        # test_email3('teamgohamma@gmail.com', 'Ayo')
         # test_email3('wasiu@atafrica.org', 'Ayo')
         
         portfolios = CompetitionPortfolio.objects.filter(competition__status='current')
-        verified = User.objects.filter(is_active=True)
+        verified = User.objects.filter(is_active=True).order_by("email")
         print('verified', len(verified))
         users_in_competition = [portfolio.user for portfolio in portfolios]
         print('competition',len(users_in_competition))
         
-        users_not_in_competition = User.objects.filter(is_active=True).exclude(id__in=[user.id for user in users_in_competition])
+        users_not_in_competition = User.objects.filter(is_active=True).exclude(id__in=[user.id for user in users_in_competition]).order_by("email")
         print(len(users_not_in_competition))
         
         for user in users_not_in_competition:

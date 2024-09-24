@@ -12,7 +12,7 @@ def remove_items_if_timestamp_matches(collection, target_timestamp):
         # Check if the last timestamp matches the target timestamp
         if 't' in existing_document and existing_document['t']:
             last_timestamp = existing_document['t'][-1]
-            # print(f"Last timestamp: {last_timestamp}")
+            print(f"Last timestamp: {last_timestamp}")
             # if last_timestamp > target_timestamp:
             #     # Remove the last item from each list if the timestamp matches
             #     for key in ['t', 'o', 'h', 'l', 'c', 'v']:

@@ -116,35 +116,38 @@ def get_live_data():
         
     combined = {}
 
-    for data in equity:
-        symbol = data['Symbol'].split(' ')[0]
+    print('equity',equity)
+    if equity:
+        for data in equity:
+            symbol = data['Symbol'].split(' ')[0]
+            
+            try:
+                # Manually handle the time part to avoid ValueError
+                date_part, time_part = data["Timestamp"].split('T')
+                time_part = time_part.split('+')[0].split('-')[0].split('.')[0]
+                formatted_datetime = f"{date_part} {time_part}"
+                current_time = datetime.strptime(formatted_datetime, '%Y-%m-%d %H:%M:%S')
+                
+                data1 = {
+                    'datetime': current_time.strftime("%Y-%m-%d %H:%M:%S"),
+                    'open': data['Open'], 
+                    'high': data['High'] if data['High'] else round(data['Open'] * 1.01, 2), 
+                    'low': data['Low'] if data['Low'] else round(data['Close'] * 0.99, 2),
+                    'close': data['Close'], 
+                    'volume': data['Volume'], 
+                    'symbol': symbol,
+                    'change': data['Change'],
+                    'percent': data['PerChange']
+                }
+                
+                combined[symbol] = data1
+            except ValueError as e:
+                print(f"Error processing datetime for data: {data}, error: {e}")
         
-        try:
-            # Manually handle the time part to avoid ValueError
-            date_part, time_part = data["Timestamp"].split('T')
-            time_part = time_part.split('+')[0].split('-')[0].split('.')[0]
-            formatted_datetime = f"{date_part} {time_part}"
-            current_time = datetime.strptime(formatted_datetime, '%Y-%m-%d %H:%M:%S')
-            
-            data1 = {
-                'datetime': current_time.strftime("%Y-%m-%d %H:%M:%S"),
-                'open': data['Open'], 
-                'high': data['High'] if data['High'] else round(data['Open'] * 1.01, 2), 
-                'low': data['Low'] if data['Low'] else round(data['Close'] * 0.99, 2),
-                'close': data['Close'], 
-                'volume': data['Volume'], 
-                'symbol': symbol,
-                'change': data['Change'],
-                'percent': data['PerChange']
-            }
-            
-            combined[symbol] = data1
-        except ValueError as e:
-            print(f"Error processing datetime for data: {data}, error: {e}")
-    
-    print(combined)
-    # write_to_mongodb("livelake3", combined)
-
+        print(combined)
+        write_to_mongodb("livelake3", combined)
+    else:
+        print("No equity data found for the current date.")
 
       
 def is_market_open():
