@@ -2931,7 +2931,6 @@ class NewSupportHome(APIView):
 
         account_type= kwargs.get("account_type")
         valid_account_types= ["demo_portfolio","competition_account"]
-        # email = kwargs.get("email")
 
         if not account_type in valid_account_types:
             return Response(f"Account type should be {valid_account_types}.",status.HTTP_400_BAD_REQUEST)
@@ -2946,7 +2945,7 @@ class NewSupportHome(APIView):
 
             # demo_account = self.get_competion_account(id, competition)
             
-            demo_account = demo_account = CompetitionPortfolio.objects.filter(active=True, id=id)
+            demo_account = CompetitionPortfolio.objects.filter(active=True, id=id)
             
             if demo_account.exists:
                 demo_account = demo_account.first()
@@ -2955,7 +2954,6 @@ class NewSupportHome(APIView):
             
             if demo_account is None:
                 return Response("Account not found",status.HTTP_404_NOT_FOUND)
-            
 
             in_competition = demo_account
         
@@ -3022,50 +3020,74 @@ class NewSupportHome(APIView):
                 cumulative_profitloss= CompetitionCumulativeReturns2.objects.filter(portfolio=in_competition).order_by('created')
                 
                 
-                market= CompetitionMarketReturns.objects.all()
-                cumulative_market = CompetitionCumulativeMarketReturns.objects.all()
+                # market= CompetitionMarketReturns.objects.all()
+                # cumulative_market = CompetitionCumulativeMarketReturns.objects.all()
                 
                 overview = []
                 cumulative_overview = []
                 
-                if daily_profitloss and daily_profitloss.count() > 1:
-                    for daily in daily_profitloss:
-                        for daily2 in market:
-                            if daily.created.date() == daily2.created.date():
-                                overview.append(
-                                    {
+                # if daily_profitloss and daily_profitloss.count() > 1:
+                #     for daily in daily_profitloss:
+                #         for daily2 in market:
+                #             if daily.created.date() == daily2.created.date():
+                #                 overview.append(
+                #                     {
                                         
-                            'portfolio_returns': daily.portfolio_returns,
-                            'market_returns': daily2.market_returns,
-                            'date': daily.created.date()
-                        }
+                #             'portfolio_returns': daily.portfolio_returns,
+                #             'market_returns': daily2.market_returns,
+                #             'date': daily.created.date()
+                #         }
                                     
-                                )
-                    if overview: 
-                        first = overview[0]
-                        if first['portfolio_returns'] == 0:
-                            first['market_returns'] = 0
+                #                 )
+                #     if overview: 
+                #         first = overview[0]
+                #         if first['portfolio_returns'] == 0:
+                #             first['market_returns'] = 0
                     
-                if cumulative_profitloss and cumulative_profitloss.count() > 1:
-                    # print('cpl', cumulative_profitloss)
+                # if cumulative_profitloss and cumulative_profitloss.count() > 1:
+                #     # print('cpl', cumulative_profitloss)
                                         
-                    for daily in cumulative_profitloss:
-                        for daily2 in cumulative_market :
-                            if daily.created.date() == daily2.created.date():
-                                cumulative_overview.append(
-                                    {
+                #     for daily in cumulative_profitloss:
+                #         for daily2 in cumulative_market :
+                #             if daily.created.date() == daily2.created.date():
+                #                 cumulative_overview.append(
+                #                     {
                                         
-                            'portfolio_returns': daily.portfolio_returns,
-                            'market_returns': daily2.market_returns,
-                            'date': daily.created.date()
-                        }
+                #             'portfolio_returns': daily.portfolio_returns,
+                #             'market_returns': daily2.market_returns,
+                #             'date': daily.created.date()
+                #         }
                                     
-                                )
-                    # print('cumu',cumulative_overview)
-                    if cumulative_overview:
-                        first_ = cumulative_overview[0]
-                        if first_['portfolio_returns'] == 0:
-                            first_['market_returns'] = 0
+                #                 )
+                #     # print('cumu',cumulative_overview)
+                #     if cumulative_overview:
+                #         first_ = cumulative_overview[0]
+                #         if first_['portfolio_returns'] == 0:
+                #             first_['market_returns'] = 0
+                
+                if daily_profitloss and daily_profitloss.count() > 1:
+                    for returns in daily_profitloss:
+                        overview.append(
+                            {
+
+                        'portfolio_returns': returns.portfolio_returns,
+                        'market_returns': returns.market_returns,
+                        'date': returns.created.date()
+                    }
+
+                        )
+                    
+                if cumulative_profitloss and cumulative_profitloss.count() > 1 :
+                    for returns in cumulative_profitloss:
+                        cumulative_overview.append(
+                            {
+
+                        'portfolio_returns': returns.portfolio_returns,
+                        'market_returns': returns.market_returns,
+                        'date': returns.created.date()
+                    }
+
+                        )
                 
                 equity1 = round(balance + profit_loss,2)
                 equity = equity1 if equity1 >= 0 else 0
@@ -3096,15 +3118,19 @@ class NewSupportHome(APIView):
                 return Response(data)
         else:
 
+            # handle specific portfolio
 
             id = kwargs.get("id")
 
             demo_account = self.get_account(id)
             if demo_account is None:
                 return Response("Account not found",status.HTTP_404_NOT_FOUND)
-            
+            if demo_account.user != request.user:
+                return Response("Permission denied",status.HTTP_403_FORBIDDEN)
+
             portfolio = demo_account
 
+            # portfolio= DemoPortfolio.objects.get_or_create(user=request.user)[0]
             positions = DemoPosition.objects.filter(portfolio=portfolio,status='open')
             positions2 = DemoPosition.objects.filter(portfolio=portfolio,status='close')
             
@@ -3128,6 +3154,7 @@ class NewSupportHome(APIView):
             else:
                 start_date = today.date()
 
+            # Create a new list with dates from start_date until today
             final_list = [
                 {'profit_loss': position_data_dict.get(date, 0), 'date': date.strftime('%Y-%m-%d')}
                 for date in (start_date + timedelta(n) for n in range((today.date() - start_date).days + 1) if (start_date + timedelta(n)).weekday() < 5) 
@@ -3158,8 +3185,14 @@ class NewSupportHome(APIView):
             profit_loss = sum(profit_loss_list) if profit_loss_list else 0
             
             
+            # daily_profitloss= DemoDailyReturns.objects.filter(user=request.user)
             daily_profitloss= DemoDailyReturns2.objects.filter(portfolio=portfolio).order_by('created')
             cumulative_profitloss= DemoCumulativeReturns.objects.filter(portfolio=portfolio).order_by('created')
+            # print(daily_profitloss)
+            # print(cumulative_profitloss)
+            
+            # market= NewMarketReturns.objects.filter(portfolio=portfolio)
+            # cumulative_market = NewCumulativeMarketReturns.objects.filter(portfolio=portfolio)
             
             overview = []
             cumulative_overview = []
@@ -3176,7 +3209,6 @@ class NewSupportHome(APIView):
 
                     )
                 
-                
             if cumulative_profitloss and cumulative_profitloss.count() > 1 :
                 for returns in cumulative_profitloss:
                     cumulative_overview.append(
@@ -3188,7 +3220,7 @@ class NewSupportHome(APIView):
                 }
 
                     )
-            
+                
             equity1 = round(balance + profit_loss,2)
             equity = equity1 if equity1 >= 0 else 0
             
