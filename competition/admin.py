@@ -57,7 +57,7 @@ admin.site.register(TopTraderPayoutButtonShows)
 class CompetitionPositionAdmin(admin.ModelAdmin):
     search_fields = ['portfolio__user__email']
     list_display = ('portfolio', 'status', 'created', 'updated',)
-    list_filter = ('status,')
+    list_filter = ('status',)
 admin.site.register(CompetitionPosition,CompetitionPositionAdmin)
 
 admin.site.register(CompetitionTransaction)
