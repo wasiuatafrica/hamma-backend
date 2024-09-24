@@ -400,7 +400,7 @@ class TradingDays(APIView):
                 if portfolio:
                     
                     positions = portfolio.composition.all()
-                    valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
+                    valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=1) and position.status=='close']
                     
                     days = set([position.updated.date() for position in valid_positions])
                     
@@ -413,7 +413,7 @@ class TradingDays(APIView):
                 if last_account:
                     
                     positions = last_account.composition.all()
-                    valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
+                    valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=1) and position.status=='close']
                     
                     days = set([position.updated.date() for position in valid_positions])
                     
@@ -424,7 +424,7 @@ class TradingDays(APIView):
             last_account = CompetitionPortfolio.objects.filter(user=request.user, competition__status='closed',  active=True).order_by('id').last()
             if last_account:
                 positions = last_account.composition.all()
-                valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
+                valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=1) and position.status=='close']
                 
                 days = set([position.updated.date() for position in valid_positions])
                 
@@ -445,7 +445,7 @@ class SupportTradingDays(APIView):
             last_account = CompetitionPortfolio.objects.filter(user=user).order_by('id').last()
             if last_account:
                 positions = last_account.composition.all()
-                valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
+                valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=1) and position.status=='close']
                 
                 days = set([position.updated.date() for position in valid_positions])
                 
@@ -455,7 +455,7 @@ class SupportTradingDays(APIView):
 
 
         positions = portfolio.composition.all()
-        valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=5) and position.status=='close']
+        valid_positions = [position for position in positions if position.updated - position.created >= timedelta(minutes=1) and position.status=='close']
         
         days = set([position.updated.date() for position in valid_positions])
         
