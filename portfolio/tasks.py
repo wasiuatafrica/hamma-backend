@@ -1,22 +1,27 @@
-from celery import shared_task
-from celery.utils.log import get_task_logger
-from .models import Alert, Conversation
-from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import json
 from datetime import datetime, timedelta
-from portfolio.utils import get_price
-from notifications.utils import save_and_send_notification
-from django.utils import timezone
-from .utils import get_alert_data, get_alerts
-from django.contrib.auth import get_user_model
-from .models import Alert, AlertAI,Stock, AlertAITracker, Message
-from django.shortcuts import get_object_or_404
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
-from django.core.mail import send_mail
+
 import pytz
+from asgiref.sync import async_to_sync
+from celery import shared_task
+from celery.utils.log import get_task_logger
+from channels.layers import get_channel_layer
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from django.core.management import call_command
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.utils.html import strip_tags
+from django_celery_beat.models import IntervalSchedule, PeriodicTask
+
+from notifications.utils import save_and_send_notification
+from portfolio.utils import get_price
+
+from .models import (Alert, AlertAI, AlertAITracker, Conversation, Message,
+                     Stock)
+from .utils import get_alert_data, get_alerts
 
 User= get_user_model()
 
@@ -234,9 +239,10 @@ def process_alert_data(prompt, convsersation_id, user_id, channel_name):
             async_to_sync(channel_layer.send)(channel_name, {'type': 'send_message','message': "Your prompt does not contain stock symbol or you didn't specify if you are creating price or volume alert, or you didn't state if its above or below target price or volume" })
             Message.objects.create(user =user, sender='bot',room=conversation, content="Your prompt does not contain stock symbol or you didn't specify if you are creating price or volume alert, or you didn't state if its above or below target price or volume")
   
-from openai import OpenAI
-import time
 import concurrent.futures
+import time
+
+from openai import OpenAI
 
 client = OpenAI()
 
@@ -400,7 +406,6 @@ def process_alert_data2(prompt, convsersation_id, user_id, channel_name):
                             
                
 
-from django.db.models import Q
 
 @shared_task
 def disable_old_periodic_tasks():
@@ -420,3 +425,7 @@ def disable_old_periodic_tasks():
 
     # Return the count of tasks that were disabled
     return old_periodic_tasks.count()
+
+@shared_task
+def get_company_details():
+    call_command("company-details",)
