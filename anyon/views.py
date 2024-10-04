@@ -2113,6 +2113,7 @@ class UserActivityLogView2(APIView):
 class AllUsersActivityLogView2(APIView):
     serializer_class=acc_serializers.UserActivityLogSerializer
     permission_classes=[permissions.IsAdminUser, permissions.IsAuthenticated]  
+    
 
     def get(self, request):
         filter = request.GET.get("filter")
@@ -2133,3 +2134,79 @@ class AllUsersActivityLogView2(APIView):
         serializer = self.serializer_class(result_page, many=True)
         
         return paginator.get_paginated_response(serializer.data)
+
+from supportwithemail.models import *
+from supportwithemail.serializers import (
+    DetailedSupportMessageDisclaimerSerializer,
+    AdminSupportMessageSerializer, AdminSupportThreadsSerializer
+    )
+from rest_framework.pagination import PageNumberPagination
+
+class CustomPageNumberPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+class AdminViewSupportMessageRequestThread(APIView):
+    serializer_class = AdminSupportThreadsSerializer
+    pagination_class = CustomPageNumberPagination
+
+
+    def get(self, request):
+        """
+        Retrieve all support messages for the current user's thread.
+        """
+        all_messages = request.GET.get("all")
+        if all_messages and all_messages.lower() == "true":
+
+            messages = SupportThread.objects.all().order_by("-created")
+        else:
+            messages = SupportThread.objects.filter(switched_to_admin_support=True).order_by("-created")
+        serializer = self.serializer_class(messages, many=True, context={"request":request})
+        paginator = self.pagination_class()
+        paginated_data = paginator.paginate_queryset(serializer.data, request)
+
+        return paginator.get_paginated_response(paginated_data)
+
+class AdminViewSupportMessageRequest(APIView):
+    serializer_class = AdminSupportMessageSerializer
+    pagination_class = CustomPageNumberPagination
+
+
+    def get(self, request, id):
+        """
+        Retrieve all support messages by thread
+        """
+
+        thread = SupportThread.objects.filter(id=id).first()
+        if not thread:
+            return Response({"error":"Thread with id not found"}, 404)
+
+        messages = SupportMessage.objects.filter(thread=thread).order_by("-created")
+        serializer = self.serializer_class(messages, many=True, context={"request":request})
+
+
+        return Response(serializer.data)
+
+
+
+class SupportMessageDisclaimerView(APIView):
+    serializer_class = DetailedSupportMessageDisclaimerSerializer
+    pagination_class = CustomPageNumberPagination
+
+    def get(self, request, *args, **kwargs):
+        thread_value = request.query_params.get('thread_value', None)
+
+        if thread_value:
+            disclaimers = SupportMessageDisclaimer.objects.filter(
+                message__thread__thread_id=thread_value
+            ).select_related('message', 'message__thread').order_by("-created")
+        else:
+            disclaimers = SupportMessageDisclaimer.objects.all().select_related('message', 'message__thread').order_by("-created")
+
+        serializer = self.serializer_class(disclaimers, many=True)
+
+        paginator = self.pagination_class()
+        paginated_data = paginator.paginate_queryset(serializer.data, request)
+
+        return paginator.get_paginated_response(paginated_data)

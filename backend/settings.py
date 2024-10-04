@@ -1,4 +1,3 @@
-
 import os, dj_database_url
 from pathlib import Path
 from datetime import timedelta
@@ -9,8 +8,8 @@ env = environ.Env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-DEBUG=os.environ.get('DEBUG') == 'True'
-SECRET_KEY = os.environ.get('SECRET_KEY')
+DEBUG = os.environ.get("DEBUG") == "True"
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 
 ALLOWED_HOSTS = ["*"]
@@ -26,43 +25,43 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'django.contrib.humanize',
+    "django.contrib.humanize",
     "rest_framework",
     "rest_framework.authtoken",
     "rest_framework_simplejwt",
     "corsheaders",
-    'daphne',
-    'channels',
-    'django_redis',
+    "daphne",
+    "channels",
+    "django_redis",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "dj_rest_auth",
     "dj_rest_auth.registration",
     "storages",
-    'sendgrid',
-    'django_rest_passwordreset',
-    'drf_yasg',
-    'django_celery_beat',
-    'accounts',
-    'blog',
+    "sendgrid",
+    "django_rest_passwordreset",
+    "drf_yasg",
+    "django_celery_beat",
+    "accounts",
+    "blog",
     "affilate",
-    'execution',
-    'portfolio',
-    'reporting',
-    'anyon',
-    'lock',
-    'competition',
+    "execution",
+    "portfolio",
+    "reporting",
+    "anyon",
+    "lock",
+    "competition",
     "waitlist",
-    'notifications',
-    'django_otp',
-    'django_otp.plugins.otp_totp',
+    "notifications",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
     # "judoscale.django",
     # 'silk'
-
     # new app
     "hackathon",
-    "datacollection"
+    "datacollection",
+    "supportwithemail",
 ]
 
 
@@ -76,7 +75,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    'django_otp.middleware.OTPMiddleware',#otp
+    "django_otp.middleware.OTPMiddleware",  # otp
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -86,7 +85,7 @@ ROOT_URLCONF = "backend.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR/"templates"],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -99,7 +98,7 @@ TEMPLATES = [
     },
 ]
 
-ASGI_APPLICATION = 'backend.asgi.application'
+ASGI_APPLICATION = "backend.asgi.application"
 WSGI_APPLICATION = "backend.wsgi.application"
 
 AUTH_USER_MODEL = "accounts.CustomUser"
@@ -109,11 +108,10 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 DATABASES = {
     "default": dj_database_url.config(
         conn_max_age=600,
-         default=os.environ.get('DATABASE_URL') 
+        default=os.environ.get("DATABASE_URL"),
         #  default=config('DATABASE_URL')
-        )
-
- }
+    )
+}
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -137,7 +135,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'Africa/Lagos'
+TIME_ZONE = "Africa/Lagos"
 # TIME_ZONE = 'UTC'
 USE_I18N = True
 
@@ -167,18 +165,18 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5173",
-    'https://anyon-affiliate-program.netlify.app',
-    'https://anyon-admin-dashboard.netlify.app',
-    'https://dashboardanyon.netlify.app',
-    'https://dashboard.gohamma.com',
-    'https://refer.gohamma.com',
-    'https://superstars.gohamma.com',
-    'https://gohamma.com',
+    "https://anyon-affiliate-program.netlify.app",
+    "https://anyon-admin-dashboard.netlify.app",
+    "https://dashboardanyon.netlify.app",
+    "https://dashboard.gohamma.com",
+    "https://refer.gohamma.com",
+    "https://superstars.gohamma.com",
+    "https://gohamma.com",
 ]
 
 DATE_INPUT_FORMATS = ["%d-%m-%Y"]
 
-LOGIN_URL = '/leaderboard/login/'
+LOGIN_URL = "/leaderboard/login/"
 # Rest config
 
 REST_USE_JWT = True
@@ -213,7 +211,7 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 # ACCOUNT_EMAIL_SUBJECT_PREFIX ='ANYON.COM - '
 
 
-OTP_TOTP_ISSUER = 'Gohamma'
+OTP_TOTP_ISSUER = "Gohamma"
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=4),
@@ -245,9 +243,9 @@ SIMPLE_JWT = {
 
 # AWS CONFIG
 
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = os.environ.get('BUCKET')
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = os.environ.get("BUCKET")
 AWS_S3_CUSTOM_DOMAIN = "%s.s3.amazonaws.com" % AWS_STORAGE_BUCKET_NAME
 AWS_S3_OBJECT_PARAMETERS = {
     "CacheControl": "max-age=86400",
@@ -266,9 +264,7 @@ STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
 
-SENDGRID_API_KEY = (
-    os.environ.get("SENDGRID_API_KEY")
-)
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 DEFAULT_FROM_EMAIL = "teamgohamma@gmail.com"
 SENDGRID_ECHO_TO_STDOUT = False
@@ -294,37 +290,37 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-if os.environ.get('server') == 'local':
+if os.environ.get("server") == "local":
     # Use in-memory for local development
-    CELERY_BROKER_URL = 'redis://localhost:6379/0'
-    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-    REDIS_URL = 'redis://localhost:6379/0'
+    REDIS_URL = os.environ.get("REDIS_URL", default="redis://localhost:6379/0")
+    CELERY_BROKER_URL = REDIS_URL
+    CELERY_RESULT_BACKEND = REDIS_URL
     CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
         },
     }
-    
-    INSTALLED_APPS += ['silk']
-    MIDDLEWARE += ['silk.middleware.SilkyMiddleware']
+
+    INSTALLED_APPS += ["silk"]
+    MIDDLEWARE += ["silk.middleware.SilkyMiddleware"]
     SILKY_PYTHON_PROFILER = True
 else:
     # Use Redis for production
-    CELERY_BROKER_URL = os.environ.get('REDISCLOUD_URL')
-    CELERY_RESULT_BACKEND = os.environ.get('REDISCLOUD_URL')
-    REDIS_URL = os.environ.get('REDISCLOUD_URL')
+    CELERY_BROKER_URL = os.environ.get("REDISCLOUD_URL")
+    CELERY_RESULT_BACKEND = os.environ.get("REDISCLOUD_URL")
+    REDIS_URL = os.environ.get("REDISCLOUD_URL")
     CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels_redis.core.RedisChannelLayer',
-            'CONFIG': {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
                 "hosts": [REDIS_URL],
             },
         },
     }
 
 
-CELERY_TASK_SERIALIZER ='json'
-CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "Africa/Lagos"
 CELERY_BROKER_POOL_LIMIT = 10
 
@@ -334,7 +330,7 @@ CACHES = {
         "LOCATION": REDIS_URL,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
+        },
     }
 }
 
