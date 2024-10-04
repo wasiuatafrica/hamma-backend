@@ -1,50 +1,63 @@
 
+import json
+import random
+from datetime import datetime, timedelta
+from decimal import Decimal
+from random import randint
+
+import pytz
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from django.db import close_old_connections
+from django.db.models import Count, Exists, F, OuterRef, Q, Sum
+from django.shortcuts import get_list_or_404, get_object_or_404
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django_celery_beat.models import (CrontabSchedule, IntervalSchedule,
+                                       PeriodicTask)
+from rest_framework import generics, serializers, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.permissions import (AllowAny, BasePermission,
+                                        IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated, AllowAny
 
-
-from .models import (DashboardFeed, FeedReaction, FeedsCategory, StockWatchlist, UserSubscribedCategory, Wallet, Stock,  Receipts, PayStackReceipts, Alert,WithdrawalOTPRequest,
-                     Transaction, AlertAI, AlertAITracker, Conversation, Message, ButtonClick)
-from .serializers import (DashboardFeedSerializer, FeedReactionSerializer, FeedsCategorySerializer, StockSerializer,ReceiptsViewSerializer, PayStackReceipts, PayStackReceiptsSerializer,
-                          AlertSerializer,   TransactionSerializer, ConversationSerializer, ButtonClickSerializer)
-from rest_framework import serializers
-from django.contrib.auth import get_user_model
-from rest_framework.decorators import api_view
-import random
-from django.core.mail import send_mail
-from django.utils import timezone
-from .utils import get_price, get_symbol_data,get_historical_data, get_mini_data, get_details3
-from notifications.utils import save_and_send_notification
-from django.shortcuts import get_object_or_404, get_list_or_404
-from decimal import Decimal
-from django.template.loader import render_to_string
-from lock.models import Saving
-from django.db.models import Sum
-from django.db import close_old_connections
-from random import randint
-from django.db.models import Exists, OuterRef
-from accounts.models import UserActivityLog,Referral
-from affilate.models import ReferralWallet,RewardActivities
-from execution import models as exec_models
-from django_celery_beat.models import PeriodicTask, IntervalSchedule, CrontabSchedule
-from competition.managers.utils import sendMail 
-from django.db.models import Sum, F, Count, Q
-from datetime import datetime, timedelta
+from accounts.models import Referral, UserActivityLog
+from affilate.models import ReferralWallet, RewardActivities
+from competition.managers.utils import sendMail
 from competition.tasks import create_crontab
-import json 
-import pytz
+from execution import models as exec_models
+from lock.models import Saving
+from notifications.utils import save_and_send_notification
 
-
-from rest_framework.permissions import BasePermission
+from .models import (Alert, AlertAI, AlertAITracker, ButtonClick, Conversation,
+                     DashboardFeed, FeedReaction, FeedsCategory, Message,
+                     PayStackReceipts, Receipts, Stock, StockWatchlist,
+                     Transaction, UserSubscribedCategory, Wallet,
+                     WithdrawalOTPRequest)
+from .serializers import (AlertSerializer, ButtonClickSerializer,
+                          ConversationSerializer, DashboardFeedSerializer,
+                          FeedReactionSerializer, FeedsCategorySerializer,
+                          PayStackReceipts, PayStackReceiptsSerializer,
+                          ReceiptsViewSerializer, StockSerializer,
+                          TransactionSerializer)
+from .utils import (get_details3, get_historical_data, get_mini_data,
+                    get_price, get_symbol_data)
 
 User= get_user_model()
 
 class IsStaffOrAnalyst(BasePermission):
     def has_permission(self, request, view):
         return request.user and (request.user.is_staff or request.user.is_analyst)
+
+class IsStaffOrAnalystOrReadOnly(BasePermission):
+    def has_permission(self, request, view):
+        if request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return True
+        
+        return request.user and request.user.is_authenticated and (request.user.is_staff or request.user.is_analyst)
 
  
 class WalletBalance(APIView):
@@ -281,32 +294,59 @@ class ResendWithdrawalOtp(APIView):
 
 
             
-class StockList(generics.ListAPIView):
-    queryset = Stock.objects.filter(active=True). order_by('symbol')
-    permission_classes =[AllowAny,]
+# class StockList(generics.ListAPIView):
+#     queryset = Stock.objects.filter(active=True). order_by('symbol')
+#     permission_classes =[AllowAny,]
     
-    def get(self, request, *args, **kwargs):
+#     def get(self, request, *args, **kwargs):
         
-        queryset = self.get_queryset()
-        first = queryset.first()
+#         queryset = self.get_queryset()
+#         first = queryset.first()
         
-        details = get_details3(queryset)
-        # symbol_data = get_symbol_data(first.symbol)
-        watchlist = [ watch.stock.symbol for watch in StockWatchlist.objects.filter(user=request.user)]
-        # historical_data=get_historical_data(first.symbol)
-        for detail in details:
-            if detail['symbol'] in watchlist:
-                detail['in_watchlist'] = True
-            else:
-                detail['in_watchlist'] = False
+#         details = get_details3(queryset)
+#         watchlist = [ watch.stock.symbol for watch in StockWatchlist.objects.filter(user=request.user)]
+#         for detail in details:
+#             if detail['symbol'] in watchlist:
+#                 detail['in_watchlist'] = True
+#             else:
+#                 detail['in_watchlist'] = False
             
         
+#         response_data = {
+#             'stock_list': details,
+#             'first_symbol_order_book': [],
+#         }
+#         return Response(response_data)
+    
+class StockList(generics.ListAPIView):
+    queryset = Stock.objects.filter(active=True).order_by('symbol')
+    permission_classes = [AllowAny,]
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        # Fetch stock details
+        details = get_details3(queryset)
+
+        # Initialize empty watchlist
+        watchlist = []
+
+        # Check if the user is authenticated
+        if request.user.is_authenticated:
+            # Get the watchlist for the logged-in user
+            watchlist = [watch.stock.symbol for watch in StockWatchlist.objects.filter(user=request.user)]
+
+        # Add 'in_watchlist' flag to stock details
+        for detail in details:
+            detail['in_watchlist'] = detail['symbol'] in watchlist
+
         response_data = {
             'stock_list': details,
             'first_symbol_order_book': [],
-            # 'historical_data':historical_data,
         }
+
         return Response(response_data)
+
 
 class MiniData(APIView):
     def get(self, request):
@@ -522,6 +562,7 @@ class SupportTransactionList(APIView):
 
 
 class Symbols(APIView):
+    permission_classes = [AllowAny]
     def get(self, request):
         stocks = Stock.objects.filter(active=True)
         symbols = [{stock.symbol:stock.id} for stock in stocks]
@@ -837,13 +878,9 @@ class ButtonClickCreateView(APIView):
     
 
 class StockWatchlistAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
-        
-        queryset = Stock.objects.filter(watchlisted_by__user=request.user)
-        details = get_details3(queryset)
-
         seven_days_ago = timezone.now() - timedelta(days=7)
 
         # Get the feeds that are published within the last 7 days
@@ -855,17 +892,24 @@ class StockWatchlistAPIView(APIView):
         # Get the queryset of stocks related to these feeds
         analyst = Stock.objects.filter(feed__in=published_feeds).distinct()
         analyst_pick = get_details3(analyst)
-        
+
         response_data = {
-            'watchlist': details,
-            'analyst_pick':analyst_pick
-        
+            'analyst_pick': analyst_pick
         }
+
+        if request.user.is_authenticated:
+            queryset = Stock.objects.filter(watchlisted_by__user=request.user)
+            details = get_details3(queryset)
+            response_data['watchlist'] = details
+        else:
+            response_data['watchlist'] = []
+
         return Response(response_data)
     
-
-    
     def post(self, request):
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        
         
         user = request.user
         symbol = request.data.get('symbol')
@@ -883,6 +927,9 @@ class StockWatchlistAPIView(APIView):
             return Response({'message': 'Stock is already in the watchlist'}, status=status.HTTP_200_OK)
 
     def delete(self, request):
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        
         
         user = request.user
         symbol = request.data.get('symbol')
@@ -918,6 +965,7 @@ class SupportStockWatchlistAPIView(APIView):
         return Response(response_data)
 
 class MostTradedStocks(APIView):
+    permission_classes = [AllowAny]
     def get(self, request):
         most_traded_stock = Stock.objects.annotate(num_positions=Count('demopositions2', filter=Q(demopositions2__status='open')) + Count('composition', filter=Q(composition__status ='open'))).filter(num_positions__gt=1).order_by('-num_positions').order_by('-num_positions')
         most_traded_stock = most_traded_stock[:10]
@@ -933,14 +981,16 @@ class MostTradedStocks(APIView):
     
 class FeedView(APIView):
     parser_classes =   [MultiPartParser, FormParser]
-    permission_classes = [IsAuthenticated, IsStaffOrAnalyst]
+    permission_classes = [IsStaffOrAnalystOrReadOnly]
     
     def get(self, request):
         feed = DashboardFeed.objects.all().order_by("-created")
         serializer = DashboardFeedSerializer(feed, many=True)
         return Response(serializer.data)
     
+    
     def post(self, request):
+         
         topic = request.data.get('topic')
         title = request.data.get('title')
         image = request.data.get('image')
@@ -981,7 +1031,6 @@ class FeedView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
         
 
-
     def put(self, request):
         id = request.data.get('id')
         try:
@@ -1012,12 +1061,16 @@ class FeedView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    
     def delete(self, request):
         id = request.data.get('id')
         feed = DashboardFeed.objects.get(id=id)
         feed.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+
+    
+
 class PublishFeed(APIView):
     permission_classes = [IsAuthenticated, IsStaffOrAnalyst]
     
