@@ -18,6 +18,7 @@ client = MongoClient(os.environ.get("MONGO_STRING"),tls=True,
                              tlsAllowInvalidCertificates=True)
 
 db_merged = client["livelake3"]
+db_details = client["ngxlistedcompanies"]
 
 def connect_to_mongodb(db_name):
     
@@ -116,7 +117,9 @@ def get_stockdata2():
 
 def get_details2(stock, stock_data):
     data = stock_data.get(stock.symbol, {})
+    
     # print(data)
+    
     if data:
         return {
             'company': stock.company,
@@ -263,3 +266,30 @@ def get_alerts(user):
     print('serialize',alerts)
     return alerts
     
+    
+def get_symbol_overview(symbol):
+    collection = db_details[symbol]
+    company_data = collection.find_one({})
+    overview = {}
+    
+    overview['marketcap'] = float(company_data.get('PrevClose')) * float(company_data.get('SharesOutstanding', 0))
+    # overview['shares'] = company_data.get('SharesOutstanding')
+    overview['CompanyName'] = company_data.get('CompanyName')
+    overview['Sector'] = company_data.get('Sector')
+    overview['SubSector'] = company_data.get('SubSector')
+    overview['dividend'] = company_data.get('dividend', 0)
+    overview['MarketClassification'] = company_data.get('MarketClassification')
+    overview['DateOfIncorporation'] = company_data.get('DateOfIncorporation')
+    overview['Website'] = company_data.get('Website')
+    overview['NatureofBusiness'] = company_data.get('NatureofBusiness')
+    overview['CompanyAddress'] = company_data.get('CompanyAddress')
+    overview['Telephone'] = company_data.get('Telephone')
+    overview['HIGH52WK_PRICE'] = company_data.get('HIGH52WK_PRICE')
+    overview['LOW52WK_PRICE'] = company_data.get('LOW52WK_PRICE')
+    overview['BoardOfDirectors'] = company_data.get('BoardOfDirectors')
+    overview['Email'] = company_data.get('Email')
+    # overview['Email'] = company_data.get('Email')
+    # overview['Email'] = company_data.get('Email')
+    # overview['Email'] = company_data.get('Email')
+
+    return overview

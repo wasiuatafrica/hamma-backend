@@ -43,10 +43,14 @@ from .serializers import (AlertSerializer, ButtonClickSerializer,
                           PayStackReceipts, PayStackReceiptsSerializer,
                           ReceiptsViewSerializer, StockSerializer,
                           TransactionSerializer)
-from .utils import (get_details3, get_historical_data, get_mini_data,
+from .utils import (get_details3, get_historical_data, get_mini_data,get_symbol_overview,
                     get_price, get_symbol_data)
+from .utils import client
 
 User= get_user_model()
+
+
+db_details = client["ngxlistedcompanies"]
 
 class IsStaffOrAnalyst(BasePermission):
     def has_permission(self, request, view):
@@ -359,15 +363,15 @@ class GetSingleStock(APIView):
     
     def get(self, request, *args, **kwargs):
         symbol = self.kwargs.get('symbol')
-        # queryset = Stock.objects.get(symbol=symbol)
         queryset = get_object_or_404(Stock, symbol=symbol)
-        # symbol_data = get_symbol_data(symbol)
         
         details = get_details3([queryset])
+        overview = get_symbol_overview(symbol)
         
         response_data = {
             'stock_detail': details,
             'order_book': [],
+            'overview': overview,
             # 'historical_data':historical_data
         }
         return Response(response_data)
@@ -1275,4 +1279,4 @@ class CheckReaction(APIView):
             return Response(serializer.data)
         else:
             return Response({'message': 'Reaction not found'}, status=status.HTTP_404_NOT_FOUND)
-        
+
