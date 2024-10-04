@@ -1145,12 +1145,9 @@ class UnsubscribeCategoryAPIView(APIView):
         return Response({'unsubscribed': True}, status=status.HTTP_200_OK)
 
 class UserDashboardFeedsAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
-        # subscribed_categories = request.user.subscribed_categories.all()
-        # categories =  [sub.category for sub in subscribed_categories]
-        # feeds = get_list_or_404(DashboardFeed.objects.filter(category__in=categories, status='published'))
         seven_days_ago = timezone.now() - timedelta(days=6)
         feeds = DashboardFeed.objects.filter(status='published', published_date__gte=seven_days_ago).order_by('-created')
         serializer = DashboardFeedSerializer(feeds, many=True)
