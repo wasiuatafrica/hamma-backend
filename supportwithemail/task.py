@@ -36,7 +36,7 @@ def start_conversation(
 
     run = client.beta.threads.runs.create_and_poll(
         thread_id=thread_id,
-        assistant_id="asst_Gt5Tb9VFu4gj4e0iZOuL0lHa",  # Use the dynamically created assistant ID
+        assistant_id="asst_MJ9ZqMIyzQqgjvm5sUwGZI7E",  # Use the dynamically created assistant ID
     )
 
     completed = False
