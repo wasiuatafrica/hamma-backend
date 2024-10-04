@@ -74,7 +74,7 @@ class VerifyToken(APIView):
         ReferralWallet.objects.create(user=user)
         DemoPortfolio.objects.create(user=user)
         send_welcome_email.delay(user.id)
-        activity=models.UserActivityLog.objects.create(user=user, action_type="verified_account",description="User verified their account.",device_type=device_type)
+        models.UserActivityLog.objects.create(user=user, action_type="verified_account",description="User verified their account.",device_type=device_type)
         
         refresh = RefreshToken.for_user(user)
         user_data =serializers.CustomUserSerializer(user, many=False).data
@@ -85,7 +85,7 @@ class VerifyToken(APIView):
             'access': str(refresh.access_token),
             "user": user_data
         }
-        activity=models.UserActivityLog.objects.create(user=user, action_type="login",description="User logged into their account",device_type=device_type)
+        models.UserActivityLog.objects.create(user=user, action_type="login",description="User logged into their account",device_type=device_type)
         return Response(token_data, status=status.HTTP_200_OK)
 
 class ProfileView(APIView):

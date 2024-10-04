@@ -175,10 +175,7 @@ def handle_special_values(value):
 
 
 def get_details3(stocks):
-    symbols =[stock.symbol for stock in stocks]
     stockdata= get_stockdata2()
-    # print(stockdata)
-    # return [get_details2(stock,stockdata) for stock in stocks]
     with ThreadPoolExecutor() as executor:
             futures = [executor.submit(get_details2, stock,stockdata) for stock in stocks]
             performance_data = [future.result() for future in futures]
