@@ -12,6 +12,8 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 import math
 from execution.symbol_pair import pairs
+from stocknews.models import StockNews
+from .serializers import StockNewsSerializer
 
 User = get_user_model()
 client = MongoClient(
@@ -319,3 +321,9 @@ def get_symbol_fundamentals(symbol):
         company_data.pop("_id", None)
         return company_data
     return {}
+
+
+def get_stock_news(symbol):
+    news = StockNews.objects.filter(stock__symbol=symbol).order_by("-created")[:10]
+    news_data = StockNewsSerializer(news, many=True).data
+    return news_data

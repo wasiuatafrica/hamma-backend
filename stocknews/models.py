@@ -9,8 +9,8 @@ class StockNews(auto_prefetch.Model):
     stock = models.ForeignKey(
         Stock, on_delete=models.CASCADE, related_name="stock_news"
     )
-    title = models.CharField(max_length=100)
-    body = models.CharField(max_length=500)
+    title = models.CharField(max_length=225)
+    body = models.TextField()
     published_date = models.DateField(null=True, blank=True)
     url = models.TextField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)

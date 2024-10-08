@@ -73,6 +73,7 @@ from .utils import (
     get_symbol_fundamentals,
     get_price,
     get_symbol_data,
+    get_stock_news,
 )
 from .utils import client
 
@@ -480,12 +481,14 @@ class GetSingleStock(APIView):
         details = get_details3([queryset])
         overview = get_symbol_overview(symbol)
         fundamental = get_symbol_fundamentals(symbol)
+        news = get_stock_news(symbol)
 
         response_data = {
             "stock_detail": details,
             "order_book": [],
             "overview": overview,
             "fundamental": fundamental,
+            "news": news,
             # 'historical_data':historical_data
         }
         return Response(response_data)
