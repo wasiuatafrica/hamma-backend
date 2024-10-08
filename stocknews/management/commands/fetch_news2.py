@@ -29,7 +29,7 @@ class Command(BaseCommand):
         max_results = 3
         stocks = await sync_to_async(list)(Stock.objects.filter(active=True))
 
-        for stock in stocks[25:30]:
+        for stock in stocks:
             await self.fetch_and_save_news(stock, max_results)
 
         self.stdout.write(
