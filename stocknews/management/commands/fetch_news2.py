@@ -115,7 +115,7 @@ class Command(BaseCommand):
         print(unique_news)
         message = json.loads(unique_news["message"])
         print(message)
-        return message["articles"]
+        return message
 
     async def get_unique_news(self, news_results, existing_news):
         prompt = f"""
@@ -125,7 +125,7 @@ class Command(BaseCommand):
 
         these are the new articles and the existing articles.
         filter out the articles that are already in the existing articles.
-        return only the unique articles.
+        return only the json unique articles.
         """
 
         ai_response = await sync_to_async(start_conversation)(
