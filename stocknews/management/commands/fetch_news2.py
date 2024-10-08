@@ -112,7 +112,7 @@ class Command(BaseCommand):
         #         )
 
         unique_news = await self.get_unique_news(news_results, existing_news)
-        print(unique_news)
+        # print(unique_news)
         message = json.loads(unique_news["message"])
         print(message)
         return message
