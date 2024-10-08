@@ -129,7 +129,7 @@ class Command(BaseCommand):
         """
 
         ai_response = await sync_to_async(start_conversation)(
-            assistant_id="asst_zOV3oxwThdI76nnsG9BKmcaF", new_message=prompt
+            assistant_id="asst_QZXaDmUdDch9zPQQXWC9fCRG", new_message=prompt
         )
 
         return ai_response
