@@ -27,9 +27,11 @@ class Command(BaseCommand):
     async def async_handle(self, *args, **options):
         # max_results = options["max_results"]
         max_results = 3
-        stocks = await sync_to_async(list)(Stock.objects.filter(active=True))
+        stocks = await sync_to_async(list)(
+            Stock.objects.filter(active=True).order_by("symbol")
+        )
 
-        for stock in stocks[37:]:
+        for stock in stocks[50:]:
             await self.fetch_and_save_news(stock, max_results)
 
         self.stdout.write(
