@@ -115,7 +115,12 @@ class Command(BaseCommand):
 
         unique_news = await self.get_unique_news(news_results, existing_news)
         # print(unique_news)
-        message = json.loads(unique_news["message"])
+        if isinstance(unique_news["message"], list):
+            message = unique_news["message"]
+        elif isinstance(unique_news["message"], str):
+            message = json.loads(unique_news["message"])
+        # message = json.loads(unique_news["message"])
+
         print(message)
         return message
 
