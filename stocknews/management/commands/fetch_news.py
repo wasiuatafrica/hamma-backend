@@ -12,22 +12,23 @@ from datetime import datetime
 class Command(BaseCommand):
     help = "Fetch unique news articles for stocks and save them to the database"
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "--max_results",
-            type=int,
-            default=5,
-            help="Maximum number of news results to fetch per stock",
-        )
+    # def add_arguments(self, parser):
+    # parser.add_argument(
+    #     "--max_results",
+    #     type=int,
+    #     default=5,
+    #     help="Maximum number of news results to fetch per stock",
+    # )
 
     def handle(self, *args, **options):
         asyncio.run(self.async_handle(*args, **options))
 
     async def async_handle(self, *args, **options):
-        max_results = options["max_results"]
+        # max_results = options["max_results"]
+        max_results = 3
         stocks = await sync_to_async(list)(Stock.objects.filter(active=True))
 
-        for stock in stocks:
+        for stock in stocks[15:20]:
             await self.fetch_and_save_news(stock, max_results)
 
         self.stdout.write(
@@ -37,7 +38,7 @@ class Command(BaseCommand):
         )
 
     async def fetch_and_save_news(self, stock, max_results):
-        search_query = f"Nigerian stock market news about {stock.company} stocks"
+        search_query = f"{stock.company} Nigeria"
         news_results = await sync_to_async(self.search_news)(search_query, max_results)
         unique_new_result = []
 
@@ -75,7 +76,10 @@ class Command(BaseCommand):
 
     def search_news(self, query, max_results=5):
         with DDGS() as ddgs:
-            results = list(ddgs.news(query, max_results=max_results))
+            results = list(
+                ddgs.news(keywords=query, timelimit="w", max_results=max_results)
+            )
+            print(results)
         return results
 
     async def ensure_uniqueness_with_ai(self, news_results, stock):
