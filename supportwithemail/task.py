@@ -24,7 +24,10 @@ client = OpenAI()
 
 
 def start_conversation(
-    thread_id: Optional[str] = None, user: Any = None, new_message: str = "Hello"
+    thread_id: Optional[str] = None,
+    user: Any = None,
+    new_message: str = "Hello",
+    assistant_id="asst_MJ9ZqMIyzQqgjvm5sUwGZI7E",
 ) -> Optional[dict]:
 
     if thread_id is None:
@@ -36,7 +39,7 @@ def start_conversation(
 
     run = client.beta.threads.runs.create_and_poll(
         thread_id=thread_id,
-        assistant_id="asst_MJ9ZqMIyzQqgjvm5sUwGZI7E",  # Use the dynamically created assistant ID
+        assistant_id=assistant_id,  # Use the dynamically created assistant ID
     )
 
     completed = False

@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     "hackathon",
     "datacollection",
     "supportwithemail",
+    "stocknews",
 ]
 
 
