@@ -1,18 +1,89 @@
-import asyncio
-from django.core.management.base import BaseCommand
-from duckduckgo_search import DDGS
-from stocknews.models import Stock, StockNews
-from supportwithemail.task import start_conversation
-from django.utils import timezone
-from django.db import transaction
-from asgiref.sync import sync_to_async
-from datetime import datetime
-import json
-import time
-import json
 import ast
+import asyncio
 import re
+import time as timer
+from datetime import datetime
+from typing import Any, Optional
+
+from asgiref.sync import sync_to_async
+from django.core.management.base import BaseCommand
+from django.utils import timezone
+from duckduckgo_search import DDGS
+from openai import OpenAI
+
 from execution.symbol_pair import pairs
+from stocknews.models import Stock, StockNews
+
+client = OpenAI()
+
+
+def start_conversation(
+    thread_id: Optional[str] = None,
+    new_message: str = "Hello",
+    assistant_id="asst_MJ9ZqMIyzQqgjvm5sUwGZI7E",
+) -> Optional[dict]:
+
+    if thread_id is None:
+        thread_id = client.beta.threads.create().id
+
+    client.beta.threads.messages.create(
+        thread_id=thread_id, role="user", content=new_message
+    )
+
+    run = client.beta.threads.runs.create_and_poll(
+        thread_id=thread_id,
+        assistant_id=assistant_id,  # Use the dynamically created assistant ID
+    )
+
+    completed = False
+    start_time = timer.time()
+
+    while not completed:
+        run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
+        print(run.status)
+        print(run.required_action)
+        if run.status == "completed":
+            completed = True
+            break
+        elif run.status in ["cancelling", "cancelled", "failed", "expired"]:
+            return {
+                "main_response": "Error occurred, please start a new conversation",
+                "extracted_data": [],
+            }
+        else:
+            timer.sleep(0.5)
+
+        elapsed_time = timer.time() - start_time
+
+        if elapsed_time >= 30:
+            break
+
+    if run.status == "completed":
+        messages = client.beta.threads.messages.list(thread_id=thread_id)
+
+        assistant_message = next(
+            (msg for msg in messages.data if msg.role == "assistant"), None
+        )
+
+        if assistant_message:
+            for content_block in assistant_message.content:
+                if content_block.type == "text":
+                    return {
+                        "status": 200,
+                        "run_status": run.status,
+                        "success": True,
+                        "message": content_block.text.value,
+                        "thread_id": thread_id,
+                    }
+        else:
+            return {
+                "status": 500,
+                "success": False,
+                "run_status": run.status,
+                "message": "",
+            }
+
+    return {"status": 500, "success": False, "run_status": run.status, "message": ""}
 
 
 def process_company_name(company_name, symbol, sector=None):
@@ -87,9 +158,9 @@ class Command(BaseCommand):
         asyncio.run(self.async_handle(*args, **options))
 
     async def async_handle(self, *args, **options):
-        max_results = 6
+        max_results = 3
         stocks = await sync_to_async(list)(
-            Stock.objects.filter(active=True).order_by("symbol")[7:]
+            Stock.objects.filter(active=True).order_by("symbol")[40:]
         )
 
         batch_size = 10
@@ -170,12 +241,16 @@ class Command(BaseCommand):
         )
 
     def search_news(self, query, max_results=5):
-        with DDGS() as ddgs:
-            results = list(
-                ddgs.news(keywords=query, timelimit="w", max_results=max_results)
-            )
-            print(results)
-        return results
+        try:
+            with DDGS() as ddgs:
+                results = list(
+                    ddgs.news(keywords=query, timelimit="w", max_results=max_results)
+                )
+                print(results)
+            return results
+        except Exception as e:
+            print(f"Error fetching news: {e}")
+            return []
 
     async def ensure_uniqueness_with_ai(self, news_results, stock):
         now = datetime.now()
