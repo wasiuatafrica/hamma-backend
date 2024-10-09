@@ -73,6 +73,13 @@ def extract_and_parse_list(input_dict):
         return None
 
 
+date_formats = [
+    "%Y-%m-%dT%H:%M:%S%z",  # ISO format with timezone
+    "%Y-%m-%d %H:%M:%S",  # Datetime without timezone
+    "%Y-%m-%d",  # Date only
+]
+
+
 class Command(BaseCommand):
     help = "Fetch unique news articles for stocks and save them to the database in batches of 10"
 
@@ -82,7 +89,7 @@ class Command(BaseCommand):
     async def async_handle(self, *args, **options):
         max_results = 6
         stocks = await sync_to_async(list)(
-            Stock.objects.filter(active=True).order_by("symbol")
+            Stock.objects.filter(active=True).order_by("symbol")[7:]
         )
 
         batch_size = 10
@@ -133,7 +140,23 @@ class Command(BaseCommand):
         )
         # print(unique_news)
         for news in unique_news:
-            published_date = datetime.strptime(news["date"], "%Y-%m-%dT%H:%M:%S%z")
+            # published_date = datetime.strptime(news["date"], "%Y-%m-%dT%H:%M:%S%z")
+            published_date = None
+
+            # Attempt to parse the date using different formats
+            for date_format in date_formats:
+                try:
+                    published_date = datetime.strptime(news["date"], date_format)
+                    break  # Exit the loop once the date is successfully parsed
+                except ValueError:
+                    continue  # Try the next format if the current one fails
+
+            if published_date is None:
+                print(
+                    f"Error: Failed to parse date for news '{news['title']}' with date: {news['date']}"
+                )
+                continue
+
             await sync_to_async(StockNews.objects.create)(
                 stock=stock,
                 title=news["title"],
