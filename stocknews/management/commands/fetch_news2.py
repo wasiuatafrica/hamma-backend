@@ -191,7 +191,7 @@ class Command(BaseCommand):
         Existing news objects:{existing_news}
         
         company details:
-        name:{stock.name}
+        name:{stock.company}
         sector: {stock.sector}
 
         """
