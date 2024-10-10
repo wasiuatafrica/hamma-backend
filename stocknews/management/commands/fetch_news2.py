@@ -187,7 +187,15 @@ class Command(BaseCommand):
 
     async def process_batch(self, batch, max_results):
         for stock in batch:
-            await self.fetch_and_save_news(stock, max_results)
+            try:
+                await self.fetch_and_save_news(stock, max_results)
+            except Exception as e:
+                print(f"Error fetching data {stock.symbol}: {e}")
+                print("sleeping . . ")
+
+                asyncio.sleep(60)
+
+                continue
 
     async def fetch_and_save_news(self, stock, max_results):
         # search_query = f"{stock.company} Nigeria"
