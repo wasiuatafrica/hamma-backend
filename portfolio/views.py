@@ -22,6 +22,10 @@ from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
 )
+
+import asyncio
+from asgiref.sync import sync_to_async, async_to_sync
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -492,6 +496,53 @@ class GetSingleStock(APIView):
             # 'historical_data':historical_data
         }
         return Response(response_data)
+
+
+# async def fetch_stock_data(symbol, stock):
+
+#     # Define coroutines for each MongoDB query
+#     async def get_details():
+#         return await get_details3([stock])
+
+#     async def get_overview():
+#         return await get_symbol_overview(symbol)
+
+#     async def get_fundamental():
+#         return await get_symbol_fundamentals(symbol)
+
+#     async def get_news():
+#         return await get_stock_news(symbol)
+
+#     # Run all queries concurrently
+#     details, overview, fundamental, news = await asyncio.gather(
+#         get_details(), get_overview(), get_fundamental(), get_news()
+#     )
+
+#     return {
+#         "stock_detail": details,
+#         "overview": overview,
+#         "fundamental": fundamental,
+#         "news": news,
+#     }
+
+
+# class GetSingleStock(APIView):
+#     serializer_class = StockSerializer
+#     permission_classes = [AllowAny]
+
+#     def get(self, request, *args, **kwargs):
+#         symbol = self.kwargs.get("symbol")
+#         stock = get_object_or_404(Stock, symbol=symbol)
+
+#         # Call the async function synchronously
+#         stock_data = async_to_sync(fetch_stock_data)(symbol, stock)
+
+#         response_data = {
+#             **stock_data,
+#             "order_book": [],
+#         }
+
+#         return Response(response_data)
 
 
 class StockDetail(generics.RetrieveAPIView):

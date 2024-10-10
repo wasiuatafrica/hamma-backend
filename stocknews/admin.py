@@ -10,5 +10,7 @@ class StockNewsAdmin(admin.ModelAdmin):
         "title",
     ]
 
+    ordering = ["-created"]
+
 
 admin.site.register(StockNews, StockNewsAdmin)

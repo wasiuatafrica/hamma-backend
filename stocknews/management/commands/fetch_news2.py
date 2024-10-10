@@ -1,8 +1,10 @@
 import ast
 import asyncio
+from math import e
 import re
 import time as timer
 from datetime import datetime
+from os import sync
 from typing import Any, Optional
 
 from asgiref.sync import sync_to_async
@@ -13,6 +15,8 @@ from openai import OpenAI
 
 from execution.symbol_pair import pairs
 from stocknews.models import Stock, StockNews
+
+from .sumer import process_articles
 
 client = OpenAI()
 
@@ -158,10 +162,10 @@ class Command(BaseCommand):
         asyncio.run(self.async_handle(*args, **options))
 
     async def async_handle(self, *args, **options):
-        max_results = 3
+        max_results = 4
         stocks = await sync_to_async(list)(
-            # Stock.objects.filter(active=True).order_by("symbol")
-            Stock.objects.filter(symbol__in=["WEMABANK", "ZENITHBANK"])
+            Stock.objects.filter(active=True).order_by("symbol")
+            # Stock.objects.filter(symbol__in=["WEMABANK", "ZENITHBANK"])
         )
 
         batch_size = 10
@@ -228,6 +232,11 @@ class Command(BaseCommand):
                     f"Error: Failed to parse date for news '{news['title']}' with date: {news['date']}"
                 )
                 continue
+            try:
+                ai_summary = await sync_to_async(process_articles)(news["url"])
+            except Exception as e:
+                print(f"Error getting summary article: {e}")
+                ai_summary = None
 
             await sync_to_async(StockNews.objects.create)(
                 stock=stock,
@@ -235,6 +244,7 @@ class Command(BaseCommand):
                 body=news["body"],
                 url=news["url"],
                 published_date=published_date,
+                ai_summary=ai_summary,
             )
 
         self.stdout.write(
@@ -245,7 +255,7 @@ class Command(BaseCommand):
         try:
             with DDGS() as ddgs:
                 results = list(
-                    ddgs.news(keywords=query, timelimit="w", max_results=max_results)
+                    ddgs.news(keywords=query, timelimit="d", max_results=max_results)
                 )
                 print(results)
             return results

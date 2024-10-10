@@ -49,9 +49,15 @@ class StockSerializer(serializers.ModelSerializer):
 
 
 class StockNewsSerializer(serializers.ModelSerializer):
+    body = serializers.SerializerMethodField()
+
     class Meta:
         model = StockNews
         fields = "__all__"
+
+    def get_body(self, obj):
+        # Use ai_summary if not empty, else use body
+        return obj.ai_summary if obj.ai_summary else obj.body
 
 
 class ReceiptsViewSerializer(serializers.ModelSerializer):

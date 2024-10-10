@@ -43,3 +43,4 @@ tradingview-datafeed
 svglib
 cairosvg
 duckduckgo-search==6.3.0
+newspaper4k

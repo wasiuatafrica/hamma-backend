@@ -11,6 +11,7 @@ class StockNews(auto_prefetch.Model):
     )
     title = models.CharField(max_length=225)
     body = models.TextField()
+    ai_summary = models.TextField(null=True, blank=True)
     published_date = models.DateField(null=True, blank=True)
     url = models.TextField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
