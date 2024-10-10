@@ -1,23 +1,5 @@
-import os
-import requests
-from bs4 import BeautifulSoup
-from openai import AsyncOpenAI, OpenAI
-import openai
-import os
-import requests
-from bs4 import BeautifulSoup
 import newspaper
-import ast
-import asyncio
-import re
-import time as timer
-from datetime import datetime
-from typing import Any, Optional
-
-from asgiref.sync import sync_to_async
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-from duckduckgo_search import DDGS
 from openai import OpenAI
 
 from execution.symbol_pair import pairs
