@@ -78,6 +78,7 @@ from .utils import (
     get_price,
     get_symbol_data,
     get_stock_news,
+    get_calendar
 )
 from .utils import client
 
@@ -486,13 +487,15 @@ class GetSingleStock(APIView):
         overview = get_symbol_overview(symbol)
         fundamental = get_symbol_fundamentals(symbol)
         news = get_stock_news(symbol)
-
+        calendar = get_calendar(symbol)
+        
         response_data = {
             "stock_detail": details,
             "order_book": [],
             "overview": overview,
             "fundamental": fundamental,
             "news": news,
+            'calendar':calendar
             # 'historical_data':historical_data
         }
         return Response(response_data)
