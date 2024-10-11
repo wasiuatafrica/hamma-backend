@@ -153,8 +153,8 @@ def is_within_working_hours():
 
 def switch_to_human_assistant(thread_id, message=None):
 
-    if not is_within_working_hours():
-        return "I apologize, but human support is only available from 9 AM to 5 PM, Monday to Friday, Nigerian time. Is there anything else I can help you with?"
+    # if not is_within_working_hours():
+    #     return "I apologize, but human support is only available from 9 AM to 5 PM, Monday to Friday, Nigerian time. Is there anything else I can help you with?"
 
     #   update thread
     thread = models.SupportThread.objects.get(thread_id=thread_id)
