@@ -100,7 +100,7 @@ def process_company_name(company_name, symbol, sector=None):
 
     processed_name = company_name.replace(".", "")
 
-    context_keywords = [symbol.lower(), "Nigeria"]
+    context_keywords = [symbol, "Nigeria"]
     # if sector:
     #     context_keywords.append(sector)
 
@@ -162,7 +162,7 @@ class Command(BaseCommand):
         asyncio.run(self.async_handle(*args, **options))
 
     async def async_handle(self, *args, **options):
-        max_results = 4
+        max_results = 5
         stocks = await sync_to_async(list)(
             Stock.objects.filter(active=True).order_by("symbol")
             # Stock.objects.filter(symbol__in=["WEMABANK", "ZENITHBANK"])
@@ -263,7 +263,7 @@ class Command(BaseCommand):
         try:
             with DDGS() as ddgs:
                 results = list(
-                    ddgs.news(keywords=query, timelimit="d", max_results=max_results)
+                    ddgs.news(keywords=query, timelimit="w", max_results=max_results)
                 )
                 print(results)
             return results

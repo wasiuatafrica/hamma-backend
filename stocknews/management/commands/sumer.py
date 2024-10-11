@@ -48,7 +48,7 @@ def summarize_text(text, max_tokens=250):
                     },
                     {
                         "role": "user",
-                        "content": f"Please summarize the following text: {text}",
+                        "content": f"Please summarize the following news text: {text}",
                     },
                 ],
                 max_tokens=max_tokens,

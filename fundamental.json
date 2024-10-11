@@ -1,0 +1,707 @@
+{
+    "symbol": "NSENG-ACCESSCORP",
+    "overview_key_stats": [
+        {
+            "title": "Market capitalization",
+            "value": "677.19B",
+            "unit": "NGN"
+        },
+        {
+            "title": "Dividend yield (indicated)",
+            "value": "11.48%",
+            "unit": ""
+        },
+        {
+            "title": "Price to earnings Ratio (TTM)",
+            "value": "0.90",
+            "unit": ""
+        },
+        {
+            "title": "Basic EPS (TTM)",
+            "value": "22.15",
+            "unit": "NGN"
+        },
+        {
+            "title": "Net income (FY)",
+            "value": "641.17B",
+            "unit": "NGN"
+        },
+        {
+            "title": "Revenue (FY)",
+            "value": "2.07T",
+            "unit": "NGN"
+        },
+        {
+            "title": "Shares float",
+            "value": "31.67B",
+            "unit": ""
+        },
+        {
+            "title": "Beta (1Y)",
+            "value": "0.75",
+            "unit": ""
+        }
+    ],
+    "overview_about_asset": [
+        {
+            "title": "Sector",
+            "value": "Finance"
+        },
+        {
+            "title": "Industry",
+            "value": "Major Banks"
+        },
+        {
+            "title": "CEO",
+            "value": "Bolaji Olaitan Agbede"
+        },
+        {
+            "title": "Website",
+            "value": "theaccesscorporation.com"
+        },
+        {
+            "title": "Headquarters",
+            "value": "Lagos"
+        },
+        {
+            "title": "ISIN",
+            "value": "NGACCESS0005"
+        },
+        {
+            "title": "FIGI",
+            "value": "BBG015TNN7C1"
+        }
+    ],
+    "overview_upcoming_earnings": [
+        {
+            "title": "Next report date",
+            "value": "\u2248October 24"
+        },
+        {
+            "title": "Report period",
+            "value": "Q3 2024"
+        },
+        {
+            "title": "EPS estimate",
+            "value": "\u2014"
+        },
+        {
+            "title": "Revenue estimate",
+            "value": "\u2014"
+        }
+    ],
+    "financial_section_table_head_section": {
+        "title": "Currency: NGN",
+        "data": [
+            {
+                "value": "2017",
+                "subVal": "Dec 2017"
+            },
+            {
+                "value": "2018",
+                "subVal": "Dec 2018"
+            },
+            {
+                "value": "2019",
+                "subVal": "Dec 2019"
+            },
+            {
+                "value": "2020",
+                "subVal": "Dec 2020"
+            },
+            {
+                "value": "2021",
+                "subVal": "Dec 2021"
+            },
+            {
+                "value": "2022",
+                "subVal": "Dec 2022"
+            },
+            {
+                "value": "2023",
+                "subVal": "Dec 2023"
+            },
+            {
+                "value": "Current",
+                "subVal": ""
+            }
+        ]
+    },
+    "financial_section_stat_page": {
+        "KeyStats": [
+            {
+                "title": "Total common shares outstanding",
+                "subData": [
+                    "",
+                    "",
+                    "34.98B",
+                    "34.82B",
+                    "34.57B",
+                    "34.29B",
+                    "34.43B",
+                    "34.29B"
+                ]
+            }
+        ],
+        "ValuationRatios": [
+            {
+                "title": "Price to earnings ratio",
+                "subData": [
+                    "",
+                    "",
+                    "3.64",
+                    "2.87",
+                    "2.09",
+                    "1.94",
+                    "1.28",
+                    "0.90"
+                ]
+            },
+            {
+                "title": "Price to sales ratio",
+                "subData": [
+                    "",
+                    "",
+                    "0.55",
+                    "0.43",
+                    "0.32",
+                    "0.26",
+                    "0.40",
+                    "0.21"
+                ]
+            },
+            {
+                "title": "Price to cash flow ratio",
+                "subData": [
+                    "",
+                    "",
+                    "\u2014",
+                    "\u2014",
+                    "2.03",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014"
+                ]
+            },
+            {
+                "title": "Price to book ratio",
+                "subData": [
+                    "",
+                    "",
+                    "0.58",
+                    "0.40",
+                    "0.31",
+                    "0.24",
+                    "0.35",
+                    "0.27"
+                ]
+            },
+            {
+                "title": "Enterprise value",
+                "subData": [
+                    "",
+                    "",
+                    "864.89B",
+                    "343.73B",
+                    "804.91B",
+                    "616.92B",
+                    "1.60T",
+                    "4.74T"
+                ]
+            }
+        ],
+        "LiquidityRatios": [
+            {
+                "title": "Current ratio",
+                "subData": [
+                    "",
+                    "",
+                    "0.49",
+                    "0.49",
+                    "0.60",
+                    "0.52",
+                    "0.51",
+                    "0.36"
+                ]
+            },
+            {
+                "title": "Asset turnover",
+                "subData": [
+                    "",
+                    "",
+                    "0.10",
+                    "0.09",
+                    "0.10",
+                    "0.09",
+                    "0.10",
+                    "0.11"
+                ]
+            },
+            {
+                "title": "Cash & due from banks to total deposits",
+                "subData": [
+                    "",
+                    "",
+                    "0.83",
+                    "0.79",
+                    "0.95",
+                    "0.92",
+                    "0.96",
+                    "1.04"
+                ]
+            },
+            {
+                "title": "Loan losses reserves to total loans",
+                "subData": [
+                    "",
+                    "",
+                    "0.06",
+                    "0.04",
+                    "0.00",
+                    "0.02",
+                    "0.02",
+                    "0.02"
+                ]
+            },
+            {
+                "title": "Non-performing loans to common equity",
+                "subData": [
+                    "",
+                    "",
+                    "0.31",
+                    "0.22",
+                    "0.18",
+                    "0.15",
+                    "0.11",
+                    "\u2014"
+                ]
+            },
+            {
+                "title": "Non-performing loans to loan loss reserves",
+                "subData": [
+                    "",
+                    "",
+                    "0.97",
+                    "1.08",
+                    "1.21",
+                    "1.79",
+                    "1.61",
+                    "\u2014"
+                ]
+            },
+            {
+                "title": "Non-performing loans to total loans",
+                "subData": [
+                    "",
+                    "",
+                    "0.06",
+                    "0.04",
+                    "0.04",
+                    "0.03",
+                    "0.03",
+                    "\u2014"
+                ]
+            },
+            {
+                "title": "Demand deposits to total deposits",
+                "subData": [
+                    "",
+                    "",
+                    "0.40",
+                    "0.41",
+                    "0.37",
+                    "0.42",
+                    "0.45",
+                    "0.45"
+                ]
+            },
+            {
+                "title": "Loan losses (actual) to total loans",
+                "subData": [
+                    "",
+                    "",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014"
+                ]
+            },
+            {
+                "title": "Loan losses (actual) to loan loss reserve",
+                "subData": [
+                    "",
+                    "",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014"
+                ]
+            },
+            {
+                "title": "Loan loss coverage ratio",
+                "subData": [
+                    "",
+                    "",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014"
+                ]
+            }
+        ],
+        "ProfitabilityRatios": [
+            {
+                "title": "Return on assets %",
+                "subData": [
+                    "",
+                    "",
+                    "1.54",
+                    "1.32",
+                    "1.55",
+                    "1.17",
+                    "3.10",
+                    "2.68"
+                ]
+            },
+            {
+                "title": "Return on equity %",
+                "subData": [
+                    "",
+                    "",
+                    "17.22",
+                    "15.56",
+                    "17.87",
+                    "13.98",
+                    "36.57",
+                    "38.60"
+                ]
+            },
+            {
+                "title": "Return on invested capital %",
+                "subData": [
+                    "",
+                    "",
+                    "8.35",
+                    "7.44",
+                    "9.34",
+                    "6.92",
+                    "19.73",
+                    "14.87"
+                ]
+            },
+            {
+                "title": "Operating margin %",
+                "subData": [
+                    "",
+                    "",
+                    "18.81",
+                    "17.87",
+                    "17.03",
+                    "24.82",
+                    "39.66",
+                    "17.82"
+                ]
+            },
+            {
+                "title": "Net margin %",
+                "subData": [
+                    "",
+                    "",
+                    "14.98",
+                    "14.94",
+                    "15.30",
+                    "13.23",
+                    "30.94",
+                    "11.90"
+                ]
+            },
+            {
+                "title": "Non-interest income to total revenue %",
+                "subData": [
+                    "",
+                    "",
+                    "12.96",
+                    "29.65",
+                    "41.51",
+                    "29.81",
+                    "19.93",
+                    "22.92"
+                ]
+            },
+            {
+                "title": "Net interest income to average total deposits %",
+                "subData": [
+                    "",
+                    "",
+                    "8.07",
+                    "5.24",
+                    "4.72",
+                    "4.32",
+                    "5.82",
+                    "6.07"
+                ]
+            },
+            {
+                "title": "Net interest income to earning assets %",
+                "subData": [
+                    "",
+                    "",
+                    "12.13",
+                    "8.60",
+                    "8.24",
+                    "8.63",
+                    "11.52",
+                    "12.02"
+                ]
+            },
+            {
+                "title": "Total interest expense to interest bearing liabs %",
+                "subData": [
+                    "",
+                    "",
+                    "5.11",
+                    "3.43",
+                    "3.50",
+                    "4.17",
+                    "5.41",
+                    "6.30"
+                ]
+            }
+        ],
+        "SolvencyRatios": [
+            {
+                "title": "Debt to assets ratio",
+                "subData": [
+                    "",
+                    "",
+                    "0.27",
+                    "0.22",
+                    "0.27",
+                    "0.25",
+                    "0.25",
+                    "0.30"
+                ]
+            },
+            {
+                "title": "Debt to equity ratio",
+                "subData": [
+                    "",
+                    "",
+                    "3.25",
+                    "2.60",
+                    "3.07",
+                    "3.06",
+                    "2.87",
+                    "4.34"
+                ]
+            },
+            {
+                "title": "Long term debt to total assets ratio",
+                "subData": [
+                    "",
+                    "",
+                    "0.10",
+                    "0.08",
+                    "0.08",
+                    "0.09",
+                    "0.06",
+                    "0.10"
+                ]
+            },
+            {
+                "title": "Long term debt to total equity ratio",
+                "subData": [
+                    "",
+                    "",
+                    "1.25",
+                    "0.97",
+                    "0.87",
+                    "1.15",
+                    "0.70",
+                    "1.47"
+                ]
+            },
+            {
+                "title": "Total deposits to total assets",
+                "subData": [
+                    "",
+                    "",
+                    "0.60",
+                    "0.64",
+                    "0.59",
+                    "0.62",
+                    "0.58",
+                    "0.55"
+                ]
+            },
+            {
+                "title": "Invested assets to total assets",
+                "subData": [
+                    "",
+                    "",
+                    "0.30",
+                    "0.29",
+                    "0.33",
+                    "0.34",
+                    "0.33",
+                    "0.38"
+                ]
+            },
+            {
+                "title": "Loan loss reserves to total assets",
+                "subData": [
+                    "",
+                    "",
+                    "0.03",
+                    "0.02",
+                    "0.00",
+                    "0.01",
+                    "0.01",
+                    "0.01"
+                ]
+            },
+            {
+                "title": "Common equity to total deposits",
+                "subData": [
+                    "",
+                    "",
+                    "0.14",
+                    "0.13",
+                    "0.15",
+                    "0.13",
+                    "0.15",
+                    "0.13"
+                ]
+            },
+            {
+                "title": "Invested assets to total deposits",
+                "subData": [
+                    "",
+                    "",
+                    "0.50",
+                    "0.45",
+                    "0.56",
+                    "0.55",
+                    "0.58",
+                    "0.69"
+                ]
+            },
+            {
+                "title": "Invested assets and net loans to total deposits",
+                "subData": [
+                    "",
+                    "",
+                    "1.23",
+                    "1.12",
+                    "1.21",
+                    "1.17",
+                    "1.17",
+                    "1.32"
+                ]
+            },
+            {
+                "title": "Loan loss reserves to total capital",
+                "subData": [
+                    "",
+                    "",
+                    "0.08",
+                    "0.06",
+                    "0.00",
+                    "0.02",
+                    "0.02",
+                    "0.02"
+                ]
+            },
+            {
+                "title": "Savings deposits to total deposits",
+                "subData": [
+                    "",
+                    "",
+                    "0.60",
+                    "0.59",
+                    "0.63",
+                    "0.58",
+                    "0.55",
+                    "0.55"
+                ]
+            }
+        ],
+        "Other": [
+            {
+                "title": "Tier 1 capital ratio %",
+                "subData": [
+                    "",
+                    "",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014"
+                ]
+            },
+            {
+                "title": "Tier 2 capital ratio %",
+                "subData": [
+                    "",
+                    "",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014"
+                ]
+            },
+            {
+                "title": "Total capital ratio %",
+                "subData": [
+                    "",
+                    "",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014"
+                ]
+            },
+            {
+                "title": "Common equity tier 1 ratio %",
+                "subData": [
+                    "",
+                    "",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014",
+                    "\u2014"
+                ]
+            }
+        ]
+    },
+    "overview_employee_stat": [
+        {
+            "title": "Employees (FY)",
+            "value": "4.17K",
+            "unit": ""
+        },
+        {
+            "title": "Revenue / Employee (1Y)",
+            "value": "544.36K",
+            "unit": "NGN"
+        },
+        {
+            "title": "Net income / Employee (1Y)",
+            "value": "168.41K",
+            "unit": "NGN"
+        }
+    ]
+}
