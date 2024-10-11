@@ -164,7 +164,7 @@ class Command(BaseCommand):
     async def async_handle(self, *args, **options):
         max_results = 5
         stocks = await sync_to_async(list)(
-            Stock.objects.filter(active=True).order_by("symbol")
+            Stock.objects.filter(active=True).order_by("symbol")[24:]
             # Stock.objects.filter(symbol__in=["WEMABANK", "ZENITHBANK"])
         )
 
