@@ -3,7 +3,7 @@ import asyncio
 from math import e
 import re
 import time as timer
-from datetime import datetime
+from datetime import datetime, timedelta
 from os import sync
 from typing import Any, Optional
 
@@ -164,7 +164,7 @@ class Command(BaseCommand):
     async def async_handle(self, *args, **options):
         max_results = 5
         stocks = await sync_to_async(list)(
-            Stock.objects.filter(active=True).order_by("symbol")[24:]
+            Stock.objects.filter(active=True).order_by("symbol")
             # Stock.objects.filter(symbol__in=["WEMABANK", "ZENITHBANK"])
         )
 
@@ -198,19 +198,15 @@ class Command(BaseCommand):
                 continue
 
     async def fetch_and_save_news(self, stock, max_results):
-        # search_query = f"{stock.company} Nigeria"
-        search_query = process_company_name(
-            stock.company.title(), stock.symbol, stock.sector
-        )
+
+        search_query = f"{stock.symbol}"
         print(search_query)
         news_results = await sync_to_async(self.search_news)(search_query, max_results)
         unique_new_result = []
 
         for result in news_results:
             stock_news_exists = await sync_to_async(list)(
-                StockNews.objects.filter(
-                    stock=stock, title__icontains=result["title"].lower()
-                )
+                StockNews.objects.filter(stock=stock, title=result["title"])
             )
             if stock_news_exists:
                 print(f"Skipping '{result['title']}' due to duplicate")
@@ -260,13 +256,23 @@ class Command(BaseCommand):
         )
 
     def search_news(self, query, max_results=5):
+        current_date = timezone.now()
+
+        threshold_date = current_date - timedelta(days=3)
         try:
             with DDGS() as ddgs:
                 results = list(
                     ddgs.news(keywords=query, timelimit="w", max_results=max_results)
                 )
-                print(results)
-            return results
+            sources = ["Morningstar", "Wall Street Journal"]
+            result_list = [
+                new
+                for new in results
+                if new["source"] not in sources
+                and datetime.fromisoformat(new["date"]) > threshold_date
+            ]
+            print(result_list)
+            return result_list
         except Exception as e:
             print(f"Error fetching news: {e}")
             return []
@@ -303,13 +309,14 @@ class Command(BaseCommand):
 
     async def get_unique_news(self, stock, news_results, existing_news):
         prompt = f"""
+        company name:{stock.company}
+        company sector: {stock.sector}
+        
         New objects:{news_results}
         
         Existing news objects:{existing_news}
         
-        company details:
-        name:{stock.company}
-        sector: {stock.sector}
+        
 
         """
 
