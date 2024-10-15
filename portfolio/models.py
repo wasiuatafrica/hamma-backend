@@ -515,3 +515,11 @@ class StockWatchlist(auto_prefetch.Model):
         Stock, on_delete=models.CASCADE, related_name="watchlisted_by"
     )
     created = models.DateTimeField(auto_now_add=True)
+
+
+class ViewOtherIdeasLog(auto_prefetch.Model):
+    email = models.EmailField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.email} - {self.created}"

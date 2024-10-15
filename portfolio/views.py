@@ -55,6 +55,7 @@ from .models import (
     UserSubscribedCategory,
     Wallet,
     WithdrawalOTPRequest,
+    ViewOtherIdeasLog,
 )
 from .serializers import (
     AlertSerializer,
@@ -78,7 +79,7 @@ from .utils import (
     get_price,
     get_symbol_data,
     get_stock_news,
-    get_calendar
+    get_calendar,
 )
 from .utils import client
 
@@ -488,14 +489,14 @@ class GetSingleStock(APIView):
         fundamental = get_symbol_fundamentals(symbol)
         news = get_stock_news(symbol)
         calendar = get_calendar(symbol)
-        
+
         response_data = {
             "stock_detail": details,
             "order_book": [],
             "overview": overview,
             "fundamental": fundamental,
             "news": news,
-            'calendar':calendar
+            "calendar": calendar,
             # 'historical_data':historical_data
         }
         return Response(response_data)
@@ -1634,3 +1635,18 @@ class CheckReaction(APIView):
             return Response(
                 {"message": "Reaction not found"}, status=status.HTTP_404_NOT_FOUND
             )
+
+
+class VIewotherIdeasLogView(APIView):
+    permission_classes = [
+        AllowAny,
+    ]
+
+    def post(self, request):
+        email = request.data.get("email")
+        if not email:
+            return Response(
+                {"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        ViewOtherIdeasLog.objects.create(email=email)
+        return Response(status=status.HTTP_201_CREATED)
