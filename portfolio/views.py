@@ -1667,9 +1667,15 @@ class VIewotherIdeasLogView(APIView):
 
     def post(self, request):
         email = request.data.get("email")
+        id = request.data.get("id")
+        if not id:
+            return Response(
+                {"error": "ID is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
         if not email:
             return Response(
                 {"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST
             )
-        ViewOtherIdeasLog.objects.create(email=email)
+        idea = DashboardFeed.objects.get(id=id)
+        ViewOtherIdeasLog.objects.create(email=email, idea=idea)
         return Response(status=status.HTTP_201_CREATED)

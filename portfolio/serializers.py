@@ -20,6 +20,8 @@ from .models import (
     ButtonClick,
     DashboardFeed,
     FeedReaction,
+    ViewOtherIdeasLog,
+    OpenedDashboardFeed,
 )
 
 
@@ -106,6 +108,8 @@ class DashboardFeedSerializer(serializers.ModelSerializer):
     stock_symbol = serializers.SerializerMethodField()
     category_name = serializers.SerializerMethodField()
     logo_url = serializers.SerializerMethodField()
+    opened = serializers.SerializerMethodField()
+    clicked = serializers.SerializerMethodField()
 
     class Meta:
         model = DashboardFeed
@@ -119,6 +123,18 @@ class DashboardFeedSerializer(serializers.ModelSerializer):
 
     def get_logo_url(self, instance):
         return instance.stock.logo_url if instance.stock else None
+
+    def get_opened(self, instance):
+        opened_emails = OpenedDashboardFeed.objects.filter(feed=instance)
+        if opened_emails:
+            return opened_emails.count()
+        return 0
+
+    def get_clicked(self, instance):
+        clicked_emails = ViewOtherIdeasLog.objects.filter(idea=instance)
+        if clicked_emails:
+            return clicked_emails.count()
+        return 0
 
     def to_representation(self, instance):
         # Get aggregated counts for each reaction type
@@ -137,6 +153,8 @@ class DashboardFeedSerializer(serializers.ModelSerializer):
         ret["stock_symbol"] = self.get_stock_symbol(instance)
         ret["category_name"] = self.get_category_name(instance)
         ret["logo_url"] = self.get_logo_url(instance)
+        ret["opened"] = self.get_opened(instance)
+        ret["clicked"] = self.get_clicked(instance)
 
         return ret
 

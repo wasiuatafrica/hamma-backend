@@ -466,6 +466,11 @@ class DashboardFeed(auto_prefetch.Model):
     status = models.CharField(default="draft", max_length=20)
     category = auto_prefetch.ForeignKey(FeedsCategory, on_delete=models.DO_NOTHING)
     published_date = models.DateTimeField(blank=True, null=True)
+    sent = models.IntegerField(default=0)
+    opened = models.IntegerField(default=0)
+    clicked = models.IntegerField(default=0)
+    bounced = models.IntegerField(default=0)
+    unsubscribed = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.title} - {self.status}"
@@ -536,6 +541,9 @@ class StockWatchlist(auto_prefetch.Model):
 
 class ViewOtherIdeasLog(auto_prefetch.Model):
     email = models.EmailField()
+    idea = auto_prefetch.ForeignKey(
+        DashboardFeed, on_delete=models.CASCADE, blank=True, null=True
+    )
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

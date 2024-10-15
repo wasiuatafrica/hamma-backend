@@ -41,8 +41,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         # user = User.objects.get(email='nwaforglory6@gmail.com')
-        user = User.objects.get(email="nexxyb@gmail.com")
-        # user = User.objects.get(email='wasiu@atafrica.org')
+        # user = User.objects.get(email="nexxyb@gmail.com")
+        user = User.objects.get(email="dev5.ft9ja@gmail.com")
+        # user = User.objects.get(email="wasiu@atafrica.org")
         # user = User.objects.get(email='teamgohamma@gmail.com')
         # user = User.objects.get(email='teamft9ja@gmail.com')
         # user = User.objects.get(email='ideafabulous@gmail.com')

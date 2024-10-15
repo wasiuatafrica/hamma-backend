@@ -780,6 +780,7 @@ def trade_reminder():
 def trading_ideas_task(feed_id):
     feed = DashboardFeed.objects.get(id=feed_id)
     context = {
+        "id": feed.id,
         "topic": feed.topic,
         "symbol_url": feed.stock.email_logo_url,
         "posted_date": feed.published_date,
@@ -794,6 +795,8 @@ def trading_ideas_task(feed_id):
     for user in users:
         # context["image_url"]= f"https://api-hamma-f0bcaabf77ea.herokuapp.com/portfolio/{user.id}/{feed.id}"
         send_trading_idea(user, context)
+    feed.sent = users.count()
+    feed.save()
 
 
 @shared_task
