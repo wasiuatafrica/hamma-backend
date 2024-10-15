@@ -24,6 +24,8 @@ from django.db.models.functions import Rank
 from django.utils import timezone
 from .managers.utils import sendMail
 from portfolio.models import DashboardFeed
+from django.urls import reverse
+
 
 from collections import defaultdict
 import pandas as pd
@@ -653,6 +655,7 @@ def trading_ideas_task(feed_id):
     }
     users = User.objects.filter(is_active=True)
     for user in users:
+        context["image_url"]= f"https://api-hamma-f0bcaabf77ea.herokuapp.com/portfolio/{user.id}/{feed.id}"
         send_trading_idea(user, context)
         
 @shared_task

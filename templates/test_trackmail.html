@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Template</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .email-header {
+            text-align: center;
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border-radius: 8px 8px 0 0;
+        }
+        .email-body {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .email-footer {
+            text-align: center;
+            color: #777;
+            font-size: 12px;
+        }
+        a.button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 20px 0;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        a.button:hover {
+            background-color: #218838;
+        }
+        .tracker {
+            /* background-image: url('https://f75e-105-112-102-163.ngrok-free.app/track-mail'); */
+            width: 1px;
+            height: 1px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <img src="{{image_url}}" alt="tracking pixel", width="1" height="1">
+
+        <div class="email-header">
+            <h1>Welcome to Our Service</h1>
+        </div>
+        <div class="email-body">
+            <img src="{{ image_url }}" alt="Tracking Image" width="100" height="100" style="display:block;" />
+            <div class="tracker"></div>
+            <p>Hi there1245,</p>
+            <p>Thank you for joining us! We're excited to have you on board.</p>
+            <p>If you have any questions, feel free to reach out to us by clicking the button below:</p>
+            <a href="mailto:support@example.com" class="button">Email Us</a>
+        </div>
+        <div class="email-footer">
+            <p>&copy; 2024 Our Service. All rights reserved.</p>
+            <p><a href="https://example.com/unsubscribe">Unsubscribe</a></p>
+            <img src="{{image_url}}" alt="tracking pixel", width="500" height="500">
+        </div>
+    </div>
+</body>
+</html>
