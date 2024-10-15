@@ -199,7 +199,7 @@ class Command(BaseCommand):
 
     async def fetch_and_save_news(self, stock, max_results):
 
-        search_query = f"{stock.symbol}"
+        search_query = f"{stock.symbol} "
         print(search_query)
         news_results = await sync_to_async(self.search_news)(search_query, max_results)
         unique_new_result = []
@@ -262,9 +262,9 @@ class Command(BaseCommand):
         try:
             with DDGS() as ddgs:
                 results = list(
-                    ddgs.news(keywords=query, timelimit="w", max_results=max_results)
+                    ddgs.news(keywords=query, timelimit="d", max_results=max_results)
                 )
-            sources = ["Morningstar", "Wall Street Journal"]
+            sources = ["Morningstar", "Wall Street Journal", "Forbes"]
             result_list = [
                 new
                 for new in results
