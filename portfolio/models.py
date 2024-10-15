@@ -469,17 +469,23 @@ class DashboardFeed(auto_prefetch.Model):
 
     def __str__(self):
         return f"{self.title} - {self.status}"
-    
+
     @property
     def unique_email_open_count(self):
         return OpenedDashboardFeed.objects.filter(feed=self).count()
 
 
 class OpenedDashboardFeed(auto_prefetch.Model):
-    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE, related_name="opened_by")
+    user = auto_prefetch.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="opened_by"
+    )
     feed = models.ForeignKey(
         DashboardFeed, on_delete=models.CASCADE, related_name="opened_feeds"
     )
+    created = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.user.email}-{self.feed.title} -{self.created}"
 
 
 class FeedReaction(models.Model):
