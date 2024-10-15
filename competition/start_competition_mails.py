@@ -34,6 +34,9 @@ def send_daily_trade_confirmation(user, context: dict):
 
 def send_trading_idea(user, context: dict = {}):
     context["useremail"] = user.email
+    context["image_url"] = (
+        f"https://api-hamma-f0bcaabf77ea.herokuapp.com/portfolio/{user.id}/{context['id']}"
+    )
     send = sendTemplateMail(
         subject="New Trading Idea",
         recipient_list=[user.email],

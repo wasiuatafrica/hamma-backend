@@ -67,6 +67,7 @@ class Command(BaseCommand):
         feed = DashboardFeed.objects.last()
 
         context = {
+            "id": feed.id,
             "topic": feed.topic,
             "symbol_url": feed.stock.email_logo_url,
             "posted_date": feed.published_date,

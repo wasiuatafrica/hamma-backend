@@ -43,8 +43,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        user = User.objects.get(email="nwaforglory6@gmail.com")
-        # user = User.objects.get(email='nexxyb@gmail.com')
+        # user = User.objects.get(email="nwaforglory6@gmail.com")
+        user = User.objects.get(email="nexxyb@gmail.com")
         # user2 = User.objects.get(email='wasiu@atafrica.org')
         # user = User.objects.get(email='teamgohamma@gmail.com')
         # user = User.objects.get(email='teamft9ja@gmail.com')
@@ -80,13 +80,13 @@ class Command(BaseCommand):
         # }
         # uncomment this to send mail
 
-        # send_trading_idea(user, context)
+        send_trading_idea(user, context)
         # send_trading_idea(user2, context)
-        context["image_url"] = (
-            f"https://api-hamma-f0bcaabf77ea.herokuapp.com/portfolio/{user.id}/{feed.id}"
-        )
-        print(context, "this is the context..")
-        track_mail_func(user, context)
+        # context["image_url"] = (
+        #     f"https://api-hamma-f0bcaabf77ea.herokuapp.com/portfolio/{user.id}/{feed.id}"
+        # )
+        # print(context, "this is the context..")
+        # track_mail_func(user, context)
 
 
 def track_mail_func(user, context: dict = {}):

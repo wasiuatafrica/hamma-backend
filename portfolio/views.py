@@ -55,11 +55,8 @@ from .models import (
     UserSubscribedCategory,
     Wallet,
     WithdrawalOTPRequest,
-
     OpenedDashboardFeed,
-
     ViewOtherIdeasLog,
-
 )
 from .serializers import (
     AlertSerializer,
@@ -1654,13 +1651,14 @@ def track_daily_mail(request, user_id, feed_id):
     user = User.objects.get(id=user_id)
 
     # check if the feed as been oped before
-    feed_has_been_opened = OpenedDashboardFeed.objects.filter(user=user).exists()
-    if not feed_has_been_opened:  # user has not opened it before
-        OpenedDashboardFeed.objects.create(user=user, feed=feed)
+    # feed_has_been_opened = OpenedDashboardFeed.objects.filter(user=user).exists()
+    # if not feed_has_been_opened:  # user has not opened it before
+    OpenedDashboardFeed.objects.create(user=user, feed=feed)
 
     # Serve a 1x1 pixel image (tracking pixel)
     pixel = b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x4c\x01\x00\x3b"
     return HttpResponse(pixel, content_type="image/gif")
+
 
 class VIewotherIdeasLogView(APIView):
     permission_classes = [
@@ -1675,4 +1673,3 @@ class VIewotherIdeasLogView(APIView):
             )
         ViewOtherIdeasLog.objects.create(email=email)
         return Response(status=status.HTTP_201_CREATED)
-
