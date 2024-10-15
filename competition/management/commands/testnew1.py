@@ -15,6 +15,8 @@ from .convert_to_png_upload_s3 import run_process, return_svg_logo
 from portfolio.models import Stock
 import json
 from portfolio.models import DashboardFeed
+from django.urls import reverse
+
 
 User = get_user_model()
 from competition.start_competition_mails import simulate__mail
@@ -63,7 +65,7 @@ class Command(BaseCommand):
         # send_trading_rules(user)
 
         feed = DashboardFeed.objects.last()
-        context = {"image_url": "https://6277-105-112-208-52.ngrok-free.app/track-mail"}
+        context = {}
 
         # context = {
         #     "topic": feed.topic,
@@ -80,6 +82,10 @@ class Command(BaseCommand):
 
         # send_trading_idea(user, context)
         # send_trading_idea(user2, context)
+        context["image_url"] = (
+            f"https://api-hamma-f0bcaabf77ea.herokuapp.com/portfolio/{user.id}/{feed.id}"
+        )
+        print(context, "this is the context..")
         track_mail_func(user, context)
 
 

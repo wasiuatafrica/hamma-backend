@@ -11,38 +11,38 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-from django.http import HttpResponse
-from django.utils import timezone
-import logging
-import datetime
-from PIL import Image
+# from django.http import HttpResponse
+# from django.utils import timezone
+# import logging
+# import datetime
+# from PIL import Image
 
-# Set up logging to a file
-logger = logging.getLogger(__name__)
-logging.basicConfig(filename="email_open_log.log", level=logging.INFO)
+# # Set up logging to a file
+# logger = logging.getLogger(__name__)
+# logging.basicConfig(filename="email_open_log.log", level=logging.INFO)
 
 
-def track_daily_mail(request, user_id=None):
-    print("heloo")
-    # # # Log when the email is opened
-    # log_info = f"Email opened by User ID: {user_id} at {datetime.datetime.now()} from IP: {request.META.get('REMOTE_ADDR')}"
-    # logger.info(log_info)
-    # print(log_info)  # Also print to console for immediate feedback
+# def track_daily_mail(request, user_id=None):
+#     # print("heloo")
+#     # # # Log when the email is opened
+#     # log_info = f"Email opened by User ID: {user_id} at {datetime.datetime.now()} from IP: {request.META.get('REMOTE_ADDR')}"
+#     # logger.info(log_info)
+#     # print(log_info)  # Also print to console for immediate feedback
 
-    # # Serve a 1x1 pixel image (tracking pixel)
-    # pixel = b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x4c\x01\x00\x3b"
-    # return HttpResponse(pixel, content_type="image/gif")
-    print("\nImage Loaded\n")
-    red = Image.new("RGB", (1, 1))
-    response = HttpResponse(content_type="image/png")
-    red.save(response, "PNG")
-    return response
+#     # Serve a 1x1 pixel image (tracking pixel)
+#     pixel = b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x4c\x01\x00\x3b"
+#     return HttpResponse(pixel, content_type="image/gif")
+#     # print("\nImage Loaded\n")
+#     # red = Image.new("RGB", (1, 1))
+#     # response = HttpResponse(content_type="image/png")
+#     # red.save(response, "PNG")
+#     # return response
 
 
 urlpatterns = (
     [
         path("devadmin/", admin.site.urls),
-        path("track-mail", track_daily_mail, name="track_daily_mail"),
+        # path("track-mail", track_daily_mail, name="track_daily_mail"),
         # path("home/", views.Home.as_view(), name="home"),
         path(
             "",
