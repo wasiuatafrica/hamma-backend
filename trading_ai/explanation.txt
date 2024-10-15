@@ -1,0 +1,73 @@
+Thank you for the clarification! Let me refine the user flow based on the fact that this is only the **AI screen**, and we'll focus on how the **AI signals** will guide trading actions. Additionally, I'll include how a trade might be placed based on the mockup design and what the user is expected to provide.
+
+### Revised User Flow for the AI Screen:
+
+1. **Profile Customization Flow (Left Sidebar)**:
+   - **User Action**: The user clicks on "Upgrade Profile" or interacts with the left sidebar that lets them adjust settings like risk profile, trading personality, and trading style.
+   - **Expected Outcome**: The AI recommendations on the right-hand side adapt based on the user's personalized profile.
+      - For example, after adjusting the risk profile to "High Risk", the AI may prioritize more volatile assets or signals with higher potential rewards.
+      - Conversely, adjusting to "Low Risk" may result in safer, lower-volatility trading signals.
+   - **How it Affects the Interface**: The main AI signals dynamically adjust based on the profile, offering personalized recommendations for the user to follow.
+
+### 2. **Interaction with AI Trading Signals (Right Panel)**:
+   - **User Action**: The user views the AI-generated signals on the right-hand side, represented by the asset cards with metrics such as:
+      - **Long/Short Recommendations**: "Long 91%" and "Short 9%" percentages.
+      - **1-Day Change**: Asset performance over the last 24 hours.
+   - **Expected Outcome**: 
+      - The user can get an overview of AI-driven suggestions—whether to go long or short on a specific asset.
+      - Clicking on the asset card reveals additional information, such as the rationale behind the AI recommendation, price charts, and maybe even sentiment analysis.
+   - **How it Affects the Interface**: Clicking on the asset card could open a modal or side panel that displays more in-depth information without navigating away from the AI screen. This view may include technical metrics, graphs, and more detailed AI reasoning.
+
+### 3. **Dropdown Tabs Interaction Flow (Tab 1, Tab 2, Tab 3 on Asset Cards)**:
+   - **User Action**: The user clicks on the tabs inside the asset card (e.g., "tab 1", "tab 2", "tab 3").
+   - **Expected Outcome**: Each tab reveals a different aspect of the AI signal:
+     - **Tab 1**: The default overview showing a summary of AI's Long/Short recommendation, performance indicators, and risk level.
+     - **Tab 2**: Deeper analysis, including supporting data like trend lines, volatility levels, or sentiment indicators.
+     - **Tab 3**: Any additional asset-specific AI insights, such as predicted future movements or correlations with other assets.
+   - **How it Affects the Interface**: These tabs allow the user to gather different levels of insights from the AI before making a trading decision. It prevents information overload by organizing the data into digestible tabs.
+
+---
+
+### Trade Placement Flow on AI Screen:
+
+Once the user has evaluated the AI signals and chosen an asset to trade, here’s how the **trade placement flow** might work:
+
+1. **Selecting a Trade Action**:
+   - **User Action**: After reviewing the AI's signal (e.g., "Long 91%" on an asset), the user clicks on the trade action button within the asset card, such as:
+     - "Go Long" for a buy/long position.
+     - "Go Short" for a sell/short position.
+   - **Expected Outcome**: Clicking on one of these buttons opens a **trade placement modal** where the user can confirm the trade.
+   - **How it Affects the Interface**: The interface provides a quick transition from signal review to trade execution, ensuring a smooth trading experience without the user navigating away from the AI screen.
+
+2. **Trade Confirmation Modal**:
+   - **User Action**: The user is presented with a modal (pop-up) that requires specific trade details:
+     - **Trade Amount**: Input field where the user enters the size of the trade (e.g., number of shares, units of cryptocurrency).
+     - **Leverage (optional)**: If the platform supports margin trading, users might choose a leverage multiplier (e.g., 2x, 5x, 10x).
+     - **Stop-Loss/Take-Profit Levels (optional)**: The user may optionally set automatic exit points (stop-loss to limit losses, take-profit to lock in gains).
+     - **Confirm Button**: A button to finalize the trade.
+   - **Expected Outcome**: Once the user confirms, the trade is placed based on the AI's signal and the user’s inputs. The user gets a trade confirmation notification.
+   - **How it Affects the Interface**: After confirming the trade, the modal closes, and the user is returned to the AI screen where they can continue browsing other signals.
+
+3. **Post-Trade Feedback (Optional)**:
+   - **User Action**: The system could provide **immediate feedback** post-trade, such as displaying a message like "Trade Executed" with details of the position (asset, long/short, size, etc.).
+   - **Expected Outcome**: The user can track their open positions directly from another section of the app, likely under a "Positions" tab in the sidebar.
+   - **How it Affects the Interface**: Once a trade is placed, it might be reflected in other parts of the application, such as the user’s portfolio or open positions dashboard, but the user remains on the AI screen.
+
+---
+
+### Information the User Provides Before Trade Placement:
+   - **Amount to Invest**: The quantity or size of the trade (e.g., how many units or the dollar value to trade).
+   - **Leverage (if applicable)**: Whether or not to apply leverage, and if so, how much leverage to use.
+   - **Stop-Loss and Take-Profit (optional)**: Limits that the user can set to automatically exit the trade if certain conditions are met.
+
+---
+
+### Final Revised User Flow for AI Screen:
+1. **Customize Profile**: User adjusts trading personality, risk tolerance, etc., from the sidebar.
+2. **View AI Signals**: User sees asset recommendations (e.g., Long/Short percentages) on the right panel.
+3. **Interact with Asset Cards**: User clicks on asset cards for more detailed analysis or interacts with the tabs within the cards to explore different data.
+4. **Place Trade**: User selects a "Go Long" or "Go Short" option directly from the asset card.
+5. **Enter Trade Details**: User confirms trade amount, leverage, stop-loss, and take-profit (if applicable) in a trade confirmation modal.
+6. **Confirm Trade**: User places the trade, and a confirmation notification is displayed.
+
+This flow ensures a smooth transition from AI signal review to trade execution while keeping the focus on the AI-driven insights. Let me know if you'd like any further details!

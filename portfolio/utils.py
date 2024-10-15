@@ -23,6 +23,7 @@ client = MongoClient(
 db_merged = client["livelake3"]
 db_details = client["ngxlistedcompanies"]
 db_fundamental = client["ngxfundamentals"]
+db_calendar = client["ngxcalendar"]
 
 
 def connect_to_mongodb(db_name):
@@ -329,3 +330,12 @@ def get_stock_news(symbol):
     ]
     news_data = StockNewsSerializer(news, many=True).data
     return news_data
+
+
+def get_calendar(symbol):
+    collection = db_calendar[symbol]
+    company_data = collection.find_one({})
+    if company_data:
+        company_data.pop("_id", None)
+        return company_data
+    return {}

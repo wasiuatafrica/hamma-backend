@@ -66,6 +66,9 @@ urlpatterns = [
         "reactions/check/<str:feed_id>/",
         views.CheckReaction.as_view(),
     ),
+
+    path("view-other-ideas-log/", views.VIewotherIdeasLogView.as_view()),
+
     # support
     path("wallet/support/<str:email>/", views.SupportWalletBalance.as_view()),
     path("alert/support/<str:email>/", views.SupportAlertView.as_view()),
@@ -74,10 +77,12 @@ urlpatterns = [
         "support/stock-watchlist/<str:email>/",
         views.SupportStockWatchlistAPIView.as_view(),
     ),
+
     # track trading ideas
     path(
         "track-mail/<int:user_id>/<int:feed_id>",
         views.track_daily_mail,
         name="track_daily_mail",
     ),
+
 ]

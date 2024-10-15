@@ -2,27 +2,28 @@ from helpers import sendTemplateMail
 from accounts.models import CustomUser
 
 
-
 def send_trading_rules(user):
-    send= sendTemplateMail(
+    send = sendTemplateMail(
         subject="Rules of Engagement",
         recipient_list=[user.email],
-        context={"first_name":user.firstname.title()},
+        context={"first_name": user.firstname.title()},
         template="competition/trading_rules.html",
     )
     return
 
+
 def send_trade_reminder(user):
-    send= sendTemplateMail(
+    send = sendTemplateMail(
         subject="Get Gingered",
         recipient_list=[user.email],
-        context={"first_name":user.firstname.title()},
+        context={"first_name": user.firstname.title()},
         template="competition/trade_reminder.html",
     )
     return
 
-def send_daily_trade_confirmation(user, context:dict):
-    send= sendTemplateMail(
+
+def send_daily_trade_confirmation(user, context: dict):
+    send = sendTemplateMail(
         subject="A New Day with a New Trade",
         recipient_list=[user.email],
         context=context,
@@ -30,8 +31,10 @@ def send_daily_trade_confirmation(user, context:dict):
     )
     return
 
-def send_trading_idea(user, context:dict={}):
-    send= sendTemplateMail(
+
+def send_trading_idea(user, context: dict = {}):
+    context["useremail"] = user.email
+    send = sendTemplateMail(
         subject="New Trading Idea",
         recipient_list=[user.email],
         context=context,
@@ -43,11 +46,13 @@ def send_trading_idea(user, context:dict={}):
 # simulate mails to test changes of healines
 
 from accounts import tasks as mail_tasks
-from competition import tasks as com_task_mails 
+from competition import tasks as com_task_mails
 from portfolio import tasks as port_task_mails
 
-def simulate__mail(payload: any = None, id:int=1):
+
+def simulate__mail(payload: any = None, id: int = 1):
     from competition import views
+
     # mail_tasks.after_signup_36h(id=1)
     # mail_tasks.welcome_1c(id=1)
     # mail_tasks.welcome_1b(id)
@@ -76,7 +81,7 @@ def simulate__mail(payload: any = None, id:int=1):
     # com_task_mails.three_days_after_end()
     # 19
     views.send_top_trader_payment_processing_mail("nwaforglory6@gmail.com")
-# send_top_trader_payment_processing_mail
+    # send_top_trader_payment_processing_mail
 
     # 21
     # user= CustomUser.objects.get(id=1)

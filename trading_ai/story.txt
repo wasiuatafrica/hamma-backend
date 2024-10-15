@@ -1,0 +1,31 @@
+Here’s the user story version of the flow for the **AI screen** of the trading platform:
+
+### User Story: Trading with AI Signals
+
+1. **As a user, I want to customize my trading profile**, so that the AI provides personalized trading signals based on my preferences.
+   - I can click on "Upgrade Profile" in the sidebar to adjust my risk profile, trading personality, and style.
+   - I want to see the AI signals adjust dynamically based on my settings, offering more aggressive signals if I choose a high-risk profile or safer ones if I set it to low risk.
+
+2. **As a user, I want to view AI-generated signals** for various assets directly on the AI screen, so I can quickly understand which assets the AI recommends for trading.
+   - I can see the percentage breakdown of "Long" vs. "Short" signals for each asset, along with a performance indicator (like 1-day change).
+   - I can click on the asset card to get more details about the AI’s recommendation.
+
+3. **As a user, I want to explore deeper analysis for each asset**, so that I can make informed decisions based on various data points.
+   - Each asset card has tabs like "Tab 1", "Tab 2", and "Tab 3".
+   - I can click these tabs to access additional details, such as technical analysis, AI reasoning, and future predictions.
+
+4. **As a user, I want to place a trade directly from the AI screen**, so I can quickly act on the AI’s recommendations without leaving the page.
+   - I can click on the "Go Long" or "Go Short" buttons within an asset card to start placing a trade based on the AI’s suggestion.
+
+5. **As a user, I want to specify trade details before confirming the trade**, so I can control how much to invest and set any risk management parameters.
+   - After selecting "Go Long" or "Go Short", a trade confirmation modal appears where I can input the trade amount, choose leverage (if applicable), and set optional stop-loss and take-profit limits.
+
+6. **As a user, I want to confirm the trade and receive feedback**, so I know the trade has been successfully placed.
+   - I can click "Confirm" in the trade modal to execute the trade.
+   - I want to receive a confirmation message that the trade has been executed.
+
+7. **As a user, I want to stay on the AI screen after placing a trade**, so I can continue exploring other AI-generated signals and place more trades if desired.
+
+---
+
+This user story breaks down the full flow into specific tasks and expectations from a user's perspective, focusing on each step of the interaction with the AI screen and trade placement. Let me know if this works!

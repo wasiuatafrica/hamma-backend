@@ -55,7 +55,11 @@ from .models import (
     UserSubscribedCategory,
     Wallet,
     WithdrawalOTPRequest,
+
     OpenedDashboardFeed,
+
+    ViewOtherIdeasLog,
+
 )
 from .serializers import (
     AlertSerializer,
@@ -79,6 +83,7 @@ from .utils import (
     get_price,
     get_symbol_data,
     get_stock_news,
+    get_calendar,
 )
 from .utils import client
 
@@ -487,6 +492,7 @@ class GetSingleStock(APIView):
         overview = get_symbol_overview(symbol)
         fundamental = get_symbol_fundamentals(symbol)
         news = get_stock_news(symbol)
+        calendar = get_calendar(symbol)
 
         response_data = {
             "stock_detail": details,
@@ -494,6 +500,7 @@ class GetSingleStock(APIView):
             "overview": overview,
             "fundamental": fundamental,
             "news": news,
+            "calendar": calendar,
             # 'historical_data':historical_data
         }
         return Response(response_data)
@@ -1654,3 +1661,18 @@ def track_daily_mail(request, user_id, feed_id):
     # Serve a 1x1 pixel image (tracking pixel)
     pixel = b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x4c\x01\x00\x3b"
     return HttpResponse(pixel, content_type="image/gif")
+
+class VIewotherIdeasLogView(APIView):
+    permission_classes = [
+        AllowAny,
+    ]
+
+    def post(self, request):
+        email = request.data.get("email")
+        if not email:
+            return Response(
+                {"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        ViewOtherIdeasLog.objects.create(email=email)
+        return Response(status=status.HTTP_201_CREATED)
+

@@ -33,7 +33,9 @@ class AdminSupportConsumer(AsyncWebsocketConsumer):
 
         try:
             user = CustomUser.objects.get(id=user_id)
-            return True if (user.is_superuser | user.is_staff) else False
+            return (
+                True if (user.is_superuser | user.is_staff | user.is_analyst) else False
+            )
         except Exception as e:
             logger.error(f"Error getting user 1: {e}")
             return None
@@ -189,7 +191,9 @@ class AdminSupportConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
 
-        await self.channel_layer.group_add(self.channel_room_name, self.channel_name)
+        await self.channel_layer.group_discard(
+            self.channel_room_name, self.channel_name
+        )
 
     async def receive(self, text_data):
         try:
