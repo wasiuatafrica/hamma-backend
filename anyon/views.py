@@ -50,7 +50,7 @@ from execution import models as exec_models
 from execution.models import Portfolio
 from notifications.utils import save_and_send_notification
 from portfolio import models
-from portfolio.models import PayStackReceipts, Receipts, Stock, Wallet
+from portfolio.models import PayStackReceipts, Receipts, Stock, Wallet, OpenedDashboardFeed,ViewOtherIdeasLog
 from portfolio.utils import get_price
 from supportwithemail.models import (
     SupportAdminProfile,
@@ -2823,3 +2823,19 @@ class SupportMessageDisclaimerView(APIView):
         paginated_data = paginator.paginate_queryset(serializer.data, request)
 
         return paginator.get_paginated_response(paginated_data)
+
+class OpenedEmailLogsAdminView(APIView):
+    def get(self, request):
+        paginator = CustomizedPaginator()  # Instantiate your custom paginator
+        email_logs = OpenedDashboardFeed.objects.all().order_by("-created")
+        paginated_email_logs = paginator.paginate_queryset(email_logs, request)
+        serializer =serializers.OpenedEmailSerializer(paginated_email_logs, many=True)
+        return paginator.get_paginated_response(serializer.data)
+    
+class ViewOtherIdeasAdminView(APIView):
+    def get(self, request):
+        paginator = CustomizedPaginator()  # Instantiate your custom paginator
+        email_logs = ViewOtherIdeasLog.objects.all().order_by("-created")
+        paginated_email_logs = paginator.paginate_queryset(email_logs, request)
+        serializer =serializers.ViewedOtherIdeasSerializer(paginated_email_logs, many=True)
+        return paginator.get_paginated_response(serializer.data)

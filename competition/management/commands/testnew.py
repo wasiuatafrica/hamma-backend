@@ -64,7 +64,8 @@ class Command(BaseCommand):
         #     feed1 = DashboardFeed.objects.last()
         # #     # print(feed.stock.logo_url)
         # #     # process = run_process(feed1.stock.logo_url, feed1.stock)
-        feed = DashboardFeed.objects.order_by("?").last()
+        # feed = DashboardFeed.objects.order_by("?").last()
+        feed = DashboardFeed.objects.last()
 
         context = {
             "id": feed.id,

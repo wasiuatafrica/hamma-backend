@@ -73,4 +73,6 @@ urlpatterns = [
         views.AdminViewSupportMessageRequest.as_view(),
     ),
     path("support/disclaimer/", views.SupportMessageDisclaimerView.as_view()),
+    path("opened-email/", views.OpenedEmailLogsAdminView.as_view()),
+    path("other-ideas/", views.ViewOtherIdeasAdminView.as_view()),
 ]
