@@ -18,6 +18,7 @@ from .models import (
     DemoTransaction,
     FeedsCategory,
     ViewOtherIdeasLog,
+    OpenedDashboardFeed,
 )
 
 
@@ -58,3 +59,4 @@ admin.site.register(DemoTransaction)
 admin.site.register(ButtonClick)
 admin.site.register(DashboardFeed)
 admin.site.register(ViewOtherIdeasLog)
+admin.site.register(OpenedDashboardFeed)
