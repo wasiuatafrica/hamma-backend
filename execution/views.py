@@ -4075,7 +4075,7 @@ def get_holdings_positions(queryset):
         data = {
             "id": position.id,
             "stock": position.stock.symbol,
-            "logo_url": position.stock.symbol.logo_url,
+            "logo_url": position.stock.logo_url,
             "shares": position.quantity,
             "avg_cost": position.open_price,
             "close_price": position.close_price,
