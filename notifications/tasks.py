@@ -9,8 +9,12 @@ from .utils import table
 def update_notifications_task(user_id):
 
     response = table.query(
-        KeyConditionExpression=Key("user_id").eq(user_id),
-        FilterExpression=Attr("is_read").eq(False),
+        KeyConditionExpression="user_id = :uid",
+        FilterExpression="is_read = :ir",
+        ExpressionAttributeValues={
+            ":uid": str(user_id),
+            ":ir": "False",
+        },
     )
 
     notifications = response.get("Items", [])
