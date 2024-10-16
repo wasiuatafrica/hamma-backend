@@ -14,8 +14,12 @@ def update_notifications_task(user_id):
     )
 
     notifications = response.get("Items", [])
+    print(f"Found {len(notifications)} unread notifications for user {user_id}")
 
     for notification in notifications:
+        print(
+            f"Updating notification {notification['notification_id']} for user {user_id}"
+        )
         table.update_item(
             Key={
                 "user_id": user_id,
@@ -24,5 +28,6 @@ def update_notifications_task(user_id):
             UpdateExpression="SET is_read = :ir",
             ExpressionAttributeValues={":ir": True},
         )
+    print(f"Updated {len(notifications)} notifications for user {user_id}")
 
     return len(notifications)
