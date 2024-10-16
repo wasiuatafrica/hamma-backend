@@ -1,3 +1,4 @@
+import asyncio
 import json
 import random
 from datetime import datetime, timedelta
@@ -5,10 +6,12 @@ from decimal import Decimal
 from random import randint
 
 import pytz
+from asgiref.sync import async_to_sync, sync_to_async
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db import close_old_connections
 from django.db.models import Count, Exists, F, OuterRef, Q, Sum
+from django.http import HttpResponse
 from django.shortcuts import get_list_or_404, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -22,10 +25,6 @@ from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
 )
-
-import asyncio
-from asgiref.sync import sync_to_async, async_to_sync
-
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -47,16 +46,16 @@ from .models import (
     FeedReaction,
     FeedsCategory,
     Message,
+    OpenedDashboardFeed,
     PayStackReceipts,
     Receipts,
     Stock,
     StockWatchlist,
     Transaction,
     UserSubscribedCategory,
+    ViewOtherIdeasLog,
     Wallet,
     WithdrawalOTPRequest,
-    OpenedDashboardFeed,
-    ViewOtherIdeasLog,
 )
 from .serializers import (
     AlertSerializer,
@@ -72,17 +71,17 @@ from .serializers import (
     TransactionSerializer,
 )
 from .utils import (
+    client,
+    get_calendar,
     get_details3,
     get_historical_data,
     get_mini_data,
-    get_symbol_overview,
-    get_symbol_fundamentals,
     get_price,
-    get_symbol_data,
     get_stock_news,
-    get_calendar,
+    get_symbol_data,
+    get_symbol_fundamentals,
+    get_symbol_overview,
 )
-from .utils import client
 
 User = get_user_model()
 
@@ -1639,9 +1638,6 @@ class CheckReaction(APIView):
 
 
 # track opend daily trading ideas
-from django.http import HttpResponse
-from django.utils import timezone
-import datetime
 
 
 def track_daily_mail(request, user_id, feed_id):
