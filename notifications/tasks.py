@@ -18,6 +18,7 @@ def update_notifications_task(user_id):
     )
 
     notifications = response.get("Items", [])
+    notifications.sort(key=lambda x: x["timestamp"], reverse=True)
     print(f"Found {len(notifications)} unread notifications for user {user_id}")
 
     for notification in notifications:
