@@ -262,7 +262,7 @@ class Command(BaseCommand):
         try:
             with DDGS() as ddgs:
                 results = list(
-                    ddgs.news(keywords=query, timelimit="d", max_results=max_results)
+                    ddgs.news(keywords=query, timelimit="w", max_results=max_results)
                 )
             sources = ["Morningstar", "Wall Street Journal", "Forbes"]
             result_list = [
