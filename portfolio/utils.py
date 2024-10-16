@@ -1,18 +1,19 @@
-from django.core.mail import send_mail
-from pymongo import MongoClient
 import json
-from bson import json_util
-from portfolio.serializers import AlertSerializer
-import websockets
-import asyncio
-from openai import OpenAI
-from django.contrib.auth import get_user_model
-from .models import Alert, AlertAI, Conversation, Message
-from concurrent.futures import ThreadPoolExecutor
-import os
 import math
+import os
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
+
+from bson import json_util
+from django.contrib.auth import get_user_model
+from openai import OpenAI
+from pymongo import MongoClient
+
 from execution.symbol_pair import pairs
+from portfolio.serializers import AlertSerializer
 from stocknews.models import StockNews
+
+from .models import Alert, AlertAI, Conversation, Message
 from .serializers import StockNewsSerializer
 
 User = get_user_model()
@@ -332,10 +333,36 @@ def get_stock_news(symbol):
     return news_data
 
 
+# def get_calendar(symbol):
+#     collection = db_calendar[symbol]
+#     company_data = collection.find_one({})
+#     if company_data:
+#         company_data.pop("_id", None)
+#         return company_data
+#     return {}
+
+
 def get_calendar(symbol):
     collection = db_calendar[symbol]
     company_data = collection.find_one({})
     if company_data:
         company_data.pop("_id", None)
+
+        # Get current date
+        current_date = datetime.now().date()
+
+        # Calculate the date 5 years ago
+        five_years_ago = current_date - timedelta(days=5 * 365)
+
+        # Filter and sort events
+        filtered_events = [
+            event
+            for event in company_data.get("events", [])
+            if datetime.strptime(event["date"], "%Y-%m-%d").date() >= five_years_ago
+        ]
+
+        sorted_events = sorted(filtered_events, key=lambda x: x["date"], reverse=True)
+
+        company_data["events"] = sorted_events
         return company_data
     return {}
