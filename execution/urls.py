@@ -65,4 +65,8 @@ urlpatterns = [
         "demo/support/trade/<str:account_type>/<str:id>/",
         views.SupportSingleDemoTradeAPIView.as_view(),
     ),  # DONE
+    path(
+        "demo/support/overview/<str:account_type>/<str:id>/<str:from_date>/<str:to_date>/",
+        views.SupportNewOverView.as_view(),
+    ),
 ]
