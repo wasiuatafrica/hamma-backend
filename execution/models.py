@@ -323,7 +323,7 @@ class DemoDailyReturns2(auto_prefetch.Model):
     def __str__(self):
         return (
             f"{self.user}-{self.portfolio.account_name}"
-            if self.portfolio.account_name
+            if self.portfolio.account_name and self.portfolio
             else self.user
         )
 
