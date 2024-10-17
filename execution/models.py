@@ -320,6 +320,9 @@ class DemoDailyReturns2(auto_prefetch.Model):
     market_returns = models.FloatField(default=0.0)
     created = models.DateTimeField(null=True, blank=True)
 
+    def __str__(self):
+        f"{self.user}-{self.portfolio.account_name}"
+
 
 class DailyReturns2(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(

@@ -3149,13 +3149,33 @@ class NewHome(APIView):
                     pl, cur_val, price = position.calculate_profit_loss()
                     symbol = position.stock.symbol
                     print(pl)
-                    data2 = {"stock": symbol, "current_value": round(cur_val, 2)}
+                    data2 = {
+                        "stock": symbol,
+                        "current_value": round(cur_val, 2),
+                        "pl": pl,
+                        "open_date": position.created,
+                    }
 
                     return pl, data2
 
                 with ThreadPoolExecutor() as executor:
                     futures = executor.map(pl_cv, positions)
                     pl_cv_list = [result for result in futures if result]
+
+                close_positions_new = [
+                    {
+                        "stock": position.stock.symbol,
+                        "profit_loss": position.profit_loss,
+                        "close_date": position.updated,
+                    }
+                    for position in positions2
+                ]
+
+                open_positionsmap = [x[1] for x in pl_cv_list]
+                open_positions_new = [
+                    {"symbol": x["stock"], "profit_loss": x["pl"]}
+                    for x in open_positionsmap
+                ]
 
                 profit_loss_list = [x[0] for x in pl_cv_list]
                 current_value_list = [x[1] for x in pl_cv_list]
@@ -3205,6 +3225,7 @@ class NewHome(APIView):
                     if daily_profitloss.count() > 1
                 ]
                 open_balance = sum([position.amount_invested for position in positions])
+
                 data = {
                     "balance": round(balance + open_balance, 2),
                     "starting_balance": 1000000,
@@ -3219,6 +3240,8 @@ class NewHome(APIView):
                     "cumulative_overview": cumulative_overview,
                     "calendar": calendar,
                     "remaining_balance": balance,
+                    "close_positions": close_positions_new,
+                    "open_positions": open_positions_new,
                 }
 
                 return Response(data)
@@ -3282,13 +3305,33 @@ class NewHome(APIView):
                 pl, cur_val, price = position.calculate_profit_loss()
                 symbol = position.stock.symbol
                 print(pl)
-                data2 = {"stock": symbol, "current_value": round(cur_val, 2)}
+                data2 = {
+                    "stock": symbol,
+                    "current_value": round(cur_val, 2),
+                    "pl": pl,
+                    "open_date": position.created,
+                }
 
                 return pl, data2
 
             with ThreadPoolExecutor() as executor:
                 futures = executor.map(pl_cv, positions)
                 pl_cv_list = [result for result in futures if result]
+
+            close_positions_new = [
+                {
+                    "stock": position.stock.symbol,
+                    "profit_loss": position.profit_loss,
+                    "close_date": position.updated,
+                }
+                for position in positions2
+            ]
+
+            open_positionsmap = [x[1] for x in pl_cv_list]
+            open_positions_new = [
+                {"symbol": x["stock"], "profit_loss": x["pl"]}
+                for x in open_positionsmap
+            ]
 
             profit_loss_list = [x[0] for x in pl_cv_list]
             current_value_list = [x[1] for x in pl_cv_list]
@@ -3357,6 +3400,8 @@ class NewHome(APIView):
                 "cumulative_overview": cumulative_overview,
                 "calendar": calendar,
                 "remaining_balance": balance,
+                "close_positions": close_positions_new,
+                "open_positions": open_positions_new,
             }
 
             return Response(data)
@@ -3457,7 +3502,12 @@ class NewSupportHome(APIView):
                     pl, cur_val, price = position.calculate_profit_loss()
                     symbol = position.stock.symbol
                     print(pl)
-                    data2 = {"stock": symbol, "current_value": round(cur_val, 2)}
+                    data2 = {
+                        "stock": symbol,
+                        "current_value": round(cur_val, 2),
+                        "pl": pl,
+                        "open_date": position.created,
+                    }
 
                     return pl, data2
 
@@ -3465,6 +3515,20 @@ class NewSupportHome(APIView):
                     futures = executor.map(pl_cv, positions)
                     pl_cv_list = [result for result in futures if result]
 
+                close_positions_new = [
+                    {
+                        "stock": position.stock.symbol,
+                        "profit_loss": position.profit_loss,
+                        "close_date": position.updated,
+                    }
+                    for position in positions2
+                ]
+
+                open_positionsmap = [x[1] for x in pl_cv_list]
+                open_positions_new = [
+                    {"symbol": x["stock"], "profit_loss": x["pl"]}
+                    for x in open_positionsmap
+                ]
                 profit_loss_list = [x[0] for x in pl_cv_list]
                 current_value_list = [x[1] for x in pl_cv_list]
 
@@ -3483,45 +3547,6 @@ class NewSupportHome(APIView):
 
                 overview = []
                 cumulative_overview = []
-
-                # if daily_profitloss and daily_profitloss.count() > 1:
-                #     for daily in daily_profitloss:
-                #         for daily2 in market:
-                #             if daily.created.date() == daily2.created.date():
-                #                 overview.append(
-                #                     {
-
-                #             'portfolio_returns': daily.portfolio_returns,
-                #             'market_returns': daily2.market_returns,
-                #             'date': daily.created.date()
-                #         }
-
-                #                 )
-                #     if overview:
-                #         first = overview[0]
-                #         if first['portfolio_returns'] == 0:
-                #             first['market_returns'] = 0
-
-                # if cumulative_profitloss and cumulative_profitloss.count() > 1:
-                #     # print('cpl', cumulative_profitloss)
-
-                #     for daily in cumulative_profitloss:
-                #         for daily2 in cumulative_market :
-                #             if daily.created.date() == daily2.created.date():
-                #                 cumulative_overview.append(
-                #                     {
-
-                #             'portfolio_returns': daily.portfolio_returns,
-                #             'market_returns': daily2.market_returns,
-                #             'date': daily.created.date()
-                #         }
-
-                #                 )
-                #     # print('cumu',cumulative_overview)
-                #     if cumulative_overview:
-                #         first_ = cumulative_overview[0]
-                #         if first_['portfolio_returns'] == 0:
-                #             first_['market_returns'] = 0
 
                 if daily_profitloss and daily_profitloss.count() > 1:
                     for returns in daily_profitloss:
@@ -3569,6 +3594,8 @@ class NewSupportHome(APIView):
                     "cumulative_overview": cumulative_overview,
                     "calendar": calendar,
                     "remaining_balance": balance,
+                    "close_positions": close_positions_new,
+                    "open_positions": open_positions_new,
                 }
 
                 return Response(data)
@@ -3632,13 +3659,33 @@ class NewSupportHome(APIView):
                 pl, cur_val, price = position.calculate_profit_loss()
                 symbol = position.stock.symbol
                 print(pl)
-                data2 = {"stock": symbol, "current_value": round(cur_val, 2)}
+                data2 = {
+                    "stock": symbol,
+                    "current_value": round(cur_val, 2),
+                    "pl": pl,
+                    "open_date": position.created,
+                }
 
                 return pl, data2
 
             with ThreadPoolExecutor() as executor:
                 futures = executor.map(pl_cv, positions)
                 pl_cv_list = [result for result in futures if result]
+
+            close_positions_new = [
+                {
+                    "stock": position.stock.symbol,
+                    "profit_loss": position.profit_loss,
+                    "close_date": position.updated,
+                }
+                for position in positions2
+            ]
+
+            open_positionsmap = [x[1] for x in pl_cv_list]
+            open_positions_new = [
+                {"symbol": x["stock"], "profit_loss": x["pl"]}
+                for x in open_positionsmap
+            ]
 
             profit_loss_list = [x[0] for x in pl_cv_list]
             current_value_list = [x[1] for x in pl_cv_list]
@@ -3707,6 +3754,8 @@ class NewSupportHome(APIView):
                 "cumulative_overview": cumulative_overview,
                 "calendar": calendar,
                 "remaining_balance": balance,
+                "close_positions": close_positions_new,
+                "open_positions": open_positions_new,
             }
 
             return Response(data)

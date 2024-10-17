@@ -748,8 +748,8 @@ def daily_returns5():
                     }
                     df = pd.DataFrame(data)
 
-                    # df["Balance"]= df['Amount_Invested'] + df['Profit_Loss']
-                    df["Balance"] = 1000000
+                    df["Balance"] = df["Amount_Invested"] + df["Profit_Loss"]
+                    # df["Balance"] = 1000000
                     df["Closedate"] = df["closedatetime"].dt.date
 
                     df = df[
