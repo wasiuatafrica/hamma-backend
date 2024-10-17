@@ -101,7 +101,7 @@ class Command(BaseCommand):
             updated_count += 1
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"Successfully recalculated returns for portfolio: {portfolio.account_name}"
+                    f"Successfully recalculated returns for portfolio:{portfolio.user.email} {portfolio.account_name}"
                 )
             )
 
