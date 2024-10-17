@@ -31,11 +31,8 @@ def daily_returns5(portfolio):
         "Profit_Loss": [float(position.profit_loss) for position in positions],
     }
     df = pd.DataFrame(data)
-    print(df)
-
     df["Balance"] = 1000000
     df["Closedate"] = df["closedatetime"].dt.date
-
     df = df[
         [
             "Stock",
@@ -43,42 +40,35 @@ def daily_returns5(portfolio):
             "Amount_Invested",
             "Closedate",
             "closedatetime",
+            "Profit_Loss",
         ]
     ]
     df = df.reset_index(drop=True)
     df = df.sort_values(by="closedatetime")
+    df["Sum_Profit_Loss"] = df.groupby("Closedate")["Profit_Loss"].cumsum()
+    df["Daily_PortfolioReturns"] = df["Sum_Profit_Loss"] / df["Balance"] * 100
+    # print(df)
 
-    df["Sum_Balance"] = df.groupby("Closedate")["Balance"].cumsum()
-    df["Sum_Invested"] = df.groupby("Closedate")["Amount_Invested"].cumsum()
+    df_final = df.groupby("Closedate").tail(1).reset_index(drop=True)
 
-    df["Daily_PortfolioReturns"] = ((df["Sum_Balance"] / df["Sum_Invested"]) - 1) * 100
+    print(df_final)
 
-    idx_max_time = df.groupby("Closedate")["closedatetime"].idxmax()
-
-    max_time = (
-        df.loc[idx_max_time].reset_index(drop=True).sort_values(by="closedatetime")
-    )
-
-    for index, row in max_time.iterrows():
+    for index, row in df_final.iterrows():
         daily_return = DemoDailyReturns2.objects.filter(
             portfolio=portfolio, created__date=row["Closedate"], first_entry=False
         ).first()
         if daily_return:
-            print(daily_return.portfolio_returns, daily_return.created)
+            print(row["Closedate"])
+            print(daily_return.portfolio_returns, daily_return.created.date())
             daily_return.portfolio_returns = round(row["Daily_PortfolioReturns"], 2)
-            # daily_return.save()
+            daily_return.save()
 
-        # daily_return.portfolio_returns = round(row["Daily_PortfolioReturns"], 2)
-        # daily_return.save()
-
-    cum_table = max_time[["closedatetime", "Sum_Balance", "Sum_Invested"]]
+    cum_table = df_final[["closedatetime", "Sum_Profit_Loss", "Balance"]]
     cum_table = cum_table.reset_index(drop=True)
+    cum_table["running_pl"] = cum_table["Sum_Profit_Loss"].cumsum()
+    cum_table["cum_returns"] = (cum_table.running_pl / cum_table.Balance) * 100
 
-    cum_table["running_Balance"] = cum_table["Sum_Balance"].cumsum()
-    cum_table["running_Invested"] = cum_table["Sum_Invested"].cumsum()
-    cum_table["cum_returns"] = (
-        (cum_table.running_Balance / cum_table.running_Invested) - 1
-    ) * 100
+    print(cum_table)
 
     for index, row in cum_table.iterrows():
         cum_return = DemoCumulativeReturns.objects.filter(
@@ -88,91 +78,43 @@ def daily_returns5(portfolio):
         ).first()
         if cum_return:
             cum_return.portfolio_returns = round(row["cum_returns"], 2)
-            # cum_return.save()
+            cum_return.save()
 
-        # cum_return.portfolio_returns = round(row["cum_returns"], 2)
-        # cum_return.save()
-
-    tv = TvDatafeed()
-
-    # days_passed = days_since_date('2024-05-1')
-    portfolio_creation_date = portfolio.created.date().strftime("%Y-%m-%d")
-    days_passed = days_since_date(portfolio_creation_date)
-    # print('days',days_passed)
-    n_bars = 1 + days_passed
-    df2 = tv.get_hist(
-        symbol="ASI",
-        exchange="NSENG",
-        interval=Interval.in_daily,
-        n_bars=n_bars,
-    )
-    ASI_daily_selected = df2.reset_index()
-    ASI_daily_selected["ASI_daily_retuns"] = (
-        ASI_daily_selected["close"].pct_change() * 100
-    )
-    ASI_daily_selected["Date"] = ASI_daily_selected["datetime"].dt.strftime("%Y-%m-%d")
-
-    for index, row in ASI_daily_selected.iterrows():
-        market_returns = row["ASI_daily_retuns"]
-        if np.isnan(market_returns):
-            market_returns = 0
-
-        # Update market returns for DemoDailyReturns2
-        daily_return = DemoDailyReturns2.objects.filter(
-            portfolio=portfolio, created__date=row["Date"]
-        ).first()
-        if daily_return:
-            daily_return.market_returns = round(market_returns, 2)
-            # daily_return.save()
-
-    cum_mark_table = ASI_daily_selected[["Date", "ASI_daily_retuns"]]
-    cum_mark_table["cum_ASI_daily_retuns"] = (
-        1 + cum_mark_table.ASI_daily_retuns / 100
-    ).cumprod() - 1
-    cum_mark_table["cum_ASI_daily_retuns"] = cum_mark_table.cum_ASI_daily_retuns * 100
-
-    for index, cum_row in cum_mark_table.iterrows():
-        cum_market_returns = cum_row["cum_ASI_daily_retuns"]
-        if np.isnan(cum_market_returns):
-            cum_market_returns = 0
-
-        cum_return = DemoCumulativeReturns.objects.filter(
-            portfolio=portfolio, created__date=cum_row["Date"]
-        ).first()
-        if cum_return:
-            cum_return.market_returns = round(cum_market_returns, 2)
-            # cum_return.save()
+    print("returns calculated")
 
 
 class Command(BaseCommand):
     help = "Recalculate and update portfolio_returns for existing DemoDailyReturns2 records"
 
     def handle(self, *args, **kwargs):
-        # # Fetch all DemoDailyReturns2 records
-        # demo_returns = DemoDailyReturns2.objects.all()
+        # Fetch all DemoDailyReturns2 records
+        demo_portfolios = DemoPortfolio.objects.all()
 
-        # # Counter for logging
-        # updated_count = 0
+        # Counter for logging
+        updated_count = 0
 
-        # for daily_return in demo_returns:
-        #     portfolio = daily_return.portfolio
+        for portfolio in demo_portfolios:
 
-        #     daily_returns5(portfolio)
+            daily_returns5(portfolio)
 
-        #     updated_count += 1
-        #     self.stdout.write(
-        #         self.style.SUCCESS(f"Successfully recalculated returns for portfolio: {portfolio.account_name}")
-        #     )
+            updated_count += 1
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Successfully recalculated returns for portfolio: {portfolio.account_name}"
+                )
+            )
 
         # Log the total number of updated records
-        # self.stdout.write(
-        #     self.style.SUCCESS(
-        #         f"Updated portfolio returns for {updated_count} records."
-        #     )
-        # )
-
-        portfolio = DemoPortfolio.objects.get(
-            user__email="nexxyb@gmail.com", account_name="demo_account_1"
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Updated portfolio returns for {updated_count} records."
+            )
         )
 
-        daily_returns5(portfolio)
+        # portfolio = DemoPortfolio.objects.get(
+        #     # user__email="kolapoay@gmail.com", account_name="DA"
+        #     user__email="nexxyb@gmail.com",
+        #     account_name="demo_account_1",
+        # )
+
+        # daily_returns5(portfolio)

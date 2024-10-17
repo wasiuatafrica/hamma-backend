@@ -321,7 +321,11 @@ class DemoDailyReturns2(auto_prefetch.Model):
     created = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        f"{self.user}-{self.portfolio.account_name}"
+        return (
+            f"{self.user}-{self.portfolio.account_name}"
+            if self.portfolio.account_name
+            else self.user
+        )
 
 
 class DailyReturns2(auto_prefetch.Model):
