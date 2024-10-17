@@ -3889,7 +3889,7 @@ class NewOverView(APIView):
             overview = []
             cumulative_overview = []
 
-            if daily_profitloss and daily_profitloss.count() > 1:
+            if daily_profitloss:
                 for returns in daily_profitloss:
                     overview.append(
                         {
@@ -3899,7 +3899,7 @@ class NewOverView(APIView):
                         }
                     )
 
-            if cumulative_profitloss and cumulative_profitloss.count() > 1:
+            if cumulative_profitloss:
                 for returns in cumulative_profitloss:
                     cumulative_overview.append(
                         {
