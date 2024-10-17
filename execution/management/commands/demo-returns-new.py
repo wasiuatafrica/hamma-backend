@@ -31,6 +31,7 @@ def daily_returns5(portfolio):
         "Profit_Loss": [float(position.profit_loss) for position in positions],
     }
     df = pd.DataFrame(data)
+    df["closedatetime"] = pd.to_datetime(df["closedatetime"], errors="coerce")
     df["Balance"] = 1000000
     df["Closedate"] = df["closedatetime"].dt.date
     df = df[
@@ -112,9 +113,10 @@ class Command(BaseCommand):
         )
 
         # portfolio = DemoPortfolio.objects.get(
-        #     # user__email="kolapoay@gmail.com", account_name="DA"
-        #     user__email="nexxyb@gmail.com",
-        #     account_name="demo_account_1",
+        #     user__email="kolapoay@gmail.com",
+        #     account_name="DA",
+        #     # user__email="nexxyb@gmail.com",
+        #     # account_name="demo_account_1",
         # )
 
         # daily_returns5(portfolio)
