@@ -16,6 +16,7 @@ class StockNews(auto_prefetch.Model):
     url = models.TextField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    validated = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.stock.symbol}- {self.title}"
