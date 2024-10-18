@@ -54,7 +54,11 @@ class DemoPortfolio(auto_prefetch.Model):
         )
 
     def __str__(self):
-        return f"{self.user} - {self.account_name}"
+        return (
+            f"{self.user} - {self.account_name} - {self.account_id}"
+            if self.account_id
+            else f"{self.user} - {self.account_name}"
+        )
 
     @property
     def account_type(self):
