@@ -25,6 +25,8 @@ from django.urls import reverse, reverse_lazy
 from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
 from django.shortcuts import redirect
+
+from hackathon.serializers import ClanSerializer
 from . import serializers
 from .tasks import create_returns
 from .models import (
@@ -3038,3 +3040,133 @@ class SupportCheckPayoutEligibility(APIView):
         }
 
         return Response(data)
+
+
+class AllCompetitions(APIView):
+    permission_classes = [
+        AllowAny,
+    ]
+
+    def get(self, request):
+        competitions = Competition.objects.all().order_by("-created_at")
+        print(len(competitions))
+        serializer = competion_serializers.CompetitionSerializer(
+            competitions, many=True
+        )
+        return Response(serializer.data)
+
+
+class ClancompetitionHistory(APIView):
+    permission_classes = [
+        AllowAny,
+    ]
+
+    def get(self, request, clan_id, competition_id):
+        clan = Clan.objects.filter(id=clan_id).first()
+        competition = Competition.objects.filter(id=competition_id).first()
+
+        if not clan or not competition:
+            return Response({"error": "clan or competition not found"})
+
+        clan_members = clan.member.all()
+
+        clan_member_data = []
+        if clan.clan_admin == request.user:
+            clan_member_data.append({"admin": True})
+
+        else:
+            clan_member_data.append({"admin": False})
+        clan_member_data.append({"members": []})
+        profile = Profile.objects.get(user=clan.clan_admin)
+        if competition.status == "current":
+            portfolio = CompetitionPortfolio.objects.filter(
+                competition__status="current", user=clan.clan_admin
+            ).first()
+
+            if portfolio:
+                profit, status = getProfit(portfolio)
+                percent = round((profit / 1000000) * 100, 2)
+
+                data = {
+                    "name": portfolio.user.fullname,
+                    "profit": percent,
+                    "country": profile.country,
+                }
+
+            else:
+                data = {
+                    "name": f"{clan.clan_admin.firstname}",
+                    "profit": "",
+                    "country": profile.country,
+                }
+
+        else:
+            summary = CompetitionSummary.objects.filter(
+                portfolio__competition=competition, user=clan.clan_admin
+            ).first()
+            if summary:
+                percent = summary.percent
+                data = {
+                    "name": summary.user.firstname,
+                    "profit": percent,
+                    "country": profile.country,
+                }
+            else:
+                data = {
+                    "name": f"{clan.clan_admin.firstname}",
+                    "profit": "",
+                    "country": profile.country,
+                }
+
+        clan_member_data[1]["members"].append(data)
+        if clan_members:
+            for member in clan_members:
+                profile1 = Profile.objects.get(user=member)
+                if competition.status == "current":
+                    portfolio = CompetitionPortfolio.objects.filter(
+                        competition__status="current", user=member
+                    ).first()
+
+                    if portfolio:
+                        profit, status = getProfit(portfolio)
+                        percent = round(profit / 1000000 * 100, 2)
+
+                        data = {
+                            "member_id": member.id,
+                            "name": portfolio.user.fullname,
+                            "profit": percent,
+                            "country": profile1.country,
+                        }
+                    else:
+                        data = {
+                            "member_id": member.id,
+                            "name": f"{member.firstname} {member.lastname}",
+                            "profit": "",
+                            "country": profile1.country,
+                        }
+
+                else:
+                    summary = CompetitionSummary.objects.filter(
+                        user=member, portfolio__competition=competition
+                    ).last()
+                    if summary:
+                        percent = summary.percent
+                        data = {
+                            "member_id": member.id,
+                            "name": member.firstname,
+                            "profit": percent,
+                            "country": profile1.country,
+                        }
+                    else:
+                        data = {
+                            "member_id": member.id,
+                            "name": f"{member.firstname} {member.lastname}",
+                            "profit": "",
+                            "country": profile1.country,
+                        }
+
+                clan_member_data[1]["members"].append(data)
+        clan_data = ClanSerializer(clan).data
+        total_data = {"clan_details": clan_data, "clan_members_data": clan_member_data}
+
+        return Response(total_data)
