@@ -2810,7 +2810,7 @@ class SingleDemoTradeAPIView(APIView):
                         portfolio=portfolio,
                         stock=stock,
                         status=CompetitionPosition.PENDING,
-                        limit_price=price,
+                        limit_price=current_price,
                         quantity=quantity,
                         alert_name="pending trade" + shortuuid.uuid(),
                         time_in_force=time_in_force,
