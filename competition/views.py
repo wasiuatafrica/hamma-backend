@@ -1059,7 +1059,7 @@ class ClanMembers(APIView):
         else:
             clan_member_data.append({"admin": False})
         clan_member_data.append({"members": []})
-        competition = Competition.objects.filter(staus="current")
+        competition = Competition.objects.filter(status="current")
         if competition.exists():
             portfolio = CompetitionPortfolio.objects.filter(
                 competition__status="current", user=clan.clan_admin
