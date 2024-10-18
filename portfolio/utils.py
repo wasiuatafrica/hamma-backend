@@ -326,9 +326,9 @@ def get_symbol_fundamentals(symbol):
 
 
 def get_stock_news(symbol):
-    news = StockNews.objects.filter(stock__symbol=symbol).order_by("-published_date")[
-        :10
-    ]
+    news = StockNews.objects.filter(stock__symbol=symbol, validated=True).order_by(
+        "-published_date"
+    )[:10]
     news_data = StockNewsSerializer(news, many=True).data
     return news_data
 

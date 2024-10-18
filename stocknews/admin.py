@@ -17,6 +17,7 @@ class StockNewsAdmin(admin.ModelAdmin):
         "body",
         "ai_summary",
         "created",
+        "validated",
         "url",
     ]
     search_fields = [
