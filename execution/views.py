@@ -2625,6 +2625,11 @@ class SingleDemoTradeAPIView(APIView):
         symbol = request.data.get("symbol")
         order_id = request.data.get("order_id")
         quantity = int(request.data.get("quantity"))
+        if quantity is None or quantity <= 0:
+            return Response(
+                {"error": "Quantity must be a positive integer."},
+                status.HTTP_400_BAD_REQUEST,
+            )
         device_type = request.data.get("device_type", None)
         if request.data.get("price"):
             price = float(request.data.get("price"))

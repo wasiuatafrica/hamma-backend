@@ -39,6 +39,7 @@ urlpatterns = [
         views.MostTradedStocks.as_view(),
     ),
     path("feeds/admin/", views.FeedView.as_view()),
+    path("feeds/search/", views.SearchFeedView.as_view(), name="feed-search"),
     path("feeds/publish/", views.PublishFeed.as_view()),
     path("feeds/unpublish/", views.UnpublishFeed.as_view()),
     path("feeds/category/", views.FeedCategoryView.as_view()),

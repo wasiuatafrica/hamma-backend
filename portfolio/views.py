@@ -1331,6 +1331,39 @@ class MostTradedStocks(APIView):
         return Response(response_data)
 
 
+class SearchFeedView(APIView):
+    pagination_class = CustomPagination
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        query = request.query_params.get("q", "")
+        if not query:
+            return Response(
+                {"error": "Please provide a search query"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        results = DashboardFeed.objects.filter(
+            Q(topic__icontains=query)
+            | Q(title__icontains=query)
+            | Q(image_caption__icontains=query)
+            | Q(subtitle__icontains=query)
+            | Q(content__icontains=query)
+            | Q(bullet_1__icontains=query)
+            | Q(bullet_2__icontains=query)
+            | Q(bullet_3__icontains=query)
+            | Q(bullet_4__icontains=query)
+            | Q(bullet_5__icontains=query)
+            | Q(bullet_6__icontains=query)
+            | Q(status__icontains=query)
+        ).order_by("-created")
+
+        paginator = self.pagination_class()
+        paginated_results = paginator.paginate_queryset(results, request)
+        serializer = DashboardFeedSerializer(paginated_results, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+
 class FeedView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsStaffOrAnalystOrReadOnly]
