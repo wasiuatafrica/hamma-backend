@@ -19,7 +19,7 @@ from .models import (
 
 class DemoPositionAdmin(admin.ModelAdmin):
     search_fields = ["portfolio__user__email", "portfolio__account_name"]
-    list_display = ["portfolio", "stock", "quantity", "buy_price", "created"]
+    list_display = ["portfolio", "stock", "quantity", "open_price", "created"]
 
 
 admin.site.register(DemoPosition, DemoPositionAdmin)
