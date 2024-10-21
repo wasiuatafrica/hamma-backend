@@ -6,7 +6,6 @@ from decimal import Decimal
 from random import randint
 
 import pytz
-from asgiref.sync import async_to_sync, sync_to_async
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db import close_old_connections
@@ -18,6 +17,7 @@ from django.utils import timezone
 from django_celery_beat.models import CrontabSchedule, IntervalSchedule, PeriodicTask
 from rest_framework import generics, serializers, status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import (
     AllowAny,
@@ -87,6 +87,12 @@ User = get_user_model()
 
 
 db_details = client["ngxlistedcompanies"]
+
+
+class CustomPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 100
 
 
 class IsStaffOrAnalyst(BasePermission):
@@ -1328,11 +1334,14 @@ class MostTradedStocks(APIView):
 class FeedView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsStaffOrAnalystOrReadOnly]
+    pagination_class = CustomPagination
 
     def get(self, request):
         feed = DashboardFeed.objects.all().order_by("-created")
-        serializer = DashboardFeedSerializer(feed, many=True)
-        return Response(serializer.data)
+        paginator = self.pagination_class()
+        paginated_feed = paginator.paginate_queryset(feed, request)
+        serializer = DashboardFeedSerializer(paginated_feed, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
 
