@@ -4715,10 +4715,10 @@ class NewSupportDemoHolding(APIView):
                     return Response(hold_data)
                 else:
                     hold_data = {
-                        "balance": 0,
+                        "balance": balance,
                         "floating_pl": 0,
                         "closed_pl": 0,
-                        "equity": 0,
+                        "equity": balance,
                         "holdings": [],
                     }
 
