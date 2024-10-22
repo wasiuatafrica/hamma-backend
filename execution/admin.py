@@ -32,7 +32,6 @@ class DemoPortfolioAdmin(admin.ModelAdmin):
         "user",
         "account_name",
         "account_id",
-        "competition",
         "balance",
         "created",
     )
