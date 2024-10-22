@@ -1364,6 +1364,58 @@ class SearchFeedView(APIView):
         return paginator.get_paginated_response(serializer.data)
 
 
+# class SearchFeedView(APIView):
+#     pagination_class = CustomPagination
+
+#     def get(self, request):
+#         query = request.query_params.get('q', '')
+#         category_id = request.query_params.get('category')
+#         stock_id = request.query_params.get('stock')
+#         start_date = request.query_params.get('start_date')
+#         end_date = request.query_params.get('end_date')
+
+#         results = DashboardFeed.objects.all()
+
+#         if query:
+#             results = results.filter(
+#                 Q(topic__icontains=query) |
+#                 Q(title__icontains=query) |
+#                 Q(image_caption__icontains=query) |
+#                 Q(subtitle__icontains=query) |
+#                 Q(content__icontains=query) |
+#                 Q(bullet_1__icontains=query) |
+#                 Q(bullet_2__icontains=query) |
+#                 Q(bullet_3__icontains=query) |
+#                 Q(bullet_4__icontains=query) |
+#                 Q(bullet_5__icontains=query) |
+#                 Q(bullet_6__icontains=query) |
+#                 Q(status__icontains=query)
+#             )
+
+#         if category_id:
+#             results = results.filter(category_id=category_id)
+
+#         if stock_id:
+#             results = results.filter(stock_id=stock_id)
+
+#         if start_date:
+#             start_date = parse_date(start_date)
+#             if start_date:
+#                 results = results.filter(published_date__gte=start_date)
+
+#         if end_date:
+#             end_date = parse_date(end_date)
+#             if end_date:
+#                 results = results.filter(published_date__lte=end_date)
+
+#         results = results.order_by('-created')
+
+#         paginator = self.pagination_class()
+#         paginated_results = paginator.paginate_queryset(results, request)
+#         serializer = DashboardFeedSerializer(paginated_results, many=True)
+#         return paginator.get_paginated_response(serializer.data)
+
+
 class FeedView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsStaffOrAnalystOrReadOnly]

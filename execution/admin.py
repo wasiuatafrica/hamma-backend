@@ -24,7 +24,21 @@ class DemoPositionAdmin(admin.ModelAdmin):
 
 admin.site.register(DemoPosition, DemoPositionAdmin)
 admin.site.register(DemoTrade)
-admin.site.register(DemoPortfolio)
+
+
+class DemoPortfolioAdmin(admin.ModelAdmin):
+    search_fields = ["user__email", "account_name", "account_id"]
+    list_display = (
+        "user",
+        "account_name",
+        "account_id",
+        "competition",
+        "balance",
+        "created",
+    )
+
+
+admin.site.register(DemoPortfolio, DemoPortfolioAdmin)
 admin.site.register(DemoProfitLoss)
 
 

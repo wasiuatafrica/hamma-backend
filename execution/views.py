@@ -2627,7 +2627,7 @@ class SingleDemoTradeAPIView(APIView):
         quantity = int(request.data.get("quantity"))
         if quantity is None or quantity <= 0:
             return Response(
-                {"error": "Quantity must be a positive integer."},
+                {"error": "Quantity must be provided."},
                 status.HTTP_400_BAD_REQUEST,
             )
         device_type = request.data.get("device_type", None)

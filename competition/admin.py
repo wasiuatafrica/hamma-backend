@@ -32,7 +32,21 @@ from .models import (
 admin.site.register(ClanNameChangeRequest)
 admin.site.register(ClanMemeberRemoverRequest)
 admin.site.register(Competition)
-admin.site.register(CompetitionPortfolio)
+
+
+class CompetitionPortfolioAdmin(admin.ModelAdmin):
+    search_fields = ["user__email", "account_name", "account_id"]
+    list_display = (
+        "user",
+        "account_name",
+        "account_id",
+        "competition",
+        "balance",
+        "created",
+    )
+
+
+admin.site.register(CompetitionPortfolio, CompetitionPortfolioAdmin)
 admin.site.register(Clan)
 
 
