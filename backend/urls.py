@@ -77,6 +77,7 @@ urlpatterns = (
         # path('hackathon/',include("hackathon.urls")),
         path("", include("notifications.urls")),
         path("", include("waitlist.urls")),
+        path("", include("tradingai.urls")),
         path(
             "chart-data/",
             views.ChartData.as_view(),

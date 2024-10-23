@@ -38,10 +38,10 @@ django-environ
 django-sms
 websockets
 openai
-judoscale[django,celery-redis]
 tradingview-datafeed
 svglib
 cairosvg
 duckduckgo-search==6.3.0
 newspaper4k
 lxml-html-clean==0.3.1
+scikit-learn==1.5.2
