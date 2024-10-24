@@ -1,0 +1,24 @@
+1. GET /auth/trading-profile/
+    if response is {
+    "detail": "Not found."
+} then show the questions.
+
+2. POST /auth/trading-profile/ to submit all questions
+    {
+    "trading_frequency": "daily",//daily,weekly,monthly,occasionally - REQUIRED
+    "preferred_asset_type":"small-cap",//small-cap,mid-cap,large-cap
+    "trading_style": "moderate", //options: conservative,moderate,aggressive - REQUIRED
+    "avg_time_on_trade": "1-2 days",
+    "risk_tolerance": "medium",//low,medium,high - REQUIRED
+    "market_sentiment1": "bearish",
+    "market_sentiment2": "bullish",
+    "preferred_stocks":["UBA","ACCESSCORP","CWG"] // array of symbols
+}
+
+3. PUT /auth/trading-profile/to update profile
+{
+    "trading_frequency": "weekly",
+    "trading_style": "aggressive",
+    "preferred_stocks":["UBA","ELLAHLAKES","IKEJAHOTEL"]
+}
+

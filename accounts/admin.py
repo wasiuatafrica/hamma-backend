@@ -111,7 +111,10 @@ class TradingProfileAdmin(admin.ModelAdmin):
         "trading_frequency",
         "trading_style",
         "risk_tolerance",
-        "market_sentiment",
+        "preferred_asset_type",
+        "preferred_stocks",
+        "market_sentiment1",
+        "market_sentiment2",
     )
     list_filter = ("trading_frequency", "trading_style", "risk_tolerance")
     search_fields = ("trader__email",)

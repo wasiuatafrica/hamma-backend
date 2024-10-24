@@ -194,6 +194,11 @@ class AdminCustomUserSerializer(serializers.ModelSerializer):
 
 
 class TradingProfileSerializer(serializers.ModelSerializer):
+    market_sentiment1 = serializers.CharField(required=False)
+    market_sentiment2 = serializers.CharField(required=False)
+    preferred_stocks = serializers.JSONField(required=False)
+    preferred_asset_type = serializers.CharField(required=False)
+
     class Meta:
         model = models.TradingProfile
         fields = [
@@ -201,10 +206,12 @@ class TradingProfileSerializer(serializers.ModelSerializer):
             "trader",
             "trading_frequency",
             "trading_style",
-            "avg_time_in_trade",
+            "avg_time_on_trade",
             "risk_tolerance",
-            "market_sentiment",
+            "market_sentiment1",
+            "market_sentiment2",
             "preferred_stocks",
+            "preferred_asset_type",
             "created_at",
             "updated_at",
         ]

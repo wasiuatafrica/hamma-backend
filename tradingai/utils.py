@@ -250,16 +250,16 @@ def process_recommendation(
         trader_profile.risk_tolerance,
         trader_profile.trading_style,
         preferred_stocks,
-        trader_profile.avg_time_in_trade,
+        trader_profile.avg_time_on_trade,
         trader_profile.trading_frequency,
     )
     recommendations = get_stock_recommendations(trader, stocks)
-    # print(recommendations)
+    print(recommendations)
     recommended_symbols = [
         rec["symbol"] for rec in recommendations["recommended_stocks"]
     ]
-    print(recommended_symbols)
+    print(recommended_symbols, len(recommended_symbols))
     generated_signals = [
-        {symbol: signals_data[symbol]["data"]} for symbol in recommended_symbols
+        {symbol: signals_data[symbol]} for symbol in set(recommended_symbols)
     ]
     return generated_signals

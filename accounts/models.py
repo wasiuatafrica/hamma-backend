@@ -281,6 +281,7 @@ class TradingProfile(models.Model):
         ("daily", "Daily"),
         ("weekly", "Weekly"),
         ("monthly", "Monthly"),
+        ("occasionally", "Occasionally"),
     ]
 
     TRADING_STYLE_CHOICES = [
@@ -309,21 +310,23 @@ class TradingProfile(models.Model):
         max_length=20, choices=TRADING_STYLE_CHOICES, blank=True, null=True
     )
 
-    avg_time_in_trade = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        help_text="Average time in hours",
+    avg_time_on_trade = models.CharField(
+        max_length=30,
         blank=True,
         null=True,
     )
-
+    preferred_asset_type = models.CharField(max_length=70, blank=True, null=True)
     risk_tolerance = models.CharField(
         max_length=20, choices=RISK_TOLERANCE_CHOICES, blank=True, null=True
     )
 
-    market_sentiment = models.IntegerField(
-        default=50, help_text="Bullish sentiment percentage (0-100)"
+    market_sentiment1 = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
     )
+    market_sentiment2 = models.CharField(max_length=30, blank=True, null=True)
+
     preferred_stocks = models.JSONField(
         default=list, help_text="List of preferred stocks"
     )
