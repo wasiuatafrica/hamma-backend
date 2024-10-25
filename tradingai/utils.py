@@ -44,48 +44,206 @@ def get_relevant_timeframe(trading_frequency):
         return "1_month"
 
 
+# def rule_based_recommendation(trader, stocks):
+#     recommendations = []
+#     timeframe = get_relevant_timeframe(trader.trading_frequency)
+
+#     for stock in stocks:
+#         risk_key = f"{timeframe}_risk"
+#         momentum_key = f"{timeframe}_momentum"
+
+#         if trader.risk_tolerance == "high" and stock.__dict__[risk_key] in [
+#             "High Risk",
+#             "Very High Risk",
+#         ]:
+#             recommendations.append(
+#                 (
+#                     stock.symbol,
+#                     f"Matches high risk tolerance ({stock.__dict__[risk_key]})",
+#                 )
+#             )
+#         elif (
+#             trader.risk_tolerance == "medium"
+#             and stock.__dict__[risk_key] == "Moderate Risk"
+#         ):
+#             recommendations.append(
+#                 (
+#                     stock.symbol,
+#                     f"Matches medium risk tolerance ({stock.__dict__[risk_key]})",
+#                 )
+#             )
+
+#         if (
+#             trader.trading_style == "aggressive"
+#             and stock.__dict__[momentum_key] == "Positive"
+#         ):
+#             recommendations.append(
+#                 (
+#                     stock.symbol,
+#                     f"Matches aggressive trading style ({stock.__dict__[momentum_key]} momentum)",
+#                 )
+#             )
+
+#         if stock.symbol in trader.preferred_stocks:
+#             recommendations.append((stock.symbol, "Preferred stock"))
+
+#     return recommendations
+
+
+# def rule_based_recommendation(trader, stocks):
+#     """
+#     Recommend stocks based on trader's risk tolerance and trading style.
+
+#     Parameters:
+#     - trader: An object with attributes:
+#         - risk_tolerance (str): 'low', 'medium', or 'high'
+#         - trading_style (str): 'conservative', 'moderate', or 'aggressive'
+#         - trading_frequency (str): e.g., '1week', '1_month', '24hr'
+#         - preferred_stocks (set or list): Symbols of preferred stocks
+#     - stocks: A list of stock objects with attributes like 'symbol',
+#               '1week_risk', '1week_momentum', etc.
+
+#     Returns:
+#     - recommendations: A list of tuples (stock_symbol, recommendation_message)
+#     """
+
+#     # Define risk profiles and trading styles
+#     RISK_PROFILES = {
+#         "low": ["Low Risk", "Very Low Risk"],
+#         "medium": ["Moderate Risk", "Medium Risk"],
+#         "high": ["High Risk", "Very High Risk"],
+#     }
+
+#     TRADING_STYLES = {
+#         "conservative": {
+#             "momentum": ["Neutral", "Slightly Positive"],
+#             "risk": ["Low Risk", "Very Low Risk"],
+#             "message": "conservative style",
+#         },
+#         "moderate": {
+#             "momentum": ["Neutral", "Slightly Positive"],
+#             "risk": ["Moderate Risk", "Medium Risk"],
+#             "message": "moderate style",
+#         },
+#         "aggressive": {
+#             "momentum": ["Positive", "Very Positive"],
+#             "risk": ["High Risk", "Very High Risk"],
+#             "message": "aggressive style",
+#         },
+#     }
+
+#     recommendations = []
+#     timeframe = get_relevant_timeframe(trader.trading_frequency)
+
+#     # Retrieve style configuration; if invalid, return empty recommendations
+#     style_config = TRADING_STYLES.get(trader.trading_style.lower())
+#     if not style_config:
+#         print(f"Unknown trading style: {trader.trading_style}")
+#         return recommendations
+
+#     # Get the list of acceptable risk levels based on trader's risk tolerance
+#     trader_risk_levels = RISK_PROFILES.get(trader.risk_tolerance.lower(), [])
+
+#     for stock in stocks:
+#         # Safely retrieve risk_level and momentum for the relevant timeframe
+#         risk_attr = f"{timeframe}_risk"
+#         momentum_attr = f"{timeframe}_momentum"
+#         risk_level = getattr(stock, risk_attr, None)
+#         momentum = getattr(stock, momentum_attr, None)
+
+#         # Skip stock if essential data is missing
+#         if not risk_level or not momentum:
+#             continue
+
+#         # Check if the stock matches both risk tolerance and trading style
+#         matches_risk_tolerance = risk_level in trader_risk_levels
+#         matches_style_risk = risk_level in style_config["risk"]
+#         matches_style_momentum = momentum in style_config["momentum"]
+
+#         if matches_risk_tolerance and matches_style_risk and matches_style_momentum:
+#             message = (
+#                 f"Matches {trader.risk_tolerance.capitalize()} risk tolerance "
+#                 f"({risk_level}) and {style_config['message']} with {momentum} momentum."
+#             )
+#             # Highlight preferred stocks
+#             if stock.symbol in trader.preferred_stocks:
+#                 message += " Preferred stock."
+#             recommendations.append((stock.symbol, message))
+
+#     return recommendations
+
+
 def rule_based_recommendation(trader, stocks):
+    # Define strategy configurations
+    RISK_PROFILES = {
+        "low": {"Very Low Risk": 2, "Low Risk": 1},
+        "medium": {"Low Risk": 1, "Moderate Risk": 2, "Medium Risk": 2, "High Risk": 1},
+        "high": {"High Risk": 2, "Very High Risk": 2, "Moderate Risk": 1},
+    }
+
+    MOMENTUM_PROFILES = {
+        "conservative": {"Neutral": 2, "Slightly Positive": 1},
+        "moderate": {"Slightly Positive": 2, "Positive": 1, "Neutral": 1},
+        "aggressive": {"Positive": 2, "Very Positive": 2, "Slightly Positive": 1},
+    }
+
+    # Minimum score threshold for recommendation
+    MIN_SCORE_THRESHOLD = 3
+
+    def calculate_stock_score(stock, timeframe):
+        score = 0
+        risk_level = stock.__dict__[f"{timeframe}_risk"]
+        momentum = stock.__dict__[f"{timeframe}_momentum"]
+
+        # Score based on risk profile
+        risk_score = RISK_PROFILES[trader.risk_tolerance].get(risk_level, 0)
+
+        # Score based on momentum profile
+        momentum_score = MOMENTUM_PROFILES[trader.trading_style].get(momentum, 0)
+
+        # Preferred stock bonus
+        preferred_bonus = 2 if stock.symbol in trader.preferred_stocks else 0
+
+        # Calculate total score
+        score = risk_score + momentum_score + preferred_bonus
+
+        return score, {
+            "risk_score": risk_score,
+            "momentum_score": momentum_score,
+            "preferred_bonus": preferred_bonus,
+        }
+
     recommendations = []
     timeframe = get_relevant_timeframe(trader.trading_frequency)
 
+    scored_stocks = []
     for stock in stocks:
-        risk_key = f"{timeframe}_risk"
-        momentum_key = f"{timeframe}_momentum"
-
-        if trader.risk_tolerance == "high" and stock.__dict__[risk_key] in [
-            "High Risk",
-            "Very High Risk",
-        ]:
-            recommendations.append(
-                (
-                    stock.symbol,
-                    f"Matches high risk tolerance ({stock.__dict__[risk_key]})",
-                )
-            )
-        elif (
-            trader.risk_tolerance == "medium"
-            and stock.__dict__[risk_key] == "Moderate Risk"
-        ):
-            recommendations.append(
-                (
-                    stock.symbol,
-                    f"Matches medium risk tolerance ({stock.__dict__[risk_key]})",
-                )
+        total_score, score_breakdown = calculate_stock_score(stock, timeframe)
+        if total_score >= MIN_SCORE_THRESHOLD:
+            scored_stocks.append(
+                {
+                    "symbol": stock.symbol,
+                    "score": total_score,
+                    "risk": stock.__dict__[f"{timeframe}_risk"],
+                    "momentum": stock.__dict__[f"{timeframe}_momentum"],
+                    "breakdown": score_breakdown,
+                }
             )
 
-        if (
-            trader.trading_style == "aggressive"
-            and stock.__dict__[momentum_key] == "Positive"
-        ):
-            recommendations.append(
-                (
-                    stock.symbol,
-                    f"Matches aggressive trading style ({stock.__dict__[momentum_key]} momentum)",
-                )
-            )
+    # Sort recommendations by score
+    scored_stocks.sort(key=lambda x: x["score"], reverse=True)
 
-        if stock.symbol in trader.preferred_stocks:
-            recommendations.append((stock.symbol, "Preferred stock"))
+    # Format recommendations
+    for stock in scored_stocks:
+        reason = (
+            f"Score: {stock['score']} - "
+            f"Risk: {stock['risk']}, "
+            f"Momentum: {stock['momentum']}"
+        )
+        if stock["breakdown"]["preferred_bonus"] > 0:
+            reason += " (Preferred stock)"
+
+        recommendations.append((stock["symbol"], reason))
 
     return recommendations
 
