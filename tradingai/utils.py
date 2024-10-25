@@ -247,11 +247,11 @@ def process_recommendation(
     stocks = [StockData(data) for symbol, data in last_item.items()]
     trader = TraderProfile(
         trader_profile.trader.id,
-        trader_profile.risk_tolerance,
-        trader_profile.trading_style,
+        trader_profile.risk_tolerance.lower(),
+        trader_profile.trading_style.lower(),
         preferred_stocks,
         trader_profile.avg_time_on_trade,
-        trader_profile.trading_frequency,
+        trader_profile.trading_frequency.lower(),
     )
     recommendations = get_stock_recommendations(trader, stocks)
     print(recommendations)
