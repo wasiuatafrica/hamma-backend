@@ -245,6 +245,15 @@ def process_recommendation(
     watchlisted_stocks_symbols = [stock.symbol for stock in watchlisted_stocks]
     preferred_stocks = trader_profile.preferred_stocks + watchlisted_stocks_symbols
     stocks = [StockData(data) for symbol, data in last_item.items()]
+    profile = (
+        trader_profile.trader.id,
+        trader_profile.risk_tolerance.lower(),
+        trader_profile.trading_style.lower(),
+        preferred_stocks,
+        trader_profile.avg_time_on_trade,
+        trader_profile.trading_frequency.lower(),
+    )
+    print(profile)
     trader = TraderProfile(
         trader_profile.trader.id,
         trader_profile.risk_tolerance.lower(),
