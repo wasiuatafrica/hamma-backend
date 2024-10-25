@@ -25,6 +25,7 @@ db_merged = client["livelake3"]
 db_details = client["ngxlistedcompanies"]
 db_fundamental = client["ngxfundamentals"]
 db_calendar = client["ngxcalendar"]
+signal_db = client["trade_signals"]
 
 
 def connect_to_mongodb(db_name):
@@ -364,5 +365,16 @@ def get_calendar(symbol):
         sorted_events = sorted(filtered_events, key=lambda x: x["date"], reverse=True)
 
         company_data["events"] = sorted_events
+        return company_data
+    return {}
+
+
+def get_signal(symbol):
+    signal_collection = signal_db["signals"]
+    signals_data = signal_collection.find_one(sort=[("_id", -1)])
+    company_data = signals_data[symbol]
+    if company_data:
+        print("here")
+        company_data.pop("_id", None)
         return company_data
     return {}

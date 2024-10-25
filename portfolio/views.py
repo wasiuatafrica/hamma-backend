@@ -81,6 +81,7 @@ from .utils import (
     get_symbol_data,
     get_symbol_fundamentals,
     get_symbol_overview,
+    get_signal,
 )
 
 User = get_user_model()
@@ -495,6 +496,7 @@ class GetSingleStock(APIView):
         fundamental = get_symbol_fundamentals(symbol)
         news = get_stock_news(symbol)
         calendar = get_calendar(symbol)
+        signal = get_signal(symbol)
 
         response_data = {
             "stock_detail": details,
@@ -503,6 +505,7 @@ class GetSingleStock(APIView):
             "fundamental": fundamental,
             "news": news,
             "calendar": calendar,
+            "signal": signal,
             # 'historical_data':historical_data
         }
         return Response(response_data)
