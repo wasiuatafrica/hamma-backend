@@ -258,7 +258,7 @@ class Command(BaseCommand):
     def search_news(self, query, max_results=5):
         current_date = timezone.now()
 
-        threshold_date = current_date - timedelta(days=2)
+        threshold_date = current_date - timedelta(days=1)
         try:
             with DDGS() as ddgs:
                 results = list(

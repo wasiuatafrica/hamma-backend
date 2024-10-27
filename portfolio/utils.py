@@ -374,7 +374,7 @@ def get_signal(symbol):
     signals_data = signal_collection.find_one(sort=[("_id", -1)])
     company_data = signals_data[symbol]
     if company_data:
-        print("here")
+        # print("here")
         company_data.pop("_id", None)
         return company_data
     return {}

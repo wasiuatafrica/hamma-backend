@@ -4,8 +4,7 @@ from datetime import datetime, timedelta, time
 import pytz
 import pandas as pd
 import numpy as np
-import random
-import time as module_time
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 client = MongoClient(
     "mongodb+srv://trademql5:trademql5@trademql5.fmlxv.mongodb.net/",
@@ -339,6 +338,10 @@ def is_market_open():
     return False
 
 
+# def is_market_open():
+#     return True
+
+
 def main():
     if is_market_open():
         data1 = {}
@@ -436,5 +439,18 @@ def main():
         print("Market closed")
 
 
-if __name__ == "__main__":
+def job():
     main()
+
+
+scheduler = BlockingScheduler()
+print("Scheduler started")
+scheduler.add_job(job, "cron", hour="10-14", minute="0", day_of_week="mon-fri")
+print("Job added")
+# Add the 2:30 PM run
+scheduler.add_job(job, "cron", hour="14", minute="30", day_of_week="mon-fri")
+
+try:
+    scheduler.start()
+except (KeyboardInterrupt, SystemExit):
+    scheduler.shutdown()
