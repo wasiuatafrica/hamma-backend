@@ -1,15 +1,25 @@
-from portfolio.utils import client
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 from portfolio.models import Stock
+import os
+from pymongo import MongoClient
 
+import time
+from functools import wraps
+
+client = MongoClient(
+    os.environ.get("MONGO_STRING"), tls=True, tlsAllowInvalidCertificates=True
+)
 
 riskdb = client["stock_classification"]
 risk_collection = riskdb["risk_classification"]
 
 signal_db = client["trade_signals"]
 signal_collection = signal_db["signals"]
+
+# risk_collection.create_index([("_id", -1)])
+# signal_collection.create_index([("_id", -1)])
 
 
 class TraderProfile:
@@ -42,6 +52,18 @@ def get_relevant_timeframe(trading_frequency):
         return "1week"
     else:  # monthly or longer
         return "1_month"
+
+
+def timing_decorator(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        print(f"{func.__name__} took {end_time - start_time:.2f} seconds to execute")
+        return result
+
+    return wrapper
 
 
 # def rule_based_recommendation(trader, stocks):
@@ -173,77 +195,138 @@ def get_relevant_timeframe(trading_frequency):
 #     return recommendations
 
 
+# def rule_based_recommendation(trader, stocks):
+#     # Define strategy configurations
+#     RISK_PROFILES = {
+#         "low": {"Very Low Risk": 2, "Low Risk": 1},
+#         "medium": {"Low Risk": 1, "Moderate Risk": 2, "Medium Risk": 2, "High Risk": 1},
+#         "high": {"High Risk": 2, "Very High Risk": 2, "Moderate Risk": 1},
+#     }
+
+#     MOMENTUM_PROFILES = {
+#         "conservative": {"Neutral": 2, "Slightly Positive": 1},
+#         "moderate": {"Slightly Positive": 2, "Positive": 1, "Neutral": 1},
+#         "aggressive": {"Positive": 2, "Very Positive": 2, "Slightly Positive": 1},
+#     }
+
+#     # Minimum score threshold for recommendation
+#     MIN_SCORE_THRESHOLD = 3
+
+#     def calculate_stock_score(stock, timeframe):
+#         score = 0
+#         risk_level = stock.__dict__[f"{timeframe}_risk"]
+#         momentum = stock.__dict__[f"{timeframe}_momentum"]
+
+#         # Score based on risk profile
+#         risk_score = RISK_PROFILES[trader.risk_tolerance].get(risk_level, 0)
+
+#         # Score based on momentum profile
+#         momentum_score = MOMENTUM_PROFILES[trader.trading_style].get(momentum, 0)
+
+#         # Preferred stock bonus
+#         preferred_bonus = 2 if stock.symbol in trader.preferred_stocks else 0
+
+#         # Calculate total score
+#         score = risk_score + momentum_score + preferred_bonus
+
+#         return score, {
+#             "risk_score": risk_score,
+#             "momentum_score": momentum_score,
+#             "preferred_bonus": preferred_bonus,
+#         }
+
+#     recommendations = []
+#     timeframe = get_relevant_timeframe(trader.trading_frequency)
+
+#     scored_stocks = []
+#     for stock in stocks:
+#         total_score, score_breakdown = calculate_stock_score(stock, timeframe)
+#         if total_score >= MIN_SCORE_THRESHOLD:
+#             scored_stocks.append(
+#                 {
+#                     "symbol": stock.symbol,
+#                     "score": total_score,
+#                     "risk": stock.__dict__[f"{timeframe}_risk"],
+#                     "momentum": stock.__dict__[f"{timeframe}_momentum"],
+#                     "breakdown": score_breakdown,
+#                 }
+#             )
+
+#     # Sort recommendations by score
+#     scored_stocks.sort(key=lambda x: x["score"], reverse=True)
+
+#     # Format recommendations
+#     for stock in scored_stocks:
+#         reason = (
+#             f"Score: {stock['score']} - "
+#             f"Risk: {stock['risk']}, "
+#             f"Momentum: {stock['momentum']}"
+#         )
+#         if stock["breakdown"]["preferred_bonus"] > 0:
+#             reason += " (Preferred stock)"
+
+#         recommendations.append((stock["symbol"], reason))
+
+#     return recommendations
+
+# Move these outside the function as module-level constants
+RISK_PROFILES = {
+    "low": {"Very Low Risk": 2, "Low Risk": 1},
+    "medium": {"Low Risk": 1, "Moderate Risk": 2, "Medium Risk": 2, "High Risk": 1},
+    "high": {"High Risk": 2, "Very High Risk": 2, "Moderate Risk": 1},
+}
+
+MOMENTUM_PROFILES = {
+    "conservative": {"Neutral": 2, "Slightly Positive": 1},
+    "moderate": {"Slightly Positive": 2, "Positive": 1, "Neutral": 1},
+    "aggressive": {"Positive": 2, "Very Positive": 2, "Slightly Positive": 1},
+}
+
+MIN_SCORE_THRESHOLD = 3
+
+
+@timing_decorator
 def rule_based_recommendation(trader, stocks):
-    # Define strategy configurations
-    RISK_PROFILES = {
-        "low": {"Very Low Risk": 2, "Low Risk": 1},
-        "medium": {"Low Risk": 1, "Moderate Risk": 2, "Medium Risk": 2, "High Risk": 1},
-        "high": {"High Risk": 2, "Very High Risk": 2, "Moderate Risk": 1},
-    }
-
-    MOMENTUM_PROFILES = {
-        "conservative": {"Neutral": 2, "Slightly Positive": 1},
-        "moderate": {"Slightly Positive": 2, "Positive": 1, "Neutral": 1},
-        "aggressive": {"Positive": 2, "Very Positive": 2, "Slightly Positive": 1},
-    }
-
-    # Minimum score threshold for recommendation
-    MIN_SCORE_THRESHOLD = 3
-
-    def calculate_stock_score(stock, timeframe):
-        score = 0
-        risk_level = stock.__dict__[f"{timeframe}_risk"]
-        momentum = stock.__dict__[f"{timeframe}_momentum"]
-
-        # Score based on risk profile
-        risk_score = RISK_PROFILES[trader.risk_tolerance].get(risk_level, 0)
-
-        # Score based on momentum profile
-        momentum_score = MOMENTUM_PROFILES[trader.trading_style].get(momentum, 0)
-
-        # Preferred stock bonus
-        preferred_bonus = 2 if stock.symbol in trader.preferred_stocks else 0
-
-        # Calculate total score
-        score = risk_score + momentum_score + preferred_bonus
-
-        return score, {
-            "risk_score": risk_score,
-            "momentum_score": momentum_score,
-            "preferred_bonus": preferred_bonus,
-        }
-
-    recommendations = []
+    # Get profile configurations once
+    risk_profile = RISK_PROFILES[trader.risk_tolerance]
+    momentum_profile = MOMENTUM_PROFILES[trader.trading_style]
+    preferred_stocks_set = set(trader.preferred_stocks)
     timeframe = get_relevant_timeframe(trader.trading_frequency)
 
-    scored_stocks = []
+    # Pre-allocate list with estimated size
+    recommendations = []
+    recommendations_append = recommendations.append  # Local variable for faster append
+
+    # Process stocks in a single pass
+    risk_key = f"{timeframe}_risk"
+    momentum_key = f"{timeframe}_momentum"
+
     for stock in stocks:
-        total_score, score_breakdown = calculate_stock_score(stock, timeframe)
+        # Direct dictionary access instead of __dict__
+        stock_dict = stock.__dict__
+        risk_level = stock_dict[risk_key]
+        momentum = stock_dict[momentum_key]
+
+        # Calculate scores using direct lookups
+        risk_score = risk_profile.get(risk_level, 0)
+        momentum_score = momentum_profile.get(momentum, 0)
+        preferred_bonus = 2 if stock.symbol in preferred_stocks_set else 0
+
+        total_score = risk_score + momentum_score + preferred_bonus
+
         if total_score >= MIN_SCORE_THRESHOLD:
-            scored_stocks.append(
-                {
-                    "symbol": stock.symbol,
-                    "score": total_score,
-                    "risk": stock.__dict__[f"{timeframe}_risk"],
-                    "momentum": stock.__dict__[f"{timeframe}_momentum"],
-                    "breakdown": score_breakdown,
-                }
-            )
+            # Build reason string directly
+            reason = f"Score: {total_score} - Risk: {risk_level}, Momentum: {momentum}"
+            if preferred_bonus:
+                reason += " (Preferred stock)"
 
-    # Sort recommendations by score
-    scored_stocks.sort(key=lambda x: x["score"], reverse=True)
+            recommendations_append((stock.symbol, reason))
 
-    # Format recommendations
-    for stock in scored_stocks:
-        reason = (
-            f"Score: {stock['score']} - "
-            f"Risk: {stock['risk']}, "
-            f"Momentum: {stock['momentum']}"
+    # Sort only once at the end if needed
+    if recommendations:
+        recommendations.sort(
+            key=lambda x: int(x[1].split(":")[1].split("-")[0]), reverse=True
         )
-        if stock["breakdown"]["preferred_bonus"] > 0:
-            reason += " (Preferred stock)"
-
-        recommendations.append((stock["symbol"], reason))
 
     return recommendations
 
@@ -374,6 +457,7 @@ def ml_based_recommendation(trader, stocks, model, le):
 #     return np.array(X), np.array(y)
 
 
+@timing_decorator
 def get_stock_recommendations(trader, stocks, ml_model=None, le=None):
     rule_based_recs = rule_based_recommendation(trader, stocks)
     if ml_model and le:
@@ -391,15 +475,22 @@ def get_stock_recommendations(trader, stocks, ml_model=None, le=None):
     }
 
 
+@timing_decorator
 def process_recommendation(
     trader_profile,
 ):
+    start = time.time()
     last_item = risk_collection.find_one(sort=[("_id", -1)])
+
     signals_data = signal_collection.find_one(sort=[("_id", -1)])
+
     last_item.pop("_id")
+    end = time.time()
+    print(f"time taken for mongodb {end - start:.4f}s")
     watchlisted_stocks = Stock.objects.filter(
         watchlisted_by__user=trader_profile.trader
-    )
+    ).values_list("symbol", flat=True)
+
     watchlisted_stocks_symbols = [stock.symbol for stock in watchlisted_stocks]
     preferred_stocks = trader_profile.preferred_stocks + watchlisted_stocks_symbols
     stocks = [StockData(data) for symbol, data in last_item.items()]
