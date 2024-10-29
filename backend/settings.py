@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "supportwithemail",
     "stocknews",
     "tradingai",
+    "streaks",
 ]
 
 

@@ -43,23 +43,48 @@ def classify_asset3(asset_data):
         else:
             return "Low Volume"
 
+    def analyze_market_sentiment(momentum_data):
+        overall_momentum = momentum_data.get("momentum", 0)
+        volume_momentum = momentum_data.get("volume_momentum", 0)
+
+        if overall_momentum > 5 and volume_momentum > 50:
+            return "bullish"
+        elif overall_momentum < -5 and volume_momentum < -50:
+            return "bearish"
+        else:
+            return "neutral"
+
+    def classify_market_cap(price, volume):
+        market_cap = price * volume
+        if market_cap < 2000000000:
+            return "small-cap"
+        elif market_cap < 10000000000:
+            return "medium-cap"
+        else:
+            return "large-cap"
+
+    price = asset_data.get("current_price", 0)
+    volume = asset_data.get("volume", 0)
+
     # Extract basic data
     classification = {
         "company": asset_data.get("company", "Unknown"),
         "symbol": asset_data.get("symbol", "Unknown"),
+        "asset_type": asset_data.get("asset_type", "Unknown"),
     }
     time_periods = ["24hr", "", "1week"]
     overall_risk = 0
     overall_momentum = 0
+
+    classification["market_cap"] = classify_market_cap(price, volume)
+    classification["market_sentiment"] = analyze_market_sentiment(asset_data)
 
     for period in time_periods:
         suffix = f"_{period}" if period else ""
 
         volatility = asset_data.get(f"volatility{suffix}", 0)
         momentum = asset_data.get(f"momentum{suffix}", 0)
-        momentum_change = asset_data.get(f"momentum_change{suffix}", 0)
         volume_momentum = asset_data.get(f"volume_momentum{suffix}", 0)
-        volume_momentum_change = asset_data.get(f"volume_momentum_change{suffix}", 0)
 
         period_name = period if period else "1_month"
         classification[f"{period_name}_risk"] = categorize_risk(volatility)

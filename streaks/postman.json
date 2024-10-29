@@ -1,0 +1,137 @@
+{
+    "info": {
+      "name": "Anyon Streaks",
+      "_postman_id": "12345-abcde-67890-fghij",
+      "description": "Collection to test leaderboard, streak, badge, and reward endpoints for the trading app.",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Get Leaderboard",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "{{base_url}}/leaderboard/",
+            "host": ["{{base_url}}"],
+            "path": ["leaderboard"]
+          },
+          "description": "Fetch leaderboard data for the current week."
+        },
+        "response": []
+      },
+      {
+        "name": "Get All User Daily Streaks",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "{{base_url}}/user-daily-streaks/",
+            "host": ["{{base_url}}"],
+            "path": ["user-daily-streaks"]
+          },
+          "description": "Fetch daily streaks for all users."
+        },
+        "response": []
+      },
+      {
+        "name": "Get User Daily Streak",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "{{base_url}}/user-daily-streaks/:user_id/",
+            "host": ["{{base_url}}"],
+            "path": ["user-daily-streaks", ":user_id"],
+            "variable": [
+              {
+                "key": "user_id",
+                "value": "1",
+                "description": "ID of the user"
+              }
+            ]
+          },
+          "description": "Fetch daily streak for a specific user by ID."
+        },
+        "response": []
+      },
+      {
+        "name": "Get All User Activity Badges",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "{{base_url}}/user-activity-badges/",
+            "host": ["{{base_url}}"],
+            "path": ["user-activity-badges"]
+          },
+          "description": "Fetch activity badges for all users."
+        },
+        "response": []
+      },
+      {
+        "name": "Get User Activity Badges",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "{{base_url}}/user-activity-badges/:user_id/",
+            "host": ["{{base_url}}"],
+            "path": ["user-activity-badges", ":user_id"],
+            "variable": [
+              {
+                "key": "user_id",
+                "value": "1",
+                "description": "ID of the user"
+              }
+            ]
+          },
+          "description": "Fetch activity badges for a specific user by ID."
+        },
+        "response": []
+      },
+      {
+        "name": "Get All User Rewards",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "{{base_url}}/user-rewards/",
+            "host": ["{{base_url}}"],
+            "path": ["user-rewards"]
+          },
+          "description": "Fetch rewards for all users."
+        },
+        "response": []
+      },
+      {
+        "name": "Get User Rewards",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "{{base_url}}/user-rewards/:user_id/",
+            "host": ["{{base_url}}"],
+            "path": ["user-rewards", ":user_id"],
+            "variable": [
+              {
+                "key": "user_id",
+                "value": "1",
+                "description": "ID of the user"
+              }
+            ]
+          },
+          "description": "Fetch rewards for a specific user by ID."
+        },
+        "response": []
+      }
+    ],
+    "variable": [
+      {
+        "key": "base_url",
+        "value": "http://localhost:8000/streaks",
+        "type": "string"
+      }
+    ]
+  }
+  

@@ -31,6 +31,7 @@ class TraderProfile:
         preferred_stocks,
         avg_holding_time,
         trading_frequency,
+        preferred_asset_type,
     ):
         self.trader_id = trader_id
         self.risk_tolerance = risk_tolerance
@@ -38,6 +39,7 @@ class TraderProfile:
         self.preferred_stocks = preferred_stocks
         self.avg_holding_time = avg_holding_time
         self.trading_frequency = trading_frequency
+        self.preferred_asset_type = preferred_asset_type
 
 
 class StockData:
@@ -277,52 +279,124 @@ RISK_PROFILES = {
 }
 
 MOMENTUM_PROFILES = {
-    "conservative": {"Neutral": 2, "Slightly Positive": 1},
-    "moderate": {"Slightly Positive": 2, "Positive": 1, "Neutral": 1},
-    "aggressive": {"Positive": 2, "Very Positive": 2, "Slightly Positive": 1},
+    "conservative": {"Neutral": 2, "Positive": 1},
+    "moderate": {"Positive": 2, "Neutral": 1, "Strong Positive": 1},
+    "aggressive": {"Strong Positive": 2, "Positive": 1, "Neutral": 0},
+}
+
+VOLUME_PROFILES = {
+    "conservative": {"High Volume": 2, "Medium Volume": 1},
+    "moderate": {"High Volume": 1, "Medium Volume": 2, "Low Volume": 1},
+    "aggressive": {"Medium Volume": 1, "Low Volume": 2},
 }
 
 MIN_SCORE_THRESHOLD = 3
 
 
-@timing_decorator
+# @timing_decorator
+# def rule_based_recommendation(trader, stocks):
+#     # Get profile configurations once
+#     risk_profile = RISK_PROFILES[trader.risk_tolerance]
+#     momentum_profile = MOMENTUM_PROFILES[trader.trading_style]
+#     preferred_stocks_set = set(trader.preferred_stocks)
+#     timeframe = get_relevant_timeframe(trader.trading_frequency)
+
+#     # Pre-allocate list with estimated size
+#     recommendations = []
+#     recommendations_append = recommendations.append  # Local variable for faster append
+
+#     # Process stocks in a single pass
+#     risk_key = f"{timeframe}_risk"
+#     momentum_key = f"{timeframe}_momentum"
+
+#     for stock in stocks:
+#         # Direct dictionary access instead of __dict__
+#         stock_dict = stock.__dict__
+#         risk_level = stock_dict[risk_key]
+#         momentum = stock_dict[momentum_key]
+
+#         # Calculate scores using direct lookups
+#         risk_score = risk_profile.get(risk_level, 0)
+#         momentum_score = momentum_profile.get(momentum, 0)
+#         preferred_bonus = 2 if stock.symbol in preferred_stocks_set else 0
+
+#         total_score = risk_score + momentum_score + preferred_bonus
+
+#         if total_score >= MIN_SCORE_THRESHOLD:
+#             # Build reason string directly
+#             reason = f"Score: {total_score} - Risk: {risk_level}, Momentum: {momentum}"
+#             if preferred_bonus:
+#                 reason += " (Preferred stock)"
+
+#             recommendations_append((stock.symbol, reason))
+
+#     # Sort only once at the end if needed
+#     if recommendations:
+#         recommendations.sort(
+#             key=lambda x: int(x[1].split(":")[1].split("-")[0]), reverse=True
+#         )
+
+#     return recommendations
+
+
 def rule_based_recommendation(trader, stocks):
-    # Get profile configurations once
     risk_profile = RISK_PROFILES[trader.risk_tolerance]
     momentum_profile = MOMENTUM_PROFILES[trader.trading_style]
+    volume_profile = VOLUME_PROFILES[trader.trading_style]
     preferred_stocks_set = set(trader.preferred_stocks)
+    preferred_asset_type = trader.preferred_asset_type
     timeframe = get_relevant_timeframe(trader.trading_frequency)
+    # market_sentiment = trader.market_sentiment1  # Using primary sentiment
 
-    # Pre-allocate list with estimated size
     recommendations = []
-    recommendations_append = recommendations.append  # Local variable for faster append
-
-    # Process stocks in a single pass
-    risk_key = f"{timeframe}_risk"
-    momentum_key = f"{timeframe}_momentum"
 
     for stock in stocks:
-        # Direct dictionary access instead of __dict__
         stock_dict = stock.__dict__
-        risk_level = stock_dict[risk_key]
-        momentum = stock_dict[momentum_key]
 
-        # Calculate scores using direct lookups
+        # Basic checks
+        risk_level = stock_dict[f"{timeframe}_risk"]
+        momentum = stock_dict[f"{timeframe}_momentum"]
+        volume_category = stock_dict["volume_category"]
+        # market_cap = stock_dict["market_cap"]
+        # stock_sentiment = stock_dict["market_sentiment"]
+
+        # Calculate scores
         risk_score = risk_profile.get(risk_level, 0)
         momentum_score = momentum_profile.get(momentum, 0)
+        volume_score = volume_profile.get(volume_category, 0)
         preferred_bonus = 2 if stock.symbol in preferred_stocks_set else 0
 
-        total_score = risk_score + momentum_score + preferred_bonus
+        # Asset type matching
+        # asset_type_score = 2 if market_cap == preferred_asset_type else 0
+
+        # Sentiment matching
+        # sentiment_score = 1 if market_sentiment == stock_sentiment else 0
+
+        total_score = (
+            risk_score
+            + momentum_score
+            + volume_score
+            + preferred_bonus
+            # + asset_type_score
+            # + sentiment_score
+        )
 
         if total_score >= MIN_SCORE_THRESHOLD:
-            # Build reason string directly
-            reason = f"Score: {total_score} - Risk: {risk_level}, Momentum: {momentum}"
+            reason = (
+                f"Score: {total_score} - "
+                f"Risk: {risk_level}, "
+                f"Momentum: {momentum}, "
+                f"Volume: {volume_category}, "
+                # f"Market Cap: {market_cap}, "
+                # f"Sentiment: {stock_sentiment}"
+            )
             if preferred_bonus:
                 reason += " (Preferred stock)"
+            # if asset_type_score:
+            #     reason += f" (Matches preferred asset type: {preferred_asset_type})"
 
-            recommendations_append((stock.symbol, reason))
+            recommendations.append((stock.symbol, reason))
 
-    # Sort only once at the end if needed
     if recommendations:
         recommendations.sort(
             key=lambda x: int(x[1].split(":")[1].split("-")[0]), reverse=True
@@ -457,7 +531,7 @@ def ml_based_recommendation(trader, stocks, model, le):
 #     return np.array(X), np.array(y)
 
 
-@timing_decorator
+# @timing_decorator
 def get_stock_recommendations(trader, stocks, ml_model=None, le=None):
     rule_based_recs = rule_based_recommendation(trader, stocks)
     if ml_model and le:
@@ -502,6 +576,7 @@ def process_recommendation(
         preferred_stocks,
         trader_profile.avg_time_on_trade,
         trader_profile.trading_frequency.lower(),
+        trader_profile.preferred_asset_type.lower(),
     )
     print(profile)
     trader = TraderProfile(
@@ -511,6 +586,7 @@ def process_recommendation(
         preferred_stocks,
         trader_profile.avg_time_on_trade,
         trader_profile.trading_frequency.lower(),
+        trader_profile.preferred_asset_type.lower(),
     )
     recommendations = get_stock_recommendations(trader, stocks)
     print(recommendations)

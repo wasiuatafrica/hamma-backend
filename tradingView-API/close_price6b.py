@@ -263,7 +263,11 @@ def calculate_volatility_momentum_24hr(symbol, data):
     start_volume = df["volume"].iloc[-2]
     end_volume = df["volume"].iloc[-1]
     volume_momentum_change = end_volume - start_volume
-    volume_momentum = (volume_momentum_change / start_volume) * 100
+
+    if start_volume == 0:
+        volume_momentum = 0
+    else:
+        volume_momentum = (volume_momentum_change / start_volume) * 100
 
     return (
         round(volatility, 2),
@@ -309,7 +313,12 @@ def calculate_volatility_momentum(data, period):
     start_volume = filtered_data["volume"].iloc[0]
     end_volume = filtered_data["volume"].iloc[-1]
     volume_momentum_change = end_volume - start_volume
-    volume_momentum = (volume_momentum_change / start_volume) * 100
+
+    # Handle potential division by zero for volume momentum calculation
+    if start_volume == 0:
+        volume_momentum = 0  # or use None, depending on requirements
+    else:
+        volume_momentum = (volume_momentum_change / start_volume) * 100
 
     return (
         round(volatility, 2),
