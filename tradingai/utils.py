@@ -491,7 +491,8 @@ def process_recommendation(
         watchlisted_by__user=trader_profile.trader
     ).values_list("symbol", flat=True)
 
-    watchlisted_stocks_symbols = [symbol for stock in watchlisted_stocks]
+    watchlisted_stocks_symbols = [symbol for symbol in watchlisted_stocks]
+    print(watchlisted_stocks_symbols)
     preferred_stocks = trader_profile.preferred_stocks + watchlisted_stocks_symbols
     stocks = [StockData(data) for symbol, data in last_item.items()]
     profile = (
