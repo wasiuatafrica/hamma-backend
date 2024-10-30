@@ -163,6 +163,7 @@ def update_user_streaks_daily():
     today = timezone.now().date()
 
     for user in User.objects.all():
+        print(user.email)
         # Check if the user has any trades opened today in either Demo or Competition positions
         has_open_trade_today = (
             DemoPosition.objects.filter(
