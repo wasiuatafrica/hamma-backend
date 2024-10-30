@@ -1,13 +1,23 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from .models import UserDailyStreak, UserActivityBadge, Leaderboard, Reward
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import (
+    Leaderboard,
+    Reward,
+    UserActivityBadge,
+    UserDailyStreak,
+    UserDailyTradeActivity,
+    UserStreakRun,
+)
 from .serializers import (
-    UserDailyStreakSerializer,
-    UserActivityBadgeSerializer,
     LeaderboardSerializer,
     RewardSerializer,
+    UserActivityBadgeSerializer,
+    UserDailyStreakSerializer,
+    UserStreakRunSerializer,
 )
 
 
@@ -24,22 +34,50 @@ class LeaderboardAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UserDailyStreakAPIView(APIView):
-    def get(self, request, user_id=None):
-        if user_id:
-            # Fetch streak data for a specific user
-            streak = UserDailyStreak.objects.filter(user__id=user_id).first()
-            if not streak:
-                return Response(
-                    {"error": "User daily streak not found."},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-            serializer = UserDailyStreakSerializer(streak)
-        else:
-            # Fetch streak data for all users
-            streaks = UserDailyStreak.objects.all().order_by("-streak_count")
-            serializer = UserDailyStreakSerializer(streaks, many=True)
+class CurrentStreakAPIView(APIView):
+    """
+    Get the details of the current active streak for a user.
+    """
+
+    def get(self, request):
+        streak_info = get_object_or_404(UserDailyStreak, user=request.user)
+        serializer = UserDailyStreakSerializer(streak_info)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class LongestStreakAPIView(APIView):
+    """
+    Get the longest streak achieved by the user.
+    """
+
+    def get(self, request):
+        streak_info = get_object_or_404(UserDailyStreak, user=request.user)
+        longest_streak_run = streak_info.longest_streak
+        return Response(
+            {"longest_streak": longest_streak_run}, status=status.HTTP_200_OK
+        )
+
+
+class StreakCalendarAPIView(APIView):
+    """
+    Get the calendar view of trading days in the current streak run.
+    """
+
+    def get(self, request):
+        streak_info = get_object_or_404(UserDailyStreak, user=request.user)
+        active_streak_run = streak_info.get_active_streak_run()
+
+        if not active_streak_run:
+            return Response(
+                {"error": "No active streak run found for this user."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Only include trade dates from the last missed date if any
+        trade_activities = active_streak_run.daily_activities.order_by("trade_date")
+        trade_dates = [activity.trade_date for activity in trade_activities]
+
+        return Response({"trade_dates": trade_dates}, status=status.HTTP_200_OK)
 
 
 class UserActivityBadgeAPIView(APIView):

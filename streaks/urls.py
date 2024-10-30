@@ -1,23 +1,17 @@
 from django.urls import path
 from .views import (
     LeaderboardAPIView,
-    UserDailyStreakAPIView,
     UserActivityBadgeAPIView,
     UserRewardAPIView,
 )
+from django.urls import path
+from .views import CurrentStreakAPIView, LongestStreakAPIView, StreakCalendarAPIView
 
 urlpatterns = [
+    path("current-streak/", CurrentStreakAPIView.as_view(), name="current-streak"),
+    path("longest-streak/", LongestStreakAPIView.as_view(), name="longest-streak"),
+    path("streak-calendar/", StreakCalendarAPIView.as_view(), name="streak-calendar"),
     path("leaderboard/", LeaderboardAPIView.as_view(), name="leaderboard"),
-    path(
-        "user-daily-streaks/",
-        UserDailyStreakAPIView.as_view(),
-        name="user-daily-streaks",
-    ),
-    path(
-        "user-daily-streaks/<int:user_id>/",
-        UserDailyStreakAPIView.as_view(),
-        name="user-daily-streak-detail",
-    ),
     path(
         "user-activity-badges/",
         UserActivityBadgeAPIView.as_view(),
