@@ -120,7 +120,7 @@ SENTIMENT_PROFILES = {
     },
 }
 
-MIN_SCORE_THRESHOLD = 6
+MIN_SCORE_THRESHOLD = 5
 
 
 def get_relevant_timeframe(trading_frequency):
@@ -427,7 +427,7 @@ def process_recommendation(
         trader_profile.avg_time_on_trade,
         trader_profile.trading_frequency.lower(),
         trader_profile.market_sentiment1,
-        trader_profile.preferred_asset_type.lower(),
+        trader_profile.preferred_asset_type.split(" ")[0].lower(),
     )
     recommendations = get_stock_recommendations(trader, stocks)
     print(recommendations)
