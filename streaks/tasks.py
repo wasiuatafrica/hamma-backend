@@ -27,9 +27,10 @@ User = get_user_model()
 
 HOLIDAYS = [
     # Add any static holidays here in YYYY-MM-DD format
-    datetime.date(2024, 1, 1),  # New Year's Day
+    datetime.date(2025, 1, 1),  # New Year's Day
     datetime.date(2024, 7, 4),  # Independence Day
     datetime.date(2024, 12, 25),  # Christmas Day
+    datetime.date(2024, 12, 26),  # Christmas Day
     # Add more holidays as needed
 ]
 

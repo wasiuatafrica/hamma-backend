@@ -368,6 +368,7 @@ def process_limit_order(id, in_competition=False):
 
                     data = get_price(position.stock.symbol)
                     price = data["current_price"]
+                    balance = position.portfolio.balance
                     if position.action == "buy":
                         if price <= position.limit_price:
 
