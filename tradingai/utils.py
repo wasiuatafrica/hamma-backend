@@ -120,7 +120,7 @@ SENTIMENT_PROFILES = {
     },
 }
 
-MIN_SCORE_THRESHOLD = 5
+MIN_SCORE_THRESHOLD = 6
 
 
 def get_relevant_timeframe(trading_frequency):
