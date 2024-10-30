@@ -183,6 +183,11 @@ def update_user_streaks_daily():
                 user=user, is_active=True
             ).first()
 
+            if UserDailyTradeActivity.objects.filter(
+                user=user, trade_date=today
+            ).exists():
+                continue
+
             if has_open_trade_today:
                 if active_streak_run:
                     # Determine the most recent trading day before today
@@ -211,10 +216,15 @@ def update_user_streaks_daily():
                         new_streak_run = UserStreakRun.objects.create(
                             user=user, start_date=today
                         )
-                        UserDailyTradeActivity.objects.create(
-                            user=user, streak_run=new_streak_run, trade_date=today
-                        )
-                        streak_info.update_streak(is_new_run=True)
+                        try:
+                            UserDailyTradeActivity.objects.get_or_create(
+                                user=user,
+                                streak_run=active_streak_run,
+                                trade_date=today,
+                            )
+                            streak_info.update_streak(is_new_run=True)
+                        except:
+                            continue
                 else:
                     # No active streak run, start a new streak
                     new_streak_run = UserStreakRun.objects.create(

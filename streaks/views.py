@@ -3,6 +3,9 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from execution.models import DemoPosition
+from competition.models import CompetitionPosition
+from datetime import timedelta
 
 from .models import (
     Leaderboard,
@@ -42,7 +45,32 @@ class CurrentStreakAPIView(APIView):
     def get(self, request):
         streak_info = get_object_or_404(UserDailyStreak, user=request.user)
         serializer = UserDailyStreakSerializer(streak_info)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        today = timezone.now().date()
+        start_of_week = today - timedelta(
+            days=today.weekday()
+        )  # Monday of the current week
+
+        # Count trades (DemoPosition and CompetitionPosition) opened by the user this week
+        num_trades = (
+            DemoPosition.objects.filter(
+                portfolio__user=request.user,
+                status=DemoPosition.OPEN,
+                created__date__gte=start_of_week,
+                created__date__lte=today,
+            ).count()
+            + CompetitionPosition.objects.filter(
+                portfolio__user=request.user,
+                status=CompetitionPosition.OPEN,
+                created__date__gte=start_of_week,
+                created__date__lte=today,
+            ).count()
+        )
+
+        # Return the response with streak data and number of trades
+        return Response(
+            {"streak": serializer.data, "num_of_trades": num_trades},
+            status=status.HTTP_200_OK,
+        )
 
 
 class LongestStreakAPIView(APIView):
