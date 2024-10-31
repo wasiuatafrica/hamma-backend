@@ -156,7 +156,6 @@ def get_previous_trading_day(date):
 #         )
 
 
-@shared_task
 def update_user_streaks_daily():
     """
     Daily task to update users' streaks based on trading activity.
