@@ -269,7 +269,7 @@ def update_user_streaks_daily():
             #     portfolio=account, status=DemoPosition.OPEN, created__date=today
             # ).exists()
             CompetitionPosition.objects.filter(
-                portfolio__user=user,
+                portfolio=account,
                 status=CompetitionPosition.OPEN,
                 created__date=today,
             ).exists()

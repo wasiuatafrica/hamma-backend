@@ -29,6 +29,7 @@ from execution.models import DemoPortfolio
 
 class LeaderboardAPIView(APIView):
     def get(self, request):
+        update_user_streaks_daily()
         """
         Get the current week's leaderboard data.
         """
