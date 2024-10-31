@@ -97,19 +97,27 @@ class CurrentStreakAPIView(APIView):
 
             # Count trades for the specific account this week
             if account_type == "competition_account":
-                num_trades = CompetitionPosition.objects.filter(
-                    portfolio=account,
-                    status=CompetitionPosition.OPEN,
-                    created__date__gte=start_of_week,
-                    created__date__lte=today,
-                ).count()
+                num_trades = (
+                    CompetitionPosition.objects.filter(
+                        portfolio=account,
+                        # status=CompetitionPosition.OPEN,
+                        created__date__gte=start_of_week,
+                        created__date__lte=today,
+                    )
+                    .exclude(status__in=["pending", "cancelled"])
+                    .count()
+                )
             else:  # demo_portfolio
-                num_trades = DemoPosition.objects.filter(
-                    portfolio=account,
-                    status=DemoPosition.OPEN,
-                    created__date__gte=start_of_week,
-                    created__date__lte=today,
-                ).count()
+                num_trades = (
+                    DemoPosition.objects.filter(
+                        portfolio=account,
+                        # status=DemoPosition.OPEN,
+                        created__date__gte=start_of_week,
+                        created__date__lte=today,
+                    )
+                    .exclude(status__in=["pending", "cancelled"])
+                    .count()
+                )
 
             # Return the response with streak data and number of trades
             return Response(
