@@ -61,48 +61,71 @@ class CurrentStreakAPIView(APIView):
         # Get account and streak info based on account type
         if account_type == "competition_account":
             account = get_object_or_404(CompetitionPortfolio, id=account_id)
-            streak_info = get_object_or_404(
-                UserDailyStreak, user=request.user, comp_portfolio=account
-            )
+            # streak_info = get_object_or_404(
+            #     UserDailyStreak, user=request.user, comp_portfolio=account
+            # )
+            streak_info = UserDailyStreak.objects.filter(
+                user=request.user,
+                comp_portfolio=account,
+                current_streak__gt=0,
+            ).first()
         elif account_type == "demo_portfolio":
             account = get_object_or_404(DemoPortfolio, id=account_id)
-            streak_info = get_object_or_404(
-                UserDailyStreak, user=request.user, demo_portfolio=account
-            )
+            # streak_info = get_object_or_404(
+            #     UserDailyStreak,
+            #     user=request.user,
+            #     demo_portfolio=account,
+            #     current_streak__gt=0,
+            # )
+            streak_info = UserDailyStreak.objects.filter(
+                user=request.user,
+                demo_portfolio=account,
+                current_streak__gt=0,
+            ).first()
         else:
             return Response(
                 {"error": "Invalid account type."}, status=status.HTTP_400_BAD_REQUEST
             )
+        if streak_info:
+            serializer = UserDailyStreakSerializer(streak_info)
 
-        serializer = UserDailyStreakSerializer(streak_info)
+            # Calculate date range for this week
+            today = timezone.now().date()
+            start_of_week = today - timedelta(
+                days=today.weekday()
+            )  # Monday of the current week
 
-        # Calculate date range for this week
-        today = timezone.now().date()
-        start_of_week = today - timedelta(
-            days=today.weekday()
-        )  # Monday of the current week
+            # Count trades for the specific account this week
+            if account_type == "competition_account":
+                num_trades = CompetitionPosition.objects.filter(
+                    portfolio=account,
+                    status=CompetitionPosition.OPEN,
+                    updated__date__gte=start_of_week,
+                    updated__date__lte=today,
+                ).count()
+            else:  # demo_portfolio
+                num_trades = DemoPosition.objects.filter(
+                    portfolio=account,
+                    status=DemoPosition.OPEN,
+                    updated__date__gte=start_of_week,
+                    updated__date__lte=today,
+                ).count()
 
-        # Count trades for the specific account this week
-        if account_type == "competition_account":
-            num_trades = CompetitionPosition.objects.filter(
-                portfolio=account,
-                status=CompetitionPosition.OPEN,
-                updated__date__gte=start_of_week,
-                updated__date__lte=today,
-            ).count()
-        else:  # demo_portfolio
-            num_trades = DemoPosition.objects.filter(
-                portfolio=account,
-                status=DemoPosition.OPEN,
-                updated__date__gte=start_of_week,
-                updated__date__lte=today,
-            ).count()
-
-        # Return the response with streak data and number of trades
-        return Response(
-            {"streak": serializer.data, "num_of_trades": num_trades},
-            status=status.HTTP_200_OK,
-        )
+            # Return the response with streak data and number of trades
+            return Response(
+                {"streak": serializer.data, "num_of_trades": num_trades},
+                status=status.HTTP_200_OK,
+            )
+        else:
+            data = {
+                "streak": {
+                    "user": request.user.id,
+                    "longest_streak_run": 0,
+                    "current_streak_run": {},
+                },
+                "num_of_trades": 0,
+            }
+            return Response(data, status=status.HTTP_200_OK)
 
 
 class LongestStreakAPIView(APIView):
@@ -158,35 +181,53 @@ class StreakCalendarAPIView(APIView):
 
         if account_type == "competition_account":
             account = get_object_or_404(CompetitionPortfolio, id=account_id)
-            streak_info = get_object_or_404(
-                UserDailyStreak, user=request.user, comp_portfolio=account
-            )
+            # streak_info = get_object_or_404(
+            #     UserDailyStreak, user=request.user, comp_portfolio=account
+            # )
+            streak_info = UserDailyStreak.objects.filter(
+                user=request.user,
+                comp_portfolio=account,
+                current_streak__gt=0,
+            ).first()
         elif account_type == "demo_portfolio":
             account = get_object_or_404(DemoPortfolio, id=account_id)
-            streak_info = get_object_or_404(
-                UserDailyStreak, user=request.user, demo_portfolio=account
-            )
+            # streak_info = get_object_or_404(
+            #     UserDailyStreak,
+            #     user=request.user,
+            #     demo_portfolio=account,
+            #     current_streak__gt=0,
+            # )
+            streak_info = UserDailyStreak.objects.filter(
+                user=request.user,
+                demo_portfolio=account,
+                current_streak__gt=0,
+            ).first()
         else:
             return Response(
                 {"error": "Invalid account type."}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        active_streak_run = streak_info.get_active_streak_run()
+        if streak_info:
 
-        if not active_streak_run:
-            return Response(
-                {"error": "No active streak run found for this user."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            active_streak_run = streak_info.get_active_streak_run()
 
-        print("Helloooo")
+            if not active_streak_run:
+                return Response(
+                    {"error": "No active streak run found for this user."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
-        # Only include trade dates from the last missed date if any
-        trade_activities = active_streak_run.daily_activities.order_by("trade_date")
-        trade_dates = [activity.trade_date for activity in trade_activities]
-        print(trade_dates)
+            print("Helloooo")
 
-        return Response({"trade_dates": trade_dates}, status=status.HTTP_200_OK)
+            # Only include trade dates from the last missed date if any
+            trade_activities = active_streak_run.daily_activities.order_by("trade_date")
+            trade_dates = [activity.trade_date for activity in trade_activities]
+            print(trade_dates)
+
+            return Response({"trade_dates": trade_dates}, status=status.HTTP_200_OK)
+        else:
+            data = {"trade_dates": []}
+            return Response(data, status=status.HTTP_200_OK)
 
 
 class UserActivityBadgeAPIView(APIView):
