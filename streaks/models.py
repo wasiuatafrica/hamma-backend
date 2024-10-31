@@ -99,7 +99,9 @@ class UserDailyStreak(DemoPortfolioFieldModel):
     Maintains the current and longest streak for a user.
     """
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="streak_info")
+    user = auto_prefetch.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="streak_info"
+    )
     current_streak = models.PositiveIntegerField(default=0)
     longest_streak = models.PositiveIntegerField(default=0)
 

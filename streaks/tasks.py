@@ -178,7 +178,7 @@ def update_user_streaks_daily():
         # Check if the trade account has any trades opened today
         has_open_trade_today = (
             DemoPosition.objects.filter(
-                portfolio=account, status=DemoPosition.OPEN, created__date=today
+                portfolio=account, status=DemoPosition.OPEN, updated__date=today
             ).exists()
             #     or CompetitionPosition.objects.filter(
             #         portfolio__user=user,
@@ -274,7 +274,7 @@ def update_user_streaks_daily():
             CompetitionPosition.objects.filter(
                 portfolio=account,
                 status=CompetitionPosition.OPEN,
-                created__date=today,
+                updated__date=today,
             ).exists()
         )
 
@@ -371,12 +371,12 @@ def award_weekly_badges_and_update_leaderboard():
             DemoPosition.objects.filter(
                 portfolio__user=user,
                 status=DemoPosition.OPEN,
-                created__date__range=(week_start, week_end),
+                updated__date__range=(week_start, week_end),
             ).count()
             + CompetitionPosition.objects.filter(
                 portfolio__user=user,
                 status=CompetitionPosition.OPEN,
-                created__date__range=(week_start, week_end),
+                updated__date__range=(week_start, week_end),
             ).count()
         )
 
