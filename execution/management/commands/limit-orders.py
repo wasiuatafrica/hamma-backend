@@ -19,6 +19,7 @@ class Command(BaseCommand):
     help = "Save all Stock symbols as JSON file"
 
     def handle(self, *args, **options):
-        process_all_demo_limit_order_task()
-        print("Demo Orders Processed")
-        process_all_competition_limit_order_task
+        # process_all_demo_limit_order_task()
+        # print("Demo Orders Processed")
+        process_all_competition_limit_order_task()
+        print("Competition Orders Processed")

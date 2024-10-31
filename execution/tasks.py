@@ -38,6 +38,7 @@ from execution.utils import (
     get_positions,
 )
 from notifications.utils import save_and_send_notification
+import portfolio
 from portfolio.models import Conversation, DemoTransaction, MarketAI, Message, Stock
 from portfolio.utils import get_price, get_stockdata2
 
@@ -609,7 +610,7 @@ def process_all_competition_limit_order_task():
         return
 
     pending_positions = CompetitionPosition.objects.filter(
-        competition__status="current", status="pending"
+        portfolio__competition__status="current", status="pending"
     )
     for pending_pos in pending_positions:
         print(f"processing {pending_pos.portfolio.account_name}...")
