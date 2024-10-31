@@ -997,7 +997,7 @@ def competition_daily_returns7():
                     d_returns.created = timezone.now()
                     d_returns.save()
                 else:
-                    CompetitionDailyReturns2.objects.create(
+                    d_returns = CompetitionDailyReturns2.objects.create(
                         # user=portfolio.user,
                         portfolio=portfolio,
                         portfolio_returns=round(last_row["Daily_PortfolioReturns"], 2),

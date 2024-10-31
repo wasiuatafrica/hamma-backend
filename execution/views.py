@@ -334,21 +334,21 @@ class DemoTradeAPIView(APIView):
                     order_type="limit",
                 )
 
-                schedule, created = IntervalSchedule.objects.get_or_create(
-                    every=3,
-                    period=IntervalSchedule.MINUTES,
-                )
+                # schedule, created = IntervalSchedule.objects.get_or_create(
+                #     every=3,
+                #     period=IntervalSchedule.MINUTES,
+                # )
 
-                if not is_buy:
-                    position.action = "sell"
-                    position.save()
+                # if not is_buy:
+                #     position.action = "sell"
+                #     position.save()
 
-                task = PeriodicTask.objects.create(
-                    interval=schedule,
-                    name=position.alert_name,
-                    task="execution.tasks.process_limit_order",
-                    args=json.dumps([position.id, True]),
-                )
+                # task = PeriodicTask.objects.create(
+                #     interval=schedule,
+                #     name=position.alert_name,
+                #     task="execution.tasks.process_limit_order",
+                #     args=json.dumps([position.id, True]),
+                # )
 
                 # positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open',active=True)
 
@@ -2817,29 +2817,30 @@ class SingleDemoTradeAPIView(APIView):
                         status=CompetitionPosition.PENDING,
                         limit_price=price,
                         quantity=quantity,
-                        alert_name="pending trade" + shortuuid.uuid(),
+                        alert_name="pending_trade_" + shortuuid.uuid(),
                         time_in_force=time_in_force,
                         order_id=order_id,
                         order_type=order_type,
                         take_profit=take_profit,
                         stop_loss=stop_loss,
+                        action=action
                     )
 
-                    schedule, created = IntervalSchedule.objects.get_or_create(
-                        every=3,
-                        period=IntervalSchedule.MINUTES,
-                    )
+                    # schedule, created = IntervalSchedule.objects.get_or_create(
+                    #     every=3,
+                    #     period=IntervalSchedule.MINUTES,
+                    # )
 
-                    if not is_buy:
-                        position.action = "sell"
-                        position.save()
+                    # if not is_buy:
+                    #     position.action = "sell"
+                    #     position.save()
 
-                    task = PeriodicTask.objects.create(
-                        interval=schedule,
-                        name=position.alert_name,
-                        task="execution.tasks.process_limit_order",
-                        args=json.dumps([position.id, True]),
-                    )
+                    # task = PeriodicTask.objects.create(
+                    #     interval=schedule,
+                    #     name=position.alert_name,
+                    #     task="execution.tasks.process_limit_order",
+                    #     args=json.dumps([position.id, True]),
+                    # )
 
                     # positions = CompetitionPosition.objects.filter(portfolio=portfolio,status='open',active=True)
 
@@ -2941,27 +2942,28 @@ class SingleDemoTradeAPIView(APIView):
                     order_type=order_type,
                     take_profit=take_profit,
                     stop_loss=stop_loss,
+                    action=action,
                 )
 
-                schedule, created = IntervalSchedule.objects.get_or_create(
-                    every=3,
-                    period=IntervalSchedule.MINUTES,
-                )
+                # schedule, created = IntervalSchedule.objects.get_or_create(
+                #     every=3,
+                #     period=IntervalSchedule.MINUTES,
+                # )
 
-                if not is_buy:
-                    position.action = "sell"
-                    position.save()
+                # if not is_buy:
+                #     position.action = "sell"
+                #     position.save()
 
-                task = PeriodicTask.objects.create(
-                    interval=schedule,
-                    name=position.alert_name,
-                    task="execution.tasks.process_limit_order",
-                    args=json.dumps([position.id]),
-                )
+                # task = PeriodicTask.objects.create(
+                #     interval=schedule,
+                #     name=position.alert_name,
+                #     task="execution.tasks.process_limit_order",
+                #     args=json.dumps([position.id]),
+                # )
 
-                positions = DemoPosition.objects.filter(
-                    portfolio=portfolio, status="open"
-                )
+                # positions = DemoPosition.objects.filter(
+                #     portfolio=portfolio, status="open"
+                # )
 
                 save_and_send_notification(
                     request.user.id,

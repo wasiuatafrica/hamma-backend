@@ -1,47 +1,48 @@
+import json
+import os
+import time as timer
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, time, timedelta
+from decimal import Decimal
+from random import uniform
+
+import boto3
+import pandas as pd
+import pytz
+import shortuuid
+from asgiref.sync import async_to_sync
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 from django.shortcuts import get_object_or_404
-import boto3
-
-from execution.utils import (
-    competition_daily_returns4,
-    daily_returns5,
-    get_positions,
-    daily_returns3,
-    competition_daily_returns3,
-    competition_daily_returns7,
-)
-
-from anyon.views import User
-from portfolio.models import Message, Conversation, Stock, MarketAI, DemoTransaction
-from .models import DemoPortfolio, DemoPosition, DemoDailyReturns, DemoCumulativeReturns
-from random import uniform
-from decimal import Decimal
-from datetime import datetime, timedelta, time
-from portfolio.utils import get_price, get_stockdata2
-from notifications.utils import save_and_send_notification
-from django_celery_beat.models import PeriodicTask
 from django.utils import timezone
-import pytz
+from django_celery_beat.models import IntervalSchedule, PeriodicTask
+from pymongo import MongoClient
+
 from accounts.models import UserActivityLog
-import json
-from django_celery_beat.models import PeriodicTask, IntervalSchedule
-import shortuuid
-import time as timer
+from anyon.views import User
 from competition.models import (
     Competition,
+    CompetitionCumulativeReturns,
+    CompetitionDailyReturns,
     CompetitionPortfolio,
     CompetitionPosition,
     CompetitionTransaction,
-    CompetitionDailyReturns,
-    CompetitionCumulativeReturns,
 )
-import pandas as pd
-import os
-from pymongo import MongoClient
-from concurrent.futures import ThreadPoolExecutor
+from execution.utils import (
+    competition_daily_returns3,
+    competition_daily_returns4,
+    competition_daily_returns7,
+    daily_returns3,
+    daily_returns5,
+    get_positions,
+)
+from notifications.utils import save_and_send_notification
+import portfolio
+from portfolio.models import Conversation, DemoTransaction, MarketAI, Message, Stock
+from portfolio.utils import get_price, get_stockdata2
+
+from .models import DemoCumulativeReturns, DemoDailyReturns, DemoPortfolio, DemoPosition
 
 logger = get_task_logger(__name__)
 channel_layer = get_channel_layer()
@@ -61,6 +62,8 @@ BANK_HOLIDAYS = [
     datetime(2024, 6, 18),
     datetime(2024, 10, 1),  # Independence Day
     datetime(2024, 12, 25),  # Christmas Day
+    datetime(2024, 12, 26),  # Christmas Day
+    datetime(2025, 1, 1),  # Christmas Day
 ]
 
 lagos_tz = pytz.timezone("Africa/Lagos")
@@ -464,6 +467,228 @@ def process_limit_order(id, in_competition=False):
         print("Outside trading hours")
 
 
+# Shared helper functions
+def cancel_order(position, user, message):
+    task = PeriodicTask.objects.get(name=position.alert_name)
+    task.enabled = False
+    task.save()
+    position.status = "cancelled"
+    position.save()
+    save_and_send_notification(user.id, message)
+
+
+def execute_trade(position, price, user, action_type, transaction_model):
+    amount = round(Decimal(price) * position.quantity, 2)
+    trade_commission = round(Decimal(0.00435) * amount, 2) + 200
+    total = amount + trade_commission
+
+    print("portfolio balance", position.portfolio.balance, "total", total)
+    if position.portfolio.balance >= total:
+        position.status = "open"
+        position.open_price = Decimal(price)
+        position.amount_invested = amount
+        position.portfolio.balance -= total
+        position.save()
+        position.portfolio.save()
+
+        create_transaction(
+            user, action_type, amount, trade_commission, transaction_model
+        )
+        log_activity(user, position, amount, action_type)
+        send_trade_notification(user, position, price, amount, action_type)
+        print("trade executed")
+    else:
+        send_insufficient_funds_notification(user, position)
+        print("insufficient_funds")
+
+
+def create_transaction(user, action_type, amount, commission, transaction_model):
+    transaction_model.objects.create(
+        user=user, transaction_type="open trade", amount=amount, status="completed"
+    )
+    transaction_model.objects.create(
+        user=user,
+        transaction_type="trade commission",
+        amount=commission,
+        status="completed",
+    )
+
+
+def log_activity(user, position, amount, action_type):
+    UserActivityLog.objects.create(
+        user=user,
+        action_type=action_type,
+        description=f"User opened trade with {amount} naira on {position.stock.symbol}.",
+    )
+
+
+def send_trade_notification(user, position, price, amount, action_type):
+    trade_type = "COMPETITION" if action_type == "competition_open_trade" else "DEMO"
+    save_and_send_notification(
+        user.id,
+        f"{trade_type}: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value: {amount} naira",
+    )
+
+
+def send_insufficient_funds_notification(user, position):
+    save_and_send_notification(
+        user.id,
+        f"Your pending order for {position.quantity} units of {position.stock.symbol} cannot be filled due to insufficient funds.",
+    )
+
+
+# Function to check trading hours
+def is_within_trading_hours():
+    lagos_timezone = pytz.timezone("Africa/Lagos")
+    current_time_lagos = timezone.now().astimezone(lagos_timezone)
+    return (
+        current_time_lagos.time() >= time(10, 10)
+        and current_time_lagos.time() <= time(14, 30)
+        and current_time_lagos.weekday() < 5
+    )
+
+
+def process_competition_limit_order(id):
+
+    lagos_timezone = pytz.timezone("Africa/Lagos")
+    competition = Competition.objects.filter(status="current").first()
+
+    # Validate competition start time
+    if timezone.now() <= competition.start_date:
+        print("Competition has not started yet")
+        return
+
+    position = get_object_or_404(CompetitionPosition, id=id)
+    user = position.portfolio.user
+    current_time_lagos = timezone.now().astimezone(lagos_timezone)
+    target_time = datetime.combine(current_time_lagos.date(), time(14, 30)).astimezone(
+        lagos_timezone
+    )
+
+    if position.status == "pending":
+        # Expiry conditions for day and week positions
+        if position.time_in_force == "day" and current_time_lagos > target_time:
+            cancel_order(
+                position,
+                user,
+                "COMPETITION: Your pending order was cancelled as it couldn't be filled before session close.",
+            )
+            return
+        elif (
+            position.time_in_force == "week"
+            and current_time_lagos.weekday() == 4
+            and current_time_lagos > target_time
+        ):
+            cancel_order(
+                position,
+                user,
+                "COMPETITION: Your pending order was cancelled as it couldn't be filled before the week's end.",
+            )
+            return
+
+        # Check price and execute trade
+        data = get_price(position.stock.symbol)
+        price = data["current_price"]
+        print(
+            "current_price:",
+            price,
+            type(price),
+            "limit_price:",
+            position.limit_price,
+            type(position.limit_price),
+            position.action,
+        )
+        if position.action == "buy" and price <= position.limit_price:
+            print("buy condition met")
+            execute_trade(
+                position, price, user, "competition_open_trade", CompetitionTransaction
+            )
+        elif position.action == "sell" and price >= position.limit_price:
+            print("sell condition met")
+            execute_trade(
+                position, price, user, "competition_open_trade", CompetitionTransaction
+            )
+
+    # # Disable periodic task if order is no longer pending
+    # else:
+    #     task = PeriodicTask.objects.get(name=position.alert_name)
+    #     task.enabled = False
+    #     task.save()
+
+
+@shared_task
+def process_all_competition_limit_order_task():
+    if not is_within_trading_hours():
+        print("Outside trading hours for competition")
+        return
+
+    pending_positions = CompetitionPosition.objects.filter(
+        portfolio__competition__status="current", status="pending"
+    )
+    print("length of pending competitions", len(pending_positions))
+    for pending_pos in pending_positions:
+        print(f"processing {pending_pos.portfolio.account_name}...")
+        process_competition_limit_order(pending_pos.id)
+
+
+def process_demo_limit_order(id):
+
+    lagos_timezone = pytz.timezone("Africa/Lagos")
+    position = get_object_or_404(DemoPosition, id=id)
+    user = position.portfolio.user
+    current_time_lagos = timezone.now().astimezone(lagos_timezone)
+    target_time = datetime.combine(current_time_lagos.date(), time(14, 30)).astimezone(
+        lagos_timezone
+    )
+
+    if position.status == "pending":
+        # Expiry conditions for day and week positions
+        if position.time_in_force == "day" and current_time_lagos > target_time:
+            cancel_order(
+                position,
+                user,
+                "DEMO: Your pending order was cancelled as it couldn't be filled before session close.",
+            )
+            return
+        elif (
+            position.time_in_force == "week"
+            and current_time_lagos.weekday() == 4
+            and current_time_lagos > target_time
+        ):
+            cancel_order(
+                position,
+                user,
+                "DEMO: Your pending order was cancelled as it couldn't be filled before the week's end.",
+            )
+            return
+
+        # Check price and execute trade
+        data = get_price(position.stock.symbol)
+        price = data["current_price"]
+        if position.action == "buy" and price <= position.limit_price:
+            execute_trade(position, price, user, "demo_open_trade", DemoTransaction)
+        elif position.action == "sell" and price >= position.limit_price:
+            execute_trade(position, price, user, "demo_open_trade", DemoTransaction)
+
+    # Disable periodic task if order is no longer pending
+    # else:
+    #     task = PeriodicTask.objects.get(name=position.alert_name)
+    #     task.enabled = False
+    #     task.save()
+
+
+@shared_task
+def process_all_demo_limit_order_task():
+    if not is_within_trading_hours():
+        print("Outside trading hours for demo")
+        return
+
+    pending_positions = DemoPosition.objects.filter(status="pending")
+    for pending_pos in pending_positions:
+        print(f"processing {pending_pos.portfolio.account_name}...")
+        process_demo_limit_order(pending_pos.id)
+
+
 @shared_task
 def get_daily_profit_loss():
     today = datetime.now().weekday()
@@ -721,6 +946,7 @@ def update_latest_competition_cumulative_returns():
 
 
 from openai import OpenAI
+
 from .symbol_pair import pairs
 
 
@@ -991,10 +1217,10 @@ def process_market_data(prompt, convsersation_id, user_id, channel_name):
         )
 
 
-from openai import OpenAI
-
 # import time
 import concurrent.futures
+
+from openai import OpenAI
 
 client = OpenAI()
 

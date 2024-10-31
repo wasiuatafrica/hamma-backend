@@ -83,6 +83,7 @@ class CompetitionPortfolio(auto_prefetch.Model):
         print(self.user.clan)
         return f"{self.competition.title} {self.user}|clan= {self.user.clans}|acc_name={self.account_name}"
 
+
     @property
     def profit(self):
         closed_positions = self.composition.filter(status=CompetitionPosition.CLOSED)
@@ -334,7 +335,7 @@ def get_leaderboard():
             clan = account.user.clans
             clan_returns[clan].append(profit / 1000000)
 
-    # print(clan_returns)
+    print(clan_returns)
     ranked_clans = []
     for clan, returns in clan_returns.items():
         cumulative_return = (1 + pd.Series(returns)).cumprod() - 1

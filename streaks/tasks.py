@@ -159,7 +159,6 @@ def get_previous_trading_day(date):
 #         )
 
 
-@shared_task
 def update_user_streaks_daily():
     """
     Daily task to update users' streaks based on trading activity.
@@ -178,7 +177,9 @@ def update_user_streaks_daily():
         # Check if the trade account has any trades opened today
         has_open_trade_today = (
             DemoPosition.objects.filter(
+
                 portfolio=account, status=DemoPosition.OPEN, updated__date=today
+
             ).exists()
             #     or CompetitionPosition.objects.filter(
             #         portfolio__user=user,
