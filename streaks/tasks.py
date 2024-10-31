@@ -1,13 +1,14 @@
-from datetime import timedelta
+import datetime
+from datetime import time, timedelta
 
+import pytz
 from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
 
-import datetime
-from competition.models import CompetitionPosition
-from execution.models import DemoPosition
+from competition.models import Competition, CompetitionPortfolio, CompetitionPosition
+from execution.models import DemoPortfolio, DemoPosition
 
 from .models import (
     Leaderboard,
@@ -17,13 +18,6 @@ from .models import (
     UserDailyTradeActivity,
     UserStreakRun,
 )
-from competition.models import CompetitionPortfolio, Competition
-from execution.models import DemoPortfolio
-
-
-User = get_user_model()
-
-from .models import Leaderboard, Reward, UserActivityBadge, UserDailyStreak
 
 User = get_user_model()
 
@@ -36,6 +30,16 @@ HOLIDAYS = [
     datetime.date(2024, 12, 26),  # Christmas Day
     # Add more holidays as needed
 ]
+
+
+def is_within_trading_hours():
+    lagos_timezone = pytz.timezone("Africa/Lagos")
+    current_time_lagos = timezone.now().astimezone(lagos_timezone)
+    return (
+        current_time_lagos.time() >= time(10, 10)
+        and current_time_lagos.time() <= time(14, 30)
+        and current_time_lagos.weekday() < 5
+    )
 
 
 def is_trading_day(date):
@@ -422,4 +426,5 @@ def award_weekly_badges_and_update_leaderboard():
 
 @shared_task
 def update_user_streaks_daily_task():
-    update_user_streaks_daily()
+    if is_within_trading_hours:
+        update_user_streaks_daily()
