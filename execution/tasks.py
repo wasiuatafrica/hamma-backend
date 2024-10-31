@@ -540,7 +540,7 @@ def is_within_trading_hours():
     lagos_timezone = pytz.timezone("Africa/Lagos")
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
     return (
-        current_time_lagos.time() >= time(8, 10)
+        current_time_lagos.time() >= time(10, 10)
         and current_time_lagos.time() <= time(14, 30)
         and current_time_lagos.weekday() < 5
     )
@@ -587,14 +587,14 @@ def process_competition_limit_order(id):
         # Check price and execute trade
         data = get_price(position.stock.symbol)
         price = data["current_price"]
-        # if position.action == "buy" and price <= position.limit_price:
-        #     execute_trade(
-        #         position, price, user, "competition_open_trade", CompetitionTransaction
-        #     )
-        # elif position.action == "sell" and price >= position.limit_price:
-        #     execute_trade(
-        #         position, price, user, "competition_open_trade", CompetitionTransaction
-        #     )
+        if position.action == "buy" and price <= position.limit_price:
+            execute_trade(
+                position, price, user, "competition_open_trade", CompetitionTransaction
+            )
+        elif position.action == "sell" and price >= position.limit_price:
+            execute_trade(
+                position, price, user, "competition_open_trade", CompetitionTransaction
+            )
 
     # Disable periodic task if order is no longer pending
     else:
@@ -651,10 +651,10 @@ def process_demo_limit_order(id):
         # Check price and execute trade
         data = get_price(position.stock.symbol)
         price = data["current_price"]
-        # if position.action == "buy" and price <= position.limit_price:
-        #     execute_trade(position, price, user, "demo_open_trade", DemoTransaction)
-        # elif position.action == "sell" and price >= position.limit_price:
-        #     execute_trade(position, price, user, "demo_open_trade", DemoTransaction)
+        if position.action == "buy" and price <= position.limit_price:
+            execute_trade(position, price, user, "demo_open_trade", DemoTransaction)
+        elif position.action == "sell" and price >= position.limit_price:
+            execute_trade(position, price, user, "demo_open_trade", DemoTransaction)
 
     # Disable periodic task if order is no longer pending
     else:
