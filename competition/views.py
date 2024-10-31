@@ -1062,11 +1062,12 @@ class ClanMembers(APIView):
             clan_member_data.append({"admin": False})
         clan_member_data.append({"members": []})
         competition = Competition.objects.filter(status="current")
+        profile = Profile.objects.get(user=clan.clan_admin)
         if competition.exists():
             portfolio = CompetitionPortfolio.objects.filter(
                 competition__status="current", user=clan.clan_admin
             ).first()
-            profile = Profile.objects.get(user=clan.clan_admin)
+            # profile = Profile.objects.get(user=clan.clan_admin)
             if portfolio:
                 profit, status = getProfit(portfolio)
                 percent = round((profit / 1000000) * 100, 2)
