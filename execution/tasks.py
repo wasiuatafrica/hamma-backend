@@ -482,6 +482,7 @@ def execute_trade(position, price, user, action_type, transaction_model):
     trade_commission = round(Decimal(0.00435) * amount, 2) + 200
     total = amount + trade_commission
 
+    print("portfolio balance", position.portfolio.balance, "total", total)
     if position.portfolio.balance >= total:
         position.status = "open"
         position.open_price = Decimal(price)
@@ -498,6 +499,7 @@ def execute_trade(position, price, user, action_type, transaction_model):
         print("trade executed")
     else:
         send_insufficient_funds_notification(user, position)
+        print("insufficient_funds")
 
 
 def create_transaction(user, action_type, amount, commission, transaction_model):
