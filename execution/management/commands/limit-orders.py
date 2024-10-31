@@ -22,4 +22,4 @@ class Command(BaseCommand):
         # process_all_demo_limit_order_task()
         # print("Demo Orders Processed")
         process_all_competition_limit_order_task()
-        print("Competition Orders Processed")
+        # print("Competition Orders Processed")

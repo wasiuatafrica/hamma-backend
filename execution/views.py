@@ -2941,6 +2941,7 @@ class SingleDemoTradeAPIView(APIView):
                     order_type=order_type,
                     take_profit=take_profit,
                     stop_loss=stop_loss,
+                    action=action,
                 )
 
                 # schedule, created = IntervalSchedule.objects.get_or_create(
