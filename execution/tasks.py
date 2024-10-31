@@ -606,7 +606,7 @@ def process_competition_limit_order(id):
 @shared_task
 def process_all_competition_limit_order_task():
     if not is_within_trading_hours():
-        print("Outside trading hours for demo")
+        print("Outside trading hours for competition")
         return
 
     pending_positions = CompetitionPosition.objects.filter(
