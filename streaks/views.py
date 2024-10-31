@@ -29,7 +29,6 @@ from execution.models import DemoPortfolio
 
 class LeaderboardAPIView(APIView):
     def get(self, request):
-        update_user_streaks_daily()
         """
         Get the current week's leaderboard data.
         """
@@ -60,7 +59,7 @@ class CurrentStreakAPIView(APIView):
             )
 
         # Get account and streak info based on account type
-        if account_type == "competition":
+        if account_type == "competition_account":
             account = get_object_or_404(CompetitionPortfolio, id=account_id)
             streak_info = get_object_or_404(
                 UserDailyStreak, user=request.user, comp_portfolio=account
@@ -84,7 +83,7 @@ class CurrentStreakAPIView(APIView):
         )  # Monday of the current week
 
         # Count trades for the specific account this week
-        if account_type == "competition":
+        if account_type == "competition_account":
             num_trades = CompetitionPosition.objects.filter(
                 portfolio=account,
                 status=CompetitionPosition.OPEN,
@@ -122,7 +121,7 @@ class LongestStreakAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if account_type == "competition":
+        if account_type == "competition_account":
             account = get_object_or_404(CompetitionPortfolio, id=account_id)
             streak_info = get_object_or_404(
                 UserDailyStreak, user=request.user, comp_portfolio=account
@@ -157,7 +156,7 @@ class StreakCalendarAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if account_type == "competition":
+        if account_type == "competition_account":
             account = get_object_or_404(CompetitionPortfolio, id=account_id)
             streak_info = get_object_or_404(
                 UserDailyStreak, user=request.user, comp_portfolio=account

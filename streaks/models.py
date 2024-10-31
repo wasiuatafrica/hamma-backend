@@ -10,27 +10,27 @@ from execution.models import DemoPortfolio
 User = get_user_model()
 
 
-class DemoPortfolioFieldModel(models.Model):
+class DemoPortfolioFieldModel(auto_prefetch.Model):
     """
     Represents a demo portfolio for  users.
     This model is abstract and would be inherited by models which should be connected to demoportfolio or commpetion portfolio
     """
 
     # Required fields for GenericForeignKey
-    demo_portfolio = models.ForeignKey(
+    demo_portfolio = auto_prefetch.ForeignKey(
         DemoPortfolio, on_delete=models.CASCADE, null=True, blank=True
     )
-    comp_portfolio = models.ForeignKey(
+    comp_portfolio = auto_prefetch.ForeignKey(
         CompetitionPortfolio, on_delete=models.CASCADE, null=True, blank=True
     )
 
-    class Meta:
+    class Meta(auto_prefetch.Model.Meta):
         """demo portfolios meta class"""
 
         abstract = True
 
 
-class UserStreakRun(auto_prefetch.Model, DemoPortfolioFieldModel):
+class UserStreakRun(DemoPortfolioFieldModel):
     """
     Represents a continuous streak of trading days for a user.
     A new streak run is created when a trading day is missed.
@@ -64,7 +64,7 @@ class UserStreakRun(auto_prefetch.Model, DemoPortfolioFieldModel):
         return f"{self.user.email} - Streak Run from {self.start_date} to {self.end_date or 'Ongoing'}"
 
 
-class UserDailyTradeActivity(auto_prefetch.Model, DemoPortfolioFieldModel):
+class UserDailyTradeActivity(DemoPortfolioFieldModel):
     """
     Represents each trading day activity by the user, attached to an active streak run.
     """
@@ -94,7 +94,7 @@ class UserDailyTradeActivity(auto_prefetch.Model, DemoPortfolioFieldModel):
         return f"{self.user.email} - Trade on {self.trade_date}"
 
 
-class UserDailyStreak(auto_prefetch.Model, DemoPortfolioFieldModel):
+class UserDailyStreak(DemoPortfolioFieldModel):
     """
     Maintains the current and longest streak for a user.
     """

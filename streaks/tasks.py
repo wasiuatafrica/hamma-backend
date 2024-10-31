@@ -17,7 +17,7 @@ from .models import (
     UserDailyTradeActivity,
     UserStreakRun,
 )
-from competition.models import CompetitionPortfolio
+from competition.models import CompetitionPortfolio, Competition
 from execution.models import DemoPortfolio
 
 
@@ -165,7 +165,10 @@ def update_user_streaks_daily():
     Daily task to update users' streaks based on trading activity.
     """
     today = timezone.now().date()
-    competition_accounts = CompetitionPortfolio.objects.all()
+    current_competition = Competition.objects.filter(status="current").first()
+    competition_accounts = CompetitionPortfolio.objects.filter(
+        competition=current_competition, active=True
+    )
     demo_accs = DemoPortfolio.objects.all()
 
     for account in demo_accs:
