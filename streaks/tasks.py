@@ -167,12 +167,12 @@ def update_user_streaks_daily():
         # Check if the user has any trades opened today in either Demo or Competition positions
         has_open_trade_today = (
             DemoPosition.objects.filter(
-                portfolio__user=user, status=DemoPosition.OPEN, created__date=today
+                portfolio__user=user, status=DemoPosition.OPEN, updated__date=today
             ).exists()
             or CompetitionPosition.objects.filter(
                 portfolio__user=user,
                 status=CompetitionPosition.OPEN,
-                created__date=today,
+                updated__date=today,
             ).exists()
         )
 

@@ -587,6 +587,7 @@ def process_competition_limit_order(id):
         # Check price and execute trade
         data = get_price(position.stock.symbol)
         price = data["current_price"]
+        print("current_price:", price, "limit_price:", position.limit_price)
         if position.action == "buy" and price <= position.limit_price:
             execute_trade(
                 position, price, user, "competition_open_trade", CompetitionTransaction
@@ -596,11 +597,11 @@ def process_competition_limit_order(id):
                 position, price, user, "competition_open_trade", CompetitionTransaction
             )
 
-    # Disable periodic task if order is no longer pending
-    else:
-        task = PeriodicTask.objects.get(name=position.alert_name)
-        task.enabled = False
-        task.save()
+    # # Disable periodic task if order is no longer pending
+    # else:
+    #     task = PeriodicTask.objects.get(name=position.alert_name)
+    #     task.enabled = False
+    #     task.save()
 
 
 @shared_task
@@ -612,6 +613,7 @@ def process_all_competition_limit_order_task():
     pending_positions = CompetitionPosition.objects.filter(
         portfolio__competition__status="current", status="pending"
     )
+    print("length of pending competitions", len(pending_positions))
     for pending_pos in pending_positions:
         print(f"processing {pending_pos.portfolio.account_name}...")
         process_competition_limit_order(pending_pos.id)
@@ -657,10 +659,10 @@ def process_demo_limit_order(id):
             execute_trade(position, price, user, "demo_open_trade", DemoTransaction)
 
     # Disable periodic task if order is no longer pending
-    else:
-        task = PeriodicTask.objects.get(name=position.alert_name)
-        task.enabled = False
-        task.save()
+    # else:
+    #     task = PeriodicTask.objects.get(name=position.alert_name)
+    #     task.enabled = False
+    #     task.save()
 
 
 @shared_task
