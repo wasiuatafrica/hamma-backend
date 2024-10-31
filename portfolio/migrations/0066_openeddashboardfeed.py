@@ -11,24 +11,46 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('portfolio', '0065_viewotherideaslog'),
+        ("portfolio", "0065_viewotherideaslog"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='OpenedDashboardFeed',
+            name="OpenedDashboardFeed",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('feed', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='opened_feeds', to='portfolio.dashboardfeed')),
-                ('user', auto_prefetch.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='opened_by', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "feed",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="opened_feeds",
+                        to="portfolio.dashboardfeed",
+                    ),
+                ),
+                (
+                    "user",
+                    auto_prefetch.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="opened_by",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
-                'base_manager_name': 'prefetch_manager',
+                "abstract": False,
+                "base_manager_name": "prefetch_manager",
             },
             managers=[
-                ('objects', django.db.models.manager.Manager()),
-                ('prefetch_manager', django.db.models.manager.Manager()),
+                ("objects", django.db.models.manager.Manager()),
+                ("prefetch_manager", django.db.models.manager.Manager()),
             ],
         ),
     ]

@@ -1,12 +1,36 @@
+from enum import unique
 from django.db import models
 from django.contrib.auth import get_user_model
 from datetime import datetime
 import auto_prefetch
 
+from competition.models import CompetitionPortfolio
+from execution.models import DemoPortfolio
+
 User = get_user_model()
 
 
-class UserStreakRun(auto_prefetch.Model):
+class DemoPortfolioFieldModel(models.Model):
+    """
+    Represents a demo portfolio for  users.
+    This model is abstract and would be inherited by models which should be connected to demoportfolio or commpetion portfolio
+    """
+
+    # Required fields for GenericForeignKey
+    demo_portfolio = models.ForeignKey(
+        DemoPortfolio, on_delete=models.CASCADE, null=True, blank=True
+    )
+    comp_portfolio = models.ForeignKey(
+        CompetitionPortfolio, on_delete=models.CASCADE, null=True, blank=True
+    )
+
+    class Meta:
+        """demo portfolios meta class"""
+
+        abstract = True
+
+
+class UserStreakRun(auto_prefetch.Model, DemoPortfolioFieldModel):
     """
     Represents a continuous streak of trading days for a user.
     A new streak run is created when a trading day is missed.
@@ -40,7 +64,7 @@ class UserStreakRun(auto_prefetch.Model):
         return f"{self.user.email} - Streak Run from {self.start_date} to {self.end_date or 'Ongoing'}"
 
 
-class UserDailyTradeActivity(auto_prefetch.Model):
+class UserDailyTradeActivity(auto_prefetch.Model, DemoPortfolioFieldModel):
     """
     Represents each trading day activity by the user, attached to an active streak run.
     """
@@ -54,20 +78,28 @@ class UserDailyTradeActivity(auto_prefetch.Model):
     trade_date = models.DateField()
 
     class Meta(auto_prefetch.Model.Meta):
-        unique_together = ("user", "trade_date")
+        # unique_together = ("user", "trade_date")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["demo_portfolio", "trade_date"],
+                name="unique_with_demo_portfolio",
+            ),
+            models.UniqueConstraint(
+                fields=["comp_portfolio", "trade_date"],
+                name="unique_with_demo_comp_portfolio",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.user.email} - Trade on {self.trade_date}"
 
 
-class UserDailyStreak(auto_prefetch.Model):
+class UserDailyStreak(auto_prefetch.Model, DemoPortfolioFieldModel):
     """
     Maintains the current and longest streak for a user.
     """
 
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name="streak_info"
-    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="streak_info")
     current_streak = models.PositiveIntegerField(default=0)
     longest_streak = models.PositiveIntegerField(default=0)
 
