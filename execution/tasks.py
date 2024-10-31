@@ -596,12 +596,15 @@ def process_competition_limit_order(id):
             "limit_price:",
             position.limit_price,
             type(position.limit_price),
+            position.action,
         )
         if position.action == "buy" and price <= position.limit_price:
+            print("buy condition met")
             execute_trade(
                 position, price, user, "competition_open_trade", CompetitionTransaction
             )
         elif position.action == "sell" and price >= position.limit_price:
+            print("sell condition met")
             execute_trade(
                 position, price, user, "competition_open_trade", CompetitionTransaction
             )
