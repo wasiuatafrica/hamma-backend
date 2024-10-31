@@ -589,7 +589,14 @@ def process_competition_limit_order(id):
         # Check price and execute trade
         data = get_price(position.stock.symbol)
         price = data["current_price"]
-        print("current_price:", price, "limit_price:", position.limit_price)
+        print(
+            "current_price:",
+            price,
+            type(price),
+            "limit_price:",
+            position.limit_price,
+            type(position.limit_price),
+        )
         if position.action == "buy" and price <= position.limit_price:
             execute_trade(
                 position, price, user, "competition_open_trade", CompetitionTransaction
