@@ -222,6 +222,8 @@ def update_user_streaks_daily():
                     )
 
                     previous_trading_day = get_previous_trading_day(today)
+                    print(last_trade_date.trade_date)
+                    print(previous_trading_day)
 
                     if (
                         last_trade_date
