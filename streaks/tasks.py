@@ -6,7 +6,7 @@ from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
-
+from django.db.models import Q
 from competition.models import Competition, CompetitionPortfolio, CompetitionPosition
 from execution.models import DemoPortfolio, DemoPosition
 
@@ -182,9 +182,17 @@ def update_user_streaks_daily():
         user = account.user
         print(account.account_name)
         # Check if the trade account has any trades opened today
-        has_open_trade_today = DemoPosition.objects.filter(
-            portfolio=account, status=DemoPosition.OPEN, updated__date=today
-        ).exists()
+        has_open_trade_today = (
+            DemoPosition.objects.filter(portfolio=account, updated__date=today)
+            .filter(
+                Q(
+                    created__date=today,
+                    order_type="market",
+                )
+                | Q(status=DemoPosition.OPEN, order_type="limit", updated__date=today)
+            )
+            .exists()
+        )
 
         with transaction.atomic():
             # Fetch the account's current streak information
@@ -265,22 +273,26 @@ def update_user_streaks_daily():
         # competition
         user = account.user
         print(user.email)
-        # Check if the trade account has any trades opened today
+
         has_open_trade_today = (
-            # DemoPosition.objects.filter(
-            #     portfolio=account, status=DemoPosition.OPEN, created__date=today
-            # ).exists()
-            CompetitionPosition.objects.filter(
-                portfolio=account,
-                status=CompetitionPosition.OPEN,
-                updated__date=today,
-            ).exists()
+            CompetitionPosition.objects.filter(portfolio=account, updated__date=today)
+            .filter(
+                Q(
+                    created__date=today,
+                    order_type="market",
+                )
+                | Q(
+                    status=CompetitionPosition.OPEN,
+                    order_type="limit",
+                    updated__date=today,
+                )
+            )
+            .exists()
         )
 
         print(has_open_trade_today, "sbffdsvbdf")
 
         with transaction.atomic():
-            # Fetch the account's current streak information
             streak_info, _ = UserDailyStreak.objects.get_or_create(
                 user=user, comp_portfolio=account
             )
