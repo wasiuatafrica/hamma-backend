@@ -7,6 +7,8 @@ from execution.models import DemoPosition
 from competition.models import CompetitionPosition
 from datetime import timedelta
 
+from django.db.models import Q
+
 from .models import (
     Leaderboard,
     Reward,
@@ -61,9 +63,6 @@ class CurrentStreakAPIView(APIView):
         # Get account and streak info based on account type
         if account_type == "competition_account":
             account = get_object_or_404(CompetitionPortfolio, id=account_id)
-            # streak_info = get_object_or_404(
-            #     UserDailyStreak, user=request.user, comp_portfolio=account
-            # )
             streak_info = UserDailyStreak.objects.filter(
                 user=request.user,
                 comp_portfolio=account,
@@ -71,12 +70,6 @@ class CurrentStreakAPIView(APIView):
             ).first()
         elif account_type == "demo_portfolio":
             account = get_object_or_404(DemoPortfolio, id=account_id)
-            # streak_info = get_object_or_404(
-            #     UserDailyStreak,
-            #     user=request.user,
-            #     demo_portfolio=account,
-            #     current_streak__gt=0,
-            # )
             streak_info = UserDailyStreak.objects.filter(
                 user=request.user,
                 demo_portfolio=account,
@@ -96,30 +89,39 @@ class CurrentStreakAPIView(APIView):
             )  # Monday of the current week
 
             # Count trades for the specific account this week
+
             if account_type == "competition_account":
                 num_trades = (
-                    CompetitionPosition.objects.filter(
-                        portfolio=account,
-                        # status=CompetitionPosition.OPEN,
-                        created__date__gte=start_of_week,
-                        created__date__lte=today,
+                    CompetitionPosition.objects.filter(portfolio=account)
+                    .filter(
+                        Q(created__date__gte=start_of_week, created__date__lte=today)
+                        & ~Q(status__in=["pending", "cancelled"])
+                        | Q(
+                            status="open",
+                            updated__date__gte=start_of_week,
+                            updated__date__lte=today,
+                            order_type="limit",
+                        )
                     )
-                    .exclude(status__in=["pending", "cancelled"])
+                    .distinct()
                     .count()
                 )
             else:  # demo_portfolio
                 num_trades = (
-                    DemoPosition.objects.filter(
-                        portfolio=account,
-                        # status=DemoPosition.OPEN,
-                        created__date__gte=start_of_week,
-                        created__date__lte=today,
+                    DemoPosition.objects.filter(portfolio=account)
+                    .filter(
+                        Q(created__date__gte=start_of_week, created__date__lte=today)
+                        & ~Q(status__in=["pending", "cancelled"])
+                        | Q(
+                            status="open",
+                            updated__date__gte=start_of_week,
+                            updated__date__lte=today,
+                            order_type="limit",
+                        )
                     )
-                    .exclude(status__in=["pending", "cancelled"])
+                    .distinct()
                     .count()
                 )
-
-            # Return the response with streak data and number of trades
             return Response(
                 {"streak": serializer.data, "num_of_trades": num_trades},
                 status=status.HTTP_200_OK,
