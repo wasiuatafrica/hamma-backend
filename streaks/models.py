@@ -124,11 +124,23 @@ class UserDailyStreak(DemoPortfolioFieldModel):
         """
         Retrieve the current active streak run for this user.
         """
-        return (
-            UserStreakRun.objects.filter(user=self.user, is_active=True)
-            .order_by("-start_date")
-            .first()
-        )
+
+        if self.demo_portfolio:
+            return (
+                UserStreakRun.objects.filter(
+                    user=self.user, is_active=True, demo_portfolio=self.demo_portfolio
+                )
+                .order_by("-start_date")
+                .first()
+            )
+        else:
+            return (
+                UserStreakRun.objects.filter(
+                    user=self.user, is_active=True, comp_portfolio=self.comp_portfolio
+                )
+                .order_by("-start_date")
+                .first()
+            )
 
     def reset_streak(self):
         """Resets the current streak to 0 when a day is missed."""

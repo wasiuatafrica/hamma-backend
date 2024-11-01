@@ -32,7 +32,6 @@ class UserStreakRunAdmin(admin.ModelAdmin):
         "user",
         "demo_portfolio",
         "comp_portfolio",
-        "start_date",
         "end_date",
         "is_active",
         "streak_length",

@@ -191,9 +191,7 @@ class StreakCalendarAPIView(APIView):
 
         if account_type == "competition_account":
             account = get_object_or_404(CompetitionPortfolio, id=account_id)
-            # streak_info = get_object_or_404(
-            #     UserDailyStreak, user=request.user, comp_portfolio=account
-            # )
+
             streak_info = UserDailyStreak.objects.filter(
                 user=request.user,
                 comp_portfolio=account,
@@ -201,12 +199,7 @@ class StreakCalendarAPIView(APIView):
             ).first()
         elif account_type == "demo_portfolio":
             account = get_object_or_404(DemoPortfolio, id=account_id)
-            # streak_info = get_object_or_404(
-            #     UserDailyStreak,
-            #     user=request.user,
-            #     demo_portfolio=account,
-            #     current_streak__gt=0,
-            # )
+
             streak_info = UserDailyStreak.objects.filter(
                 user=request.user,
                 demo_portfolio=account,
