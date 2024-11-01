@@ -361,10 +361,10 @@ def update_user_streaks_daily():
                     )
                     streak_info.update_streak(is_new_run=True)
             else:
-                # If no trade, reset current streak and end any active streak run
-                if active_streak_run:
-                    active_streak_run.end_streak()
-                streak_info.reset_streak()
+                if current_time >= market_close_time:
+                    if active_streak_run:
+                        active_streak_run.end_streak()
+                    streak_info.reset_streak()
 
 
 @shared_task
