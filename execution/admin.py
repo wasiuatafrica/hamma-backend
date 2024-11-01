@@ -14,6 +14,7 @@ from .models import (
     DemoDailyReturns2,
     CumulativeMarketReturns,
     MarketReturns,
+    PropReceipt,
 )
 
 
@@ -69,3 +70,4 @@ admin.site.register(Position)
 admin.site.register(Portfolio)
 admin.site.register(DailyReturns)
 admin.site.register(WithdrawalRequest)
+admin.site.register(PropReceipt)

@@ -4,6 +4,7 @@ import random
 from datetime import datetime, timedelta
 from decimal import Decimal
 from random import randint
+from django.utils.crypto import get_random_string
 
 import pytz
 from django.contrib.auth import get_user_model
@@ -683,29 +684,77 @@ class ReceiptsView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request):
-        serializers = ReceiptsViewSerializer(data=request.data)
+        account_type = request.data.get("account_type", None)
         device_type = request.data.get("device_type", None)
-        if serializers.is_valid():
-            image = serializers.validated_data["image"]
-            print(image, "sadbscv")
-            receipt = Receipts.objects.create(user=request.user, image=image)
-            # sendreciptsmail(request,receipt)
-            # sendreciptsmail(request,image)
-            save_and_send_notification(request.user.id, "Receipt Upload Successful.")
-            activity = UserActivityLog.objects.create(
+        if not account_type or account_type != "prop_account":
+            serializers = ReceiptsViewSerializer(data=request.data)
+            if serializers.is_valid():
+                image = serializers.validated_data["image"]
+                print(image, "sadbscv")
+                receipt = Receipts.objects.create(user=request.user, image=image)
+                # sendreciptsmail(request,receipt)
+                # sendreciptsmail(request,image)
+                save_and_send_notification(
+                    request.user.id, "Receipt Upload Successful."
+                )
+                activity = UserActivityLog.objects.create(
+                    user=request.user,
+                    action_type="receipt",
+                    description="User uploaded a payment receipt.",
+                    device_type=device_type,
+                )
+                mail = sendMail(
+                    "general/depositRecieptRecieved.html",
+                    "Deposit Receipt Reviewed",
+                    [request.user.email],
+                    {"first_name": request.user.firstname},
+                )
+                return Response({"message": "File uploaded successfully"})
+            return Response(serializers.errors)
+        elif account_type == "prop_account":
+            receipt_image = request.data.get("image")
+            receipt = Receipts.objects.create(user=request.user, image=receipt_image)
+
+            model_type = request.data.get("model_type")
+            if model_type == "Moderna":
+                profit_target = 2500000
+                account_drawdown_limit = 1000000
+                account_name = "Moderna"
+            elif model_type == "Vassa":
+                profit_target = 1500000
+                account_drawdown_limit = 600000
+                account_name = "Vassa"
+            else:
+                raise ValueError("Invalid model type selected")
+
+            is_prop = True
+            balance = 10000000
+            initial_balance = 10000000
+            is_active = False
+            code = get_random_string(length=8).upper()
+
+            account = exec_models.DemoPortfolio.objects.create(
+                profit_target=profit_target,
+                account_drawdown_limit=account_drawdown_limit,
+                account_name=account_name,
+                is_prop=is_prop,
+                balance=balance,
+                initial_balance=initial_balance,
                 user=request.user,
-                action_type="receipt",
-                description="User uploaded a payment receipt.",
-                device_type=device_type,
+                is_active=is_active,
+                code=code,
             )
-            mail = sendMail(
-                "general/depositRecieptRecieved.html",
-                "Deposit Receipt Reviewed",
-                [request.user.email],
-                {"first_name": request.user.firstname},
+
+            exec_models.DemoDailyReturns2.objects.create(
+                portfolio=account, user=request.user, created=timezone.now()
             )
+            exec_models.DemoCumulativeReturns.objects.create(
+                portfolio=account, user=request.user, created=timezone.now()
+            )
+
+            exec_models.PropReceipt.objects.create(account=account, receipt=receipt)
+
             return Response({"message": "File uploaded successfully"})
-        return Response(serializers.errors)
 
 
 @api_view(

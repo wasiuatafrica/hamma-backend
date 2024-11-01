@@ -7,7 +7,7 @@ import auto_prefetch
 from decimal import Decimal
 from datetime import datetime, timedelta
 import portfolio
-from portfolio.models import Stock
+from portfolio.models import Receipts, Stock
 from accounts.models import Profile
 from competition.models import CompetitionPortfolio
 import random
@@ -36,6 +36,21 @@ class DemoPortfolio(auto_prefetch.Model):
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=1000000.0)
     account_name = models.CharField(max_length=20, default="Demo Account 1")
     account_id = models.CharField(max_length=20, null=True, blank=True)
+    initial_balance = models.DecimalField(
+        max_digits=15, decimal_places=2, default=1000000
+    )
+    is_prop = models.BooleanField(default=False)
+    profit_target = models.DecimalField(
+        max_digits=15, decimal_places=2, blank=True, null=True
+    )
+    account_drawdown_limit = models.DecimalField(
+        max_digits=15, decimal_places=2, blank=True, null=True
+    )
+    is_active = models.BooleanField(default=True)
+    code = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    blown = models.BooleanField(default=False)
+    activated = models.BooleanField(default=False)
+    receipt_approved = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if not self.account_id:
@@ -43,7 +58,7 @@ class DemoPortfolio(auto_prefetch.Model):
         super().save(*args, **kwargs)
 
     def generate_unique_account_id(self):
-        max_attempts = 5
+        max_attempts = 10
         for _ in range(max_attempts):
             generated_id = "".join(random.choices(string.digits, k=6))
             if not DemoPortfolio.objects.filter(account_id=generated_id).exists():
@@ -62,10 +77,9 @@ class DemoPortfolio(auto_prefetch.Model):
 
     @property
     def account_type(self):
+        if self.is_prop:
+            return "prop_account"
         return "demo_portfolio"
-
-    # class Meta(auto_prefetch.Model.Meta):
-    #     unique_together = ('user', 'account_name')
 
 
 class Portfolio(auto_prefetch.Model):
@@ -495,3 +509,15 @@ class DemoAdminWallet(auto_prefetch.Model):
 class AdminWallet(auto_prefetch.Model):
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     created = models.DateTimeField(auto_now_add=True)
+
+
+class PropReceipt(auto_prefetch.Model):
+    account = auto_prefetch.ForeignKey(
+        DemoPortfolio, on_delete=models.CASCADE, blank=True, null=True
+    )
+    receipt = auto_prefetch.ForeignKey(
+        Receipts, on_delete=models.CASCADE, blank=True, null=True
+    )
+
+    def __str__(self):
+        return f"{self.account} - {self.receipt}"

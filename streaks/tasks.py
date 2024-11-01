@@ -173,6 +173,9 @@ def update_user_streaks_daily():
         competition=current_competition, active=True
     )
     demo_accs = DemoPortfolio.objects.all()
+    market_open_time = time(10, 10)
+    market_close_time = time(14, 30)
+    current_time = timezone.now().time()
 
     for account in demo_accs:
         # demo portfolios
@@ -253,10 +256,10 @@ def update_user_streaks_daily():
                     )
                     streak_info.update_streak(is_new_run=True)
             else:
-                # If no trade, reset current streak and end any active streak run
-                if active_streak_run:
-                    active_streak_run.end_streak()
-                streak_info.reset_streak()
+                if current_time >= market_close_time:
+                    if active_streak_run:
+                        active_streak_run.end_streak()
+                    streak_info.reset_streak()
 
     for account in competition_accounts:
         # competition

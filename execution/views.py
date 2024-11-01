@@ -2201,7 +2201,7 @@ class DemoPorfoliosAccounts(APIView):
         else:
             comdata = []
 
-        demo_accounts = DemoPortfolio.objects.filter(user=request.user)
+        demo_accounts = DemoPortfolio.objects.filter(user=request.user, is_prop=False)
         demo_data = []
         for accounts in demo_accounts:
             positions = DemoPosition.objects.filter(portfolio=accounts, status="open")
@@ -2218,11 +2218,40 @@ class DemoPorfoliosAccounts(APIView):
             }
             demo_data.append(data)
 
+        prop_accounts = DemoPortfolio.objects.filter(
+            user=request.user, is_prop=True, receipt_approved=True
+        )
+        prop_data = []
+        for accounts in prop_accounts:
+            positions = DemoPosition.objects.filter(portfolio=accounts, status="open")
+            # print(accounts.user)
+            # print(positions)
+            open_balance = sum([position.amount_invested for position in positions])
+            data = {
+                "id": accounts.id,
+                "account_name": accounts.account_name,
+                "account_type": accounts.account_type,
+                "balance": accounts.balance + open_balance,
+                "user": accounts.user.id,
+                "account_id": accounts.account_id,
+                "activated": accounts.activated,
+            }
+            prop_data.append(data)
+
         # serializer = self.serializer_class(demo_accounts, many=True)
-        return Response({"demo_accounts": demo_data, "competition_account": comdata})
+        return Response(
+            {
+                "demo_accounts": demo_data,
+                "competition_account": comdata,
+                "prop_accounts": prop_data,
+            }
+        )
 
     def post(self, request):
-        demo_accounts = DemoPortfolio.objects.filter(user=request.user).count()
+
+        demo_accounts = DemoPortfolio.objects.filter(
+            user=request.user, is_prop=False
+        ).count()
         if demo_accounts >= 10:
             return Response(
                 "You can only have 10 demo acccounts", status.HTTP_400_BAD_REQUEST
@@ -2823,7 +2852,7 @@ class SingleDemoTradeAPIView(APIView):
                         order_type=order_type,
                         take_profit=take_profit,
                         stop_loss=stop_loss,
-                        action=action
+                        action=action,
                     )
 
                     # schedule, created = IntervalSchedule.objects.get_or_create(
@@ -4847,3 +4876,37 @@ class AddTrailingStopLoss(APIView):
         account.save()
 
         return Response("Trailing stop loss added successfully", status.HTTP_200_OK)
+
+
+class ActivatePropAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        code = request.data.get("code")
+
+        # Verify code existence and ownership
+        try:
+            prop_account = DemoPortfolio.objects.get(
+                code=code, user=request.user, is_prop=True
+            )
+        except DemoPortfolio.DoesNotExist:
+            return Response(
+                {"error": "Invalid or unauthorized code"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Activate the account
+        if prop_account.is_active:
+            return Response(
+                {"error": "Account is already active"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        prop_account.is_active = True
+        prop_account.activated = True
+        prop_account.save()
+
+        return Response(
+            {"status": "Prop trading account activated successfully"},
+            status=status.HTTP_200_OK,
+        )

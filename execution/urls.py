@@ -49,6 +49,7 @@ urlpatterns = [
     path(
         "competition/account/<str:id>/", views.RetrieveSIngleCompetitonAccount.as_view()
     ),
+    path("activate-prop-account/", views.ActivatePropAccountView.as_view()),
     # NEWSUPPORT
     path(
         "demo/support/home/<str:account_type>/<str:id>/", views.NewSupportHome.as_view()

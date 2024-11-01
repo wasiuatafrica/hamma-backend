@@ -47,10 +47,17 @@ from affilate.utils import get_quarter_dates, get_rank_details
 from competition.managers.utils import sendMail
 from competition.models import CompetitionPosition, CompetitionTransaction
 from execution import models as exec_models
-from execution.models import Portfolio
+from execution.models import Portfolio, PropReceipt
 from notifications.utils import save_and_send_notification
 from portfolio import models
-from portfolio.models import PayStackReceipts, Receipts, Stock, Wallet, OpenedDashboardFeed,ViewOtherIdeasLog
+from portfolio.models import (
+    PayStackReceipts,
+    Receipts,
+    Stock,
+    Wallet,
+    OpenedDashboardFeed,
+    ViewOtherIdeasLog,
+)
 from portfolio.utils import get_price
 from supportwithemail.models import (
     SupportAdminProfile,
@@ -283,6 +290,7 @@ class AdminReceiptsView(APIView):
         receipt.save()
 
         if receipt_status == "approved":
+
             receipt.amount = amount
             receipt.save()
             activity = AdminUserActivityLog.objects.create(
@@ -291,73 +299,96 @@ class AdminReceiptsView(APIView):
                 action_type="approved_reciept",
                 description=f"Admin user approved reciept.",
             )
+            prop_receipt = PropReceipt.objects.filter(receipt=receipt).first()
+            if not prop_receipt:
 
-            wallet = Wallet.objects.get_or_create(user=receipt.user)[0]
-            amount = Decimal(amount)
-            wallet.balance += amount
-            wallet.save()
+                wallet = Wallet.objects.get_or_create(user=receipt.user)[0]
+                amount = Decimal(amount)
+                wallet.balance += amount
+                wallet.save()
 
-            save_and_send_notification(
-                wallet.user.id, f"{amount} credited to your wallet."
-            )
-            mail = sendMail(
-                "general/depositRecieptApproved.html",
-                "Deposit receipt Approved",
-                [receipt.user.email],
-                {"first_name": receipt.user.firstname, "amount": amount},
-            )
-
-            models.Transaction.objects.create(
-                user=wallet.user,
-                transaction_type="deposit",
-                amount=amount,
-                status="completed",
-                channel="Bank Transfer",
-            )
-
-            refer_object = acc_Referral.objects.filter(
-                person_referred=wallet.user
-            ).first()
-
-            if refer_object and refer_object.converted == False:
-                sum_user_trans = sum(
-                    trans.amount
-                    for trans in models.Transaction.objects.filter(
-                        user=wallet.user, transaction_type="deposit"
-                    )
+                save_and_send_notification(
+                    wallet.user.id, f"{amount} credited to your wallet."
                 )
-                if sum_user_trans >= 50000:
-                    referal_wallet = aff_models.ReferralWallet.objects.get_or_create(
-                        user=refer_object.user
-                    )[0]
-                    referal_wallet.balance += Decimal(5000)
-                    referal_wallet.save()
+                mail = sendMail(
+                    "general/depositRecieptApproved.html",
+                    "Deposit receipt Approved",
+                    [receipt.user.email],
+                    {"first_name": receipt.user.firstname, "amount": amount},
+                )
 
-                    refer_object.converted == True
-                    refer_object.save()
+                models.Transaction.objects.create(
+                    user=wallet.user,
+                    transaction_type="deposit",
+                    amount=amount,
+                    status="completed",
+                    channel="Bank Transfer",
+                )
 
-                    aff_models.RewardActivities.objects.create(
-                        trader=wallet.user,
-                        amount=5000,
-                        reward_type="Deposit Referral Commission",
-                        user=refer_object.user,
+                refer_object = acc_Referral.objects.filter(
+                    person_referred=wallet.user
+                ).first()
+
+                if refer_object and refer_object.converted == False:
+                    sum_user_trans = sum(
+                        trans.amount
+                        for trans in models.Transaction.objects.filter(
+                            user=wallet.user, transaction_type="deposit"
+                        )
                     )
-                    # send notfication
-                    # save_and_send_notification(referred_by.referred_by.id, f"{wallet.user.firstname} just depoisted >= 50000. Congratulations")
+                    if sum_user_trans >= 50000:
+                        referal_wallet = (
+                            aff_models.ReferralWallet.objects.get_or_create(
+                                user=refer_object.user
+                            )[0]
+                        )
+                        referal_wallet.balance += Decimal(5000)
+                        referal_wallet.save()
 
-            receipt_data = {
-                "id": receipt.id,
-                "user": receipt.user.id,
-                "fullname": receipt.user.fullname,
-                "amount": receipt.amount,
-                "payment_method": receipt.payment_method,
-                "receipt_status": receipt.receipt_status,
-                "comment": receipt.comment,
-                "created": receipt.created,
-                "approved_date": receipt.approved_date,
-                "image_url": receipt.image.url if receipt.image else None,
-            }
-            return Response(receipt_data)
+                        refer_object.converted == True
+                        refer_object.save()
+
+                        aff_models.RewardActivities.objects.create(
+                            trader=wallet.user,
+                            amount=5000,
+                            reward_type="Deposit Referral Commission",
+                            user=refer_object.user,
+                        )
+                        # send notfication
+                        # save_and_send_notification(referred_by.referred_by.id, f"{wallet.user.firstname} just depoisted >= 50000. Congratulations")
+
+                receipt_data = {
+                    "id": receipt.id,
+                    "user": receipt.user.id,
+                    "fullname": receipt.user.fullname,
+                    "amount": receipt.amount,
+                    "payment_method": receipt.payment_method,
+                    "receipt_status": receipt.receipt_status,
+                    "comment": receipt.comment,
+                    "created": receipt.created,
+                    "approved_date": receipt.approved_date,
+                    "image_url": receipt.image.url if receipt.image else None,
+                }
+                return Response(receipt_data)
+            elif prop_receipt:
+                prop_account = prop_receipt.account
+                prop_account.receipt_approved = True
+                prop_account.save()
+
+                receipt_data = {
+                    "id": receipt.id,
+                    "user": receipt.user.id,
+                    "fullname": receipt.user.fullname,
+                    "amount": receipt.amount,
+                    "payment_method": receipt.payment_method,
+                    "receipt_status": receipt.receipt_status,
+                    "comment": receipt.comment,
+                    "created": receipt.created,
+                    "approved_date": receipt.approved_date,
+                    "image_url": receipt.image.url if receipt.image else None,
+                }
+                return Response(receipt_data)
+
         elif receipt_status == "rejected":
             receipt.comment = comment
             receipt.save()
@@ -2824,18 +2855,22 @@ class SupportMessageDisclaimerView(APIView):
 
         return paginator.get_paginated_response(paginated_data)
 
+
 class OpenedEmailLogsAdminView(APIView):
     def get(self, request):
         paginator = CustomizedPaginator()  # Instantiate your custom paginator
         email_logs = OpenedDashboardFeed.objects.all().order_by("-created")
         paginated_email_logs = paginator.paginate_queryset(email_logs, request)
-        serializer =serializers.OpenedEmailSerializer(paginated_email_logs, many=True)
+        serializer = serializers.OpenedEmailSerializer(paginated_email_logs, many=True)
         return paginator.get_paginated_response(serializer.data)
-    
+
+
 class ViewOtherIdeasAdminView(APIView):
     def get(self, request):
         paginator = CustomizedPaginator()  # Instantiate your custom paginator
         email_logs = ViewOtherIdeasLog.objects.all().order_by("-created")
         paginated_email_logs = paginator.paginate_queryset(email_logs, request)
-        serializer =serializers.ViewedOtherIdeasSerializer(paginated_email_logs, many=True)
+        serializer = serializers.ViewedOtherIdeasSerializer(
+            paginated_email_logs, many=True
+        )
         return paginator.get_paginated_response(serializer.data)
