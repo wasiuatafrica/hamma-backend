@@ -38,13 +38,11 @@ class UserStreakRunAdmin(admin.ModelAdmin):
     )
     list_filter = ("is_active", "start_date", "end_date")
     search_fields = ("user__email", "demo_portfolio__id", "comp_portfolio__id")
-    date_hierarchy = "start_date"
 
     fields = (
         "user",
         "demo_portfolio",
         "comp_portfolio",
-        "start_date",
         "end_date",
         "is_active",
     )
