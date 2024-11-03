@@ -281,9 +281,11 @@ def update_user_streaks_daily_task():
         and current_time_lagos.weekday() < 5
     ):
         logger.info("Updating user streaks during trading hours")
+        print("Updating user streaks during trading hours")
         update_user_streaks_daily()
     else:
         logger.info(f"Streak checking is outside trading hours: {current_time_lagos}")
+        print(f"Streak checking is outside trading hours: {current_time_lagos}")
 
 
 @shared_task
