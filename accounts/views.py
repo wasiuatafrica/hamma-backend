@@ -36,7 +36,7 @@ class Registration(APIView):
             # Create the referral object.
             referred_by = models.Profile.objects.filter(referral_code=ref_code).first()
             if referred_by:
-                referral = models.Referral.objects.create(
+                models.Referral.objects.create(
                     user=referred_by.user, person_referred=user
                 )
                 # print(referral.status, referral.user, "hhhhh")
@@ -276,9 +276,9 @@ class LoginWithEmailView(APIView):
     def post(self, request):
         email = request.data.get("email")
         password = request.data.get("password")
-        ip_address = request.data.get("ip_address")
-        location = request.data.get("location")
-        device = request.data.get("device")
+        ip_address = request.data.get("ip_address", None)
+        location = request.data.get("location", None)
+        device = request.data.get("device", None)
         device_type = request.data.get("device_type", None)
 
         serializer = self.serializer_class(data=request.data)

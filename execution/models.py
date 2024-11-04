@@ -49,8 +49,15 @@ class DemoPortfolio(auto_prefetch.Model):
     is_active = models.BooleanField(default=True)
     code = models.CharField(max_length=20, unique=True, blank=True, null=True)
     blown = models.BooleanField(default=False)
+    inactive_by_inactivity = models.BooleanField(default=False)
     activated = models.BooleanField(default=False)
     receipt_approved = models.BooleanField(default=False)
+    broker = models.CharField(max_length=255, blank=True, default="Hamma")
+    model_type = models.CharField(max_length=255, default="model_1")
+    payout = models.CharField(max_length=255, default="weekly")
+    time_to_payout = models.IntegerField(blank=True, null=True)
+    target_met = models.BooleanField(default=False)
+    updated = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.account_id:
