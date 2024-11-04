@@ -208,6 +208,18 @@ def update_user_streaks_daily():
                             demo_portfolio=account,
                         )
                         streak_info.update_streak(is_new_run=False)
+                else:
+                    # No active streak run, start a new streak
+                    new_streak_run = UserStreakRun.objects.create(
+                        user=user, start_date=today, demo_portfolio=account
+                    )
+                    UserDailyTradeActivity.objects.create(
+                        user=user,
+                        streak_run=new_streak_run,
+                        trade_date=today,
+                        demo_portfolio=account,
+                    )
+                    streak_info.update_streak(is_new_run=True)
 
             else:
                 if current_time >= market_close_time:
@@ -347,6 +359,18 @@ def update_user_streaks_daily():
                             demo_portfolio=account,
                         )
                         streak_info.update_streak(is_new_run=False)
+                else:
+                    # No active streak run, start a new streak
+                    new_streak_run = UserStreakRun.objects.create(
+                        user=user, start_date=today, demo_portfolio=account
+                    )
+                    UserDailyTradeActivity.objects.create(
+                        user=user,
+                        streak_run=new_streak_run,
+                        trade_date=today,
+                        demo_portfolio=account,
+                    )
+                    streak_info.update_streak(is_new_run=True)
             else:
                 if current_time >= market_close_time:
                     if active_streak_run:
