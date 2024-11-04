@@ -84,7 +84,7 @@ def update_user_streaks_daily():
         print(account.account_name)
         # Check if the trade account has any trades opened today
         has_open_trade_today = (
-            DemoPosition.objects.filter(portfolio=account, updated__date=today)
+            DemoPosition.objects.filter(portfolio=account)
             .filter(
                 Q(
                     created__date=today,
@@ -94,6 +94,7 @@ def update_user_streaks_daily():
             )
             .exists()
         )
+        print("trade today", has_open_trade_today)
 
         with transaction.atomic():
             # Fetch the account's current streak information
