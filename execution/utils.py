@@ -713,7 +713,7 @@ def daily_returns5():
         for user in users:
             portfolios = DemoPortfolio.objects.filter(user=user)
             for portfolio in portfolios:
-                # print(user)
+                print(portfolio.account_name)
                 positions_today = DemoPosition.objects.filter(
                     portfolio=portfolio, status="close", updated__date=today
                 )

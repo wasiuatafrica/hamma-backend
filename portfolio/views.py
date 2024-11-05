@@ -743,6 +743,7 @@ class ReceiptsView(APIView):
                 user=request.user,
                 is_active=is_active,
                 code=code,
+                model_type=account_name,
             )
 
             exec_models.DemoDailyReturns2.objects.create(
