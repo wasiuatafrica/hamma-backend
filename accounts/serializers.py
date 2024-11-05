@@ -38,6 +38,18 @@ class CustomUserSerializer(serializers.ModelSerializer):
         return value
 
 
+class ShortCustomUserInfoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.CustomUser
+        fields = [
+            "id",
+            "email",
+            "firstname",
+            "lastname",
+        ]
+
+
 class UpdateCustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:

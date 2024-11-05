@@ -186,6 +186,11 @@ class Leaderboard(auto_prefetch.Model):
             f"{self.user.email} - Position: {self.position} Streak: {self.streak_count}"
         )
 
+    @property
+    def reward_amount(self):
+        reward = Reward.objects.filter(user=self.user).last()
+        return reward.reward_amount if reward else 0
+
 
 class Reward(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(

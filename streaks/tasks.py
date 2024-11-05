@@ -403,19 +403,23 @@ def award_weekly_badges_and_update_leaderboard():
                 user=user, badge_name="Active User", awarded_on=week_start
             )
 
-        # Update or create leaderboard entry for the user
+        # Update or create leaderboard entry for the user based on trade volume not streak
         leaderboard_entry, _ = Leaderboard.objects.get_or_create(
-            user=user, week_start_date=week_start
+            user=user, week_start_date=week_start, position=0
         )
         leaderboard_entry.trade_volume = weekly_open_trades
-        leaderboard_entry.streak_count = (
-            UserDailyStreak.objects.filter(user=user).first().current_streak or 0
-        )
+        # leaderboard_entry.streak_count = (
+        #     UserDailyStreak.objects.filter(user=user).first().current_streak or 0
+        # )
         leaderboard_entry.save()
 
     # Rank users by streak count and trade volume for leaderboard positions
+    # leaderboard = Leaderboard.objects.filter(week_start_date=week_start).order_by(
+    #     "-streak_count", "-trade_volume"
+    # )
+    # Rank users by trade volume for leaderboard positions
     leaderboard = Leaderboard.objects.filter(week_start_date=week_start).order_by(
-        "-streak_count", "-trade_volume"
+        "-trade_volume"
     )
 
     for position, entry in enumerate(leaderboard, start=1):

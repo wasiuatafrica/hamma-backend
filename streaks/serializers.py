@@ -8,6 +8,7 @@ from .models import (
     UserDailyTradeActivity,
     UserStreakRun,
 )
+from accounts.serializers import ShortCustomUserInfoSerializer
 
 
 class UserDailyTradeActivitySerializer(serializers.ModelSerializer):
@@ -45,10 +46,18 @@ class UserActivityBadgeSerializer(serializers.ModelSerializer):
 
 
 class LeaderboardSerializer(serializers.ModelSerializer):
+    user = ShortCustomUserInfoSerializer()
 
     class Meta:
         model = Leaderboard
-        fields = ["user", "position", "streak_count", "trade_volume", "week_start_date"]
+        fields = [
+            "user",
+            "position",
+            "streak_count",
+            "reward_amount",
+            "trade_volume",
+            "week_start_date",
+        ]
 
 
 class RewardSerializer(serializers.ModelSerializer):
