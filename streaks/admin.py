@@ -6,6 +6,7 @@ from .models import (
     Reward,
     UserStreakRun,
     UserDailyTradeActivity,
+    RewardAmount,
 )
 
 
@@ -22,6 +23,7 @@ admin.site.register(UserActivityBadge, UserActivityBadgeAdmin)
 
 
 admin.site.register(Leaderboard)
+admin.site.register(RewardAmount)
 admin.site.register(Reward)
 
 

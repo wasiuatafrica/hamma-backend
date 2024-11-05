@@ -17,6 +17,7 @@ from .models import (
     UserDailyStreak,
     UserDailyTradeActivity,
     UserStreakRun,
+    RewardAmount,
 )
 
 User = get_user_model()
@@ -58,6 +59,15 @@ def get_previous_trading_day(date):
         previous_day -= timedelta(days=1)
     return previous_day
 
+
+default_position_awards = [
+    {"type": "Top Leaderboard Reward", "position": 1, "reward_amount": 25000},
+    {"type": "Top Leaderboard Reward", "position": 2, "reward_amount": 15000},
+    {"type": "Top Leaderboard Reward", "position": 3, "reward_amount": 10000},
+    {"type": "Top Leaderboard Reward", "position": 4, "reward_amount": 5000},
+    {"type": "Top Leaderboard Reward", "position": 5, "reward_amount": 3000},
+    {"type": "Key active user", "position": 0, "reward_amount": 1000},
+]
 
 # def update_user_streaks_daily():
 #     today = timezone.now().date()
@@ -427,10 +437,22 @@ def award_weekly_badges_and_update_leaderboard():
         entry.save()
 
     # Award rewards to the top 5 users based on their leaderboard ranking
+    index = 0
     for entry in leaderboard[:5]:
+        reward = RewardAmount.objects.filter(
+            position=entry.position, reward_type="leaderboard"
+        ).first()
+        reward_amount = (
+            reward.reward_amount
+            if reward
+            else default_position_awards[index]["reward_amount"]
+        )
+        index += 1
         if not entry.reward_earned:
             Reward.objects.create(
-                user=entry.user, reward_amount=100.0, reason="Top Leaderboard Reward"
+                user=entry.user,
+                reward_amount=reward_amount,
+                reason="Top Leaderboard Reward",
             )
             entry.reward_earned = True
             entry.save()
@@ -440,8 +462,16 @@ def award_weekly_badges_and_update_leaderboard():
         badge_name="Key Active User", awarded_on=week_start
     )
     for badge in key_active_users:
+        reward = RewardAmount.objects.filter(reward_type="key_active_user").first()
+        reward_amount = (
+            reward.reward_amount
+            if reward
+            else default_position_awards[5]["reward_amount"]
+        )
         Reward.objects.create(
-            user=badge.user, reward_amount=50.0, reason="Key Active User Reward"
+            user=badge.user,
+            reward_amount=reward_amount,
+            reason="Key Active User Reward",
         )
 
 

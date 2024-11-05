@@ -9,58 +9,98 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('competition', '0026_competitioncumulativereturns2_market_returns_and_more'),
-        ('execution', '0042_demoposition_comment_position_comment'),
+        ("competition", "0026_competitioncumulativereturns2_market_returns_and_more"),
+        ("execution", "0042_demoposition_comment_position_comment"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('streaks', '0002_remove_userdailystreak_last_active_date_and_more'),
+        ("streaks", "0002_remove_userdailystreak_last_active_date_and_more"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='userdailytradeactivity',
+            name="userdailytradeactivity",
             unique_together=set(),
         ),
         migrations.AddField(
-            model_name='userdailystreak',
-            name='comp_portfolio',
-            field=auto_prefetch.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='competition.competitionportfolio'),
+            model_name="userdailystreak",
+            name="comp_portfolio",
+            field=auto_prefetch.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="competition.competitionportfolio",
+            ),
         ),
         migrations.AddField(
-            model_name='userdailystreak',
-            name='demo_portfolio',
-            field=auto_prefetch.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='execution.demoportfolio'),
+            model_name="userdailystreak",
+            name="demo_portfolio",
+            field=auto_prefetch.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="execution.demoportfolio",
+            ),
         ),
         migrations.AddField(
-            model_name='userdailytradeactivity',
-            name='comp_portfolio',
-            field=auto_prefetch.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='competition.competitionportfolio'),
+            model_name="userdailytradeactivity",
+            name="comp_portfolio",
+            field=auto_prefetch.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="competition.competitionportfolio",
+            ),
         ),
         migrations.AddField(
-            model_name='userdailytradeactivity',
-            name='demo_portfolio',
-            field=auto_prefetch.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='execution.demoportfolio'),
+            model_name="userdailytradeactivity",
+            name="demo_portfolio",
+            field=auto_prefetch.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="execution.demoportfolio",
+            ),
         ),
         migrations.AddField(
-            model_name='userstreakrun',
-            name='comp_portfolio',
-            field=auto_prefetch.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='competition.competitionportfolio'),
+            model_name="userstreakrun",
+            name="comp_portfolio",
+            field=auto_prefetch.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="competition.competitionportfolio",
+            ),
         ),
         migrations.AddField(
-            model_name='userstreakrun',
-            name='demo_portfolio',
-            field=auto_prefetch.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='execution.demoportfolio'),
+            model_name="userstreakrun",
+            name="demo_portfolio",
+            field=auto_prefetch.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="execution.demoportfolio",
+            ),
         ),
         migrations.AlterField(
-            model_name='userdailystreak',
-            name='user',
-            field=auto_prefetch.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='streak_info', to=settings.AUTH_USER_MODEL),
+            model_name="userdailystreak",
+            name="user",
+            field=auto_prefetch.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="streak_info",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddConstraint(
-            model_name='userdailytradeactivity',
-            constraint=models.UniqueConstraint(fields=('demo_portfolio', 'trade_date'), name='unique_with_demo_portfolio'),
+            model_name="userdailytradeactivity",
+            constraint=models.UniqueConstraint(
+                fields=("demo_portfolio", "trade_date"),
+                name="unique_with_demo_portfolio",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='userdailytradeactivity',
-            constraint=models.UniqueConstraint(fields=('comp_portfolio', 'trade_date'), name='unique_with_demo_comp_portfolio'),
+            model_name="userdailytradeactivity",
+            constraint=models.UniqueConstraint(
+                fields=("comp_portfolio", "trade_date"),
+                name="unique_with_demo_comp_portfolio",
+            ),
         ),
     ]
