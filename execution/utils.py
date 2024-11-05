@@ -1027,7 +1027,7 @@ def competition_daily_returns7():
                     c_returns.created = timezone.now()
                     c_returns.save()
                 else:
-                    CompetitionCumulativeReturns2.objects.create(
+                    c_returns = CompetitionCumulativeReturns2.objects.create(
                         # user=portfolio.user,
                         portfolio=portfolio,
                         portfolio_returns=round(last_row_cum["cum_returns"], 2),
@@ -1213,7 +1213,7 @@ def daily_returns7():
                     c_returns.created = timezone.now()
                     c_returns.save()
                 else:
-                    DemoCumulativeReturns.objects.create(
+                    c_returns = DemoCumulativeReturns.objects.create(
                         user=portfolio.user,
                         portfolio=portfolio,
                         portfolio_returns=round(last_row_cum["cum_returns"], 2),
