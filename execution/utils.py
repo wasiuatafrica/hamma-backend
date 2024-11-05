@@ -1105,7 +1105,7 @@ def daily_returns7():
     # if current_time_lagos.time() >= datetime.strptime('8:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('11:31 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
     if (
         current_time_lagos.time() >= datetime.strptime("10:02 AM", "%I:%M %p").time()
-        and current_time_lagos.time() <= datetime.strptime("4:30 PM", "%I:%M %p").time()
+        and current_time_lagos.time() <= datetime.strptime("6:30 PM", "%I:%M %p").time()
         and current_time_lagos.weekday() < 5
     ):
 
