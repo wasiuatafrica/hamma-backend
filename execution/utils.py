@@ -1184,7 +1184,7 @@ def daily_returns7():
                     d_returns.save()
                 else:
                     DemoDailyReturns2.objects.create(
-                        # user=portfolio.user,
+                        user=portfolio.user,
                         portfolio=portfolio,
                         portfolio_returns=round(last_row["Daily_PortfolioReturns"], 2),
                         created=timezone.now(),
@@ -1214,7 +1214,7 @@ def daily_returns7():
                     c_returns.save()
                 else:
                     DemoCumulativeReturns.objects.create(
-                        # user=portfolio.user,
+                        user=portfolio.user,
                         portfolio=portfolio,
                         portfolio_returns=round(last_row_cum["cum_returns"], 2),
                         created=timezone.now(),
