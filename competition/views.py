@@ -2309,22 +2309,29 @@ class TopClanPayoutRequest(APIView):
         TopClanPayoutButtonShows.objects.create(clan=clan)
         TopClanPayoutImg.objects.create(payout=top_clan_payout)
 
+        def check_all_pass(data):
+            # Iterate over each key-value pair in the dictionary
+            all_pass = all(item.get("pass", False) for item in data.values())
+            return all_pass
+
         comp_summary = CompetitionSummary.objects.filter(
             competition=competition_id, clan=clan
         )
         for summary in comp_summary:
+            eligibility_data = eligibility(summary.user, summary.user.clans.id)
+            if check_all_pass(eligibility_data):
 
-            tcmp = TopClanMembersPayout.objects.create(
-                top_clan_payout=top_clan_payout,
-                user=summary.user,
-                portfolio=summary.portfolio,
-            )
-            TopClanMembersPayoutImg.objects.create(payout=tcmp)
+                tcmp = TopClanMembersPayout.objects.create(
+                    top_clan_payout=top_clan_payout,
+                    user=summary.user,
+                    portfolio=summary.portfolio,
+                )
+                TopClanMembersPayoutImg.objects.create(payout=tcmp)
 
-            # save_and_send_notification(
-            #     summary.user.id,
-            #     f"Clan admin has requested for Top Clan Prize Payout in '{competition_id.title.title()}' competition.",
-            # )
+                # save_and_send_notification(
+                #     summary.user.id,
+                #     f"Clan admin has requested for Top Clan Prize Payout in '{competition_id.title.title()}' competition.",
+                # )
 
         # send_top_clan_payment_processing_mail(request.user.email)
         return Response({"detail": "Request sent"})
@@ -3045,26 +3052,32 @@ def top_clan_trader(user):
     return is_top_trader, is_in_top_clan
 
 
+def eligibility(user, clan_id):
+    top_tc = top_clan_trader(user)
+
+    data = {
+        "minimum_of_3_memebers": utils.has_atleat_3_clan_members(clan_id),
+        "traded_minimum_of_10_days": utils.user_has_atleat_10_min_trading_days(user),
+        "trader_completed_kyc": utils.trader_has_completed_kyc(user),
+        "is_top_trader": {
+            "pass": top_tc[0],
+            "mark": 1 if top_tc[0] else 0,
+        },
+        "is_in_top_clan": {
+            "pass": top_tc[1],
+            "mark": 1 if top_tc[1] else 0,
+        },
+    }
+
+    return data
+
+
 class CheckPayoutEligibility(APIView):
 
     def get(self, request, clan_id):
         top_tc = top_clan_trader(request.user)
 
-        data = {
-            "minimum_of_3_memebers": utils.has_atleat_3_clan_members(clan_id),
-            "traded_minimum_of_10_days": utils.user_has_atleat_10_min_trading_days(
-                request.user
-            ),
-            "trader_completed_kyc": utils.trader_has_completed_kyc(request.user),
-            "is_top_trader": {
-                "pass": top_tc[0],
-                "mark": 1 if top_tc[0] else 0,
-            },
-            "is_in_top_clan": {
-                "pass": top_tc[1],
-                "mark": 1 if top_tc[1] else 0,
-            },
-        }
+        data = eligibility(request.user, clan_id)
 
         return Response(data)
 
