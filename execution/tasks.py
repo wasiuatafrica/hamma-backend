@@ -36,6 +36,7 @@ from execution.utils import (
     daily_returns3,
     daily_returns5,
     get_positions,
+    daily_returns7,
 )
 from notifications.utils import save_and_send_notification
 import portfolio
@@ -1554,7 +1555,7 @@ def returns3():
 
 @shared_task
 def returns5():
-    daily_returns5()
+    daily_returns7()
 
 
 @shared_task

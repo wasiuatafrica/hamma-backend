@@ -199,7 +199,7 @@ class Command(BaseCommand):
 
     async def fetch_and_save_news(self, stock, max_results):
 
-        search_query = f"{stock.symbol} Nigeria stock "
+        search_query = f"{stock.symbol} Nigeria"
         print(search_query)
         news_results = await sync_to_async(self.search_news)(search_query, max_results)
         unique_new_result = []

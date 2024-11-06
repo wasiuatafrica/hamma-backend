@@ -1,12 +1,14 @@
 import datetime
+import logging
 from datetime import time, timedelta
 
 import pytz
 from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.utils import timezone
 from django.db.models import Q
+from django.utils import timezone
+
 from competition.models import Competition, CompetitionPortfolio, CompetitionPosition
 from execution.models import DemoPortfolio, DemoPosition
 
@@ -19,6 +21,8 @@ from .models import (
     UserStreakRun,
     RewardAmount,
 )
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -173,6 +177,7 @@ default_position_awards = [
 #         )
 
 
+@shared_task
 def update_user_streaks_daily():
     """
     Daily task to update users' streaks based on trading activity.
@@ -193,7 +198,7 @@ def update_user_streaks_daily():
         print(account.account_name)
         # Check if the trade account has any trades opened today
         has_open_trade_today = (
-            DemoPosition.objects.filter(portfolio=account, updated__date=today)
+            DemoPosition.objects.filter(portfolio=account)
             .filter(
                 Q(
                     created__date=today,
@@ -203,6 +208,7 @@ def update_user_streaks_daily():
             )
             .exists()
         )
+        print("trade today", has_open_trade_today)
 
         with transaction.atomic():
             # Fetch the account's current streak information
@@ -218,9 +224,67 @@ def update_user_streaks_daily():
             ).exists():
                 continue
 
+            # if has_open_trade_today:
+            #     if active_streak_run:
+            #         # Determine the most recent trading day before today
+            #         last_trade_date = (
+            #             UserDailyTradeActivity.objects.filter(
+            #                 user=user,
+            #                 streak_run=active_streak_run,
+            #                 demo_portfolio=account,
+            #             )
+            #             .order_by("-trade_date")
+            #             .first()
+            #         )
+
+            #         previous_trading_day = get_previous_trading_day(today)
+            #         print(last_trade_date.trade_date)
+            #         print(previous_trading_day)
+
+            #         if (
+            #             last_trade_date
+            #             and last_trade_date.trade_date == previous_trading_day
+            #         ):
+            #             # If the last trading day was consecutive (according to trading days), continue streak
+            #             UserDailyTradeActivity.objects.create(
+            #                 user=user,
+            #                 streak_run=active_streak_run,
+            #                 trade_date=today,
+            #                 demo_portfolio=account,
+            #             )
+            #             streak_info.update_streak(is_new_run=False)
+            #         else:
+            #             # If not consecutive, end the current streak and start a new one
+            #             active_streak_run.end_streak()
+            #             new_streak_run = UserStreakRun.objects.create(
+            #                 user=user, start_date=today, demo_portfolio=account
+            #             )
+            #             try:
+            #                 UserDailyTradeActivity.objects.get_or_create(
+            #                     user=user,
+            #                     streak_run=active_streak_run,
+            #                     trade_date=today,
+            #                     demo_portfolio=account,
+            #                 )
+            #                 streak_info.update_streak(is_new_run=True)
+            #             except:
+            #                 continue
+            #     else:
+            #         # No active streak run, start a new streak
+            #         new_streak_run = UserStreakRun.objects.create(
+            #             user=user, start_date=today, demo_portfolio=account
+            #         )
+            #         UserDailyTradeActivity.objects.create(
+            #             user=user,
+            #             streak_run=new_streak_run,
+            #             trade_date=today,
+            #             demo_portfolio=account,
+            #         )
+            #         streak_info.update_streak(is_new_run=True)
+
+            # In the update_user_streaks_daily function, when creating a new streak run:
             if has_open_trade_today:
                 if active_streak_run:
-                    # Determine the most recent trading day before today
                     last_trade_date = (
                         UserDailyTradeActivity.objects.filter(
                             user=user,
@@ -232,14 +296,25 @@ def update_user_streaks_daily():
                     )
 
                     previous_trading_day = get_previous_trading_day(today)
-                    print(last_trade_date.trade_date)
-                    print(previous_trading_day)
+                    current_week_start = today - timedelta(days=today.weekday())
 
                     if (
                         last_trade_date
                         and last_trade_date.trade_date == previous_trading_day
                     ):
-                        # If the last trading day was consecutive (according to trading days), continue streak
+                        # Check if we need to start a new weekly streak
+                        if today >= active_streak_run.start_date + timedelta(days=7):
+                            # End current weekly streak
+                            active_streak_run.end_streak()
+                            # Create new weekly streak linked to the previous one
+                            new_streak_run = UserStreakRun.objects.create(
+                                user=user,
+                                start_date=today,
+                                demo_portfolio=account,
+                                previous_streak=active_streak_run,
+                            )
+                            active_streak_run = new_streak_run
+
                         UserDailyTradeActivity.objects.create(
                             user=user,
                             streak_run=active_streak_run,
@@ -247,22 +322,6 @@ def update_user_streaks_daily():
                             demo_portfolio=account,
                         )
                         streak_info.update_streak(is_new_run=False)
-                    else:
-                        # If not consecutive, end the current streak and start a new one
-                        active_streak_run.end_streak()
-                        new_streak_run = UserStreakRun.objects.create(
-                            user=user, start_date=today, demo_portfolio=account
-                        )
-                        try:
-                            UserDailyTradeActivity.objects.get_or_create(
-                                user=user,
-                                streak_run=active_streak_run,
-                                trade_date=today,
-                                demo_portfolio=account,
-                            )
-                            streak_info.update_streak(is_new_run=True)
-                        except:
-                            continue
                 else:
                     # No active streak run, start a new streak
                     new_streak_run = UserStreakRun.objects.create(
@@ -275,6 +334,7 @@ def update_user_streaks_daily():
                         demo_portfolio=account,
                     )
                     streak_info.update_streak(is_new_run=True)
+
             else:
                 if current_time >= market_close_time:
                     if active_streak_run:
@@ -317,59 +377,112 @@ def update_user_streaks_daily():
             ).exists():
                 continue
 
+            # if has_open_trade_today:
+            #     if active_streak_run:
+            #         # Determine the most recent trading day before today
+            #         last_trade_date = (
+            #             UserDailyTradeActivity.objects.filter(
+            #                 user=user,
+            #                 streak_run=active_streak_run,
+            #                 comp_portfolio=account,
+            #             )
+            #             .order_by("-trade_date")
+            #             .first()
+            #         )
+
+            #         previous_trading_day = get_previous_trading_day(today)
+
+            #         if (
+            #             last_trade_date
+            #             and last_trade_date.trade_date == previous_trading_day
+            #         ):
+            #             # If the last trading day was consecutive (according to trading days), continue streak
+            #             UserDailyTradeActivity.objects.create(
+            #                 user=user,
+            #                 streak_run=active_streak_run,
+            #                 trade_date=today,
+            #                 comp_portfolio=account,
+            #             )
+            #             streak_info.update_streak(is_new_run=False)
+            #         else:
+            #             # If not consecutive, end the current streak and start a new one
+            #             active_streak_run.end_streak()
+            #             new_streak_run = UserStreakRun.objects.create(
+            #                 user=user, start_date=today, comp_portfolio=account
+            #             )
+            #             try:
+            #                 UserDailyTradeActivity.objects.get_or_create(
+            #                     user=user,
+            #                     streak_run=active_streak_run,
+            #                     trade_date=today,
+            #                     comp_portfolio=account,
+            #                 )
+            #                 streak_info.update_streak(is_new_run=True)
+            #             except:
+            #                 continue
+            #     else:
+            #         # No active streak run, start a new streak
+            #         new_streak_run = UserStreakRun.objects.create(
+            #             user=user, start_date=today, comp_portfolio=account
+            #         )
+            #         UserDailyTradeActivity.objects.create(
+            #             user=user,
+            #             streak_run=new_streak_run,
+            #             trade_date=today,
+            #             comp_portfolio=account,
+            #         )
+            #         streak_info.update_streak(is_new_run=True)
+
+            # In the update_user_streaks_daily function, when creating a new streak run:
             if has_open_trade_today:
                 if active_streak_run:
-                    # Determine the most recent trading day before today
                     last_trade_date = (
                         UserDailyTradeActivity.objects.filter(
                             user=user,
                             streak_run=active_streak_run,
-                            comp_portfolio=account,
+                            demo_portfolio=account,
                         )
                         .order_by("-trade_date")
                         .first()
                     )
 
                     previous_trading_day = get_previous_trading_day(today)
+                    current_week_start = today - timedelta(days=today.weekday())
 
                     if (
                         last_trade_date
                         and last_trade_date.trade_date == previous_trading_day
                     ):
-                        # If the last trading day was consecutive (according to trading days), continue streak
+                        # Check if we need to start a new weekly streak
+                        if today >= active_streak_run.start_date + timedelta(days=7):
+                            # End current weekly streak
+                            active_streak_run.end_streak()
+                            # Create new weekly streak linked to the previous one
+                            new_streak_run = UserStreakRun.objects.create(
+                                user=user,
+                                start_date=today,
+                                demo_portfolio=account,
+                                previous_streak=active_streak_run,
+                            )
+                            active_streak_run = new_streak_run
+
                         UserDailyTradeActivity.objects.create(
                             user=user,
                             streak_run=active_streak_run,
                             trade_date=today,
-                            comp_portfolio=account,
+                            demo_portfolio=account,
                         )
                         streak_info.update_streak(is_new_run=False)
-                    else:
-                        # If not consecutive, end the current streak and start a new one
-                        active_streak_run.end_streak()
-                        new_streak_run = UserStreakRun.objects.create(
-                            user=user, start_date=today, comp_portfolio=account
-                        )
-                        try:
-                            UserDailyTradeActivity.objects.get_or_create(
-                                user=user,
-                                streak_run=active_streak_run,
-                                trade_date=today,
-                                comp_portfolio=account,
-                            )
-                            streak_info.update_streak(is_new_run=True)
-                        except:
-                            continue
                 else:
                     # No active streak run, start a new streak
                     new_streak_run = UserStreakRun.objects.create(
-                        user=user, start_date=today, comp_portfolio=account
+                        user=user, start_date=today, demo_portfolio=account
                     )
                     UserDailyTradeActivity.objects.create(
                         user=user,
                         streak_run=new_streak_run,
                         trade_date=today,
-                        comp_portfolio=account,
+                        demo_portfolio=account,
                     )
                     streak_info.update_streak(is_new_run=True)
             else:
@@ -377,6 +490,24 @@ def update_user_streaks_daily():
                     if active_streak_run:
                         active_streak_run.end_streak()
                     streak_info.reset_streak()
+
+
+@shared_task
+def update_user_streaks_daily_task():
+    lagos_timezone = pytz.timezone("Africa/Lagos")
+    current_time_lagos = timezone.now().astimezone(lagos_timezone)
+
+    if (
+        current_time_lagos.time() >= time(10, 5)
+        and current_time_lagos.time() <= time(14, 35)
+        and current_time_lagos.weekday() < 5
+    ):
+        # logger.info("Updating user streaks during trading hours")
+        print("Updating user streaks during trading hours")
+        update_user_streaks_daily()
+    else:
+        # logger.info(f"Streak checking is outside trading hours: {current_time_lagos}")
+        print(f"Streak checking is outside trading hours: {current_time_lagos}")
 
 
 @shared_task
@@ -473,9 +604,3 @@ def award_weekly_badges_and_update_leaderboard():
             reward_amount=reward_amount,
             reason="Key Active User Reward",
         )
-
-
-@shared_task
-def update_user_streaks_daily_task():
-    if is_within_trading_hours:
-        update_user_streaks_daily()

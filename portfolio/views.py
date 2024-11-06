@@ -717,19 +717,19 @@ class ReceiptsView(APIView):
 
             model_type = request.data.get("model_type")
             if model_type == "Moderna":
-                profit_target = 2500000
-                account_drawdown_limit = 1000000
-                account_name = "Moderna"
+                profit_target = 2_500_000
+                account_drawdown_limit = 9_000_000
+                account_name = "model_1"
             elif model_type == "Vassa":
-                profit_target = 1500000
-                account_drawdown_limit = 600000
-                account_name = "Vassa"
+                profit_target = 1_500_000
+                account_drawdown_limit = 9_400_00
+                account_name = "model_2"
             else:
                 raise ValueError("Invalid model type selected")
 
             is_prop = True
-            balance = 10000000
-            initial_balance = 10000000
+            balance = 10_000_000
+            initial_balance = 10_000_000
             is_active = False
             code = get_random_string(length=8).upper()
 
@@ -743,6 +743,7 @@ class ReceiptsView(APIView):
                 user=request.user,
                 is_active=is_active,
                 code=code,
+                model_type=account_name,
             )
 
             exec_models.DemoDailyReturns2.objects.create(

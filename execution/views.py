@@ -2643,7 +2643,10 @@ class SingleDemoTradeAPIView(APIView):
     def post(self, request, *args, **kwargs):
 
         account_type = kwargs.get("account_type")
-        valid_account_types = ["demo_portfolio", "competition_account"]
+        valid_account_types = [
+            "demo_portfolio",
+            "competition_account",
+        ]
 
         if not account_type in valid_account_types:
             return Response(
@@ -2937,15 +2940,13 @@ class SingleDemoTradeAPIView(APIView):
                     portfolio.balance -= total
                     portfolio.save()
 
-                activity = UserActivityLog.objects.create(
+                UserActivityLog.objects.create(
                     user=request.user,
                     action_type="demo_open_trade",
                     description=f"User opened demo trade with amount {amount} on symbol {symbol}.",
                     device_type=device_type,
                 )
-                positions = DemoPosition.objects.filter(
-                    portfolio=portfolio, status="open"
-                )
+                DemoPosition.objects.filter(portfolio=portfolio, status="open")
 
                 save_and_send_notification(
                     request.user.id,

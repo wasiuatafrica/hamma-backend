@@ -11,7 +11,7 @@ urlpatterns = [
     path("current-streak/", CurrentStreakAPIView.as_view(), name="current-streak"),
     path("longest-streak/", LongestStreakAPIView.as_view(), name="longest-streak"),
     path("streak-calendar/", StreakCalendarAPIView.as_view(), name="streak-calendar"),
-    path("leaderboard/", LeaderboardAPIView.as_view(), name="leaderboard"),
+    path("leaderboard/", LeaderboardAPIView.as_view()),
     path(
         "user-activity-badges/",
         UserActivityBadgeAPIView.as_view(),

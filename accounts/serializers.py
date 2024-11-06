@@ -109,9 +109,9 @@ class Turn2FAOnOrOff(serializers.Serializer):
 class LoginWithEmailSeriailizer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(max_length=200)
-    ip_address = serializers.IPAddressField()
-    location = serializers.CharField(max_length=100, allow_blank=True)
-    device = serializers.CharField(max_length=1000)
+    # ip_address = serializers.IPAddressField()
+    # location = serializers.CharField(max_length=100, allow_blank=True)
+    # device = serializers.CharField(max_length=1000)
 
 
 class LoginTokenSeriailizer(serializers.Serializer):

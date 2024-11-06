@@ -713,7 +713,7 @@ def daily_returns5():
         for user in users:
             portfolios = DemoPortfolio.objects.filter(user=user)
             for portfolio in portfolios:
-                # print(user)
+                print(portfolio.account_name)
                 positions_today = DemoPosition.objects.filter(
                     portfolio=portfolio, status="close", updated__date=today
                 )
@@ -1027,7 +1027,7 @@ def competition_daily_returns7():
                     c_returns.created = timezone.now()
                     c_returns.save()
                 else:
-                    CompetitionCumulativeReturns2.objects.create(
+                    c_returns = CompetitionCumulativeReturns2.objects.create(
                         # user=portfolio.user,
                         portfolio=portfolio,
                         portfolio_returns=round(last_row_cum["cum_returns"], 2),
@@ -1183,8 +1183,8 @@ def daily_returns7():
                     d_returns.created = timezone.now()
                     d_returns.save()
                 else:
-                    DemoDailyReturns2.objects.create(
-                        # user=portfolio.user,
+                    d_returns = DemoDailyReturns2.objects.create(
+                        user=portfolio.user,
                         portfolio=portfolio,
                         portfolio_returns=round(last_row["Daily_PortfolioReturns"], 2),
                         created=timezone.now(),
@@ -1213,8 +1213,8 @@ def daily_returns7():
                     c_returns.created = timezone.now()
                     c_returns.save()
                 else:
-                    DemoCumulativeReturns.objects.create(
-                        # user=portfolio.user,
+                    c_returns = DemoCumulativeReturns.objects.create(
+                        user=portfolio.user,
                         portfolio=portfolio,
                         portfolio_returns=round(last_row_cum["cum_returns"], 2),
                         created=timezone.now(),

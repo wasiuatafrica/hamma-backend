@@ -81,6 +81,7 @@ class UserDailyStreakAdmin(admin.ModelAdmin):
         "comp_portfolio",
         "current_streak",
         "longest_streak",
+        "current_week_start",
     )
     list_filter = ("current_streak", "longest_streak")
     search_fields = ("user__email", "demo_portfolio__id", "comp_portfolio__id")
@@ -91,6 +92,7 @@ class UserDailyStreakAdmin(admin.ModelAdmin):
         "comp_portfolio",
         "current_streak",
         "longest_streak",
+        "current_week_start",
     )
 
     def get_readonly_fields(self, request, obj=None):
