@@ -2052,13 +2052,13 @@ def close_position(position, current_price):
     position.comment = "trailing stop  executed"
     position.save()
 
-    # Log transaction and notify user
-    CompetitionTransaction.objects.create(
-        user=position.portfolio.user,
-        transaction_type="close trade",
-        amount=current_value,
-        status="completed",
-    )
+    # # Log transaction and notify user
+    # CompetitionTransaction.objects.create(
+    #     user=position.portfolio.user,
+    #     transaction_type="close trade",
+    #     amount=current_value,
+    #     status="completed",
+    # )
     save_and_send_notification(
         position.portfolio.user.id,
         f"Trailing stop loss has been triggered for {position.stock.symbol}. Position is closed",
