@@ -305,6 +305,13 @@ class Leaderboard(auto_prefetch.Model):
             f"{self.user.email} - Position: {self.position} Streak: {self.streak_count}"
         )
 
+    @property
+    def reward_amount(self):
+        reward = Reward.objects.filter(
+            user=self.user, reason="Top Leaderboard Reward"
+        ).last()
+        return reward.reward_amount if reward else 0
+
 
 class Reward(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(
@@ -316,3 +323,27 @@ class Reward(auto_prefetch.Model):
 
     def __str__(self):
         return f"{self.user.email} - Reward: {self.reward_amount} for {self.reason}"
+
+
+class RewardAmount(auto_prefetch.Model):
+    REWARD_TYPE_CHOICES = [
+        ("key_active_user", "Key Active User"),
+        ("leaderboard", "Leaderboard"),
+    ]
+
+    reward_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    reward_type = models.CharField(
+        max_length=100, choices=REWARD_TYPE_CHOICES, null=True, blank=True
+    )
+    position = models.PositiveIntegerField(null=True, blank=True)
+
+    class Meta(auto_prefetch.Model.Meta):
+        constraints = [
+            models.UniqueConstraint(
+                fields=["reward_amount", "reward_type", "position"],
+                name="unique_reward_amount_type_position",
+            )
+        ]
+
+    def __str__(self):
+        return f"Reward: {self.reward_amount} - Type: {self.reward_type} - Position: {self.position}"

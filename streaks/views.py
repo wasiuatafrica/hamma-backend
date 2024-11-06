@@ -24,7 +24,7 @@ from .serializers import (
     UserDailyStreakSerializer,
     UserStreakRunSerializer,
 )
-from .tasks import update_user_streaks_daily
+from .tasks import update_user_streaks_daily, award_weekly_badges_and_update_leaderboard
 from competition.models import CompetitionPortfolio
 from execution.models import DemoPortfolio
 
