@@ -1,6 +1,26 @@
 from django.urls import path
-from .views import AccountDataView
+from . import views
 
 urlpatterns = [
-    path("account-data/<account_id>/", AccountDataView.as_view(), name="account-data"),
+    path(
+        "account-data/<account_id>/",
+        views.AccountDataView.as_view(),
+    ),
+    path("metrics/<portfolio_id>/", views.PortfolioMetrics.as_view()),
+    path(
+        "payouts/",
+        views.PayoutListAPIView.as_view(),
+    ),
+    path(
+        "payouts/<int:pk>/",
+        views.PayoutDetailAPIView.as_view(),
+    ),
+    path(
+        "payouts/request/",
+        views.RequestPayoutAPIView.as_view(),
+    ),
+    path(
+        "payouts/<int:pk>/process/",
+        views.ProcessPayoutAPIView.as_view(),
+    ),
 ]

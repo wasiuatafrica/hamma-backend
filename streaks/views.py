@@ -1,13 +1,15 @@
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from execution.models import DemoPosition
-from competition.models import CompetitionPosition
 from datetime import timedelta
 
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from competition.models import CompetitionPortfolio, CompetitionPosition
+from execution.models import DemoPortfolio, DemoPosition
 
 from .models import (
     Leaderboard,
@@ -24,12 +26,12 @@ from .serializers import (
     UserDailyStreakSerializer,
     UserStreakRunSerializer,
 )
-from .tasks import update_user_streaks_daily, award_weekly_badges_and_update_leaderboard
-from competition.models import CompetitionPortfolio
-from execution.models import DemoPortfolio
+from .tasks import award_weekly_badges_and_update_leaderboard, update_user_streaks_daily
 
 
 class LeaderboardAPIView(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request):
         """
         Get the current week's leaderboard data.

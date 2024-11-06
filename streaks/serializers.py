@@ -72,14 +72,15 @@ class UserDailyStreakSerializer(serializers.ModelSerializer):
     longest_streak_run = serializers.IntegerField(
         source="longest_streak", read_only=True
     )
-    current_week_progress = serializers.SerializerMethodField()
-
-    def get_current_week_progress(self, obj):
-        if not obj.current_week_start:
-            return 0
-        today = timezone.now().date()
-        days_in_current_week = (today - obj.current_week_start).days + 1
-        return min(days_in_current_week, 5)  # Assuming 5 trading days per week
+    current_week_progress = serializers.IntegerField(
+        source="current_streak", read_only=True
+    )
+    # def get_current_week_progress(self, obj):
+    #     if not obj.current_week_start:
+    #         return 0
+    #     today = timezone.now().date()
+    #     days_in_current_week = (today - obj.current_week_start).days + 1
+    #     return min(days_in_current_week, 5)  # Assuming 5 trading days per week
 
     class Meta:
         model = UserDailyStreak
