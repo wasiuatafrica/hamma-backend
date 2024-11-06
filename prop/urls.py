@@ -23,4 +23,9 @@ urlpatterns = [
         "payouts/<int:pk>/process/",
         views.ProcessPayoutAPIView.as_view(),
     ),
+    path(
+        "prop-receipts/",
+        views.AdminReceiptsView.as_view(),
+    ),
+    path("accountlist/", views.AdminAccountsList.as_view()),
 ]

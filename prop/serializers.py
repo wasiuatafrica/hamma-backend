@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Payout
+from execution.models import DemoPortfolio
 
 
 class PayoutRequestSerializer(serializers.ModelSerializer):
@@ -30,3 +31,10 @@ class PayoutDetailSerializer(serializers.ModelSerializer):
             "rejected_reason",
             "admin_notes",
         ]
+
+
+class AccountlistSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DemoPortfolio
+        # fields = "__all__"
+        exclude = ["code"]

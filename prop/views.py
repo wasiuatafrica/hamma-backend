@@ -12,8 +12,13 @@ from execution.models import DemoPortfolio, DemoPosition
 
 from .models import Payout
 from .pay_service import PayoutService
-from .serializers import PayoutDetailSerializer
+from .serializers import PayoutDetailSerializer, AccountlistSerializer
 from .utils import get_account_data, get_equity_balance
+from execution.models import PropReceipt
+from anyon.serializers import AdminReceiptsViewSerializer
+from portfolio.models import Receipts, PayStackReceipts
+from notifications.utils import save_and_send_notification
+from accounts.models import AdminUserActivityLog
 
 
 class PayoutListAPIView(APIView):
@@ -351,3 +356,188 @@ class AccountDataView(APIView):
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class AdminReceiptsView(APIView):
+    serializer_class = AdminReceiptsViewSerializer
+
+    def get(self, request):
+        email = request.GET.get("email")
+        filter = request.GET.get("filter")
+        receipts_data = []
+
+        # Get all receipts IDs from PropReceipt to filter against
+        prop_receipt_ids = PropReceipt.objects.values_list("receipt_id", flat=True)
+
+        if filter == "bank_transfer":
+            # Only include receipts in PropReceipt
+            for receipt in Receipts.objects.filter(
+                user__email=email, id__in=prop_receipt_ids
+            ).order_by("-created"):
+                receipt_dict = {
+                    "id": receipt.id,
+                    "amount": receipt.amount,
+                    "created": receipt.created,
+                    "receipt_status": receipt.receipt_status,
+                    "payment_method": receipt.payment_method,
+                    "fullname": receipt.user.fullname,
+                    "comment": receipt.comment,
+                    "approved_date": receipt.approved_date,
+                    "image_url": receipt.image.url,
+                    "user": receipt.user.id,
+                    "flag": receipt.flag,
+                    "timestamp": receipt.created.timestamp(),
+                }
+                receipts_data.append(receipt_dict)
+        elif filter == "paystack":
+            # Only include PayStack receipts in PropReceipt
+            # paystack_receipt_ids = PropReceipt.objects.filter(
+            #     receipt__in=PayStackReceipts.objects.all()
+            # ).values_list("receipt_id", flat=True)
+            paystack_receipt_ids = []
+
+            for paystack_receipt in PayStackReceipts.objects.filter(
+                user__email=email, id__in=paystack_receipt_ids
+            ).order_by("-date"):
+                paystack_receipt_dict = {
+                    "id": paystack_receipt.id,
+                    "amount": paystack_receipt.amount,
+                    "created": paystack_receipt.date,
+                    "receipt_status": paystack_receipt.receipt_status,
+                    "payment_method": "paystack",
+                    "user": paystack_receipt.user.id,
+                    "image_url": "",
+                    "approved_date": "",
+                    "comment": paystack_receipt.comment,
+                    "fullname": paystack_receipt.user.fullname,
+                    "flag": paystack_receipt.flag,
+                    "timestamp": paystack_receipt.date.timestamp(),
+                }
+                receipts_data.append(paystack_receipt_dict)
+        else:
+            # For no specific filter, include both Receipts and PayStackReceipts in PropReceipt
+            for receipt in Receipts.objects.filter(id__in=prop_receipt_ids).order_by(
+                "-created"
+            ):
+                receipt_dict = {
+                    "id": receipt.id,
+                    "amount": receipt.amount,
+                    "created": receipt.created,
+                    "receipt_status": receipt.receipt_status,
+                    "payment_method": receipt.payment_method,
+                    "fullname": receipt.user.fullname,
+                    "comment": receipt.comment,
+                    "approved_date": receipt.approved_date,
+                    "image_url": receipt.image.url,
+                    "user": receipt.user.id,
+                    "flag": receipt.flag,
+                    "timestamp": receipt.created.timestamp(),
+                }
+                receipts_data.append(receipt_dict)
+
+            # for paystack_receipt in PayStackReceipts.objects.filter(
+            #     id__in=paystack_receipt_ids
+            # ).order_by("-date"):
+            #     paystack_receipt_dict = {
+            #         "id": paystack_receipt.id,
+            #         "amount": paystack_receipt.amount,
+            #         "created": paystack_receipt.date,
+            #         "receipt_status": paystack_receipt.receipt_status,
+            #         "payment_method": "paystack",
+            #         "user": paystack_receipt.user.id,
+            #         "image_url": "",
+            #         "approved_date": "",
+            #         "comment": paystack_receipt.comment,
+            #         "fullname": paystack_receipt.user.fullname,
+            #         "flag": paystack_receipt.flag,
+            #         "timestamp": paystack_receipt.date.timestamp(),
+            #     }
+            #     receipts_data.append(paystack_receipt_dict)
+
+        receipts_data2 = sorted(
+            receipts_data, key=lambda x: x["timestamp"], reverse=True
+        )
+        return Response(receipts_data2)
+
+    def post(self, request):
+
+        statuses = ["approved", "rejected"]
+
+        id = request.data["id"]
+        amount = request.data["amount"]
+        receipt_status = request.data["receipt_status"]
+        comment = request.data["comment"]
+
+        if receipt_status not in statuses:
+            return Response("receipt_status must either be approved or rejected ")
+
+        receipt = Receipts.objects.get(id=id)
+        receipt.receipt_status = receipt_status
+        receipt.save()
+
+        if receipt_status == "approved":
+
+            receipt.amount = amount
+            receipt.save()
+            AdminUserActivityLog.objects.create(
+                admin=request.user,
+                user=receipt.user,
+                action_type="approved_reciept",
+                description=f"Admin user approved reciept.",
+            )
+            prop_receipt = PropReceipt.objects.filter(receipt=receipt).first()
+
+            prop_account = prop_receipt.account
+            prop_account.receipt_approved = True
+            prop_account.save()
+
+            receipt_data = {
+                "id": receipt.id,
+                "user": receipt.user.id,
+                "fullname": receipt.user.fullname,
+                "amount": receipt.amount,
+                "payment_method": receipt.payment_method,
+                "receipt_status": receipt.receipt_status,
+                "comment": receipt.comment,
+                "created": receipt.created,
+                "approved_date": receipt.approved_date,
+                "image_url": receipt.image.url if receipt.image else None,
+            }
+            return Response(receipt_data)
+
+        elif receipt_status == "rejected":
+            receipt.comment = comment
+            receipt.save()
+
+            AdminUserActivityLog.objects.create(
+                admin=request.user,
+                user=receipt.user,
+                action_type="rejected_reciept",
+                description=f"Admin user rejected reciept.",
+            )
+            receipt_data = {
+                "id": receipt.id,
+                "user": receipt.user.id,
+                "fullname": receipt.user.fullname,
+                "amount": receipt.amount,
+                "payment_method": receipt.payment_method,
+                "receipt_status": receipt.receipt_status,
+                "comment": receipt.comment,
+                "created": receipt.created,
+                "approved_date": receipt.approved_date,
+                "image_url": receipt.image.url if receipt.image else None,
+            }
+            save_and_send_notification(
+                receipt.user.id,
+                f"Your payment receipt has been rejected. Reason: {receipt.comment}.",
+            )
+
+            return Response(receipt_data)
+
+
+class AdminAccountsList(APIView):
+
+    def get(self, request):
+        accounts = DemoPortfolio.objects.filter(is_prop=True)
+        serializer = AccountlistSerializer(accounts, many=True)
+        return Response(serializer.data)

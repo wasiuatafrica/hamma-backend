@@ -1842,8 +1842,8 @@ def clan_payout_detail(request, payout_id):
         # print(payout.status)
         if comment:
             save_and_send_notification(payout.user.id, f"Top Clan Payout: {comment}")
-        if status == "Paid":
-            send_top_clan_payment_processing_mail(payout.user.email)
+        # if status == "Paid":
+        # send_top_clan_payment_processing_mail(payout.user.email)
 
     top_clan_payout = TopClanPayout.objects.get(id=payout_id)
     payouts = TopClanMembersPayout.objects.filter(top_clan_payout=top_clan_payout)
@@ -2313,6 +2313,7 @@ class TopClanPayoutRequest(APIView):
             competition=competition_id, clan=clan
         )
         for summary in comp_summary:
+
             tcmp = TopClanMembersPayout.objects.create(
                 top_clan_payout=top_clan_payout,
                 user=summary.user,
