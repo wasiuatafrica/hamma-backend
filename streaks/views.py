@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from execution.models import DemoPosition
-from competition.models import CompetitionPosition
+from competition.models import Competition, CompetitionPosition
 from datetime import timedelta
 
 from django.db.models import Q
@@ -91,12 +91,24 @@ class LeaderboardAPIView(APIView):
         """
         today = timezone.now()
         current_time = today.time()
-        is_friday_after_market = (
-            today.weekday() == 4 and current_time.hour >= 15  # Friday  # After 3 PM
+        weekday = today.weekday()
+        # Check if we're in the awards period
+        is_awards_period = (
+            # Friday after 2 PM (weekday 4, hour >= 14)
+            (weekday == 4 and current_time.hour >= 14)
+            or
+            # Saturday (weekday 5) - all day
+            (weekday == 5)
+            or
+            # Sunday (weekday 6) - all day
+            (weekday == 6)
+            or
+            # Monday before 10 AM (weekday 0, hour < 10)
+            (weekday == 0 and current_time.hour < 10)
         )
 
-        # If it's Friday after market close, return awards data
-        if is_friday_after_market:
+        # If we're in the awards period, return awards data
+        if is_awards_period:
             return self.get_weekly_awards()
 
         # Otherwise return regular leaderboard
@@ -113,17 +125,26 @@ class LeaderboardAPIView(APIView):
         leaderboard_data = []
 
         for user in User.objects.all():
+
             # Calculate trades opened by the user in the past week
             demo_trades = DemoPosition.objects.filter(
                 portfolio__user=user,
                 status__in=[DemoPosition.OPEN, DemoPosition.CLOSED],
-                updated__date__range=(week_start, week_end),
+                created__date__gte=week_start,
+                created__date__lte=week_end,
+                updated__date__gte=week_start,
+                updated__date__lte=week_end,
             ).count()
 
             competition_trades = CompetitionPosition.objects.filter(
                 portfolio__user=user,
+                portfolio__competition__status="current",
                 status__in=[CompetitionPosition.OPEN, CompetitionPosition.CLOSED],
-                updated__date__range=(week_start, week_end),
+                portfolio__active=True,
+                created__date__gte=week_start,
+                created__date__lte=week_end,
+                updated__date__gte=week_start,
+                updated__date__lte=week_end,
             ).count()
 
             trade_volume = demo_trades + competition_trades
