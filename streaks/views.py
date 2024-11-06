@@ -27,12 +27,133 @@ from .serializers import (
 from .tasks import update_user_streaks_daily, award_weekly_badges_and_update_leaderboard
 from competition.models import CompetitionPortfolio
 from execution.models import DemoPortfolio
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+# class LeaderboardAPIView(APIView):
+#     def get(self, request):
+#         """
+#         Get the current week's leaderboard data.
+#         """
+#         # Get the current week's leaderboard data
+#         current_week_start = timezone.now().date() - timezone.timedelta(
+#             days=timezone.now().date().weekday()
+#         )
+#         leaderboard = Leaderboard.objects.filter(
+#             week_start_date=current_week_start
+#         ).order_by("position")
+#         serializer = LeaderboardSerializer(leaderboard, many=True)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+# class LeaderboardAPIView(APIView):
+#     def get(self, request):
+#         """
+#         Get the current week's leaderboard data.
+#         """
+#         today = timezone.now().date()
+#         week_start = today - timedelta(days=today.weekday())
+#         week_end = week_start + timedelta(days=6)
+#         leaderboard_dict =[]
+#         for user in User.objects.all():
+#         # Calculate the number of trades opened by the user in the past week
+#             weekly_open_trades = (
+#                 DemoPosition.objects.filter(
+#                     portfolio__user=user,
+#                     status=DemoPosition.OPEN,
+#                     updated__date__range=(week_start, week_end),
+#                 ).count()
+#                 + CompetitionPosition.objects.filter(
+#                     portfolio__user=user,
+#                     status=CompetitionPosition.OPEN,
+#                     updated__date__range=(week_start, week_end),
+#                 ).count()
+#             )
+#             data = {
+#                 "user_id": user.id,
+#                 "fullname":user.fullname,
+#                 "email":user.email,
+#                 "total_trades": weekly_open_trades,
+#                 "award":None
+
+#             }
+#             leaderboard_dict.append(data)
+
+#         return Response(leaderboard_dict, status=status.HTTP_200_OK)
+
+from operator import itemgetter
 
 
 class LeaderboardAPIView(APIView):
     def get(self, request):
         """
         Get the current week's leaderboard data.
+        Returns weekly awards on Fridays after market close (3 PM).
+        """
+        today = timezone.now()
+        current_time = today.time()
+        is_friday_after_market = (
+            today.weekday() == 4 and current_time.hour >= 15  # Friday  # After 3 PM
+        )
+
+        # If it's Friday after market close, return awards data
+        if is_friday_after_market:
+            return self.get_weekly_awards()
+
+        # Otherwise return regular leaderboard
+        return self.get_regular_leaderboard()
+
+    def get_regular_leaderboard(self):
+        """
+        Get regular leaderboard data ordered by total trades.
+        """
+        today = timezone.now().date()
+        week_start = today - timedelta(days=today.weekday())
+        week_end = week_start + timedelta(days=6)
+
+        leaderboard_data = []
+
+        for user in User.objects.all():
+            # Calculate trades opened by the user in the past week
+            demo_trades = DemoPosition.objects.filter(
+                portfolio__user=user,
+                status__in=[DemoPosition.OPEN, DemoPosition.CLOSED],
+                updated__date__range=(week_start, week_end),
+            ).count()
+
+            competition_trades = CompetitionPosition.objects.filter(
+                portfolio__user=user,
+                status__in=[CompetitionPosition.OPEN, CompetitionPosition.CLOSED],
+                updated__date__range=(week_start, week_end),
+            ).count()
+
+            trade_volume = demo_trades + competition_trades
+
+            # Only include users who have made trades
+            if trade_volume > 0:
+                data = {
+                    "user": {
+                        "id": user.id,
+                        "email": user.email,
+                        "firstname": user.firstname,
+                        "lastname": user.lastname,
+                    },
+                    "trade_volume": trade_volume,
+                    "reward_amount": None,
+                    "week_start_date": week_start,
+                }
+                leaderboard_data.append(data)
+
+        # Sort by trade_volume in descending order
+        leaderboard_data.sort(key=itemgetter("trade_volume"), reverse=True)
+
+        # Add position/rank to each entry
+        for index, entry in enumerate(leaderboard_data, 1):
+            entry["position"] = index
+        return Response(leaderboard_data, status=status.HTTP_200_OK)
+
+    def get_weekly_awards(self):
+        """
+        Get weekly awards data for Friday after market close.
         """
         # Get the current week's leaderboard data
         current_week_start = timezone.now().date() - timezone.timedelta(
