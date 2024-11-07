@@ -212,21 +212,19 @@ def cache_regular_leaderboard():
         entry["position"] = index
 
     # Cache the result for 10 minutes
-    cache.set("regular_leaderboard", leaderboard_data, timeout=600)
+    cache.set("regular_leaderboard", leaderboard_data)
 
     interval, created = IntervalSchedule.objects.get_or_create(
         every=10,
         period=IntervalSchedule.MINUTES,
     )
 
-    # Create cache_regular_leaderboard task
-    if not PeriodicTask.objects.filter(name="Cache Regular Leaderboard").exists():
-        PeriodicTask.objects.create(
-            interval=interval,  # set to every 10 minutes
-            name="Cache Regular Leaderboard",
-            task="streaks.tasks.cache_regular_leaderboard",
-            kwargs=json.dumps({}),
-        )
+    PeriodicTask.objects.create(
+        interval=interval,  # set to every 10 minutes
+        name="Cache Regular Leaderboard",
+        task="streaks.tasks.cache_regular_leaderboard",
+        kwargs=json.dumps({}),
+    )
 
 
 @shared_task
@@ -244,7 +242,7 @@ def cache_weekly_awards():
     serializer = LeaderboardSerializer(leaderboard, many=True)
 
     # Cache the result for 10 minutes
-    cache.set("weekly_awards", serializer.data, timeout=600)
+    cache.set("weekly_awards", serializer.data)
 
     # Set up interval schedule (every 10 minutes)
     interval, created = IntervalSchedule.objects.get_or_create(
@@ -252,11 +250,9 @@ def cache_weekly_awards():
         period=IntervalSchedule.MINUTES,
     )
 
-    # Create cache_weekly_awards task
-    if not PeriodicTask.objects.filter(name="Cache Weekly Awards").exists():
-        PeriodicTask.objects.create(
-            interval=interval,  # set to every 10 minutes
-            name="Cache Weekly Awards",
-            task="streaks.tasks.cache_weekly_awards",
-            kwargs=json.dumps({}),
-        )
+    PeriodicTask.objects.create(
+        interval=interval,  # set to every 10 minutes
+        name="Cache Weekly Awards",
+        task="streaks.tasks.cache_weekly_awards",
+        kwargs=json.dumps({}),
+    )

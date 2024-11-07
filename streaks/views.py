@@ -62,19 +62,13 @@ class LeaderboardAPIView(APIView):
         if is_awards_period:
             weekly_awards = cache.get("weekly_awards")
             if weekly_awards is None:
-                return Response(
-                    {"error": "Weekly awards data not available"},
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
-                )
+                return Response([], 200)
             return Response(weekly_awards, status=status.HTTP_200_OK)
         else:
             # cache.set("regular_leaderboard", {}, timeout=600)
             regular_leaderboard = cache.get("regular_leaderboard")
             if regular_leaderboard is None:
-                return Response(
-                    {"error": "Leaderboard data not available"},
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
-                )
+                return Response([], 200)
             return Response(regular_leaderboard, status=status.HTTP_200_OK)
 
 
