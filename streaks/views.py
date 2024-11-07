@@ -1,5 +1,7 @@
 from datetime import timedelta
+from operator import itemgetter
 
+from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -8,12 +10,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from execution.models import DemoPosition
-from competition.models import Competition, CompetitionPosition
-from datetime import timedelta
-
-
-from competition.models import CompetitionPortfolio, CompetitionPosition
+from competition.models import Competition, CompetitionPortfolio, CompetitionPosition
 from execution.models import DemoPortfolio, DemoPosition
 
 from .models import (
@@ -31,11 +28,7 @@ from .serializers import (
     UserDailyStreakSerializer,
     UserStreakRunSerializer,
 )
-
-from .tasks import update_user_streaks_daily, award_weekly_badges_and_update_leaderboard
-from competition.models import CompetitionPortfolio
-from execution.models import DemoPortfolio
-from django.contrib.auth import get_user_model
+from .tasks import award_weekly_badges_and_update_leaderboard, update_user_streaks_daily
 
 User = get_user_model()
 # class LeaderboardAPIView(APIView):
@@ -88,10 +81,6 @@ User = get_user_model()
 
 #         return Response(leaderboard_dict, status=status.HTTP_200_OK)
 
-from operator import itemgetter
-from .tasks import award_weekly_badges_and_update_leaderboard, update_user_streaks_daily
-
-
 
 class LeaderboardAPIView(APIView):
     permission_classes = [AllowAny]
@@ -99,15 +88,21 @@ class LeaderboardAPIView(APIView):
     def get(self, request):
         """
         Get the current week's leaderboard data.
-        Returns weekly awards on Fridays after market close (3 PM).
+        Returns weekly awards on Fridays after market close (2:30 PM).
         """
         today = timezone.now()
         current_time = today.time()
         weekday = today.weekday()
         # Check if we're in the awards period
         is_awards_period = (
-            # Friday after 2 PM (weekday 4, hour >= 14)
-            (weekday == 4 and current_time.hour >= 14)
+            # Friday after 2:30 PM (weekday 4, hour >= 14, minute >= 30)
+            (
+                weekday == 4
+                and (
+                    current_time.hour > 14
+                    or (current_time.hour == 14 and current_time.minute >= 30)
+                )
+            )
             or
             # Saturday (weekday 5) - all day
             (weekday == 5)
