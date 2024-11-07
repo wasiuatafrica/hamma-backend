@@ -3220,7 +3220,7 @@ class ClancompetitionHistory(APIView):
                 else:
                     summary = CompetitionSummary.objects.filter(
                         user=member, portfolio__competition=competition
-                    ).last()
+                    ).first()
                     if summary:
                         percent = summary.percent
                         data = {

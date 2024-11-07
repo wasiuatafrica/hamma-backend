@@ -67,7 +67,10 @@ class DemoPortfolio(auto_prefetch.Model):
     def generate_unique_account_id(self):
         max_attempts = 10
         for _ in range(max_attempts):
-            generated_id = "".join(random.choices(string.digits, k=6))
+            if self.is_prop:
+                generated_id = "".join(random.choices(string.digits, k=8))
+            else:
+                generated_id = "".join(random.choices(string.digits, k=6))
             if not DemoPortfolio.objects.filter(account_id=generated_id).exists():
                 self.account_id = generated_id
                 return
