@@ -87,8 +87,8 @@ class DemoPortfolio(auto_prefetch.Model):
 
     @property
     def account_type(self):
-        if self.is_prop:
-            return "prop_account"
+        # if self.is_prop:
+        #     return "prop_account"
         return "demo_portfolio"
 
 

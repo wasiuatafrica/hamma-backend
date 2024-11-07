@@ -2572,7 +2572,7 @@ class SingleDemoTradeAPIView(APIView):
     def get(self, request, *args, **kwargs):
 
         account_type = kwargs.get("account_type")
-        valid_account_types = ["demo_portfolio", "competition_account", "prop_account"]
+        valid_account_types = ["demo_portfolio", "competition_account"]
 
         if not account_type in valid_account_types:
             return Response(
