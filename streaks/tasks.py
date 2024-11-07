@@ -68,12 +68,12 @@ def award_weekly_badges_and_update_leaderboard():
         weekly_open_trades = (
             DemoPosition.objects.filter(
                 portfolio__user=user,
-                status=DemoPosition.OPEN,
+                status__in=[DemoPosition.OPEN, DemoPosition.CLOSED],
                 updated__date__range=(week_start, week_end),
             ).count()
             + CompetitionPosition.objects.filter(
                 portfolio__user=user,
-                status=CompetitionPosition.OPEN,
+                status__in=[CompetitionPosition.OPEN, CompetitionPosition.CLOSED],
                 updated__date__range=(week_start, week_end),
             ).count()
         )
