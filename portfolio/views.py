@@ -716,11 +716,11 @@ class ReceiptsView(APIView):
             receipt = Receipts.objects.create(user=request.user, image=receipt_image)
 
             model_type = request.data.get("model_type")
-            if model_type == "Moderna":
+            if model_type == "model_1":
                 profit_target = 2_500_000
                 account_drawdown_limit = 9_000_000
                 account_name = "model_1"
-            elif model_type == "Vassa":
+            elif model_type == "model_2":
                 profit_target = 1_500_000
                 account_drawdown_limit = 9_400_00
                 account_name = "model_2"

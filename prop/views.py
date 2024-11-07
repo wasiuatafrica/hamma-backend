@@ -262,7 +262,7 @@ class PortfolioMetrics(APIView):
         # Get positions for the last 14 days
         two_weeks_ago = current_time - timedelta(days=14)
         positions = DemoPosition.objects.filter(
-            portfolio=portfolio, created__gte=two_weeks_ago
+            portfolio=portfolio  # , created__gte=two_weeks_ago
         )
 
         # Calculate trades count and win rate
@@ -273,17 +273,19 @@ class PortfolioMetrics(APIView):
 
         # Calculate drawdown
         if historical_data:
-            peak_equity = max([data["equity"] for data in historical_data])
-            current_drawdown = peak_equity - float(current_equity)
+            least_equity = min([data["equity"] for data in historical_data])
+            least_balance = min([data["balance"] for data in historical_data])
+
+            current_drawdown = initial_balance - min(least_equity, least_balance)
         else:
-            current_drawdown = 0 if profit_loss > 0 else abs(profit_loss)
+            current_drawdown = 0
 
         # Get trading days (count unique days with trades)
         trading_days = len(
             set(
                 position.created.astimezone(wat).date()
                 for position in positions
-                if position.created >= two_weeks_ago
+                # if position.created >= two_weeks_ago
             )
         )
 
@@ -294,10 +296,10 @@ class PortfolioMetrics(APIView):
             "metrics": {
                 "balance": f"{current_balance:.2f}",
                 "equity": f"{current_equity:.2f}",
-                "profit_loss": f"{profit_loss:.2f}",
+                "floating_profit_loss": f"{profit_loss:.2f}",
                 "drawdown": f"{current_drawdown:.2f}",
                 "trading_days": trading_days,
-                "trades": total_trades,
+                "closed_trades": total_trades,
                 "win_rate": f"{win_rate:.2f}%",
             },
             "trading_objectives": {
@@ -306,12 +308,12 @@ class PortfolioMetrics(APIView):
                     "today_dd_limit": f"{daily_dd_limit:.2f}",
                 },
                 "trading_days": {
-                    "minimum": 5,
+                    "minimum": 6,
                     "current": trading_days,
                     "status": "Passed" if trading_days >= 5 else "Not Passed",
                 },
                 "profit_target": {
-                    "minimum": "750000.00",
+                    "minimum": portfolio.profit_target,
                     "current": f"{profit_loss:.2f}",
                     "status": "Passed" if profit_loss >= 750000 else "Not Passed",
                 },
@@ -339,7 +341,7 @@ class PortfolioMetrics(APIView):
 
         response_data["open_positions"] = {
             "positions": open_positions_data,
-            "total_pl": float(total_open_pl),
+            "total_open_pl": float(total_open_pl),
         }
 
         return Response(response_data)
@@ -539,5 +541,15 @@ class AdminAccountsList(APIView):
 
     def get(self, request):
         accounts = DemoPortfolio.objects.filter(is_prop=True)
+        serializer = AccountlistSerializer(accounts, many=True)
+        return Response(serializer.data)
+
+
+class UserAccounctsList(APIView):
+
+    def get(self, request):
+        accounts = DemoPortfolio.objects.filter(
+            user=request.user, is_prop=True, receipt_approved=True
+        )
         serializer = AccountlistSerializer(accounts, many=True)
         return Response(serializer.data)

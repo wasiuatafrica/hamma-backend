@@ -3150,7 +3150,7 @@ class ClancompetitionHistory(APIView):
             clan_member_data.append({"admin": False})
         clan_member_data.append({"members": []})
         profile = Profile.objects.get(user=clan.clan_admin)
-        if competition.status == "current":
+        if competition.status == "current" and timezone.now() > competition.start_date:
             portfolio = CompetitionPortfolio.objects.filter(
                 competition__status="current", user=clan.clan_admin
             ).first()
@@ -3194,7 +3194,10 @@ class ClancompetitionHistory(APIView):
         if clan_members:
             for member in clan_members:
                 profile1 = Profile.objects.get(user=member)
-                if competition.status == "current":
+                if (
+                    competition.status == "current"
+                    and timezone.now() > competition.start_date
+                ):
                     portfolio = CompetitionPortfolio.objects.filter(
                         competition__status="current", user=member
                     ).first()
@@ -3240,7 +3243,7 @@ class ClancompetitionHistory(APIView):
                 clan_member_data[1]["members"].append(data)
         clan_data = ClanSerializer(clan).data
 
-        if competition.status == "current":
+        if competition.status == "current" and timezone.now() > competition.start_date:
             total_data = {
                 "clan_details": clan_data,
                 "clan_members_data": clan_member_data,

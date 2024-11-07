@@ -28,4 +28,5 @@ urlpatterns = [
         views.AdminReceiptsView.as_view(),
     ),
     path("accountlist/", views.AdminAccountsList.as_view()),
+    path("user-accountlist/", views.UserAccounctsList.as_view()),
 ]
