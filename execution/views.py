@@ -2779,9 +2779,9 @@ class SingleDemoTradeAPIView(APIView):
                     amount = quantity * market_price
 
                     balance = portfolio.balance
-                    trade_commission = round(Decimal(0.00435) * amount, 2) + 200
+                    # trade_commission = round(Decimal(0.00435) * amount, 2) + 200
 
-                    total = amount + trade_commission
+                    total = amount  # + trade_commission
                     if balance >= total:
                         position = CompetitionPosition.objects.create(
                             portfolio=portfolio,
@@ -2805,25 +2805,23 @@ class SingleDemoTradeAPIView(APIView):
                             amount=amount,
                             status="completed",
                         )
-                        CompetitionTransaction.objects.create(
-                            user=request.user,
-                            transaction_type="trade commission",
-                            amount=trade_commission,
-                            status="completed",
-                        )
+                        # CompetitionTransaction.objects.create(
+                        #     user=request.user,
+                        #     transaction_type="trade commission",
+                        #     amount=trade_commission,
+                        #     status="completed",
+                        # )
 
                         portfolio.balance -= total
                         portfolio.save()
 
-                        activity = UserActivityLog.objects.create(
+                        UserActivityLog.objects.create(
                             user=request.user,
                             action_type="competition_open_trade",
                             description=f"User opened competition trade with amount {amount} on symbol {symbol}.",
                             device_type=device_type,
                         )
-                        positions = CompetitionPosition.objects.filter(
-                            portfolio=portfolio, status="open"
-                        )
+
                         competition_task.first_daily_trade.delay(portfolio.id)
 
                         save_and_send_notification(
@@ -2904,9 +2902,9 @@ class SingleDemoTradeAPIView(APIView):
                 amount = quantity * market_price
 
                 balance = portfolio.balance
-                trade_commission = round(Decimal(0.00435) * amount, 2) + 200
+                # trade_commission = round(Decimal(0.00435) * amount, 2) + 200
 
-                total = amount + trade_commission
+                total = amount  # + trade_commission
                 if balance >= total:
                     position = DemoPosition.objects.create(
                         portfolio=portfolio,
@@ -2930,12 +2928,12 @@ class SingleDemoTradeAPIView(APIView):
                         amount=amount,
                         status="completed",
                     )
-                    DemoTransaction.objects.create(
-                        user=request.user,
-                        transaction_type="trade commission",
-                        amount=trade_commission,
-                        status="completed",
-                    )
+                    # DemoTransaction.objects.create(
+                    #     user=request.user,
+                    #     transaction_type="trade commission",
+                    #     amount=trade_commission,
+                    #     status="completed",
+                    # )
 
                     portfolio.balance -= total
                     portfolio.save()
@@ -2946,7 +2944,6 @@ class SingleDemoTradeAPIView(APIView):
                     description=f"User opened demo trade with amount {amount} on symbol {symbol}.",
                     device_type=device_type,
                 )
-                DemoPosition.objects.filter(portfolio=portfolio, status="open")
 
                 save_and_send_notification(
                     request.user.id,
@@ -4161,6 +4158,10 @@ class NewDemoCloseTrade(APIView):
                 if position.status == "open":
                     pl, cur_val, price = position.calculate_profit_loss()
 
+                    trade_commission = (
+                        round(Decimal(0.00435) * position.amount_invested, 2) + 200
+                    )
+
                     position.status = "close"
                     position.close_price = Decimal(price)
                     position.profit_loss = pl
@@ -4173,14 +4174,24 @@ class NewDemoCloseTrade(APIView):
                         amount=cur_val,
                         status="completed",
                     )
-                    activity = UserActivityLog.objects.create(
+
+                    CompetitionTransaction.objects.create(
+                        user=request.user,
+                        transaction_type="trade commission",
+                        amount=trade_commission,
+                        status="completed",
+                    )
+
+                    UserActivityLog.objects.create(
                         user=request.user,
                         action_type="competition_closed_trade",
                         description=f"User closed competition trade with symbol {position.stock.symbol}.",
                         device_type=device_type,
                     )
                     position.portfolio.balance += (
-                        position.amount_invested + position.profit_loss
+                        position.amount_invested
+                        + position.profit_loss
+                        - trade_commission
                     )
                     position.portfolio.save()
 
@@ -4221,6 +4232,10 @@ class NewDemoCloseTrade(APIView):
             if position.status == "open":
                 pl, cur_val, price = position.calculate_profit_loss()
 
+                trade_commission = (
+                    round(Decimal(0.00435) * position.amount_invested, 2) + 200
+                )
+
                 position.status = "close"
                 position.close_price = Decimal(price)
                 position.comment = "closed by trader"
@@ -4234,14 +4249,22 @@ class NewDemoCloseTrade(APIView):
                     amount=cur_val,
                     status="completed",
                 )
-                activity = UserActivityLog.objects.create(
+
+                DemoTransaction.objects.create(
+                    user=request.user,
+                    transaction_type="trade commission",
+                    amount=trade_commission,
+                    status="completed",
+                )
+
+                UserActivityLog.objects.create(
                     user=request.user,
                     action_type="demo_closed_trade",
                     description=f"User closed demo trade with symbol {position.stock.symbol}.",
                     device_type=device_type,
                 )
                 position.portfolio.balance += (
-                    position.amount_invested + position.profit_loss
+                    position.amount_invested + position.profit_loss - trade_commission
                 )
                 position.portfolio.save()
 

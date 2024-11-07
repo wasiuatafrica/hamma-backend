@@ -119,10 +119,80 @@
     }
     .submenu {
       display: none;
+    }
+
+    .submenu.open {
+        display: block;
+    }
+
+    @media (max-width: 800px) {
+      .container-fluid {
+          padding-left: 0;
+          padding-right: 0;
+      }
+
+      .main-table {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+      }
+
+      .title {
+          flex-direction: column;
+          padding: 10px;
+      }
+
+      .right-title {
+          width: 100%;
+          flex-direction: column;
+          gap: 10px;
+      }
+
+      .right-search {
+          width: 100%;
+      }
+
+      .right-search input {
+          width: 100%;
+          height: 40px; /* Larger touch target */
+      }
+
+      /* Improved modal styles for mobile */
+      .modal-dialog {
+          margin: 10px;
+          width: auto;
+      }
+
+      .modal-content {
+          border-radius: 10px;
+      }
+
+      /* Improved button styles for mobile */
+      .btn {
+          padding: 10px;
+          min-height: 44px; /* Minimum touch target size */
+      }
+
+      /* Improved table styles for mobile */
+      .table {
+          font-size: 14px;
+      }
+
+      .table td, .table th {
+          padding: 8px 4px;
+          white-space: nowrap;
+      }
   }
 
-  .submenu.open {
-      display: block;
+  /* iOS specific fixes */
+  @supports (-webkit-touch-callout: none) {
+      input, select, textarea {
+          font-size: 16px !important; /* Prevents zoom on focus in iOS */
+      }
+
+      .form-control {
+          -webkit-appearance: none;
+          border-radius: 5px;
+      }
   }
     </style>
   </head>

@@ -84,15 +84,25 @@ class UserStreakRun(DemoPortfolioFieldModel):
         "self", null=True, blank=True, on_delete=models.SET_NULL
     )
 
+    # @property
+    # def streak_length(self):
+    #     """Calculate the number of days in this streak run."""
+    #     if self.is_active:
+    #         current_date = datetime.now().date()
+    #         # Ensure we only count up to the end of the week
+    #         week_end = self.start_date + timedelta(days=(6 - self.start_date.weekday()))
+    #         end_date = min(current_date, week_end)
+    #         return (end_date - self.start_date).days + 1
+    #     elif self.end_date:
+    #         return (self.end_date - self.start_date).days + 1
+    #     return 0
+
     @property
     def streak_length(self):
         """Calculate the number of days in this streak run."""
         if self.is_active:
             current_date = datetime.now().date()
-            # Ensure we only count up to the end of the week
-            week_end = self.start_date + timedelta(days=(6 - self.start_date.weekday()))
-            end_date = min(current_date, week_end)
-            return (end_date - self.start_date).days + 1
+            return (current_date - self.start_date).days + 1
         elif self.end_date:
             return (self.end_date - self.start_date).days + 1
         return 0
@@ -140,28 +150,39 @@ class UserDailyStreak(DemoPortfolioFieldModel):
                 .first()
             )
 
-    def update_streak(self, is_new_run=False):
-        """Updates current and longest streak based on streak runs."""
-        today = timezone.now().date()
+    # def update_streak(self, is_new_run=False):
+    #     """Updates current and longest streak based on streak runs."""
+    #     today = timezone.now().date()
 
-        # If it's a new week or new run
-        if (
-            is_new_run
-            or not self.current_week_start
-            or (today - self.current_week_start).days >= 7
-        ):
+    #     # If it's a new week or new run
+    #     if (
+    #         is_new_run
+    #         or not self.current_week_start
+    #         or (today - self.current_week_start).days >= 7
+    #     ):
+    #         self.current_streak = 1
+    #         self.current_week_start = today
+    #     else:
+    #         # Increment the current streak count within the week
+    #         self.current_streak += 1
+
+    #     # Calculate the total consecutive streak including previous weeks
+    #     active_run = self.get_active_streak_run()
+    #     if active_run:
+    #         total_streak = self.calculate_total_streak(active_run)
+    #         if total_streak > self.longest_streak:
+    #             self.longest_streak = total_streak
+
+    #     self.save()
+    def update_streak(self, is_new_run=False):
+        """Updates current and longest streak."""
+        if is_new_run:
             self.current_streak = 1
-            self.current_week_start = today
         else:
-            # Increment the current streak count within the week
             self.current_streak += 1
 
-        # Calculate the total consecutive streak including previous weeks
-        active_run = self.get_active_streak_run()
-        if active_run:
-            total_streak = self.calculate_total_streak(active_run)
-            if total_streak > self.longest_streak:
-                self.longest_streak = total_streak
+        if self.current_streak > self.longest_streak:
+            self.longest_streak = self.current_streak
 
         self.save()
 
