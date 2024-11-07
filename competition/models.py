@@ -80,9 +80,8 @@ class CompetitionPortfolio(auto_prefetch.Model):
         )
 
     def __str__(self):
-        print(self.user.clan)
+        # print(self.user.clan)
         return f"{self.competition.title} {self.user}|clan= {self.user.clans}|acc_name={self.account_name}"
-
 
     @property
     def profit(self):
