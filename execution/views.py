@@ -2201,7 +2201,7 @@ class DemoPorfoliosAccounts(APIView):
         else:
             comdata = []
 
-        demo_accounts = DemoPortfolio.objects.filter(user=request.user, is_prop=False)
+        demo_accounts = DemoPortfolio.objects.filter(user=request.user)
         demo_data = []
         for accounts in demo_accounts:
             positions = DemoPosition.objects.filter(portfolio=accounts, status="open")
