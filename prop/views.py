@@ -276,7 +276,7 @@ class PortfolioMetrics(APIView):
             least_equity = min([data["equity"] for data in historical_data])
             least_balance = min([data["balance"] for data in historical_data])
 
-            current_drawdown = initial_balance - min(least_equity, least_balance)
+            current_drawdown = float(initial_balance) - min(least_equity, least_balance)
         else:
             current_drawdown = 0
 
