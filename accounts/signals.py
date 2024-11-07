@@ -24,23 +24,28 @@ def set_first_login_datetime(sender, request, user, **kwargs):
 def create_wallet_and_send_email(sender, instance, created, **kwargs):
     if created:
         models.Profile.objects.create(user=instance, referral_code=utils.get_ref_code())
-        # token=models.TwoFactorToken.objects.create(user=instance, expiration=timezone.now() + timezone.timedelta(hours=1))
+        token = models.TwoFactorToken.objects.create(
+            user=instance, expiration=timezone.now() + timezone.timedelta(hours=1)
+        )
 
-        # # Send token to users email
-        # context={
-        #     "token":token.token,
-        #     "firstname":instance.firstname.title()
-        # }
-        # html_message = render_to_string('accounts/registration_token.html', context)
-        # plain_message = ""
-        # subject = 'Email Confirmation'
-        # from_email = "Hamma Team <teamgohamma@gmail.com>"
+        # Send token to users email
+        context = {"token": token.token, "firstname": instance.firstname.title()}
+        html_message = render_to_string("accounts/registration_token.html", context)
+        plain_message = ""
+        subject = "Email Confirmation"
+        from_email = "Hamma Team <teamgohamma@gmail.com>"
 
-        # recipient_list = [instance.email]
-        # send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
+        recipient_list = [instance.email]
+        send_mail(
+            subject,
+            plain_message,
+            from_email,
+            recipient_list,
+            html_message=html_message,
+        )
 
 
-# @receiver(post_save, sender=User)
-# def daily_returns(sender, instance, created, **kwargs):
-#     if created:
-#         daily_returns_setup.delay(instance.id)
+@receiver(post_save, sender=User)
+def daily_returns(sender, instance, created, **kwargs):
+    if created:
+        daily_returns_setup.delay(instance.id)
