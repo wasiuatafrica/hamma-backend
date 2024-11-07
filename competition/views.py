@@ -3247,29 +3247,11 @@ class ClancompetitionHistory(APIView):
             }
         else:
             print("here")
-            profit_records = ClanCompetitionSummary.objects.filter(clan=clan).order_by(
-                "id"
+
+            clan_summary = ClanCompetitionSummary.objects.filter(
+                clan=clan, competition=competition
             )
-            num_records = profit_records.count()
-
-            profit_comparison = (0, "no_data")
-
-            if num_records == 1:
-                last_profit_value = round(profit_records[0].profit, 2)
-                profit_comparison = (last_profit_value, "equal")
-
-            if num_records >= 2:
-                last_profit_value = round(profit_records.last().profit, 2)
-                second_last_profit_value = round(
-                    profit_records[num_records - 2].profit, 2
-                )
-
-                if last_profit_value > second_last_profit_value:
-                    profit_comparison = (last_profit_value, "up")
-                elif last_profit_value < second_last_profit_value:
-                    profit_comparison = (last_profit_value, "down")
-
-            clan_data["profit_comparison"] = profit_comparison
+            clan_data["profit_comparison"] = clan_summary.first().profit
             total_data = {
                 "clan_details": clan_data,
                 "clan_members_data": clan_member_data,
