@@ -480,8 +480,8 @@ def cancel_order(position, user, message):
 
 def execute_trade(position, price, user, action_type, transaction_model):
     amount = round(Decimal(price) * position.quantity, 2)
-    trade_commission = round(Decimal(0.00435) * amount, 2) + 200
-    total = amount + trade_commission
+    # trade_commission = round(Decimal(0.00435) * amount, 2) + 200
+    total = amount  # + trade_commission
 
     print("portfolio balance", position.portfolio.balance, "total", total)
     if position.portfolio.balance >= total:
@@ -492,9 +492,7 @@ def execute_trade(position, price, user, action_type, transaction_model):
         position.save()
         position.portfolio.save()
 
-        create_transaction(
-            user, action_type, amount, trade_commission, transaction_model
-        )
+        create_transaction(user, action_type, amount, transaction_model)
         log_activity(user, position, amount, action_type)
         send_trade_notification(user, position, price, amount, action_type)
         print("trade executed")
@@ -503,16 +501,16 @@ def execute_trade(position, price, user, action_type, transaction_model):
         print("insufficient_funds")
 
 
-def create_transaction(user, action_type, amount, commission, transaction_model):
+def create_transaction(user, action_type, amount, transaction_model):
     transaction_model.objects.create(
         user=user, transaction_type="open trade", amount=amount, status="completed"
     )
-    transaction_model.objects.create(
-        user=user,
-        transaction_type="trade commission",
-        amount=commission,
-        status="completed",
-    )
+    # transaction_model.objects.create(
+    #     user=user,
+    #     transaction_type="trade commission",
+    #     amount=commission,
+    #     status="completed",
+    # )
 
 
 def log_activity(user, position, amount, action_type):
@@ -1838,6 +1836,10 @@ def calc_take_profit():
                         current_value = round(position.quantity * current_price, 2)
                         profit_loss = Decimal(current_value) - position.amount_invested
 
+                        trade_commission = (
+                            round(Decimal(0.00435) * position.amount_invested, 2) + 200
+                        )
+
                         position.status = DemoPosition.CLOSED
                         position.close_price = Decimal(current_price)
                         position.profit_loss = profit_loss
@@ -1860,7 +1862,9 @@ def calc_take_profit():
                             description=f"User closed demo trade with symbol {position.stock.symbol}.",
                         )
                         position.portfolio.balance += (
-                            position.amount_invested + position.profit_loss
+                            position.amount_invested
+                            + position.profit_loss
+                            - trade_commission
                         )
                         position.portfolio.save()
 
@@ -1870,6 +1874,10 @@ def calc_take_profit():
 
                         profit_loss = position.amount_invested - Decimal(current_value)
 
+                        trade_commission = (
+                            round(Decimal(0.00435) * position.amount_invested, 2) + 200
+                        )
+
                         position.status = DemoPosition.CLOSED
                         position.close_price = Decimal(current_price)
                         position.profit_loss = profit_loss
@@ -1892,7 +1900,9 @@ def calc_take_profit():
                             description=f"User closed demo trade with symbol {position.stock.symbol}.",
                         )
                         position.portfolio.balance += (
-                            position.amount_invested + position.profit_loss
+                            position.amount_invested
+                            + position.profit_loss
+                            - trade_commission
                         )
                         position.portfolio.save()
 
@@ -1924,6 +1934,9 @@ def calc_stop_loss():
                         # print('stop loss triggered')
                         current_value = round(position.quantity * current_price, 2)
                         profit_loss = Decimal(current_value) - position.amount_invested
+                        trade_commission = (
+                            round(Decimal(0.00435) * position.amount_invested, 2) + 200
+                        )
 
                         position.status = DemoPosition.CLOSED
                         position.close_price = Decimal(current_price)
@@ -1947,7 +1960,9 @@ def calc_stop_loss():
                             description=f"User closed demo trade with symbol {position.stock.symbol}.",
                         )
                         position.portfolio.balance += (
-                            position.amount_invested + position.profit_loss
+                            position.amount_invested
+                            + position.profit_loss
+                            - trade_commission
                         )
                         position.portfolio.save()
 
@@ -1956,6 +1971,9 @@ def calc_stop_loss():
                         current_value = round(position.quantity * current_price, 2)
 
                         profit_loss = position.amount_invested - Decimal(current_value)
+                        trade_commission = (
+                            round(Decimal(0.00435) * position.amount_invested, 2) + 200
+                        )
 
                         position.status = DemoPosition.CLOSED
                         position.close_price = Decimal(current_price)
@@ -1979,7 +1997,9 @@ def calc_stop_loss():
                             description=f"User closed demo trade with symbol {position.stock.symbol}.",
                         )
                         position.portfolio.balance += (
-                            position.amount_invested + position.profit_loss
+                            position.amount_invested
+                            + position.profit_loss
+                            - trade_commission
                         )
                         position.portfolio.save()
 
@@ -2046,6 +2066,8 @@ def close_position(position, current_price):
     elif position.action == "sell":
         profit_loss = position.amount_invested - Decimal(current_value)
 
+    trade_commission = round(Decimal(0.00435) * position.amount_invested, 2) + 200
+
     position.status = DemoPosition.CLOSED
     position.close_price = Decimal(current_price)
     position.profit_loss = profit_loss
@@ -2070,7 +2092,9 @@ def close_position(position, current_price):
     )
 
     # Update portfolio balance
-    position.portfolio.balance += position.amount_invested + position.profit_loss
+    position.portfolio.balance += (
+        position.amount_invested + position.profit_loss - trade_commission
+    )
     position.portfolio.save()
 
 

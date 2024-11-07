@@ -20,7 +20,8 @@ from .models import (
 
 class DemoPositionAdmin(admin.ModelAdmin):
     search_fields = ["portfolio__user__email", "portfolio__account_name"]
-    list_display = ["portfolio", "stock", "quantity", "open_price", "created"]
+    list_display = ["id", "portfolio", "stock", "quantity", "open_price", "created"]
+    list_filter = ["status", "created"]
 
 
 admin.site.register(DemoPosition, DemoPositionAdmin)
@@ -30,12 +31,14 @@ admin.site.register(DemoTrade)
 class DemoPortfolioAdmin(admin.ModelAdmin):
     search_fields = ["user__email", "account_name", "account_id"]
     list_display = (
+        "id",
         "user",
         "account_name",
         "account_id",
         "balance",
         "created",
     )
+    list_filter = ["is_prop", "created"]
 
 
 admin.site.register(DemoPortfolio, DemoPortfolioAdmin)
