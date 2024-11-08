@@ -435,7 +435,12 @@ def process_recommendation(
         rec["symbol"] for rec in recommendations["recommended_stocks"]
     ]
     print(recommended_symbols, len(recommended_symbols))
-    generated_signals = [
-        {symbol: signals_data[symbol]} for symbol in set(recommended_symbols)
-    ]
+    # generated_signals = [
+    #     {symbol: signals_data[symbol]} for symbol in set(recommended_symbols)
+    # ]
+
+    generated_signals = []
+    for symbol in set(recommended_symbols):
+        if symbol in signals_data:
+            generated_signals.append({symbol: signals_data[symbol]})
     return generated_signals
