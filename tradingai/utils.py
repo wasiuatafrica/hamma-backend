@@ -443,4 +443,4 @@ def process_recommendation(
     for symbol in set(recommended_symbols):
         if symbol in signals_data:
             generated_signals.append({symbol: signals_data[symbol]})
-    return generated_signals
+    return generated_signals[:20]
