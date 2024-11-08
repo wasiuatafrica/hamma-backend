@@ -222,7 +222,7 @@ def rule_based_recommendation(trader, stocks):
     if recommendations:
         recommendations.sort(key=lambda x: x["score"], reverse=True)
 
-    return recommendations
+    return recommendations[:20]
 
 
 def ml_based_recommendation(trader, stocks, model, le):
@@ -443,4 +443,4 @@ def process_recommendation(
     for symbol in set(recommended_symbols):
         if symbol in signals_data:
             generated_signals.append({symbol: signals_data[symbol]})
-    return generated_signals[:20]
+    return generated_signals
