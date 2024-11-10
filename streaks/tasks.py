@@ -148,3 +148,111 @@ def award_weekly_badges_and_update_leaderboard():
             reward_amount=reward_amount,
             reason="Key Active User Reward",
         )
+
+
+# tasks.py
+from celery import shared_task
+from django.core.cache import cache
+from .serializers import LeaderboardSerializer
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
+import json
+
+
+@shared_task
+def cache_regular_leaderboard():
+    """
+    Cache regular leaderboard data for 1 hour.
+
+    """
+    print("runnig ...123")
+    today = timezone.now().date()
+    week_start = today - timedelta(days=today.weekday())
+    week_end = week_start + timedelta(days=6)
+
+    leaderboard_data = []
+    for user in User.objects.all():
+        demo_trades = DemoPosition.objects.filter(
+            portfolio__user=user,
+            status__in=[DemoPosition.OPEN, DemoPosition.CLOSED],
+            created__date__gte=week_start,
+            created__date__lte=week_end,
+            updated__date__gte=week_start,
+            updated__date__lte=week_end,
+        ).count()
+
+        competition_trades = CompetitionPosition.objects.filter(
+            portfolio__user=user,
+            portfolio__competition__status="current",
+            status__in=[CompetitionPosition.OPEN, CompetitionPosition.CLOSED],
+            portfolio__active=True,
+            created__date__gte=week_start,
+            created__date__lte=week_end,
+            updated__date__gte=week_start,
+            updated__date__lte=week_end,
+        ).count()
+
+        trade_volume = demo_trades + competition_trades
+        if trade_volume > 0:
+            data = {
+                "user": {
+                    "firstname": user.firstname,
+                    "lastname": user.lastname,
+                },
+                "trade_volume": trade_volume,
+                "reward_amount": None,
+                "week_start_date": week_start,
+            }
+            leaderboard_data.append(data)
+
+    # Sort leaderboard by trade volume
+    leaderboard_data.sort(key=lambda x: x["trade_volume"], reverse=True)
+
+    # Add position/rank
+    for index, entry in enumerate(leaderboard_data, 1):
+        entry["position"] = index
+
+    # Cache the result for 10 minutes
+    cache.set("regular_leaderboard", leaderboard_data)
+
+    interval, created = IntervalSchedule.objects.get_or_create(
+        every=10,
+        period=IntervalSchedule.MINUTES,
+    )
+
+    PeriodicTask.objects.create(
+        interval=interval,  # set to every 10 minutes
+        name="Cache Regular Leaderboard",
+        task="streaks.tasks.cache_regular_leaderboard",
+        kwargs=json.dumps({}),
+    )
+
+
+@shared_task
+def cache_weekly_awards():
+    """
+    Get weekly awards data for Friday after market close.
+    """
+    print("runnig ...3333")
+    current_week_start = timezone.now().date() - timedelta(
+        days=timezone.now().date().weekday()
+    )
+    leaderboard = Leaderboard.objects.filter(
+        week_start_date=current_week_start
+    ).order_by("position")
+    serializer = LeaderboardSerializer(leaderboard, many=True)
+
+    # Cache the result for 10 minutes
+    cache.set("weekly_awards", serializer.data)
+
+    # Set up interval schedule (every 10 minutes)
+    interval, created = IntervalSchedule.objects.get_or_create(
+        every=10,
+        period=IntervalSchedule.MINUTES,
+    )
+
+    PeriodicTask.objects.create(
+        interval=interval,  # set to every 10 minutes
+        name="Cache Weekly Awards",
+        task="streaks.tasks.cache_weekly_awards",
+        kwargs=json.dumps({}),
+    )
