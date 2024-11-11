@@ -2938,22 +2938,27 @@ class SingleDemoTradeAPIView(APIView):
                     portfolio.balance -= total
                     portfolio.save()
 
-                UserActivityLog.objects.create(
-                    user=request.user,
-                    action_type="demo_open_trade",
-                    description=f"User opened demo trade with amount {amount} on symbol {symbol}.",
-                    device_type=device_type,
-                )
+                    UserActivityLog.objects.create(
+                        user=request.user,
+                        action_type="demo_open_trade",
+                        description=f"User opened demo trade with amount {amount} on symbol {symbol}.",
+                        device_type=device_type,
+                    )
 
-                save_and_send_notification(
-                    request.user.id,
-                    f" DEMO: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ",
-                )
+                    save_and_send_notification(
+                        request.user.id,
+                        f" DEMO: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ",
+                    )
 
-                return Response(
-                    {"message": f"{action.title()} order placed successfully."},
-                    status=status.HTTP_201_CREATED,
-                )
+                    return Response(
+                        {"message": f"{action.title()} order placed successfully."},
+                        status=status.HTTP_201_CREATED,
+                    )
+                else:
+                    return Response(
+                        {"error": "Insufficient funds to trade."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
             elif order_type == "limit":
 
