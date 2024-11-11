@@ -1,24 +1,27 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 import pytz
+from django.db.models import Sum, Q
+from django.db.models.functions import TruncDate
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from execution.models import DemoPortfolio, DemoPosition
+from accounts.models import AdminUserActivityLog
+from anyon.serializers import AdminReceiptsViewSerializer
+from execution.models import DemoPortfolio, DemoPosition, PropReceipt
+from notifications.utils import save_and_send_notification
+from portfolio.models import PayStackReceipts, Receipts
 
 from .models import Payout
 from .pay_service import PayoutService
-from .serializers import PayoutDetailSerializer, AccountlistSerializer
+from .serializers import AccountlistSerializer, PayoutDetailSerializer
 from .utils import get_account_data, get_equity_balance
-from execution.models import PropReceipt
-from anyon.serializers import AdminReceiptsViewSerializer
-from portfolio.models import Receipts, PayStackReceipts
-from notifications.utils import save_and_send_notification
-from accounts.models import AdminUserActivityLog
+from affilate.models import ReferralWallet, RewardActivities
+from accounts.models import Referral
 
 
 class PayoutListAPIView(APIView):
@@ -75,9 +78,7 @@ class RequestPayoutAPIView(APIView):
             )
 
         try:
-            portfolio = DemoPortfolio.objects.get(
-                account_id=portfolio_id, user=request.user
-            )
+            portfolio = DemoPortfolio.objects.get(id=portfolio_id, user=request.user)
 
             payout_service = PayoutService(portfolio)
             is_eligible, conditions = payout_service.check_payout_eligibility()
@@ -89,7 +90,7 @@ class RequestPayoutAPIView(APIView):
                 "drawdown_limits": "Account has exceeded drawdown limits",
                 "minimum_trades": "Minimum trades requirement not met",
                 "active_account": "Account is not active or has been blown",
-                "payout_timing": "Payout request can only be made on Fridays",
+                "payout_timing": "Payout request can only be made between Wednesdays and 12pm on Fridays",
                 "no_open_trades": "Cannot request payout while having open trades",
             }
 
@@ -141,7 +142,7 @@ class RequestPayoutAPIView(APIView):
                         "quantity": pos.quantity,
                         "open_price": float(pos.open_price),
                         "action": pos.action,
-                        "opened_at": pos.created.strftime("%Y-%m-%d %H:%M:%S"),
+                        "opened_at": pos.created.strftime("%Y-%m-%d %H:%M"),
                     }
                     for pos in open_positions
                 ]
@@ -493,6 +494,58 @@ class AdminReceiptsView(APIView):
             prop_account.receipt_approved = True
             prop_account.save()
 
+            try:
+                # Check if this user was referred by someone
+                referral = Referral.objects.get(person_referred=receipt.user)
+
+                # Check if rewards have already been given for this user
+                existing_reward = RewardActivities.objects.filter(
+                    trader=receipt.user, reward_type="prop_referral"
+                ).exists()
+
+                if not existing_reward:
+                    # Credit referrer
+                    referrer_wallet, _ = ReferralWallet.objects.get_or_create(
+                        user=referral.user
+                    )
+                    referrer_wallet.balance += Decimal("18000")
+                    referrer_wallet.save()
+
+                    # Create reward activity for referrer
+                    RewardActivities.objects.create(
+                        user=referral.user,
+                        trader=receipt.user,
+                        reward_type="prop_referral",
+                        amount=18000,
+                        status="processed",
+                        comment="Referral reward for prop account purchase",
+                    )
+
+                    # Credit referee (the user who was referred)
+                    referee_wallet, _ = ReferralWallet.objects.get_or_create(
+                        user=receipt.user
+                    )
+                    referee_wallet.balance += Decimal("18000")
+                    referee_wallet.save()
+
+                    # Create reward activity for referee
+                    RewardActivities.objects.create(
+                        user=receipt.user,
+                        trader=receipt.user,
+                        reward_type="referral_reward",
+                        amount=18000,
+                        status="processed",
+                        comment="Referral reward for prop account purchase",
+                    )
+
+                    # Update referral status
+                    # referral.converted = True
+                    # referral.save()
+
+            except Referral.DoesNotExist:
+                # No referral relationship exists
+                pass
+
             receipt_data = {
                 "id": receipt.id,
                 "user": receipt.user.id,
@@ -553,3 +606,75 @@ class UserAccounctsList(APIView):
         )
         serializer = AccountlistSerializer(accounts, many=True)
         return Response(serializer.data)
+
+
+class PortfolioDailyProfitLossView(APIView):
+    def get(self, request, portfolio_id):
+        try:
+            # Get the number of days from query params, default to 7
+            days = int(request.query_params.get("days", 7))
+
+            # Calculate the start date
+            end_date = timezone.now()
+            start_date = end_date - timedelta(days=days)
+
+            # Get the portfolio
+            portfolio = DemoPortfolio.objects.get(id=portfolio_id)
+
+            # Query closed positions and group them by date
+            daily_data = (
+                DemoPosition.objects.filter(
+                    portfolio=portfolio,
+                    status="close",
+                    updated__gte=start_date,
+                    updated__lte=end_date,
+                )
+                .annotate(date=TruncDate("updated"))
+                .values("date")
+                .annotate(
+                    profit_sum=Sum("profit_loss", filter=Q(profit_loss__gt=0)),
+                    loss_sum=Sum("profit_loss", filter=Q(profit_loss__lt=0)),
+                )
+                .order_by("date")
+            )
+
+            # Calculate total profit and loss
+            total_profit = sum(d["profit_sum"] or 0 for d in daily_data)
+            total_loss = sum(d["loss_sum"] or 0 for d in daily_data)
+
+            # Format the response
+            daily_results = [
+                {
+                    "date": entry["date"].strftime("%Y-%m-%d"),
+                    "profit": float(entry["profit_sum"] or 0),
+                    "loss": float(entry["loss_sum"] or 0),
+                }
+                for entry in daily_data
+            ]
+
+            response_data = {
+                "summary": {
+                    "total_profit": float(total_profit),
+                    "total_loss": float(total_loss),
+                    "net_profit": float(total_profit + total_loss),
+                    "percentage_change": calculate_percentage_change(
+                        total_profit, total_loss
+                    ),
+                },
+                "daily_data": daily_results,
+                "last_updated": timezone.now().strftime("%Y-%m-%d %H:%M"),
+            }
+
+            return Response(response_data)
+
+        except DemoPortfolio.DoesNotExist:
+            return Response({"error": "Portfolio not found"}, status=404)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+
+
+def calculate_percentage_change(profit, loss):
+    total = profit + abs(loss) if loss else profit
+    if total == 0:
+        return 0
+    return round((profit / total) * 100 if total > 0 else 0, 2)

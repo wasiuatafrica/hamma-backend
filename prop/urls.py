@@ -29,4 +29,5 @@ urlpatterns = [
     ),
     path("accountlist/", views.AdminAccountsList.as_view()),
     path("user-accountlist/", views.UserAccounctsList.as_view()),
+    path("daily-profits/<portfolio_id>/", views.PortfolioDailyProfitLossView.as_view()),
 ]

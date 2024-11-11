@@ -1,23 +1,22 @@
 import datetime
+import json
 import logging
 from datetime import time, timedelta
 
 import pytz
 from celery import shared_task
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
+from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
 from competition.models import Competition, CompetitionPortfolio, CompetitionPosition
 from execution.models import DemoPortfolio, DemoPosition
 
-from .models import (
-    Leaderboard,
-    Reward,
-    UserActivityBadge,
-    RewardAmount,
-)
+from .models import Leaderboard, Reward, RewardAmount, UserActivityBadge
+from .serializers import LeaderboardSerializer
 from .streak_utils import update_user_streaks_daily
 
 logger = logging.getLogger(__name__)
@@ -148,14 +147,6 @@ def award_weekly_badges_and_update_leaderboard():
             reward_amount=reward_amount,
             reason="Key Active User Reward",
         )
-
-
-# tasks.py
-from celery import shared_task
-from django.core.cache import cache
-from .serializers import LeaderboardSerializer
-from django_celery_beat.models import PeriodicTask, IntervalSchedule
-import json
 
 
 @shared_task

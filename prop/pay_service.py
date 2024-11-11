@@ -72,40 +72,36 @@ class PayoutService:
         )
 
     def _check_payout_timing(self):
-        # Check if it's Friday and if enough time has passed since last payout
-        is_friday = self.current_time.weekday() == 4
-        last_payout = (
-            Payout.objects.filter(
-                portfolio=self.portfolio, status__in=["processed", "approved"]
-            )
-            .order_by("-process_date")
-            .first()
-        )
+        current_weekday = self.current_time.weekday()
 
-        if not last_payout:
-            return True
+        # Check if it's Wednesday (2), Thursday (3), or Friday (4)
+        is_valid_day = current_weekday in [2, 3, 4]
 
-        days_since_last_payout = (self.current_time - last_payout.process_date).days
-        return is_friday and days_since_last_payout >= 7
+        # For Friday, check if time is before 12 PM (noon)
+        if current_weekday == 4:  # Friday
+            return is_valid_day and self.current_time.hour < 12
 
-    def calculate_payout_amount(self):
-        """Calculate the payout amount based on profit and time period"""
-        current_data = get_equity_balance(self.portfolio)
-        profit = Decimal(str(current_data["equity"])) - self.portfolio.initial_balance
+        # For Wednesday and Thursday, allow all times
+        return is_valid_day
 
-        # Calculate weeks since account creation
-        weeks_active = (self.current_time - self.portfolio.created).days // 7
+    # def calculate_payout_amount(self):
+    #     """Calculate the payout amount based on profit and time period"""
+    #     current_data = get_equity_balance(self.portfolio)
+    #     profit = Decimal(str(current_data["equity"])) - self.portfolio.initial_balance
 
-        # Determine profit split percentage based on weeks active
-        if weeks_active <= 4:
-            split_percentage = Decimal("0.90")  # 90%
-        elif weeks_active <= 12:
-            split_percentage = Decimal("0.60")  # 60%
-        else:
-            split_percentage = Decimal("0.40")  # 40%
+    #     # Calculate weeks since account creation
+    #     weeks_active = (self.current_time - self.portfolio.created).days // 7
 
-        payout_amount = profit * split_percentage
-        return payout_amount, split_percentage
+    #     # Determine profit split percentage based on weeks active
+    #     if weeks_active <= 4:
+    #         split_percentage = Decimal("0.90")  # 90%
+    #     elif weeks_active <= 12:
+    #         split_percentage = Decimal("0.60")  # 60%
+    #     else:
+    #         split_percentage = Decimal("0.40")  # 40%
+
+    #     payout_amount = profit * split_percentage
+    #     return payout_amount, split_percentage
 
     @transaction.atomic
     def process_payout_request(self):
@@ -118,15 +114,17 @@ class PayoutService:
                 f"Payout conditions not met: {', '.join(failed_conditions)}"
             )
 
-        amount, split_percentage = self.calculate_payout_amount()
+        # amount, split_percentage = self.calculate_payout_amount()
 
-        if amount <= 0:
-            raise ValueError("No profit available for payout")
+        # if amount <= 0:
+        #     raise ValueError("No profit available for payout")
 
         payout = Payout.objects.create(
             portfolio=self.portfolio,
-            amount=amount,
-            profit_percentage=split_percentage * 100,
+            # amount=amount,
+            # profit_percentage=split_percentage * 100,
+            amount=0,
+            profit_percentage=0,
             week_number=(self.current_time - self.portfolio.created).days // 7,
             status="pending",
         )
