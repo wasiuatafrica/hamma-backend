@@ -799,6 +799,7 @@ class PortfolioDailyProfitLossView(APIView):
     def calculate_percentage_change(self, portfolio, start_date, end_date):
         """
         Calculate percentage change over the period
+        Returns positive percentage for profit and negative for loss
         """
         try:
             # Get positions at the start and end of the period
@@ -826,23 +827,26 @@ class PortfolioDailyProfitLossView(APIView):
                 ),
             )
 
-            # Calculate balances including commission
-            start_balance = (
-                portfolio.initial_balance
-                + Decimal(str(start_positions["total_profit_loss"] or 0))
-                - Decimal(str(start_positions["total_commission"] or 0))
+            # Calculate net values including commission
+            start_net = Decimal(
+                str(start_positions["total_profit_loss"] or 0)
+            ) - Decimal(str(start_positions["total_commission"] or 0))
+
+            end_net = Decimal(str(end_positions["total_profit_loss"] or 0)) - Decimal(
+                str(end_positions["total_commission"] or 0)
             )
 
-            end_balance = (
-                portfolio.initial_balance
-                + Decimal(str(end_positions["total_profit_loss"] or 0))
-                - Decimal(str(end_positions["total_commission"] or 0))
-            )
+            # Calculate the difference in profit/loss
+            profit_difference = end_net - start_net
 
-            if start_balance == 0:
+            # Get the reference value (initial balance or start period balance)
+            reference_balance = portfolio.initial_balance + start_net
+
+            if reference_balance == 0:
                 return 0
 
-            percentage_change = ((end_balance - start_balance) / start_balance) * 100
+            # Calculate percentage change
+            percentage_change = (profit_difference / reference_balance) * 100
             return round(float(percentage_change), 2)
 
         except Exception as e:
