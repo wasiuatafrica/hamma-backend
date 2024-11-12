@@ -1141,7 +1141,7 @@ def daily_returns7():
                 }
                 df = pd.DataFrame(data)
 
-                df["Balance"] = 1000000
+                df["Balance"] = float(portfolio.initial_balance)
                 df["Closedate"] = df["closedatetime"].dt.date
                 df = df[
                     [
