@@ -59,6 +59,7 @@ urlpatterns = [
         MyReferralWalletManagement.as_view({"get": "my_referral_payout_request_lists"}),
         name="payout-requests",
     ),
+
     # prop additional admin routes
     path(
         "referral/withdrawal-requests/",
@@ -69,6 +70,12 @@ urlpatterns = [
     path(
         "referral/withdrawal-requests/<int:pk>/",
         admin_views.ReferralPayoutManagement.as_view({"put": "update_request_status"}),
+
+    path("user-receipts/", views.UserReceiptsView.as_view()),
+    path(
+        "payout-request-status/<portfolio_id>/",
+        views.PayoutsSummaryView.as_view(),
+
     ),
 ]
 

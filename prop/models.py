@@ -12,7 +12,7 @@ class Payout(auto_prefetch.Model):
         ("pending", "Pending"),
         ("approved", "Approved"),
         ("rejected", "Rejected"),
-        ("processed", "Processed"),
+        ("paid", "paid"),
     ]
 
     portfolio = auto_prefetch.ForeignKey(

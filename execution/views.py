@@ -3427,7 +3427,7 @@ class NewHome(APIView):
             open_balance = sum([position.amount_invested for position in positions])
             data = {
                 "balance": round(balance + open_balance, 2),
-                "starting_balance": 1000000,
+                "starting_balance": float(portfolio.initial_balance),
                 "equity": equity + open_balance,
                 "floating_pl": profit_loss,
                 "closed_pl": profit_loss2,
