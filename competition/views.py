@@ -3248,7 +3248,20 @@ class ClancompetitionHistory(APIView):
                 "clan_details": clan_data,
                 "clan_members_data": clan_member_data,
             }
+        elif (
+            competition.status == "current" and timezone.now() < competition.start_date
+        ):
+
+            print("here")
+
+            clan_summary = ClanCompetitionSummary.objects.filter(clan=clan).last
+            clan_data["profit_comparison"] = clan_summary.first().profit
+            total_data = {
+                "clan_details": clan_data,
+                "clan_members_data": clan_member_data,
+            }
         else:
+
             print("here")
 
             clan_summary = ClanCompetitionSummary.objects.filter(
