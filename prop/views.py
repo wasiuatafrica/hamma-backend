@@ -773,7 +773,7 @@ class PortfolioDailyProfitLossView(APIView):
                 )
 
             net_profit = total_profit + total_loss
-
+            wat = pytz.timezone("Africa/Lagos")
             response_data = {
                 "summary": {
                     "total_profit": float(total_profit),
@@ -785,7 +785,9 @@ class PortfolioDailyProfitLossView(APIView):
                     ),
                 },
                 "daily_data": daily_results,
-                "last_updated": timezone.now().strftime("%Y-%m-%d %H:%M"),
+                "last_updated": timezone.now()
+                .astimezone(wat)
+                .strftime("%Y-%m-%d %H:%M"),
             }
 
             return Response(response_data)
