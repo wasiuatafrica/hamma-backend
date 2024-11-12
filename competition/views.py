@@ -3171,7 +3171,28 @@ class ClancompetitionHistory(APIView):
                     "profit": "",
                     "country": profile.country,
                 }
-
+        elif (
+            competition.status == "current" and timezone.now() < competition.start_date
+        ):
+            last_competition = (
+                Competition.objects.filter(status="closed").order_by("id").last()
+            )
+            summary = CompetitionSummary.objects.filter(
+                portfolio__competition=last_competition, user=clan.clan_admin
+            ).first()
+            if summary:
+                percent = summary.percent
+                data = {
+                    "name": summary.user.firstname,
+                    "profit": percent,
+                    "country": profile.country,
+                }
+            else:
+                data = {
+                    "name": f"{clan.clan_admin.firstname}",
+                    "profit": "",
+                    "country": profile.country,
+                }
         else:
             summary = CompetitionSummary.objects.filter(
                 portfolio__competition=competition, user=clan.clan_admin
@@ -3219,7 +3240,33 @@ class ClancompetitionHistory(APIView):
                             "profit": "",
                             "country": profile1.country,
                         }
-
+                elif (
+                    competition.status == "current"
+                    and timezone.now() < competition.start_date
+                ):
+                    last_competition = (
+                        Competition.objects.filter(status="closed")
+                        .order_by("id")
+                        .last()
+                    )
+                    summary = CompetitionSummary.objects.filter(
+                        user=member, portfolio__competition=last_competition
+                    ).first()
+                    if summary:
+                        percent = summary.percent
+                        data = {
+                            "member_id": member.id,
+                            "name": member.firstname,
+                            "profit": percent,
+                            "country": profile1.country,
+                        }
+                    else:
+                        data = {
+                            "member_id": member.id,
+                            "name": f"{member.firstname} {member.lastname}",
+                            "profit": "",
+                            "country": profile1.country,
+                        }
                 else:
                     summary = CompetitionSummary.objects.filter(
                         user=member, portfolio__competition=competition
