@@ -103,6 +103,29 @@ class CompetitionView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class ModifyCompetition(APIView):
+    """
+    Update competition details.
+    """
+
+    def put(self, request, pk):
+        """update the competition details"""
+        competition = get_object_or_404(Competition, pk=pk)
+        # prevent update of closed competition
+        if competition.status == "closed":
+            return Response(
+                {"error": "Cannot update a closed competition."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer = serializers.CompetitionSerializer(
+            competition, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class CompetitionCheck(APIView):
     def get(self, request, *args, **kwargs):
         portfolio = CompetitionPortfolio.objects.filter(
@@ -1943,6 +1966,47 @@ def create_competition(request):
         )
         return redirect("competition_list")
     return render(request, "leaderboard/create.html")
+
+
+@login_required
+@user_passes_test(
+    is_user_staff, login_url="/leaderboard/login/", redirect_field_name="403"
+)
+def update_competition(request, pk):
+    competition = get_object_or_404(Competition, pk=pk)
+    if request.method == "POST":
+        start_date_str = request.POST.get("start_date")
+        end_date_str = request.POST.get("end_date")
+        title = request.POST.get("title")
+        first_prize = request.POST.get("first_prize")
+        # Fetch other optional fields if present in the form
+        message = request.POST.get("notification")
+
+        # Convert date strings to timezone-aware datetime objects
+        start_date = timezone.make_aware(
+            datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M"),
+            timezone.get_current_timezone(),
+        )
+        end_date = timezone.make_aware(
+            datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M"),
+            timezone.get_current_timezone(),
+        )
+
+        # Update the competition instance with new values
+        competition.start_date = start_date
+        competition.end_date = end_date
+        competition.title = title
+        competition.first_prize = first_prize
+        # competition.status = "current"
+
+        # Optional fields - Only update if they exist in the request
+        if message:
+            competition.message = message
+
+        competition.save()  # Save updates to the database
+        return redirect("competition_list")
+
+    return render(request, "leaderboard/update.html", {"competition": competition})
 
 
 @login_required

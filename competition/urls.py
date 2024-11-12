@@ -9,6 +9,7 @@ router.register("clans", views.ClanViewSet)
 
 urlpatterns = [
     path("competition/", views.CompetitionView.as_view()),  #
+    path("competition/modify/<int:pk>/", views.ModifyCompetition.as_view()),  #
     path("currentcompetition/", views.CurrentCompetition.as_view()),  #
     path("check/", views.CompetitionCheck.as_view()),  #
     path("in-competition/", views.InCompetition.as_view()),  #
@@ -77,6 +78,11 @@ urlpatterns = [
     ),
     path("trader-payout/", views.trader_payout, name="trader-payout"),
     path("create-competition/", views.create_competition, name="start-competition"),
+    path(
+        "update-competition/<int:pk>/",
+        views.update_competition,
+        name="update-competition",
+    ),
     path("competition-list/", views.competition_list, name="competition_list"),
     path("payout-details/<str:pk>/", views.payout_details, name="payout-details"),
     path(

@@ -49,29 +49,35 @@
                 <tr>
                     <td>{{ item.title }}</td>
                     {% comment %} {% if item.status == 'current' %}
-                      {% if active%}
-                        <td>
-                          <button class="btn btn-primary" disabled>Join</button>
-                        </td>
-                      {%else%}
-                        <td>
-                            <a href="{% url 'join-competition' %}" class="btn btn-primary">Join</a>
-                        </td>
-                      {%endif%}
+                    {% if active%}
+                    <td>
+                        <button class="btn btn-primary" disabled>Join</button>
+                    </td>
+                    {%else%}
+                    <td>
+                        <a href="{% url 'join-competition' %}" class="btn btn-primary">Join</a>
+                    </td>
+                    {%endif%}
                     {% else %}
                     <td>
                         <button class="btn btn-primary" disabled>Join</button>
                     </td>
                     {% endif %} {% endcomment %}
                     <td>
-                        {% comment %} <a href="{% url 'current_competition_users' item.id %}" class="btn btn-primary">Competitors</a> {% endcomment %}
-                        <a href="{% url 'current_competition_users' item.id %}" class="btn btn-primary" target="_blank">Competitors</a>
+                        {% comment %} <a href="{% url 'current_competition_users' item.id %}"
+                            class="btn btn-primary">Competitors</a> {% endcomment %}
+                        <a href="{% url 'current_competition_users' item.id %}" class="btn btn-primary"
+                            target="_blank">Competitors</a>
                     </td>
                     <td>{{ item.status.title }}</td>
                     <td>{{ item.message }}</td>
                     <td>{{ item.start_date }}</td>
                     <td>{{ item.end_date }}</td>
                     <td>&#x20A6;{{ item.first_prize|intcomma }}</td>
+                    {% if item.status == 'current' %}
+                    <td><a href="{%url 'update-competition' item.pk %}" class="btn btn-primary">Edit</a></td>
+                    {% endif %}
+
                     <!-- <td>&#x20A6;{{ item.second_prize|intcomma }}</td>
                     <td>&#x20A6;{{ item.third_prize|intcomma }}</td> -->
                 </tr>
@@ -80,6 +86,6 @@
         </table>
     </div>
     <!-- Main page ends here -->
-    
+
 </div>
 {% endblock %}
