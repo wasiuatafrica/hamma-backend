@@ -3255,7 +3255,7 @@ class ClancompetitionHistory(APIView):
             print("here")
 
             clan_summary = ClanCompetitionSummary.objects.filter(clan=clan).last()
-            clan_data["profit_comparison"] = clan_summary.first().profit
+            clan_data["profit_comparison"] = clan_summary.profit
             total_data = {
                 "clan_details": clan_data,
                 "clan_members_data": clan_member_data,
