@@ -763,18 +763,13 @@ class UserReceiptsView(APIView):
             user=request.user, id__in=prop_receipt_ids
         ).order_by("-created"):
             receipt_dict = {
-                "id": receipt.id,
                 "amount": receipt.amount,
-                "created": receipt.created,
+                "upload_date": receipt.created,
                 "receipt_status": receipt.receipt_status,
                 "payment_method": receipt.payment_method,
-                "fullname": receipt.user.fullname,
                 "comment": receipt.comment,
                 "approved_date": receipt.approved_date,
                 "image_url": receipt.image.url,
-                "user": receipt.user.id,
-                "flag": receipt.flag,
-                "timestamp": receipt.created.strftime("%Y-%m-%d %H:%M"),
             }
             receipts_data.append(receipt_dict)
         return Response(receipts_data)
