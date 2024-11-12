@@ -1,6 +1,12 @@
 from rest_framework import serializers
 from . import models
 from accounts.models import Referral
+from enum import Enum
+
+
+class StatusEnum(Enum):
+    PROCESSED = "approved"
+    UNPROCESSED = "rejected"
 
 
 class RewardActivitiesSerializer(serializers.ModelSerializer):
@@ -77,6 +83,9 @@ class ReferralWithdrawalRequestSerializer(serializers.ModelSerializer):
     fullname = serializers.SerializerMethodField()
     user_id = serializers.SerializerMethodField()
     type = serializers.SerializerMethodField()
+    status = serializers.ChoiceField(
+        choices=[(status.value, status.name) for status in StatusEnum]
+    )
 
     class Meta:
         model = models.ReferralWithdrawalRequest
