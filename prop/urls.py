@@ -59,6 +59,10 @@ urlpatterns = [
         name="payout-requests",
     ),
     path("user-receipts/", views.UserReceiptsView.as_view()),
+    path(
+        "payout-request-status/<portfolio_id>/",
+        views.PayoutsSummaryView.as_view(),
+    ),
 ]
 
 # # Add router URLs to urlpatterns

@@ -1,17 +1,25 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
+import logging
 
 import pytz
-from django.db.models import Sum, Q
+from django.db.models import Q, Sum
 from django.db.models.functions import TruncDate
 from django.utils import timezone
-from rest_framework import status
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from yaml import serialize
 
-from accounts.models import AdminUserActivityLog
+from accounts.models import AdminUserActivityLog, Referral
+from affilate.models import ReferralWallet, ReferralWithdrawalRequest, RewardActivities
+from affilate.serializers import (
+    ReferralRewardPayoutSerializer,
+    ReferralWalletSerializer,
+    ReferralWithdrawalRequestSerializer,
+    RewardActivitiesSerializer,
+)
 from anyon.serializers import AdminReceiptsViewSerializer
 from execution.models import DemoPortfolio, DemoPosition, PropReceipt
 from notifications.utils import save_and_send_notification
@@ -21,16 +29,8 @@ from .models import Payout
 from .pay_service import PayoutService
 from .serializers import AccountlistSerializer, PayoutDetailSerializer
 from .utils import get_account_data, get_equity_balance
-from affilate.models import ReferralWallet, RewardActivities, ReferralWithdrawalRequest
-from affilate.serializers import (
-    ReferralWalletSerializer,
-    RewardActivitiesSerializer,
-    ReferralRewardPayoutSerializer,
-    ReferralWithdrawalRequestSerializer,
-)
-from accounts.models import Referral
-from rest_framework import viewsets
-from rest_framework.decorators import action
+
+logger = logging.getLogger(__name__)
 
 
 class PayoutListAPIView(APIView):
@@ -774,3 +774,126 @@ class UserReceiptsView(APIView):
 
             receipts_data.append(receipt_dict)
         return Response(receipts_data)
+
+
+class PayoutsSummaryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, portfolio_id):
+        user = request.user
+
+        try:
+            portfolio = DemoPortfolio.objects.get(id=portfolio_id, user=user)
+            payouts = Payout.objects.filter(portfolio=portfolio)
+
+            # Calculate Available Profit
+            available_profit = self.calculate_available_profit(portfolio)
+
+            # Calculate Pending Amount
+            pending_amount = payouts.filter(status="pending").aggregate(
+                total=Sum("amount")
+            )["total"] or Decimal("0")
+
+            # Calculate Total Paid
+            total_paid = payouts.filter(status="paid").aggregate(total=Sum("amount"))[
+                "total"
+            ] or Decimal("0")
+
+            response_data = {
+                "available_profit": {
+                    "amount": float(available_profit),
+                    "can_request": available_profit > 0,
+                },
+                "pending_amount": {
+                    "amount": float(pending_amount),
+                },
+                "total_paid": {
+                    "amount": float(total_paid),
+                },
+                "last_updated": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+
+            return Response(response_data)
+
+        except DemoPortfolio.DoesNotExist:
+            return Response(
+                {"error": "Portfolio not found or access denied"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def calculate_available_profit(self, portfolio):
+        """
+        Calculate available profit for withdrawal based on profit since last paid payout
+        """
+        try:
+            # Get current balance from portfolio
+            current_balance = Decimal(str(portfolio.balance))
+
+            # Get the last paid payout
+            last_payout = (
+                Payout.objects.filter(portfolio=portfolio, status="paid")
+                .order_by("-process_date")
+                .first()
+            )
+
+            # Get account data from MongoDB
+            account_data = get_account_data(portfolio.account_id)
+
+            if not account_data:
+                return Decimal("0")
+
+            if last_payout and last_payout.process_date:
+                # Convert process_date to the same format as MongoDB timestamp
+                process_date = last_payout.process_date.strftime("%Y-%m-%dT%H:%M")
+
+                # Find the first balance entry after the last payout
+                balance_after_payout = None
+                for entry in account_data:
+                    if entry["timestamp"] > process_date:
+                        balance_after_payout = Decimal(str(entry["balance"]))
+                        break
+
+                if balance_after_payout is None:
+                    logger.warning(
+                        f"No balance data found after last payout for portfolio {portfolio.id}"
+                    )
+                    return Decimal("0")
+
+                # Calculate profit since last payout
+                profit = current_balance - balance_after_payout
+                logger.info(
+                    f"Portfolio {portfolio.id} profit calculation: "
+                    f"current_balance({current_balance}) - "
+                    f"balance_after_payout({balance_after_payout}) = {profit}"
+                )
+            else:
+                # No previous payout, calculate from initial balance
+                initial_balance = Decimal(str(portfolio.initial_balance))
+                profit = current_balance - initial_balance
+                logger.info(
+                    f"Portfolio {portfolio.id} initial profit calculation: "
+                    f"current_balance({current_balance}) - "
+                    f"initial_balance({initial_balance}) = {profit}"
+                )
+
+            if profit > 0:
+                # Get pending payouts
+                pending_payouts = Payout.objects.filter(
+                    portfolio=portfolio, status="pending"
+                ).aggregate(total=Sum("amount"))["total"] or Decimal("0")
+
+                # Subtract pending payouts from available profit
+                available = profit - pending_payouts
+                return max(Decimal("0"), available)
+
+            return Decimal("0")
+
+        except Exception as e:
+            logger.error(
+                f"Error calculating available profit for portfolio {portfolio.id}: {e}"
+            )
+            return Decimal("0")
