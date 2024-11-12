@@ -19,7 +19,14 @@ from .models import (
     FeedsCategory,
     ViewOtherIdeasLog,
     OpenedDashboardFeed,
+    BonusWallet,
 )
+
+
+@admin.register(BonusWallet)
+class BonusWalletAdmin(admin.ModelAdmin):
+    list_display = ("user", "balance", "created")
+    search_fields = ["user__email"]
 
 
 class StockAdmin(admin.ModelAdmin):
@@ -28,14 +35,11 @@ class StockAdmin(admin.ModelAdmin):
 
 admin.site.register(Stock, StockAdmin)
 admin.site.register(PayStackReceipts)
-# admin.site.register(Holding)
-# admin.site.register(Portfolio)
 admin.site.register(Receipts)
 admin.site.register(WithdrawalOTPRequest)
 admin.site.register(Wallet)
 
 
-# admin.site.register(WithdrawalRequest)
 class TransactionAdmin(admin.ModelAdmin):
     # Displaying all relevant fields in the list view
     list_display = ("user", "transaction_type", "amount", "date", "status", "channel")
@@ -47,7 +51,6 @@ class TransactionAdmin(admin.ModelAdmin):
     search_fields = ["user__email"]
 
 
-# Registering the admin model with the Transaction model
 admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(Alert)
 admin.site.register(FeedsCategory)

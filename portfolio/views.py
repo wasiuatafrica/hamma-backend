@@ -56,6 +56,7 @@ from .models import (
     UserSubscribedCategory,
     ViewOtherIdeasLog,
     Wallet,
+    BonusWallet,
     WithdrawalOTPRequest,
 )
 from .serializers import (
@@ -119,6 +120,7 @@ class WalletBalance(APIView):
     def get(self, request):
         portfolios = exec_models.Portfolio.objects.filter(user=request.user)
         wallet = Wallet.objects.get_or_create(user=request.user)[0]
+        bonus_wallet = BonusWallet.objects.get_or_create(user=request.user)[0]
         transactions = Transaction.objects.filter(user=request.user)
 
         positions_sum = 0
@@ -153,6 +155,7 @@ class WalletBalance(APIView):
             "uninvested": balance,
             "balance": balance,
             "reserve": balance,
+            "bonus": bonus_wallet.balance,
             # "reserve": uninvested + balance
         }
 
