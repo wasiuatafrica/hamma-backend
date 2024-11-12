@@ -102,6 +102,26 @@ class CompetitionView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class ModifyCompetition(APIView):
+    """
+    Update competition details.
+    """
+    def put(self, request, pk):
+        """update the competition details
+        """
+        competition = get_object_or_404(Competition, pk=pk)
+        # prevent update of closed competition
+        if competition.status == "closed":
+            return Response(
+                {"error": "Cannot update a closed competition."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer = serializers.CompetitionSerializer(competition, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CompetitionCheck(APIView):
     def get(self, request, *args, **kwargs):
