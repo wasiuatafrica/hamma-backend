@@ -236,6 +236,7 @@ class ProcessPayoutAPIView(APIView):
                 payout.status = "approved"
                 payout.process_date = timezone.now()
                 payout.processed_by = request.user
+
             else:
                 reason = request.data.get("reason")
                 if not reason:
