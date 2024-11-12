@@ -58,6 +58,7 @@ urlpatterns = [
         MyReferralWalletManagement.as_view({"get": "my_referral_payout_request_lists"}),
         name="payout-requests",
     ),
+    path("user-receipts/", views.UserReceiptsView.as_view()),
 ]
 
 # # Add router URLs to urlpatterns
