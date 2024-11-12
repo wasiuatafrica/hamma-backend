@@ -9,6 +9,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from yaml import serialize
 
 from accounts.models import AdminUserActivityLog
 from anyon.serializers import AdminReceiptsViewSerializer
@@ -20,8 +21,16 @@ from .models import Payout
 from .pay_service import PayoutService
 from .serializers import AccountlistSerializer, PayoutDetailSerializer
 from .utils import get_account_data, get_equity_balance
-from affilate.models import ReferralWallet, RewardActivities
+from affilate.models import ReferralWallet, RewardActivities, ReferralWithdrawalRequest
+from affilate.serializers import (
+    ReferralWalletSerializer,
+    RewardActivitiesSerializer,
+    ReferralRewardPayoutSerializer,
+    ReferralWithdrawalRequestSerializer,
+)
 from accounts.models import Referral
+from rest_framework import viewsets
+from rest_framework.decorators import action
 
 
 class PayoutListAPIView(APIView):
@@ -678,3 +687,67 @@ def calculate_percentage_change(profit, loss):
     if total == 0:
         return 0
     return round((profit / total) * 100 if total > 0 else 0, 2)
+
+
+class MyReferralWalletManagement(viewsets.ModelViewSet):
+    serializer_class = ReferralWalletSerializer
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=["get"])
+    def wallet_balance(self, request, *args, **kwargs):
+        """
+        Get the user's referral wallet balance.
+        """
+        user = request.user
+        wallet, _ = ReferralWallet.objects.get_or_create(user=request.user)
+        serializer = self.serializer_class(wallet, many=False)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def reward_activities(self, request, *args, **kwargs):
+        """
+        Get the referral activities for the user.
+        """
+        user = request.user
+        activities = RewardActivities.objects.filter(
+            user=user, reward_type="prop_referral"
+        ).order_by("-created")
+        serializer = RewardActivitiesSerializer(activities, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["post"])
+    def request_referral_reward_payout(self, request, *args, **kwargs):
+        """
+        Request a referral reward payout.
+        """
+
+        wallet, _ = ReferralWallet.objects.get_or_create(user=request.user)
+        serializer = ReferralRewardPayoutSerializer(data=request.data)
+        if serializer.is_valid():
+            amount = serializer.validated_data.get("amount")
+            if amount > wallet.balance:
+                return Response(
+                    {"error": "Insufficient balance in referral wallet"}, status=400
+                )
+            ReferralWithdrawalRequest.objects.create(wallet=wallet, amount=amount)
+            save_and_send_notification(
+                request.user.id,
+                "Your referral commission withdrawal has been submitted.",
+            )
+            wallet.balance -= amount
+            wallet.save()
+
+            return Response({"message": "Referral reward payout request successful"})
+        return Response(serializer.errors, status=400)
+
+    @action(detail=False, methods=["post"])
+    def my_referral_payout_request_lists(self, request, *args, **kwargs):
+        """
+        Get the user's referral payout request lists.
+        """
+        user = request.user
+        requests = ReferralWithdrawalRequest.objects.filter(wallet__user=user).order_by(
+            "-created"
+        )
+        serializer = ReferralWithdrawalRequestSerializer(requests, many=True)
+        return Response(serializer.data)
