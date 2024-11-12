@@ -3075,7 +3075,6 @@ def eligibility(user, clan_id):
 class CheckPayoutEligibility(APIView):
 
     def get(self, request, clan_id):
-        top_tc = top_clan_trader(request.user)
 
         data = eligibility(request.user, clan_id)
 
