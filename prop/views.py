@@ -771,5 +771,6 @@ class UserReceiptsView(APIView):
                 "approved_date": receipt.approved_date,
                 "image_url": receipt.image.url,
             }
+
             receipts_data.append(receipt_dict)
         return Response(receipts_data)
