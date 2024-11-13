@@ -515,6 +515,8 @@ class AdminReceiptsView(APIView):
 
             prop_account = prop_receipt.account
             prop_account.receipt_approved = True
+            prop_account.activated = True
+            prop_account.is_active = True
             prop_account.save()
 
             try:

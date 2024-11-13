@@ -4933,6 +4933,7 @@ class ActivatePropAccountView(APIView):
 
         prop_account.is_active = True
         prop_account.activated = True
+        prop_account.receipt_aproved = True
         prop_account.save()
 
         return Response(
