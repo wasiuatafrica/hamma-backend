@@ -490,150 +490,157 @@ class AdminReceiptsView(APIView):
 
         statuses = ["approved", "rejected"]
 
-        id = request.data["id"]
-        amount = request.data["amount"]
+        # id = request.data["id"]
+        # amount = request.data["amount"]
         receipt_status = request.data["receipt_status"]
         comment = request.data.get("comment", None)
+
+        receipt_ids = request.data.get("receipt_ids", [])
 
         if receipt_status not in statuses:
             return Response("receipt_status must either be approved or rejected ")
 
-        receipt = Receipts.objects.get(id=id)
-        receipt.receipt_status = receipt_status
-        receipt.save()
+        receipt_data = []
 
-        if receipt_status == "approved":
+        for id in receipt_ids:
 
-            receipt.amount = int(amount)
-            receipt.save()
-            AdminUserActivityLog.objects.create(
-                admin=request.user,
-                user=receipt.user,
-                action_type="approved_reciept",
-                description=f"Admin user approved reciept.",
-            )
-            prop_receipt = PropReceipt.objects.filter(receipt=receipt).first()
-
-            prop_account = prop_receipt.account
-            prop_account.receipt_approved = True
-            # prop_account.activated = True
-            prop_account.is_active = True
-            prop_account.save()
-
-            account_info = {
-                "login": prop_account.account_id,
-                "password": prop_account.code,
-                "server": "HammaServer",
-                "acc_size": (
-                    "Model 1" if prop_account.model_type == "model_1" else "Model 2"
-                ),
-                "payout": prop_account.payout.title(),
-                "broker": prop_account.broker.title(),
-                "first_name": receipt.user.firstname.title(),
-            }
-
-            # send the user the account details
-            sendMail(
-                "prop/AccountInfo.html",
-                "Prop Account Details",
-                [receipt.user.email],
-                account_info,
-            )
-
-            try:
-                # Check if this user was referred by someone
-                referral = Referral.objects.get(person_referred=receipt.user)
-
-                # Check if rewards have already been given for this user
-                existing_reward = RewardActivities.objects.filter(
-                    trader=receipt.user, reward_type="prop_referral"
-                ).exists()
-
-                if not existing_reward:
-                    # Credit referrer
-                    referrer_wallet, _ = ReferralWallet.objects.get_or_create(
-                        user=referral.user
-                    )
-                    referrer_wallet.balance += Decimal("18000")
-                    referrer_wallet.save()
-
-                    # Create reward activity for referrer
-                    RewardActivities.objects.create(
-                        user=referral.user,
-                        trader=receipt.user,
-                        reward_type="prop_referral",
-                        amount=18000,
-                        status="processed",
-                        comment="Referral reward for prop account purchase",
-                    )
-
-                    # Credit referee (the user who was referred)
-                    referee_wallet, _ = ReferralWallet.objects.get_or_create(
-                        user=receipt.user
-                    )
-                    referee_wallet.balance += Decimal("18000")
-                    referee_wallet.save()
-
-                    # Create reward activity for referee
-                    RewardActivities.objects.create(
-                        user=receipt.user,
-                        trader=receipt.user,
-                        reward_type="referral_reward",
-                        amount=18000,
-                        status="processed",
-                        comment="Referral reward for prop account purchase",
-                    )
-
-                    # Update referral status
-                    # referral.converted = True
-                    # referral.save()
-
-            except Referral.DoesNotExist:
-                # No referral relationship exists
-                pass
-
-            receipt_data = {
-                "id": receipt.id,
-                "user": receipt.user.id,
-                "fullname": receipt.user.fullname,
-                "amount": receipt.amount,
-                "payment_method": receipt.payment_method,
-                "receipt_status": receipt.receipt_status,
-                "comment": receipt.comment,
-                "created": receipt.created,
-                "approved_date": receipt.approved_date,
-                "image_url": receipt.image.url if receipt.image else None,
-            }
-            return Response(receipt_data)
-
-        elif receipt_status == "rejected":
-            receipt.comment = comment
+            receipt = Receipts.objects.get(id=id)
+            receipt.receipt_status = receipt_status
             receipt.save()
 
-            AdminUserActivityLog.objects.create(
-                admin=request.user,
-                user=receipt.user,
-                action_type="rejected_reciept",
-                description=f"Admin user rejected reciept.",
-            )
-            receipt_data = {
-                "id": receipt.id,
-                "user": receipt.user.id,
-                "fullname": receipt.user.fullname,
-                "amount": receipt.amount,
-                "payment_method": receipt.payment_method,
-                "receipt_status": receipt.receipt_status,
-                "comment": receipt.comment,
-                "created": receipt.created,
-                "approved_date": receipt.approved_date,
-                "image_url": receipt.image.url if receipt.image else None,
-            }
-            save_and_send_notification(
-                receipt.user.id,
-                f"Your payment receipt has been rejected. Reason: {receipt.comment}.",
-            )
+            if receipt_status == "approved":
 
-            return Response(receipt_data)
+                receipt.amount = 180000
+                receipt.save()
+                AdminUserActivityLog.objects.create(
+                    admin=request.user,
+                    user=receipt.user,
+                    action_type="approved_reciept",
+                    description=f"Admin user approved reciept.",
+                )
+                prop_receipt = PropReceipt.objects.filter(receipt=receipt).first()
+
+                prop_account = prop_receipt.account
+                prop_account.receipt_approved = True
+                # prop_account.activated = True
+                prop_account.is_active = True
+                prop_account.save()
+
+                account_info = {
+                    "login": prop_account.account_id,
+                    "password": prop_account.code,
+                    "server": "HammaServer",
+                    "acc_size": (
+                        "Model 1" if prop_account.model_type == "model_1" else "Model 2"
+                    ),
+                    "payout": prop_account.payout.title(),
+                    "broker": prop_account.broker.title(),
+                    "first_name": receipt.user.firstname.title(),
+                }
+
+                # send the user the account details
+                sendMail(
+                    "prop/AccountInfo.html",
+                    "Prop Account Details",
+                    [receipt.user.email],
+                    account_info,
+                )
+
+                try:
+                    # Check if this user was referred by someone
+                    referral = Referral.objects.get(person_referred=receipt.user)
+
+                    # Check if rewards have already been given for this user
+                    existing_reward = RewardActivities.objects.filter(
+                        trader=receipt.user, reward_type="prop_referral"
+                    ).exists()
+
+                    if not existing_reward:
+                        # Credit referrer
+                        referrer_wallet, _ = ReferralWallet.objects.get_or_create(
+                            user=referral.user
+                        )
+                        referrer_wallet.balance += Decimal("18000")
+                        referrer_wallet.save()
+
+                        # Create reward activity for referrer
+                        RewardActivities.objects.create(
+                            user=referral.user,
+                            trader=receipt.user,
+                            reward_type="prop_referral",
+                            amount=18000,
+                            status="processed",
+                            comment="Referral reward for prop account purchase",
+                        )
+
+                        # Credit referee (the user who was referred)
+                        referee_wallet, _ = ReferralWallet.objects.get_or_create(
+                            user=receipt.user
+                        )
+                        referee_wallet.balance += Decimal("18000")
+                        referee_wallet.save()
+
+                        # Create reward activity for referee
+                        RewardActivities.objects.create(
+                            user=receipt.user,
+                            trader=receipt.user,
+                            reward_type="referral_reward",
+                            amount=18000,
+                            status="processed",
+                            comment="Referral reward for prop account purchase",
+                        )
+
+                        # Update referral status
+                        # referral.converted = True
+                        # referral.save()
+
+                except Referral.DoesNotExist:
+                    # No referral relationship exists
+                    pass
+
+                data = {
+                    "id": receipt.id,
+                    "user": receipt.user.id,
+                    "fullname": receipt.user.fullname,
+                    "amount": receipt.amount,
+                    "payment_method": receipt.payment_method,
+                    "receipt_status": receipt.receipt_status,
+                    "comment": receipt.comment,
+                    "created": receipt.created,
+                    "approved_date": receipt.approved_date,
+                    "image_url": receipt.image.url if receipt.image else None,
+                }
+                receipt_data.append(data)
+
+            elif receipt_status == "rejected":
+                receipt.comment = comment
+                receipt.save()
+
+                AdminUserActivityLog.objects.create(
+                    admin=request.user,
+                    user=receipt.user,
+                    action_type="rejected_reciept",
+                    description=f"Admin user rejected reciept.",
+                )
+                data = {
+                    "id": receipt.id,
+                    "user": receipt.user.id,
+                    "fullname": receipt.user.fullname,
+                    "amount": receipt.amount,
+                    "payment_method": receipt.payment_method,
+                    "receipt_status": receipt.receipt_status,
+                    "comment": receipt.comment,
+                    "created": receipt.created,
+                    "approved_date": receipt.approved_date,
+                    "image_url": receipt.image.url if receipt.image else None,
+                }
+                save_and_send_notification(
+                    receipt.user.id,
+                    f"Your payment receipt has been rejected. Reason: {receipt.comment}.",
+                )
+                receipt_data.append(data)
+
+        return Response(receipt_data)
 
 
 class AdminAccountsList(APIView):
