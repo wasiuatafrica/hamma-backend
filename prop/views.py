@@ -1074,3 +1074,31 @@ class PayoutsSummaryView(APIView):
                 f"Error calculating available profit for portfolio {portfolio.id}: {e}"
             )
             return Decimal("0")
+
+
+class ActivateProp(APIView):
+    def post(self, request):
+        user = request.user
+        account_id = request.data.get("account_id")
+        account_name = request.data.get("account_name")
+        code = request.data.get("code")
+        try:
+            prop = DemoPortfolio.objects.get(
+                account_id=account_id, code=code, user=user
+            )
+            if prop.activated:
+                return Response(
+                    {"error": "Account already activated"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            else:
+
+                prop.activated = True
+            prop.account_name = account_name
+            prop.save()
+            return Response({"message": "Prop activated successfully"})
+        except DemoPortfolio.DoesNotExist:
+            return Response(
+                {"error": "Prop account not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
