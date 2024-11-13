@@ -38,6 +38,7 @@ from .models import Payout
 from .pay_service import PayoutService
 from .serializers import AccountlistSerializer, PayoutDetailSerializer
 from .utils import get_account_data, get_equity_balance
+from competition.managers.utils import sendMail
 
 logger = logging.getLogger(__name__)
 
@@ -518,6 +519,24 @@ class AdminReceiptsView(APIView):
             # prop_account.activated = True
             prop_account.is_active = True
             prop_account.save()
+
+            account_info = {
+                "login": prop_account.account_id,
+                "password": prop_account.code,
+                "server": "HammarServer",
+                "acc_size": prop_account.model_type,
+                "payout": prop_account.payout,
+                "broker": prop_account.broker,
+                "first_name": receipt.user.firstname,
+            }
+
+            # send the user the account details
+            sendMail(
+                "prop/AccountInfo.html",
+                "Prop Account Details",
+                [receipt.user.email],
+                account_info,
+            )
 
             try:
                 # Check if this user was referred by someone

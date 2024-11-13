@@ -31,10 +31,10 @@ def sendMail(
         send_mail(
             subject,
             "",
-           "teamgohamma@gmail.com",
+            "teamgohamma@gmail.com",
             to,
             html_message=html,
-            fail_silently=False
+            fail_silently=False,
         )
         return True
     except Exception as e:
