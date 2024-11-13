@@ -532,7 +532,7 @@ class AdminReceiptsView(APIView):
             sendMail(
                 "prop/AccountInfo.html",
                 "Prop Account Details",
-                ["nwaforglory6@gmail.com"],
+                [receipt.user.email],
                 account_info,
             )
 
