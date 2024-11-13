@@ -619,6 +619,7 @@ class AdminAccountsList(APIView):
 
     def get(self, request):
         accounts = DemoPortfolio.objects.filter(is_prop=True)
+
         serializer = AccountlistSerializer(accounts, many=True)
         return Response(serializer.data)
 
