@@ -67,22 +67,22 @@ class PortfolioAnalyzer:
         for entry in self.data:
             date = entry["timestamp"].date()
             balance = Decimal(str(entry["balance"]))
-            equity = Decimal(str(entry["equity"]))
+            # equity = Decimal(str(entry["equity"]))
 
             if date not in daily_data:
                 daily_data[date] = {
                     "start_balance": balance,
-                    "start_equity": equity,
+                    # "start_equity": equity,
                     "low_balance": balance,
-                    "low_equity": equity,
+                    # "low_equity": equity,
                 }
             else:
                 daily_data[date]["low_balance"] = min(
                     daily_data[date]["low_balance"], balance
                 )
-                daily_data[date]["low_equity"] = min(
-                    daily_data[date]["low_equity"], equity
-                )
+                # daily_data[date]["low_equity"] = min(
+                #     daily_data[date]["low_equity"], equity
+                # )
 
         # Calculate daily drawdowns
         for date, values in daily_data.items():
@@ -90,11 +90,12 @@ class PortfolioAnalyzer:
             low_balance_drawdown = (
                 (start_value - values["low_balance"]) / start_value
             ) * 100
-            low_equity_drawdown = (
-                (start_value - values["low_equity"]) / start_value
-            ) * 100
+            # low_equity_drawdown = (
+            #     (start_value - values["low_equity"]) / start_value
+            # ) * 100
 
-            daily_drawdown = max(low_balance_drawdown, low_equity_drawdown)
+            # daily_drawdown = max(low_balance_drawdown, low_equity_drawdown)
+            daily_drawdown = low_balance_drawdown
 
             if daily_drawdown > max_daily_drawdown:
                 max_daily_drawdown = daily_drawdown
