@@ -36,5 +36,5 @@ class PayoutDetailSerializer(serializers.ModelSerializer):
 class AccountlistSerializer(serializers.ModelSerializer):
     class Meta:
         model = DemoPortfolio
-        fields = "__all__"
-        # exclude = ["code"]
+        # fields = "__all__"
+        exclude = ["code"]

@@ -410,7 +410,7 @@ class AdminReceiptsView(APIView):
                     "fullname": receipt.user.fullname,
                     "comment": receipt.comment,
                     "approved_date": receipt.approved_date,
-                    "image_url": receipt.image.url,
+                    "image_url": receipt.image.url if receipt.image else "",
                     "user": receipt.user.id,
                     "flag": receipt.flag,
                     "timestamp": receipt.created.timestamp(),
@@ -455,7 +455,7 @@ class AdminReceiptsView(APIView):
                     "fullname": receipt.user.fullname,
                     "comment": receipt.comment,
                     "approved_date": receipt.approved_date,
-                    "image_url": receipt.image.url,
+                    "image_url": receipt.image.url if receipt.image else "",
                     "user": receipt.user.id,
                     "flag": receipt.flag,
                     "timestamp": receipt.created.timestamp(),
@@ -493,7 +493,7 @@ class AdminReceiptsView(APIView):
         id = request.data["id"]
         amount = request.data["amount"]
         receipt_status = request.data["receipt_status"]
-        comment = request.data["comment"]
+        comment = request.data.get("comment", None)
 
         if receipt_status not in statuses:
             return Response("receipt_status must either be approved or rejected ")
@@ -504,7 +504,7 @@ class AdminReceiptsView(APIView):
 
         if receipt_status == "approved":
 
-            receipt.amount = amount
+            receipt.amount = int(amount)
             receipt.save()
             AdminUserActivityLog.objects.create(
                 admin=request.user,
@@ -523,11 +523,13 @@ class AdminReceiptsView(APIView):
             account_info = {
                 "login": prop_account.account_id,
                 "password": prop_account.code,
-                "server": "HammarServer",
-                "acc_size": prop_account.model_type,
-                "payout": prop_account.payout,
-                "broker": prop_account.broker,
-                "first_name": receipt.user.firstname,
+                "server": "HammaServer",
+                "acc_size": (
+                    "Model 1" if prop_account.model_type == "model_1" else "Model 2"
+                ),
+                "payout": prop_account.payout.title(),
+                "broker": prop_account.broker.title(),
+                "first_name": receipt.user.firstname.title(),
             }
 
             # send the user the account details

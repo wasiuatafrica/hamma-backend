@@ -75,6 +75,7 @@ urlpatterns = [
         "payout-request-status/<portfolio_id>/",
         views.PayoutsSummaryView.as_view(),
     ),
+    path("activate/", views.ActivateProp.as_view()),
 ]
 
 # # Add router URLs to urlpatterns

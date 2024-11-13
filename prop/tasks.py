@@ -12,7 +12,10 @@ def get_all_balance_equity_data_task():
 @shared_task
 def analyze_portfolio_status_task():
     portfolios = DemoPortfolio.objects.filter(
-        is_prop=True, blown=False, inactive_by_inactivity=False, receipt_approved=True
+        is_prop=True,
+        blown=False,
+        inactive_by_inactivity=False,
+        activated=True,
     )
     for portfolio in portfolios:
         analyze_portfolio_status(portfolio)

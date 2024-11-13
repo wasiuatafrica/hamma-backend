@@ -31,7 +31,7 @@ def sendMail(
         send_mail(
             subject,
             "",
-            "teamgohamma@gmail.com",
+            "Hamma Team <teamgohamma@gmail.com>",
             to,
             html_message=html,
             fail_silently=False,
