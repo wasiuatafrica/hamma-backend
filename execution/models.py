@@ -58,6 +58,8 @@ class DemoPortfolio(auto_prefetch.Model):
     time_to_payout = models.IntegerField(blank=True, null=True)
     target_met = models.BooleanField(default=False)
     updated = models.DateTimeField(auto_now=True, null=True, blank=True)
+    balance_based_drawdown = models.BooleanField(default=False)
+    last_swap_charge_date = models.DateField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.account_id:

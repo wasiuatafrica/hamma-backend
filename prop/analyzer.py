@@ -5,6 +5,9 @@ from venv import logger
 from django.utils import timezone
 from celery import shared_task
 import logging
+from execution.models import DemoPortfolio, DemoPosition
+from portfolio.models import DemoTransaction
+from .utils import get_account_data
 
 logger = logging.getLogger("django")
 
@@ -17,6 +20,8 @@ class PortfolioAnalyzer:
         self.account_drawdown_limit = Decimal("10")  # 10% account drawdown limit
         self.daily_drawdown_limit = Decimal("5")  # 5% daily drawdown limit
         self.profit_target = portfolio.profit_target
+        self.balance_based_drawdown = portfolio.balance_based_drawdown
+        self.swap_fee = Decimal("500.00")  # 500 naira swap fee
 
     def check_account_drawdown_violation(self) -> Dict:
         """
@@ -32,20 +37,35 @@ class PortfolioAnalyzer:
         # Check both balance and equity
         for entry in self.data:
             balance = Decimal(str(entry["balance"]))
-            equity = Decimal(str(entry["equity"]))
 
-            # Only consider values less than initial balance
-            if balance < self.initial_balance:
-                balance_drawdown = (
-                    (self.initial_balance - balance) / self.initial_balance
-                ) * 100
-                max_drawdown_percentage = max(max_drawdown_percentage, balance_drawdown)
+            if self.balance_based_drawdown:
+                # Only check balance for drawdown
+                if balance < self.initial_balance:
+                    balance_drawdown = (
+                        (self.initial_balance - balance) / self.initial_balance
+                    ) * 100
+                    max_drawdown_percentage = max(
+                        max_drawdown_percentage, balance_drawdown
+                    )
+            else:
+                equity = Decimal(str(entry["equity"]))
 
-            if equity < self.initial_balance:
-                equity_drawdown = (
-                    (self.initial_balance - equity) / self.initial_balance
-                ) * 100
-                max_drawdown_percentage = max(max_drawdown_percentage, equity_drawdown)
+                # Only consider values less than initial balance
+                if balance < self.initial_balance:
+                    balance_drawdown = (
+                        (self.initial_balance - balance) / self.initial_balance
+                    ) * 100
+                    max_drawdown_percentage = max(
+                        max_drawdown_percentage, balance_drawdown
+                    )
+
+                if equity < self.initial_balance:
+                    equity_drawdown = (
+                        (self.initial_balance - equity) / self.initial_balance
+                    ) * 100
+                    max_drawdown_percentage = max(
+                        max_drawdown_percentage, equity_drawdown
+                    )
 
         return {
             "violated": max_drawdown_percentage > self.account_drawdown_limit,
@@ -127,7 +147,7 @@ class PortfolioAnalyzer:
             logger.info(
                 f"Portfolio {self.portfolio.id} has no data in the last 2 weeks"
             )
-            return True
+            return False
 
         # Check if balance has changed in the last 2 weeks
         initial_balance = Decimal(str(recent_data[0]["balance"]))
@@ -143,7 +163,7 @@ class PortfolioAnalyzer:
         logger.info(
             f"Portfolio {self.portfolio.id} is inactive: balance remained at {initial_balance} for 2 weeks"
         )
-        return False
+        return True
 
     def check_payout_eligibility(self) -> Dict:
         """
@@ -190,6 +210,50 @@ class PortfolioAnalyzer:
             "profit_percentage": profit_percentage,
         }
 
+    def apply_overnight_swap_fees(self):
+        """
+        Apply overnight swap fees for balance-based drawdown accounts
+        """
+        if not self.portfolio.balance_based_drawdown:
+            return
+
+        current_date = timezone.now().date()
+
+        # Check if we already charged swap fee today
+        if (
+            self.portfolio.last_swap_charge_date
+            and self.portfolio.last_swap_charge_date == current_date
+        ):
+            return
+
+        # Get open positions that were held overnight
+        overnight_positions = DemoPosition.objects.filter(
+            portfolio=self.portfolio,
+            status=DemoPosition.OPEN,
+            created__date__lt=current_date,
+        )
+
+        total_swap_fee = self.swap_fee * Decimal(str(len(overnight_positions)))
+
+        if total_swap_fee > 0:
+            # Update portfolio balance
+            self.portfolio.balance -= total_swap_fee
+            self.portfolio.last_swap_charge_date = current_date
+            self.portfolio.save()
+
+            # Log the swap fee charge
+            logger.info(
+                f"Applied overnight swap fee of {total_swap_fee} to portfolio {self.portfolio.id} "
+                f"for {len(overnight_positions)} positions"
+            )
+
+            DemoTransaction.objects.create(
+                user=self.portfolio.user,
+                transaction_type=f"swap fees deduction for {self.portfolio.account_id}",
+                amount=total_swap_fee,
+                status="completed",
+            )
+
 
 def analyze_portfolio_status(portfolio):
     """
@@ -199,9 +263,11 @@ def analyze_portfolio_status(portfolio):
         # portfolio = DemoPortfolio.objects.get(id=portfolio_id)
 
         # Get balance and equity data from your data source
-        balance_equity_data = []  # Replace with your actual data fetching logic
+        balance_equity_data = get_account_data(portfolio.account_id)
 
         analyzer = PortfolioAnalyzer(balance_equity_data, portfolio)
+
+        analyzer.apply_overnight_swap_fees()
 
         # Check account drawdown
         account_drawdown = analyzer.check_account_drawdown_violation()
@@ -212,12 +278,15 @@ def analyze_portfolio_status(portfolio):
         # Check inactivity
         is_inactive = analyzer.check_inactivity()
 
+        if is_inactive:
+            portfolio.active = False
+            portfolio.inactive_by_inactivity = is_inactive
+
         # Check payout eligibility
         eligibility = analyzer.check_payout_eligibility()
 
         # Update portfolio status
         portfolio.blown = account_drawdown["violated"] or daily_drawdown["violated"]
-        portfolio.inactive_by_inactivity = is_inactive
         portfolio.target_met = eligibility["eligible"]
 
         # Save the changes

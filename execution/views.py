@@ -2201,7 +2201,7 @@ class DemoPorfoliosAccounts(APIView):
         else:
             comdata = []
 
-        demo_accounts = DemoPortfolio.objects.filter(user=request.user)
+        demo_accounts = DemoPortfolio.objects.filter(user=request.user, is_prop=False)
         demo_data = []
         for accounts in demo_accounts:
             positions = DemoPosition.objects.filter(portfolio=accounts, status="open")
@@ -2653,6 +2653,15 @@ class SingleDemoTradeAPIView(APIView):
                 {"error": f"Account type should be {valid_account_types}."},
                 status.HTTP_400_BAD_REQUEST,
             )
+
+        if account_type == "demo_portfolio":
+            demo_account = self.get_account(id)
+            if demo_account.is_prop:
+                if not demo_account.is_active or demo_account.blown:
+                    return Response(
+                        "You can no longer trade on this account.",
+                        status.HTTP_400_BAD_REQUEST,
+                    )
 
         symbol = request.data.get("symbol")
         order_id = request.data.get("order_id")

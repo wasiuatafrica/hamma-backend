@@ -1110,11 +1110,8 @@ class ActivateProp(APIView):
         user = request.user
         account_id = request.data.get("account_id")
         account_name = request.data.get("account_name")
-        code = request.data.get("code")
         try:
-            prop = DemoPortfolio.objects.get(
-                account_id=account_id, code=code, user=user
-            )
+            prop = DemoPortfolio.objects.get(account_id=account_id, user=user)
             if prop.activated:
                 return Response(
                     {"error": "Account already activated"},
@@ -1128,6 +1125,61 @@ class ActivateProp(APIView):
             return Response({"message": "Prop activated successfully"})
         except DemoPortfolio.DoesNotExist:
             return Response(
-                {"error": "Prop account not found"},
+                {"error": "Account account cannot be created."},
                 status=status.HTTP_404_NOT_FOUND,
+            )
+
+
+class ToggleDrawdownMethodView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, portfolio_id):
+        try:
+            portfolio = DemoPortfolio.objects.get(id=portfolio_id, user=request.user)
+
+            # Check if portfolio is already using balance-based drawdown
+            if portfolio.balance_based_drawdown:
+                return Response(
+                    {
+                        "success": False,
+                        "error": "Portfolio is already using balance-based drawdown.",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Check if portfolio has any open positions
+            # has_open_positions = portfolio.demopositions2.filter(status="open").exists()
+            # if has_open_positions:
+            #     return Response(
+            #         {
+            #             "success": False,
+            #             "error": "Cannot switch drawdown method while there are open positions",
+            #         },
+            #         status=status.HTTP_400_BAD_REQUEST,
+            #     )
+
+            # Switch to balance-based drawdown
+            portfolio.balance_based_drawdown = True
+            portfolio.save()
+
+            return Response(
+                {
+                    "success": True,
+                    "message": "Successfully switched to balance-only drawdown calculation. Overnight swap fees of 500 naira per position will apply.",
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        except DemoPortfolio.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Account not found.",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except Exception as e:
+            return Response(
+                {"success": False, "error": f"An error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

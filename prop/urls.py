@@ -4,11 +4,6 @@ from rest_framework import routers
 from .views import MyReferralWalletManagement
 from . import admin_views
 
-# router = routers.DefaultRouter()
-# router.register(
-#     "referral-wallet", MyReferralWalletManagement, basename="referral-wallet"
-# )
-
 
 urlpatterns = [
     path(
@@ -76,6 +71,10 @@ urlpatterns = [
         views.PayoutsSummaryView.as_view(),
     ),
     path("activate/", views.ActivateProp.as_view()),
+    path(
+        "swap-to-balance-drawdown/<int:portfolio_id>/",
+        views.ToggleDrawdownMethodView.as_view(),
+    ),
 ]
 
 # # Add router URLs to urlpatterns
