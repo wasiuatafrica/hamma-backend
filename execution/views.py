@@ -2650,6 +2650,7 @@ class SingleDemoTradeAPIView(APIView):
             "demo_portfolio",
             "competition_account",
         ]
+        id = kwargs.get("id")
 
         if not account_type in valid_account_types:
             return Response(
