@@ -2201,10 +2201,10 @@ class DemoPorfoliosAccounts(APIView):
         else:
             comdata = []
 
-        # demo_accounts = DemoPortfolio.objects.filter(user=request.user, is_prop=False)
-        demo_accounts = DemoPortfolio.objects.filter(
-            user=request.user,
-        )
+        demo_accounts = DemoPortfolio.objects.filter(user=request.user, is_prop=False)
+        # demo_accounts = DemoPortfolio.objects.filter(
+        #     user=request.user,
+        # )
         demo_data = []
         for accounts in demo_accounts:
             positions = DemoPosition.objects.filter(portfolio=accounts, status="open")
@@ -2222,7 +2222,7 @@ class DemoPorfoliosAccounts(APIView):
             demo_data.append(data)
 
         prop_accounts = DemoPortfolio.objects.filter(
-            user=request.user, is_prop=True, receipt_approved=True
+            user=request.user, is_prop=True, activated=True
         )
         prop_data = []
         for accounts in prop_accounts:
