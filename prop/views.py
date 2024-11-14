@@ -496,6 +496,7 @@ class AdminReceiptsView(APIView):
         comment = request.data.get("comment", None)
 
         receipt_ids = request.data.get("receipt_ids", [])
+        print("recipt ids", receipt_ids)
 
         if receipt_status not in statuses:
             return Response("receipt_status must either be approved or rejected ")
