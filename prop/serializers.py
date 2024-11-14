@@ -14,6 +14,7 @@ class PayoutDetailSerializer(serializers.ModelSerializer):
     portfolio_account_id = serializers.CharField(
         source="portfolio.account_id", read_only=True
     )
+    model_type = serializers.CharField(source="portfolio.model_type", read_only=True)
     user_email = serializers.CharField(source="portfolio.user.email", read_only=True)
 
     class Meta:
@@ -22,6 +23,7 @@ class PayoutDetailSerializer(serializers.ModelSerializer):
             "id",
             "portfolio_account_id",
             "user_email",
+            "model_type",
             "amount",
             "request_date",
             "process_date",
