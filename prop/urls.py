@@ -24,7 +24,7 @@ urlpatterns = [
         views.RequestPayoutAPIView.as_view(),
     ),
     path(
-        "payouts/<int:pk>/process/",
+        "admin-payouts/<int:pk>/",
         views.ProcessPayoutAPIView.as_view(),
     ),
     path(
@@ -74,6 +74,10 @@ urlpatterns = [
     path(
         "swap-to-balance-drawdown/<int:portfolio_id>/",
         views.ToggleDrawdownMethodView.as_view(),
+    ),
+    path(
+        "admin-payouts/",
+        views.AdminPayoutListAPIView.as_view(),
     ),
 ]
 

@@ -57,17 +57,24 @@ class PayoutListAPIView(APIView):
         return Response(serializer.data)
 
 
+class AdminPayoutListAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Get list of payouts"""
+        payouts = Payout.objects.all().order_by("-request_date")
+
+        serializer = PayoutDetailSerializer(payouts, many=True)
+        return Response(serializer.data)
+
+
 class PayoutDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self, pk):
         try:
             payout = Payout.objects.get(pk=pk)
-            if (
-                not self.request.user.is_staff
-                and payout.portfolio.user != self.request.user
-            ):
-                raise Payout.DoesNotExist
+
             return payout
         except Payout.DoesNotExist:
             return None
@@ -214,10 +221,10 @@ class ProcessPayoutAPIView(APIView):
 
     def post(self, request, pk):
         """Process (approve/reject) a payout request"""
-        if not request.user.is_staff:
-            return Response(
-                {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
-            )
+        # if not request.user.is_staff:
+        #     return Response(
+        #         {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
+        #     )
 
         payout = self.get_object(pk)
         if not payout:
@@ -227,14 +234,14 @@ class ProcessPayoutAPIView(APIView):
 
         action = request.data.get("action")
 
-        if action not in ["approve", "reject"]:
+        if action not in ["declined", "paid"]:
             return Response(
                 {"error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         try:
-            if action == "approve":
-                payout.status = "approved"
+            if action == "paid":
+                payout.status = "paid"
                 payout.process_date = timezone.now()
                 payout.processed_by = request.user
 
@@ -246,7 +253,7 @@ class ProcessPayoutAPIView(APIView):
                         status=status.HTTP_400_BAD_REQUEST,
                     )
 
-                payout.status = "rejected"
+                payout.status = "declined"
                 payout.rejected_reason = reason
 
             payout.admin_notes = request.data.get("notes")

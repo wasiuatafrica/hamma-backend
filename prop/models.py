@@ -8,12 +8,12 @@ User = get_user_model()
 
 
 class Payout(auto_prefetch.Model):
-    STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("approved", "Approved"),
-        ("rejected", "Rejected"),
-        ("paid", "paid"),
-    ]
+    # STATUS_CHOICES = [
+    #     ("pending", "Pending"),
+    #     ("approved", "Approved"),
+    #     ("rejected", "Rejected"),
+    #     ("paid", "paid"),
+    # ]
 
     portfolio = auto_prefetch.ForeignKey(
         DemoPortfolio, on_delete=models.CASCADE, related_name="payouts"
@@ -21,7 +21,7 @@ class Payout(auto_prefetch.Model):
     amount = models.DecimalField(max_digits=15, decimal_places=2)
     request_date = models.DateTimeField(auto_now_add=True)
     process_date = models.DateTimeField(null=True, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    status = models.CharField(max_length=20, default="pending")
     profit_percentage = models.DecimalField(
         max_digits=5, decimal_places=2, null=True, blank=True
     )  # Stores the profit split percentage
