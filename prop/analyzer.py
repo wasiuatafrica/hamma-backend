@@ -165,34 +165,118 @@ class PortfolioAnalyzer:
         )
         return True
 
+    # def check_payout_eligibility(self) -> Dict:
+    #     """
+    #     Check if account is eligible for payout
+    #     """
+    #     if self.portfolio.blown or self.portfolio.inactive_by_inactivity:
+    #         return {"eligible": False, "reason": "Account is blown or inactive"}
+
+    #     # Check trading days
+    #     trading_days = set()
+    #     previous_balance = None
+
+    #     for entry in self.data:
+    #         current_balance = Decimal(str(entry["balance"]))
+    #         current_date = entry["timestamp"].date()
+
+    #         if previous_balance is None or current_balance != previous_balance:
+    #             trading_days.add(current_date)
+    #             previous_balance = current_balance
+
+    #     if len(trading_days) < 6:
+    #         return {
+    #             "eligible": False,
+    #             "reason": f"Insufficient trading days. Required: 6, Current: {len(trading_days)}",
+    #         }
+
+    #     # Check profit target
+    #     if self.data:
+    #         current_balance = Decimal(str(self.data[-1]["balance"]))
+    #         profit_percentage = (
+    #             (current_balance - self.initial_balance) / self.initial_balance
+    #         ) * 100
+
+    #         if profit_percentage < self.profit_target:
+    #             return {
+    #                 "eligible": False,
+    #                 "reason": f"Profit target not met. Required: {self.profit_target}%, Current: {profit_percentage}%",
+    #             }
+
+    #     return {
+    #         "eligible": True,
+    #         "reason": "All conditions met",
+    #         "trading_days": len(trading_days),
+    #         "profit_percentage": profit_percentage,
+    #     }
+
     def check_payout_eligibility(self) -> Dict:
         """
-        Check if account is eligible for payout
+        Check if account is eligible for payout based on:
+        - Not blown or inactive
+        - At least 6 total trading days
+        - At least 2 trading days in current week
+        - Met profit target
+        - Target not already met (only check new qualifiers)
+        Also calculates time_to_payout when target is met
         """
+        # Skip checks if target is already met
+        if self.portfolio.target_met:
+            return {"eligible": True, "reason": "Target already met"}
+
         if self.portfolio.blown or self.portfolio.inactive_by_inactivity:
             return {"eligible": False, "reason": "Account is blown or inactive"}
 
-        # Check trading days
-        trading_days = set()
-        previous_balance = None
+        # Get current week's Monday and Sunday
+        current_date = timezone.now().date()
+        monday = current_date - timedelta(days=current_date.weekday())
+        sunday = monday + timedelta(days=6)
 
-        for entry in self.data:
+        trading_days = set()
+        current_week_trading_days = set()
+        previous_balance = None
+        current_balance = None
+        first_trade_date = None
+
+        for entry in sorted(self.data, key=lambda x: x["timestamp"]):
             current_balance = Decimal(str(entry["balance"]))
             current_date = entry["timestamp"].date()
 
+            # Only count days where balance changed as trading days
             if previous_balance is None or current_balance != previous_balance:
                 trading_days.add(current_date)
-                previous_balance = current_balance
 
+                # Track first trade date
+                if first_trade_date is None:
+                    first_trade_date = current_date
+
+                # Check if trade happened in current week
+                if monday <= current_date <= sunday:
+                    current_week_trading_days.add(current_date)
+
+            previous_balance = current_balance
+
+        # Check total trading days requirement
         if len(trading_days) < 6:
             return {
                 "eligible": False,
-                "reason": f"Insufficient trading days. Required: 6, Current: {len(trading_days)}",
+                "reason": f"Insufficient total trading days. Required: 6, Current: {len(trading_days)}",
+                "trading_days": len(trading_days),
+                "current_week_trading_days": len(current_week_trading_days),
+            }
+
+        # Check current week trading days requirement
+        if len(current_week_trading_days) < 2:
+            return {
+                "eligible": False,
+                "reason": f"Insufficient trading days this week. Required: 2, Current: {len(current_week_trading_days)}",
+                "trading_days": len(trading_days),
+                "current_week_trading_days": len(current_week_trading_days),
             }
 
         # Check profit target
-        if self.data:
-            current_balance = Decimal(str(self.data[-1]["balance"]))
+        profit_percentage = 0
+        if current_balance:
             profit_percentage = (
                 (current_balance - self.initial_balance) / self.initial_balance
             ) * 100
@@ -201,13 +285,31 @@ class PortfolioAnalyzer:
                 return {
                     "eligible": False,
                     "reason": f"Profit target not met. Required: {self.profit_target}%, Current: {profit_percentage}%",
+                    "trading_days": len(trading_days),
+                    "current_week_trading_days": len(current_week_trading_days),
+                    "profit_percentage": profit_percentage,
                 }
 
+        # Calculate weeks to target met
+        if first_trade_date:
+            days_to_target = (current_date - first_trade_date).days
+            weeks_to_target = (days_to_target // 7) + (
+                1 if days_to_target % 7 > 0 else 0
+            )
+        else:
+            weeks_to_target = 0
+
+        # All conditions met
         return {
             "eligible": True,
             "reason": "All conditions met",
             "trading_days": len(trading_days),
+            "current_week_trading_days": len(current_week_trading_days),
             "profit_percentage": profit_percentage,
+            "trading_dates": sorted(list(trading_days)),
+            # "current_week_trading_dates": sorted(list(current_week_trading_dates)),
+            "first_trade_date": first_trade_date,
+            "weeks_to_target": weeks_to_target,
         }
 
     def apply_overnight_swap_fees(self):
@@ -289,6 +391,10 @@ def analyze_portfolio_status(portfolio):
         portfolio.blown = account_drawdown["violated"] or daily_drawdown["violated"]
         portfolio.target_met = eligibility["eligible"]
 
+        was_target_met = portfolio.target_met
+        if portfolio.target_met and not was_target_met:
+            portfolio.time_to_payout = eligibility.get("weeks_to_target", 0)
+
         # Save the changes
         portfolio.save()
 
@@ -301,6 +407,8 @@ def analyze_portfolio_status(portfolio):
             "account_drawdown": account_drawdown["drawdown_percentage"],
             "daily_drawdown": daily_drawdown["max_daily_drawdown"],
             "last_check": timezone.now(),
+            "time_to_payout": portfolio.time_to_payout,
+            "eligibility_details": eligibility,
         }
 
     # except DemoPortfolio.DoesNotExist:

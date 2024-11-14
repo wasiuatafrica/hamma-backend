@@ -331,7 +331,7 @@ class PortfolioMetrics(APIView):
                 "trading_days": {
                     "minimum": 6,
                     "current": trading_days,
-                    "status": "Passed" if trading_days >= 5 else "Not Passed",
+                    "status": "Passed" if trading_days > 5 else "Not Passed",
                 },
                 "profit_target": {
                     "minimum": portfolio.profit_target,
