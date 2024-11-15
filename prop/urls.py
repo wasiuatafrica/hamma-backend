@@ -3,6 +3,7 @@ from . import views
 from rest_framework import routers
 from .views import MyReferralWalletManagement
 from . import admin_views
+from . import support_views
 
 
 urlpatterns = [
@@ -78,6 +79,9 @@ urlpatterns = [
     path(
         "admin-payouts/",
         views.AdminPayoutListAPIView.as_view(),
+    ),
+    path(
+        "support-accountlist/<email>/", support_views.SupportUserAccounctsList.as_view()
     ),
 ]
 

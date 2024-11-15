@@ -353,28 +353,7 @@ class PortfolioMetrics(APIView):
             "last_updated": current_time.strftime("%Y-%m-%d %H:%M"),
         }
 
-        # Calculate open positions P/L
-        open_positions = positions.filter(status="open")
-        open_positions_data = []
-        total_open_pl = Decimal("0")
-
-        for position in open_positions:
-            pl, current_value, price = position.calculate_profit_loss()
-            total_open_pl += pl
-            position_data = {
-                "symbol": position.stock.symbol,
-                "quantity": position.quantity,
-                "entry_price": float(position.open_price),
-                "current_price": price,
-                "profit_loss": float(pl),
-                "action": position.action,
-            }
-            open_positions_data.append(position_data)
-
-        response_data["open_positions"] = {
-            "positions": open_positions_data,
-            "total_open_pl": float(total_open_pl),
-        }
+        response_data["balanced_based"] = portfolio.balance_based_drawdown
 
         return Response(response_data)
 
