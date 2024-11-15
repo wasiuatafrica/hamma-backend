@@ -1171,3 +1171,15 @@ class ToggleDrawdownMethodView(APIView):
                 {"success": False, "error": f"An error occurred: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class UserPendingReceipts(APIView):
+    def get(self, request):
+        prop_receipts = PropReceipt.objects.filter(
+            receipt__user=request.user, receipt__status="pending"
+        )
+        if prop_receipts:
+            pending = True
+        else:
+            pending = False
+        return Response(pending)

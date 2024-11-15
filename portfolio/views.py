@@ -689,6 +689,7 @@ class ReceiptsView(APIView):
     def post(self, request):
         account_type = request.data.get("account_type", None)
         device_type = request.data.get("device_type", None)
+        drawdown_type = request.data.get("drawdown_type", "balance_equity")
         if not account_type or account_type != "prop_account":
             serializers = ReceiptsViewSerializer(data=request.data)
             if serializers.is_valid():
@@ -735,6 +736,7 @@ class ReceiptsView(APIView):
             initial_balance = 10_000_000
             is_active = False
             code = get_random_string(length=8).upper()
+            balance_based = True if drawdown_type == "balance" else False
 
             account = exec_models.DemoPortfolio.objects.create(
                 profit_target=profit_target,
@@ -747,6 +749,7 @@ class ReceiptsView(APIView):
                 is_active=is_active,
                 code=code,
                 model_type=account_name,
+                balance_based_drawdown=balance_based,
             )
 
             exec_models.DemoDailyReturns2.objects.create(
