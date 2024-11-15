@@ -995,7 +995,7 @@ class PayoutsSummaryView(APIView):
             response_data = {
                 "available_profit": {
                     "amount": float(available_profit),
-                    "can_request": available_profit > 0,
+                    "can_request": available_profit > 0 and portfolio.target_met,
                 },
                 "pending_amount": {
                     "amount": float(pending_amount),
