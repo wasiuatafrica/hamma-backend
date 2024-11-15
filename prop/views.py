@@ -1,6 +1,13 @@
 import logging
 from datetime import datetime, timedelta
 from decimal import Decimal
+from accounts.serializers import AdminCustomUserSerializer
+from django.shortcuts import get_object_or_404
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.db.models import Subquery, OuterRef
+from .models import User, DemoPortfolio
 
 import pytz
 from django.db.models import (
@@ -12,8 +19,10 @@ from django.db.models import (
     Sum,
     Value,
     When,
+    Max,
 )
 from django.db.models.functions import TruncDate
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -42,6 +51,7 @@ from .utils import get_account_data, get_equity_balance, initiate_first_data
 from competition.managers.utils import sendMail
 
 logger = logging.getLogger(__name__)
+User = get_user_model()
 
 
 class PayoutListAPIView(APIView):
@@ -1101,7 +1111,7 @@ class ActivateProp(APIView):
             prop = DemoPortfolio.objects.get(account_id=account_id, user=user)
             if prop.activated:
                 return Response(
-                    {"error": "Account already activated"},
+                    {"error": "Account already created"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             else:
@@ -1183,3 +1193,39 @@ class UserPendingReceipts(APIView):
         else:
             pending = False
         return Response(pending)
+
+
+class AdminUserList(APIView):
+    serializer_class = AdminCustomUserSerializer
+
+    def get_object(self, user_id):
+        # Get a single user by ID
+        return get_object_or_404(User, id=user_id)
+
+    def get(self, request, user_id=None):
+
+        # filter user by email
+        email = request.GET.get("email")
+        if email:
+            users = User.objects.filter(
+                email=email, demoportfolio2__is_prop=True
+            ).distinct()
+            serialized_data = self.serializer_class(users, many=True).data
+            return Response(serialized_data)
+
+        if user_id is not None:
+            # Return details of a specific user
+            user = self.get_object(user_id)
+            serialized_data = self.serializer_class(user).data
+            return Response(serialized_data)
+        else:
+            # Return a list of all users
+            users = (
+                User.objects.filter(demoportfolio2__is_prop=True)
+                .annotate(latest_created=Max("demoportfolio2__created"))
+                .order_by("-latest_created")
+                .distinct()
+            )
+
+            serialized_data = self.serializer_class(users, many=True).data
+            return Response(serialized_data)

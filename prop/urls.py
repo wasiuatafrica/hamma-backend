@@ -80,6 +80,8 @@ urlpatterns = [
         "admin-payouts/",
         views.AdminPayoutListAPIView.as_view(),
     ),
+    path("prop-users/<user_id>/", views.AdminUserList.as_view()),
+    path("prop-users/", views.AdminUserList.as_view()),
     # path("pending-receipts/", views.UserPendingReceipts.as_view()),
     path(
         "support-accountlist/<email>/", support_views.SupportUserAccounctsList.as_view()
