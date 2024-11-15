@@ -32,12 +32,13 @@ from affilate.serializers import (
 from anyon.serializers import AdminReceiptsViewSerializer
 from execution.models import DemoPortfolio, DemoPosition, PropReceipt
 from notifications.utils import save_and_send_notification
+import portfolio
 from portfolio.models import PayStackReceipts, Receipts
 
 from .models import Payout
 from .pay_service import PayoutService
 from .serializers import AccountlistSerializer, PayoutDetailSerializer
-from .utils import get_account_data, get_equity_balance
+from .utils import get_account_data, get_equity_balance, initiate_first_data
 from competition.managers.utils import sendMail
 
 logger = logging.getLogger(__name__)
@@ -1108,6 +1109,7 @@ class ActivateProp(APIView):
                 prop.activated = True
             prop.account_name = account_name
             prop.save()
+            initiate_first_data(portfolio.account_id)
             return Response({"message": "Prop activated successfully"})
         except DemoPortfolio.DoesNotExist:
             return Response(

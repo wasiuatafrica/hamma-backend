@@ -103,3 +103,14 @@ def get_account_data(account_id):
     collection = db_prop[account_id]
     data = list(collection.find({}, {"_id": 0}))
     return data if data else []
+
+
+def initiate_first_data(account_id):
+    collection = db_prop[account_id]
+    data = {
+        "balance": float(10000000),
+        "equity": float(10000000),
+        "timestamp": timezone.now().astimezone(wat).strftime("%Y-%m-%dT%H:%M"),
+        "account_id": account_id,
+    }
+    collection.insert_one(data)
