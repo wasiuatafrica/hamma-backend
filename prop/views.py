@@ -1109,7 +1109,7 @@ class ActivateProp(APIView):
                 prop.activated = True
             prop.account_name = account_name
             prop.save()
-            initiate_first_data(portfolio.account_id)
+            initiate_first_data(prop.account_id)
             return Response({"message": "Prop activated successfully"})
         except DemoPortfolio.DoesNotExist:
             return Response(
