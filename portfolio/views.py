@@ -690,12 +690,19 @@ class ReceiptsView(APIView):
         account_type = request.data.get("account_type", None)
         device_type = request.data.get("device_type", None)
         drawdown_type = request.data.get("drawdown_type", "balance_equity")
+        discount_code = request.data.get("discount_code", None)
+        if discount_code:
+            discount_instance = get_object_or_404(
+                exec_models.DiscountCode, code=discount_code
+            )
+
         if not account_type or account_type != "prop_account":
             serializers = ReceiptsViewSerializer(data=request.data)
             if serializers.is_valid():
                 image = serializers.validated_data["image"]
                 print(image, "sadbscv")
                 receipt = Receipts.objects.create(user=request.user, image=image)
+
                 # sendreciptsmail(request,receipt)
                 # sendreciptsmail(request,image)
                 save_and_send_notification(
@@ -751,6 +758,16 @@ class ReceiptsView(APIView):
                 model_type=account_name,
                 balance_based_drawdown=balance_based,
             )
+            propaccount_receipt = exec_models.PropReceipt.objects.create(
+                account=account, receipt=receipt
+            )
+
+            if discount_instance:
+                account.discount_code = discount_instance
+                account.save()
+
+                propaccount_receipt.discount_code = discount_instance
+                propaccount_receipt.save()
 
             exec_models.DemoDailyReturns2.objects.create(
                 portfolio=account, user=request.user, created=timezone.now()
@@ -758,8 +775,6 @@ class ReceiptsView(APIView):
             exec_models.DemoCumulativeReturns.objects.create(
                 portfolio=account, user=request.user, created=timezone.now()
             )
-
-            exec_models.PropReceipt.objects.create(account=account, receipt=receipt)
 
             return Response({"message": "File uploaded successfully"})
 

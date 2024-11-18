@@ -1,3 +1,4 @@
+from enum import auto
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
@@ -584,6 +585,10 @@ class PropReceipt(auto_prefetch.Model):
     )
     receipt = auto_prefetch.ForeignKey(
         Receipts, on_delete=models.CASCADE, blank=True, null=True
+    )
+
+    discount_code = auto_prefetch.ForeignKey(
+        DiscountCode, on_delete=models.CASCADE, blank=True, null=True
     )
 
     def __str__(self):

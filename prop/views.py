@@ -499,6 +499,266 @@ class AccountDataView(APIView):
             )
 
 
+# class AdminReceiptsView(APIView):
+#     serializer_class = AdminReceiptsViewSerializer
+
+#     def get(self, request):
+#         email = request.GET.get("email")
+#         filter = request.GET.get("filter")
+#         receipts_data = []
+
+#         # Get all receipts IDs from PropReceipt to filter against
+#         prop_receipt_ids = PropReceipt.objects.values_list("receipt_id", flat=True)
+
+#         if filter == "bank_transfer":
+#             # Only include receipts in PropReceipt
+#             for receipt in Receipts.objects.filter(
+#                 user__email=email, id__in=pr
+#             ).order_by("-created"):
+#                 receipt_dict = {
+#                     "id": receipt.id,
+#                     "amount": receipt.amount,
+#                     "created": receipt.created,
+#                     "receipt_status": receipt.receipt_status,
+#                     "payment_method": receipt.payment_method,
+#                     "fullname": receipt.user.fullname,
+#                     "comment": receipt.comment,
+#                     "approved_date": receipt.approved_date,
+#                     "image_url": receipt.image.url if receipt.image else "",
+#                     "user": receipt.user.id,
+#                     "flag": receipt.flag,
+#                     "timestamp": receipt.created.timestamp(),
+#                     discount_code =
+#                 }
+#                 receipts_data.append(receipt_dict)
+#         elif filter == "paystack":
+#             # Only include PayStack receipts in PropReceipt
+#             # paystack_receipt_ids = PropReceipt.objects.filter(
+#             #     receipt__in=PayStackReceipts.objects.all()
+#             # ).values_list("receipt_id", flat=True)
+#             paystack_receipt_ids = []
+
+#             for paystack_receipt in PayStackReceipts.objects.filter(
+#                 user__email=email, id__in=paystack_receipt_ids
+#             ).order_by("-date"):
+#                 paystack_receipt_dict = {
+#                     "id": paystack_receipt.id,
+#                     "amount": paystack_receipt.amount,
+#                     "created": paystack_receipt.date,
+#                     "receipt_status": paystack_receipt.receipt_status,
+#                     "payment_method": "paystack",
+#                     "user": paystack_receipt.user.id,
+#                     "image_url": "",
+#                     "approved_date": "",
+#                     "comment": paystack_receipt.comment,
+#                     "fullname": paystack_receipt.user.fullname,
+#                     "flag": paystack_receipt.flag,
+#                     "timestamp": paystack_receipt.date.timestamp(),
+#                 }
+#                 receipts_data.append(paystack_receipt_dict)
+#         else:
+#             # For no specific filter, include both Receipts and PayStackReceipts in PropReceipt
+#             for receipt in Receipts.objects.filter(id__in=prop_receipt_ids).order_by(
+#                 "-created"
+#             ):
+#                 receipt_dict = {
+#                     "id": receipt.id,
+#                     "amount": receipt.amount,
+#                     "created": receipt.created,
+#                     "receipt_status": receipt.receipt_status,
+#                     "payment_method": receipt.payment_method,
+#                     "fullname": receipt.user.fullname,
+#                     "comment": receipt.comment,
+#                     "approved_date": receipt.approved_date,
+#                     "image_url": receipt.image.url if receipt.image else "",
+#                     "user": receipt.user.id,
+#                     "flag": receipt.flag,
+#                     "timestamp": receipt.created.timestamp(),
+#                 }
+#                 receipts_data.append(receipt_dict)
+
+#             # for paystack_receipt in PayStackReceipts.objects.filter(
+#             #     id__in=paystack_receipt_ids
+#             # ).order_by("-date"):
+#             #     paystack_receipt_dict = {
+#             #         "id": paystack_receipt.id,
+#             #         "amount": paystack_receipt.amount,
+#             #         "created": paystack_receipt.date,
+#             #         "receipt_status": paystack_receipt.receipt_status,
+#             #         "payment_method": "paystack",
+#             #         "user": paystack_receipt.user.id,
+#             #         "image_url": "",
+#             #         "approved_date": "",
+#             #         "comment": paystack_receipt.comment,
+#             #         "fullname": paystack_receipt.user.fullname,
+#             #         "flag": paystack_receipt.flag,
+#             #         "timestamp": paystack_receipt.date.timestamp(),
+#             #     }
+#             #     receipts_data.append(paystack_receipt_dict)
+
+#         receipts_data2 = sorted(
+#             receipts_data, key=lambda x: x["timestamp"], reverse=True
+#         )
+#         return Response(receipts_data2)
+
+#     def post(self, request):
+
+#         statuses = ["approved", "rejected"]
+
+#         # id = request.data["id"]
+#         # amount = request.data["amount"]
+#         receipt_status = request.data["receipt_status"]
+#         comment = request.data.get("comment", None)
+
+#         receipt_ids = request.data.get("receipt_ids", [])
+#         print("recipt ids", receipt_ids)
+
+#         if receipt_status not in statuses:
+#             return Response("receipt_status must either be approved or rejected ")
+
+#         receipt_data = []
+
+#         for id in receipt_ids:
+
+#             receipt = Receipts.objects.get(id=id)
+#             receipt.receipt_status = receipt_status
+#             receipt.save()
+
+#             if receipt_status == "approved":
+
+#                 receipt.amount = 180000
+#                 receipt.save()
+#                 AdminUserActivityLog.objects.create(
+#                     admin=request.user,
+#                     user=receipt.user,
+#                     action_type="approved_reciept",
+#                     description=f"Admin user approved reciept.",
+#                 )
+#                 prop_receipt = PropReceipt.objects.filter(receipt=receipt).first()
+
+#                 prop_account = prop_receipt.account
+#                 prop_account.receipt_approved = True
+#                 # prop_account.activated = True
+#                 prop_account.is_active = True
+#                 prop_account.save()
+
+#                 account_info = {
+#                     "login": prop_account.account_id,
+#                     "password": prop_account.code,
+#                     "server": "HammaServer",
+#                     "acc_size": (
+#                         "Model 1" if prop_account.model_type == "model_1" else "Model 2"
+#                     ),
+#                     "payout": prop_account.payout.title(),
+#                     "broker": prop_account.broker.title(),
+#                     "first_name": receipt.user.firstname.title(),
+#                 }
+
+#                 # send the user the account details
+#                 sendMail(
+#                     "prop/AccountInfo.html",
+#                     "Prop Account Details",
+#                     [receipt.user.email],
+#                     account_info,
+#                 )
+
+#                 try:
+#                     # Check if this user was referred by someone
+#                     referral = Referral.objects.get(person_referred=receipt.user)
+
+#                     # Check if rewards have already been given for this user
+#                     existing_reward = RewardActivities.objects.filter(
+#                         trader=receipt.user, reward_type="prop_referral"
+#                     ).exists()
+
+#                     if not existing_reward:
+#                         # Credit referrer
+#                         referrer_wallet, _ = ReferralWallet.objects.get_or_create(
+#                             user=referral.user
+#                         )
+#                         referrer_wallet.balance += Decimal("18000")
+#                         referrer_wallet.save()
+
+#                         # Create reward activity for referrer
+#                         RewardActivities.objects.create(
+#                             user=referral.user,
+#                             trader=receipt.user,
+#                             reward_type="prop_referral",
+#                             amount=18000,
+#                             status="processed",
+#                             comment="Referral reward for prop account purchase",
+#                         )
+
+#                         # Credit referee (the user who was referred)
+#                         referee_wallet, _ = ReferralWallet.objects.get_or_create(
+#                             user=receipt.user
+#                         )
+#                         referee_wallet.balance += Decimal("18000")
+#                         referee_wallet.save()
+
+#                         # Create reward activity for referee
+#                         RewardActivities.objects.create(
+#                             user=receipt.user,
+#                             trader=receipt.user,
+#                             reward_type="referral_reward",
+#                             amount=18000,
+#                             status="processed",
+#                             comment="Referral reward for prop account purchase",
+#                         )
+
+#                         # Update referral status
+#                         # referral.converted = True
+#                         # referral.save()
+
+#                 except Referral.DoesNotExist:
+#                     # No referral relationship exists
+#                     pass
+
+#                 data = {
+#                     "id": receipt.id,
+#                     "user": receipt.user.id,
+#                     "fullname": receipt.user.fullname,
+#                     "amount": receipt.amount,
+#                     "payment_method": receipt.payment_method,
+#                     "receipt_status": receipt.receipt_status,
+#                     "comment": receipt.comment,
+#                     "created": receipt.created,
+#                     "approved_date": receipt.approved_date,
+#                     "image_url": receipt.image.url if receipt.image else None,
+#                 }
+#                 receipt_data.append(data)
+
+#             elif receipt_status == "rejected":
+#                 receipt.comment = comment
+#                 receipt.save()
+
+#                 AdminUserActivityLog.objects.create(
+#                     admin=request.user,
+#                     user=receipt.user,
+#                     action_type="rejected_reciept",
+#                     description=f"Admin user rejected reciept.",
+#                 )
+#                 data = {
+#                     "id": receipt.id,
+#                     "user": receipt.user.id,
+#                     "fullname": receipt.user.fullname,
+#                     "amount": receipt.amount,
+#                     "payment_method": receipt.payment_method,
+#                     "receipt_status": receipt.receipt_status,
+#                     "comment": receipt.comment,
+#                     "created": receipt.created,
+#                     "approved_date": receipt.approved_date,
+#                     "image_url": receipt.image.url if receipt.image else None,
+#                 }
+#                 save_and_send_notification(
+#                     receipt.user.id,
+#                     f"Your payment receipt has been rejected. Reason: {receipt.comment}.",
+#                 )
+#                 receipt_data.append(data)
+
+#         return Response(receipt_data)
+
+
 class AdminReceiptsView(APIView):
     serializer_class = AdminReceiptsViewSerializer
 
@@ -507,14 +767,22 @@ class AdminReceiptsView(APIView):
         filter = request.GET.get("filter")
         receipts_data = []
 
-        # Get all receipts IDs from PropReceipt to filter against
-        prop_receipt_ids = PropReceipt.objects.values_list("receipt_id", flat=True)
+        # Fetch all PropReceipts with their related data once
+        prop_receipts = PropReceipt.objects.select_related(
+            "receipt", "receipt__user", "discount_code"
+        ).all()
+
+        # Create a dictionary for quick lookup
+        prop_receipt_map = {pr.receipt_id: pr for pr in prop_receipts if pr.receipt_id}
 
         if filter == "bank_transfer":
             # Only include receipts in PropReceipt
-            for receipt in Receipts.objects.filter(
-                user__email=email, id__in=prop_receipt_ids
-            ).order_by("-created"):
+            for receipt in (
+                Receipts.objects.select_related("user")
+                .filter(user__email=email, id__in=prop_receipt_map.keys())
+                .order_by("-created")
+            ):
+                prop_receipt = prop_receipt_map.get(receipt.id)
                 receipt_dict = {
                     "id": receipt.id,
                     "amount": receipt.amount,
@@ -528,18 +796,35 @@ class AdminReceiptsView(APIView):
                     "user": receipt.user.id,
                     "flag": receipt.flag,
                     "timestamp": receipt.created.timestamp(),
+                    "discount_code": (
+                        {
+                            "code": (
+                                prop_receipt.discount_code.code
+                                if prop_receipt and prop_receipt.discount_code
+                                else None
+                            ),
+                            "discount_percentage": (
+                                prop_receipt.discount_code.discount_percentage
+                                if prop_receipt and prop_receipt.discount_code
+                                else None
+                            ),
+                        }
+                        if prop_receipt and prop_receipt.discount_code
+                        else None
+                    ),
                 }
                 receipts_data.append(receipt_dict)
+
         elif filter == "paystack":
             # Only include PayStack receipts in PropReceipt
-            # paystack_receipt_ids = PropReceipt.objects.filter(
-            #     receipt__in=PayStackReceipts.objects.all()
-            # ).values_list("receipt_id", flat=True)
             paystack_receipt_ids = []
 
-            for paystack_receipt in PayStackReceipts.objects.filter(
-                user__email=email, id__in=paystack_receipt_ids
-            ).order_by("-date"):
+            for paystack_receipt in (
+                PayStackReceipts.objects.select_related("user")
+                .filter(user__email=email, id__in=paystack_receipt_ids)
+                .order_by("-date")
+            ):
+                prop_receipt = prop_receipt_map.get(paystack_receipt.id)
                 paystack_receipt_dict = {
                     "id": paystack_receipt.id,
                     "amount": paystack_receipt.amount,
@@ -553,13 +838,33 @@ class AdminReceiptsView(APIView):
                     "fullname": paystack_receipt.user.fullname,
                     "flag": paystack_receipt.flag,
                     "timestamp": paystack_receipt.date.timestamp(),
+                    "discount_code": (
+                        {
+                            "code": (
+                                prop_receipt.discount_code.code
+                                if prop_receipt and prop_receipt.discount_code
+                                else None
+                            ),
+                            "discount_percentage": (
+                                prop_receipt.discount_code.discount_percentage
+                                if prop_receipt and prop_receipt.discount_code
+                                else None
+                            ),
+                        }
+                        if prop_receipt and prop_receipt.discount_code
+                        else None
+                    ),
                 }
                 receipts_data.append(paystack_receipt_dict)
+
         else:
             # For no specific filter, include both Receipts and PayStackReceipts in PropReceipt
-            for receipt in Receipts.objects.filter(id__in=prop_receipt_ids).order_by(
-                "-created"
+            for receipt in (
+                Receipts.objects.select_related("user")
+                .filter(id__in=prop_receipt_map.keys())
+                .order_by("-created")
             ):
+                prop_receipt = prop_receipt_map.get(receipt.id)
                 receipt_dict = {
                     "id": receipt.id,
                     "amount": receipt.amount,
@@ -573,189 +878,29 @@ class AdminReceiptsView(APIView):
                     "user": receipt.user.id,
                     "flag": receipt.flag,
                     "timestamp": receipt.created.timestamp(),
+                    "discount_code": (
+                        {
+                            "code": (
+                                prop_receipt.discount_code.code
+                                if prop_receipt and prop_receipt.discount_code
+                                else None
+                            ),
+                            "discount_percentage": (
+                                prop_receipt.discount_code.discount_percentage
+                                if prop_receipt and prop_receipt.discount_code
+                                else None
+                            ),
+                        }
+                        if prop_receipt and prop_receipt.discount_code
+                        else None
+                    ),
                 }
                 receipts_data.append(receipt_dict)
-
-            # for paystack_receipt in PayStackReceipts.objects.filter(
-            #     id__in=paystack_receipt_ids
-            # ).order_by("-date"):
-            #     paystack_receipt_dict = {
-            #         "id": paystack_receipt.id,
-            #         "amount": paystack_receipt.amount,
-            #         "created": paystack_receipt.date,
-            #         "receipt_status": paystack_receipt.receipt_status,
-            #         "payment_method": "paystack",
-            #         "user": paystack_receipt.user.id,
-            #         "image_url": "",
-            #         "approved_date": "",
-            #         "comment": paystack_receipt.comment,
-            #         "fullname": paystack_receipt.user.fullname,
-            #         "flag": paystack_receipt.flag,
-            #         "timestamp": paystack_receipt.date.timestamp(),
-            #     }
-            #     receipts_data.append(paystack_receipt_dict)
 
         receipts_data2 = sorted(
             receipts_data, key=lambda x: x["timestamp"], reverse=True
         )
         return Response(receipts_data2)
-
-    def post(self, request):
-
-        statuses = ["approved", "rejected"]
-
-        # id = request.data["id"]
-        # amount = request.data["amount"]
-        receipt_status = request.data["receipt_status"]
-        comment = request.data.get("comment", None)
-
-        receipt_ids = request.data.get("receipt_ids", [])
-        print("recipt ids", receipt_ids)
-
-        if receipt_status not in statuses:
-            return Response("receipt_status must either be approved or rejected ")
-
-        receipt_data = []
-
-        for id in receipt_ids:
-
-            receipt = Receipts.objects.get(id=id)
-            receipt.receipt_status = receipt_status
-            receipt.save()
-
-            if receipt_status == "approved":
-
-                receipt.amount = 180000
-                receipt.save()
-                AdminUserActivityLog.objects.create(
-                    admin=request.user,
-                    user=receipt.user,
-                    action_type="approved_reciept",
-                    description=f"Admin user approved reciept.",
-                )
-                prop_receipt = PropReceipt.objects.filter(receipt=receipt).first()
-
-                prop_account = prop_receipt.account
-                prop_account.receipt_approved = True
-                # prop_account.activated = True
-                prop_account.is_active = True
-                prop_account.save()
-
-                account_info = {
-                    "login": prop_account.account_id,
-                    "password": prop_account.code,
-                    "server": "HammaServer",
-                    "acc_size": (
-                        "Model 1" if prop_account.model_type == "model_1" else "Model 2"
-                    ),
-                    "payout": prop_account.payout.title(),
-                    "broker": prop_account.broker.title(),
-                    "first_name": receipt.user.firstname.title(),
-                }
-
-                # send the user the account details
-                sendMail(
-                    "prop/AccountInfo.html",
-                    "Prop Account Details",
-                    [receipt.user.email],
-                    account_info,
-                )
-
-                try:
-                    # Check if this user was referred by someone
-                    referral = Referral.objects.get(person_referred=receipt.user)
-
-                    # Check if rewards have already been given for this user
-                    existing_reward = RewardActivities.objects.filter(
-                        trader=receipt.user, reward_type="prop_referral"
-                    ).exists()
-
-                    if not existing_reward:
-                        # Credit referrer
-                        referrer_wallet, _ = ReferralWallet.objects.get_or_create(
-                            user=referral.user
-                        )
-                        referrer_wallet.balance += Decimal("18000")
-                        referrer_wallet.save()
-
-                        # Create reward activity for referrer
-                        RewardActivities.objects.create(
-                            user=referral.user,
-                            trader=receipt.user,
-                            reward_type="prop_referral",
-                            amount=18000,
-                            status="processed",
-                            comment="Referral reward for prop account purchase",
-                        )
-
-                        # Credit referee (the user who was referred)
-                        referee_wallet, _ = ReferralWallet.objects.get_or_create(
-                            user=receipt.user
-                        )
-                        referee_wallet.balance += Decimal("18000")
-                        referee_wallet.save()
-
-                        # Create reward activity for referee
-                        RewardActivities.objects.create(
-                            user=receipt.user,
-                            trader=receipt.user,
-                            reward_type="referral_reward",
-                            amount=18000,
-                            status="processed",
-                            comment="Referral reward for prop account purchase",
-                        )
-
-                        # Update referral status
-                        # referral.converted = True
-                        # referral.save()
-
-                except Referral.DoesNotExist:
-                    # No referral relationship exists
-                    pass
-
-                data = {
-                    "id": receipt.id,
-                    "user": receipt.user.id,
-                    "fullname": receipt.user.fullname,
-                    "amount": receipt.amount,
-                    "payment_method": receipt.payment_method,
-                    "receipt_status": receipt.receipt_status,
-                    "comment": receipt.comment,
-                    "created": receipt.created,
-                    "approved_date": receipt.approved_date,
-                    "image_url": receipt.image.url if receipt.image else None,
-                }
-                receipt_data.append(data)
-
-            elif receipt_status == "rejected":
-                receipt.comment = comment
-                receipt.save()
-
-                AdminUserActivityLog.objects.create(
-                    admin=request.user,
-                    user=receipt.user,
-                    action_type="rejected_reciept",
-                    description=f"Admin user rejected reciept.",
-                )
-                data = {
-                    "id": receipt.id,
-                    "user": receipt.user.id,
-                    "fullname": receipt.user.fullname,
-                    "amount": receipt.amount,
-                    "payment_method": receipt.payment_method,
-                    "receipt_status": receipt.receipt_status,
-                    "comment": receipt.comment,
-                    "created": receipt.created,
-                    "approved_date": receipt.approved_date,
-                    "image_url": receipt.image.url if receipt.image else None,
-                }
-                save_and_send_notification(
-                    receipt.user.id,
-                    f"Your payment receipt has been rejected. Reason: {receipt.comment}.",
-                )
-                receipt_data.append(data)
-
-        return Response(receipt_data)
 
 
 class AdminAccountsList(APIView):
