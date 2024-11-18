@@ -10,7 +10,9 @@ import json
 channel_layer = get_channel_layer()
 
 
-def send_assistant_message(message, channel_room_name, conversation, message_id=None):
+def send_assistant_message(
+    message, channel_room_name, conversation, message_id=None, assistant_id=None
+):
 
     response = None
     conversation = models.SupportThread.objects.get(thread_id=conversation.thread_id)
@@ -39,7 +41,7 @@ def send_assistant_message(message, channel_room_name, conversation, message_id=
         }
 
         async_to_sync(channel_layer.group_send)(
-            f"admin_support_group_{conversation.thread_id}",
+            f"admin_support_group_{str(conversation.is_prop)}{conversation.thread_id}",
             {
                 "type": "send_message_to_user",
                 "message": user_message_data,
@@ -47,7 +49,7 @@ def send_assistant_message(message, channel_room_name, conversation, message_id=
         )
         # send to message to update side bar as well.
         async_to_sync(channel_layer.group_send)(
-            "switch_to_admin_request",
+            f"switch_to_admin_request_{str(conversation.is_prop)}",
             {
                 "type": "send_message_to_user",
                 "message": user_message_data,
@@ -64,6 +66,7 @@ def send_assistant_message(message, channel_room_name, conversation, message_id=
             thread_id=conversation.thread_id,
             user=conversation.email,
             new_message=message,
+            assistant_id=assistant_id,
         )
 
     if response["success"]:

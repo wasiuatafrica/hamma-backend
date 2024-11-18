@@ -18,6 +18,7 @@ class SupportThread(auto_prefetch.Model):
     email = models.EmailField(null=True, blank=True)
     thread_id = models.CharField(max_length=300, default="")
     switched_to_admin_support = models.BooleanField(default=False)
+    is_prop = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated = models.DateTimeField(auto_now=True, null=True, blank=True)
 
@@ -96,7 +97,10 @@ class SupportMessage(auto_prefetch.Model):
 
     def save(self, *args, **kwargs):
         if self.sender == "assistant":
-            self.name = "Hamilton (Hamma Chatbot)"
+            if self.thread.is_prop:
+                self.name = "Julian Hayes (Hamma Prop AI Chatbot)"
+            else:
+                self.name = "Hamilton (Hamma Chatbot)"
         super(SupportMessage, self).save(*args, **kwargs)
 
 

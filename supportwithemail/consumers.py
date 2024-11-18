@@ -20,8 +20,8 @@ class NoAuthSupportConsumer(AsyncWebsocketConsumer):
         return CustomUser.objects.filter(email=email).exists()
 
     @database_sync_to_async
-    def get_conversation(self, email):
-        conversation = models.SupportThread.objects.create(email=email)
+    def get_conversation(self, email, is_prop=False):
+        conversation = models.SupportThread.objects.create(email=email, is_prop=is_prop)
 
         client = OpenAI()
         thread = client.beta.threads.create()
@@ -34,9 +34,14 @@ class NoAuthSupportConsumer(AsyncWebsocketConsumer):
         parsed_query = parse_qs(query_string)
         self.email = parsed_query.get("email", [None])[0]
         self.name = parsed_query.get("name", [None])[0]
-        # self.namee= parsed_query.get('query_string', [None])[0]
+        self.bot_type = parsed_query.get("is_prop", [None])[0]
 
-        self.conversation = await self.get_conversation(self.email)
+        # Safely handle None case
+        self.is_prop = self.bot_type.lower() == "true" if self.bot_type else False
+
+        self.conversation = await self.get_conversation(
+            self.email, is_prop=self.is_prop
+        )
         self.conversation_id = self.conversation.id
 
     async def connect(self):
@@ -79,8 +84,17 @@ class NoAuthSupportConsumer(AsyncWebsocketConsumer):
                 )
 
             message_id = await database_sync_to_async(create_message)("user", message)
+            assistant_id = (
+                "asst_cNYBMhon9Y4opWwtdK2xR345"
+                if self.is_prop
+                else "asst_MJ9ZqMIyzQqgjvm5sUwGZI7E"
+            )
             await database_sync_to_async(utils.send_assistant_message)(
-                message, self.channel_room_name, self.conversation, message_id.id
+                message,
+                self.channel_room_name,
+                self.conversation,
+                message_id.id,
+                assistant_id=assistant_id,
             )
 
         except json.JSONDecodeError:
