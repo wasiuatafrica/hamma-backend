@@ -6,9 +6,6 @@ from django.shortcuts import get_object_or_404
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.db.models import Subquery, OuterRef
-from .models import User, DemoPortfolio
-
 import pytz
 from django.db.models import (
     Case,
@@ -38,6 +35,8 @@ from affilate.serializers import (
     ReferralWithdrawalRequestSerializer,
     RewardActivitiesSerializer,
 )
+
+from datetime import datetime
 from anyon.serializers import AdminReceiptsViewSerializer
 from execution.models import DemoPortfolio, DemoPosition, PropReceipt
 from notifications.utils import save_and_send_notification
@@ -47,11 +46,67 @@ from portfolio.models import PayStackReceipts, Receipts
 from .models import Payout
 from .pay_service import PayoutService
 from .serializers import AccountlistSerializer, PayoutDetailSerializer
-from .utils import get_account_data, get_equity_balance, initiate_first_data
+from .utils import (
+    get_account_data,
+    get_equity_balance,
+    initiate_first_data,
+    calculate_trading_days,
+)
 from competition.managers.utils import sendMail
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
+
+
+def calculate_daily_drawdown(data, model_type):
+    """
+    Calculate the maximum drawdown achieved and allowed for today's data.
+
+    Args:
+        data (list): A list of dictionaries with keys 'balance', 'equity', 'timestamp', and 'account_id'.
+        model_type (str): The model type ('model_1' or other).
+
+    Returns:
+        tuple: Maximum drawdown allowed and maximum drawdown achieved.
+    """
+
+    # Get today's date in 'YYYY-MM-DD' format
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    # Filter the data for today, or use the most recent date in the data
+    today_data = [record for record in data if record["timestamp"].startswith(today)]
+    if not today_data:
+        # Find the most recent date and filter data for that day
+        most_recent_date = max(record["timestamp"].split("T")[0] for record in data)
+        today_data = [
+            record
+            for record in data
+            if record["timestamp"].startswith(most_recent_date)
+        ]
+
+    if not today_data:
+        return 0, 0  # No data available
+
+    # Extract the list of balance values for today's data
+    balances = [record["balance"] for record in today_data]
+    if not balances:
+        return 0, 0  # No balance data available
+
+    # Get the initial balance (day starting balance)
+    initial_balance = balances[0]
+
+    # Calculate the maximum drawdown achieved
+    drawdowns = [
+        initial_balance - balance for balance in balances if balance < initial_balance
+    ]
+    max_drawdown_achieved = max(drawdowns, default=0)
+
+    # Calculate the maximum drawdown allowed based on the model type
+    max_drawdown_allowed = (
+        0.05 * initial_balance if model_type == "model_1" else 0.03 * initial_balance
+    )
+
+    return max_drawdown_allowed, max_drawdown_achieved
 
 
 class PayoutListAPIView(APIView):
@@ -299,7 +354,7 @@ class PortfolioMetrics(APIView):
         profit_loss = current_balance - initial_balance
 
         # Get positions for the last 14 days
-        two_weeks_ago = current_time - timedelta(days=14)
+        # two_weeks_ago = current_time - timedelta(days=14)
         positions = DemoPosition.objects.filter(
             portfolio=portfolio  # , created__gte=two_weeks_ago
         )
@@ -311,25 +366,30 @@ class PortfolioMetrics(APIView):
         win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
 
         # Calculate drawdown
-        if historical_data:
-            least_equity = min([data["equity"] for data in historical_data])
-            least_balance = min([data["balance"] for data in historical_data])
+        if not portfolio.balance_based_drawdown:
+            if historical_data:
+                least_equity = min([data["equity"] for data in historical_data])
+                least_balance = min([data["balance"] for data in historical_data])
 
-            current_drawdown = float(initial_balance) - min(least_equity, least_balance)
-        else:
-            current_drawdown = 0
+                current_drawdown = float(initial_balance) - min(
+                    least_equity, least_balance
+                )
+            else:
+                current_drawdown = 0
+        elif portfolio.balance_based_drawdown:
+            if historical_data:
+                least_balance = min([data["balance"] for data in historical_data])
 
-        # Get trading days (count unique days with trades)
-        trading_days = len(
-            set(
-                position.created.astimezone(wat).date()
-                for position in positions
-                # if position.created >= two_weeks_ago
-            )
-        )
+                current_drawdown = float(initial_balance) - least_balance
+            else:
+                current_drawdown = 0
+
+        trading_days = calculate_trading_days(historical_data)
 
         # Get daily drawdown limit
-        daily_dd_limit = portfolio.account_drawdown_limit or Decimal("120000")
+        dd_allowed, dd_achieved = calculate_daily_drawdown(
+            historical_data, portfolio.model_type
+        )
 
         response_data = {
             "metrics": {
@@ -343,8 +403,8 @@ class PortfolioMetrics(APIView):
             },
             "trading_objectives": {
                 "daily_drawdown": {
-                    "max_dd_limit": f"{daily_dd_limit:.2f}",
-                    "today_dd_limit": f"{daily_dd_limit:.2f}",
+                    "max_dd_limit": f"{dd_allowed:.2f}",
+                    "today_dd_limit": f"{dd_achieved:.2f}",
                 },
                 "trading_days": {
                     "minimum": 6,

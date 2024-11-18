@@ -99,6 +99,40 @@ def get_all_balance_equity_data():
                 collection.insert_one(mongo_data)
 
 
+def get_fixed_balance_equity_data():
+
+    prop_accounts = DemoPortfolio.objects.filter(
+        is_prop=True,
+        is_active=True,
+        inactive_by_inactivity=False,
+        activated=True,
+        blown=False,
+    )
+    for account in prop_accounts:
+        account_data = get_equity_balance(account)
+        mongo_data = {
+            "balance": (
+                float(account_data["balance"])
+                if isinstance(account_data["balance"], Decimal)
+                else account_data["balance"]
+            ),
+            "equity": (
+                float(account_data["equity"])
+                if isinstance(account_data["equity"], Decimal)
+                else account_data["equity"]
+            ),
+            "timestamp": (
+                account_data["timestamp"].strftime("%Y-%m-%dT%H:%M")
+                if isinstance(account_data["timestamp"], datetime)
+                else account_data["timestamp"]
+            ),
+            "account_id": account_data["account_id"],
+        }
+
+        collection = db_prop[account.account_id]
+        collection.insert_one(mongo_data)
+
+
 def get_account_data(account_id):
     collection = db_prop[account_id]
     data = list(collection.find({}, {"_id": 0}))
@@ -114,3 +148,41 @@ def initiate_first_data(account_id):
         "account_id": account_id,
     }
     collection.insert_one(data)
+
+
+def calculate_trading_days(data):
+    """
+    Calculate the number of trading days based on provided account data.
+
+    Args:
+        data (list): A list of dictionaries with keys 'balance', 'equity', 'timestamp', and 'account_id'.
+
+    Returns:
+        int: The number of unique trading days.
+    """
+
+    # Extract unique dates from the data
+    dates = sorted({record["timestamp"].split("T")[0] for record in data})
+
+    trading_days_list = []
+
+    # Iterate through each date
+    for date in dates:
+        # Filter records for the current date
+        daily_records = [
+            record for record in data if record["timestamp"].startswith(date)
+        ]
+
+        if not daily_records:
+            continue
+
+        # Check if any balance differs from the first balance of the day
+        first_balance = daily_records[0]["balance"]
+        trading_occurred = any(
+            record["balance"] != first_balance for record in daily_records
+        )
+
+        if trading_occurred:
+            trading_days_list.append(date)
+
+    return len(trading_days_list)

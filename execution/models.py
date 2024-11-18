@@ -60,6 +60,7 @@ class DemoPortfolio(auto_prefetch.Model):
     updated = models.DateTimeField(auto_now=True, null=True, blank=True)
     balance_based_drawdown = models.BooleanField(default=False)
     last_swap_charge_date = models.DateField(null=True, blank=True)
+    passed_date = models.DateTimeField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.account_id:
