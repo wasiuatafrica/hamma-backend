@@ -34,6 +34,7 @@ class DiscountCode(auto_prefetch.Model):
         ("main", "Main"),
         ("general", "General"),
         ("account-size", "Account Size"),
+        ("personal", "Personal"),
     )
 
     MODEL_CHOICES = (("model_1", "Model 1"), ("model_2", "Model 2"))
