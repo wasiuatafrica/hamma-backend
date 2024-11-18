@@ -28,6 +28,56 @@ def get_price(symbol):
     return last_item[symbol]
 
 
+class DiscountCode(auto_prefetch.Model):
+    TYPE_CHOICES = (
+        ("prop", "Prop"),
+        ("main", "Main"),
+        ("general", "General"),
+        ("account-size", "Account Size"),
+    )
+
+    MODEL_CHOICES = (("model_1", "Model 1"), ("model_2", "Model 2"))
+
+    code = models.CharField(max_length=25, unique=True)
+    discount_percentage = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    expiry_date = models.DateTimeField(null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    description = models.TextField(blank=True, null=True)
+    num_of_accounts = models.IntegerField(null=True, blank=True)
+    user = auto_prefetch.ForeignKey(
+        User,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="discount_codes",
+    )
+    use_limit = models.PositiveIntegerField(
+        null=True, blank=True
+    )  # Number of times code can be used
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default="prop")
+    acc_size = models.CharField(max_length=30, blank=True, null=True)
+    domain = models.CharField(max_length=30, blank=True, null=True, default="hamma")
+    acc_model = models.CharField(
+        max_length=30, blank=True, null=True, choices=MODEL_CHOICES
+    )
+
+    def is_valid(self):
+        now = timezone.now()
+        return self.is_active and self.created <= now <= self.expiry_date
+
+    def __str__(self):
+        return f"{self.user.email if self.user else None} - {self.code}"
+
+    def total_used(self):
+        if self.is_active:
+            if timezone.now() > self.expiry_date:
+
+                self.is_active = False
+                self.save()
+        return DemoPortfolio.objects.filter(discount_code=self).count()
+
+
 class DemoPortfolio(auto_prefetch.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="demoportfolio2"
@@ -61,6 +111,9 @@ class DemoPortfolio(auto_prefetch.Model):
     balance_based_drawdown = models.BooleanField(default=False)
     last_swap_charge_date = models.DateField(null=True, blank=True)
     passed_date = models.DateTimeField(blank=True, null=True)
+    discount_code = auto_prefetch.ForeignKey(
+        DiscountCode, on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     def save(self, *args, **kwargs):
         if not self.account_id:

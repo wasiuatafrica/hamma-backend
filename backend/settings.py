@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "tradingai",
     "streaks",
     "prop",
+    "discount",
 ]
 
 

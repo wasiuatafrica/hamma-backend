@@ -80,6 +80,7 @@ urlpatterns = (
         path("", include("tradingai.urls")),
         path("streaks/", include("streaks.urls")),
         path("prop/", include("prop.urls")),
+        path("discount/", include("discount.urls")),
         path(
             "chart-data/",
             views.ChartData.as_view(),
