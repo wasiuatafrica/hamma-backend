@@ -1,5 +1,5 @@
 from celery.app import shared_task
-from .utils import get_all_balance_equity_data
+from .utils import get_all_balance_equity_data, get_fixed_balance_equity_data
 from .analyzer import analyze_portfolio_status
 from execution.models import DemoPortfolio
 
@@ -7,6 +7,11 @@ from execution.models import DemoPortfolio
 @shared_task
 def get_all_balance_equity_data_task():
     get_all_balance_equity_data()
+
+
+@shared_task
+def get_current_prop_data_task():
+    get_fixed_balance_equity_data()
 
 
 @shared_task
