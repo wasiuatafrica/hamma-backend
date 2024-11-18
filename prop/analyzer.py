@@ -21,44 +21,145 @@ class PortfolioAnalyzer:
         self.daily_drawdown_limit = Decimal("5")  # 5% daily drawdown limit
         self.profit_target = portfolio.profit_target
         self.balance_based_drawdown = portfolio.balance_based_drawdown
-        self.swap_fee = Decimal("500.00")  # 500 naira swap fee
+        self.swap_fee = Decimal("1000.00")  # 500 naira swap fee
 
-    def check_account_drawdown_violation(self) -> Dict:
+    # def check_account_drawdown_violation(self) -> Dict:
+    #     """
+    #     Check both balance and equity for account drawdown
+    #     Only considers values less than initial balance
+    #     Returns dict with drawdown info
+    #     """
+    #     if not self.data:
+    #         return {"violated": False, "drawdown_percentage": 0}
+
+    #     max_drawdown_percentage = Decimal("0")
+
+    #     # Check both balance and equity
+    #     for entry in self.data:
+    #         balance = Decimal(str(entry["balance"]))
+
+    #         if self.balance_based_drawdown:
+    #             # Only check balance for drawdown
+    #             if balance < self.initial_balance:
+    #                 balance_drawdown = (
+    #                     (self.initial_balance - balance) / self.initial_balance
+    #                 ) * 100
+    #                 max_drawdown_percentage = max(
+    #                     max_drawdown_percentage, balance_drawdown
+    #                 )
+    #         else:
+    #             equity = Decimal(str(entry["equity"]))
+
+    #             # Only consider values less than initial balance
+    #             if balance < self.initial_balance:
+    #                 balance_drawdown = (
+    #                     (self.initial_balance - balance) / self.initial_balance
+    #                 ) * 100
+    #                 max_drawdown_percentage = max(
+    #                     max_drawdown_percentage, balance_drawdown
+    #                 )
+
+    #             if equity < self.initial_balance:
+    #                 equity_drawdown = (
+    #                     (self.initial_balance - equity) / self.initial_balance
+    #                 ) * 100
+    #                 max_drawdown_percentage = max(
+    #                     max_drawdown_percentage, equity_drawdown
+    #                 )
+
+    #     return {
+    #         "violated": max_drawdown_percentage > self.account_drawdown_limit,
+    #         "drawdown_percentage": max_drawdown_percentage,
+    #     }
+
+    # def check_daily_drawdown_violation(self) -> Dict:
+    #     """
+    #     Check daily drawdown using both balance and equity
+    #     Returns dict with violation info
+    #     """
+    #     if not self.data:
+    #         return {"violated": False, "max_daily_drawdown": 0}
+
+    #     daily_data = {}
+    #     max_daily_drawdown = Decimal("0")
+    #     violation_date = None
+
+    #     for entry in self.data:
+    #         date = entry["timestamp"].date()
+    #         balance = Decimal(str(entry["balance"]))
+    #         # equity = Decimal(str(entry["equity"]))
+
+    #         if date not in daily_data:
+    #             daily_data[date] = {
+    #                 "start_balance": balance,
+    #                 # "start_equity": equity,
+    #                 "low_balance": balance,
+    #                 # "low_equity": equity,
+    #             }
+    #         else:
+    #             daily_data[date]["low_balance"] = min(
+    #                 daily_data[date]["low_balance"], balance
+    #             )
+    #             # daily_data[date]["low_equity"] = min(
+    #             #     daily_data[date]["low_equity"], equity
+    #             # )
+
+    #     # Calculate daily drawdowns
+    #     for date, values in daily_data.items():
+    #         start_value = max(values["start_balance"], values["start_equity"])
+    #         low_balance_drawdown = (
+    #             (start_value - values["low_balance"]) / start_value
+    #         ) * 100
+    #         # low_equity_drawdown = (
+    #         #     (start_value - values["low_equity"]) / start_value
+    #         # ) * 100
+
+    #         # daily_drawdown = max(low_balance_drawdown, low_equity_drawdown)
+    #         daily_drawdown = low_balance_drawdown
+
+    #         if daily_drawdown > max_daily_drawdown:
+    #             max_daily_drawdown = daily_drawdown
+    #             violation_date = date
+
+    #     return {
+    #         "violated": max_daily_drawdown > self.daily_drawdown_limit,
+    #         "max_daily_drawdown": max_daily_drawdown,
+    #         "violation_date": violation_date,
+    #     }
+
+    def check_account_drawdown_violation(self, model_type: str) -> Dict:
         """
-        Check both balance and equity for account drawdown
-        Only considers values less than initial balance
-        Returns dict with drawdown info
+        Check both balance and equity for account drawdown.
+        Considers only values less than the initial balance.
+
+        Args:
+            model_type (str): The model type ('model_1' or other).
+
+        Returns:
+            dict: Information about drawdown violation.
         """
         if not self.data:
             return {"violated": False, "drawdown_percentage": 0}
 
         max_drawdown_percentage = Decimal("0")
+        max_drawdown_allowed = (
+            Decimal("10.0") if model_type == "model_1" else Decimal("6.0")
+        )
 
         # Check both balance and equity
         for entry in self.data:
             balance = Decimal(str(entry["balance"]))
 
-            if self.balance_based_drawdown:
-                # Only check balance for drawdown
-                if balance < self.initial_balance:
-                    balance_drawdown = (
-                        (self.initial_balance - balance) / self.initial_balance
-                    ) * 100
-                    max_drawdown_percentage = max(
-                        max_drawdown_percentage, balance_drawdown
-                    )
-            else:
+            # Balance-based drawdown check
+            if balance < self.initial_balance:
+                balance_drawdown = (
+                    (self.initial_balance - balance) / self.initial_balance
+                ) * 100
+                max_drawdown_percentage = max(max_drawdown_percentage, balance_drawdown)
+
+            # Equity-based drawdown check (if applicable)
+            if not self.balance_based_drawdown:
                 equity = Decimal(str(entry["equity"]))
-
-                # Only consider values less than initial balance
-                if balance < self.initial_balance:
-                    balance_drawdown = (
-                        (self.initial_balance - balance) / self.initial_balance
-                    ) * 100
-                    max_drawdown_percentage = max(
-                        max_drawdown_percentage, balance_drawdown
-                    )
-
                 if equity < self.initial_balance:
                     equity_drawdown = (
                         (self.initial_balance - equity) / self.initial_balance
@@ -68,63 +169,59 @@ class PortfolioAnalyzer:
                     )
 
         return {
-            "violated": max_drawdown_percentage > self.account_drawdown_limit,
-            "drawdown_percentage": max_drawdown_percentage,
+            "violated": max_drawdown_percentage > max_drawdown_allowed,
+            "drawdown_percentage": float(max_drawdown_percentage),
         }
 
-    def check_daily_drawdown_violation(self) -> Dict:
+    def check_daily_drawdown_violation(self, model_type: str) -> Dict:
         """
-        Check daily drawdown using both balance and equity
-        Returns dict with violation info
+        Check daily drawdown using balance.
+        Args:
+            model_type (str): The model type ('model_1' or other).
+        Returns:
+            dict: Information about drawdown violation.
         """
         if not self.data:
-            return {"violated": False, "max_daily_drawdown": 0}
+            return {"violated": False, "max_daily_drawdown": 0, "violation_date": None}
 
-        daily_data = {}
-        max_daily_drawdown = Decimal("0")
-        violation_date = None
+        # Get today's date in 'YYYY-MM-DD' format
+        today = datetime.now().strftime("%Y-%m-%d")
 
-        for entry in self.data:
-            date = entry["timestamp"].date()
-            balance = Decimal(str(entry["balance"]))
-            # equity = Decimal(str(entry["equity"]))
+        # Filter the data for today
+        today_data = [
+            entry for entry in self.data if entry["timestamp"].startswith(today)
+        ]
+        if not today_data:
+            return {"violated": False, "max_daily_drawdown": 0, "violation_date": None}
 
-            if date not in daily_data:
-                daily_data[date] = {
-                    "start_balance": balance,
-                    # "start_equity": equity,
-                    "low_balance": balance,
-                    # "low_equity": equity,
-                }
-            else:
-                daily_data[date]["low_balance"] = min(
-                    daily_data[date]["low_balance"], balance
-                )
-                # daily_data[date]["low_equity"] = min(
-                #     daily_data[date]["low_equity"], equity
-                # )
+        # Extract the list of balance values for today's data
+        balances = [Decimal(str(entry["balance"])) for entry in today_data]
+        if not balances:
+            return {"violated": False, "max_daily_drawdown": 0, "violation_date": None}
 
-        # Calculate daily drawdowns
-        for date, values in daily_data.items():
-            start_value = max(values["start_balance"], values["start_equity"])
-            low_balance_drawdown = (
-                (start_value - values["low_balance"]) / start_value
-            ) * 100
-            # low_equity_drawdown = (
-            #     (start_value - values["low_equity"]) / start_value
-            # ) * 100
+        # Get the initial balance (day starting balance)
+        initial_balance = balances[0]
 
-            # daily_drawdown = max(low_balance_drawdown, low_equity_drawdown)
-            daily_drawdown = low_balance_drawdown
+        # Calculate the maximum drawdown achieved
+        drawdowns = [
+            (initial_balance - balance) / initial_balance * 100
+            for balance in balances
+            if balance < initial_balance
+        ]
+        max_drawdown_achieved = max(drawdowns, default=Decimal("0"))
 
-            if daily_drawdown > max_daily_drawdown:
-                max_daily_drawdown = daily_drawdown
-                violation_date = date
+        # Calculate the maximum drawdown allowed based on the model type
+        max_drawdown_allowed = (
+            Decimal("5.0") if model_type == "model_1" else Decimal("3.0")
+        )
+
+        # Determine if a violation occurred
+        violated = max_drawdown_achieved > max_drawdown_allowed
 
         return {
-            "violated": max_daily_drawdown > self.daily_drawdown_limit,
-            "max_daily_drawdown": max_daily_drawdown,
-            "violation_date": violation_date,
+            "violated": violated,
+            "max_daily_drawdown": float(max_drawdown_achieved),
+            "violation_date": today if violated else None,
         }
 
     def check_inactivity(self) -> bool:
@@ -135,12 +232,15 @@ class PortfolioAnalyzer:
         if not self.data:
             return False
 
-        current_time = timezone.now()
+        current_time = datetime.now(timezone.utc)
         two_weeks_ago = current_time - timedelta(days=14)
 
         # Filter data for last 2 weeks
         recent_data = [
-            entry for entry in self.data if entry["timestamp"] >= two_weeks_ago
+            entry
+            for entry in self.data
+            if datetime.fromisoformat(entry["timestamp"]).replace(tzinfo=timezone.utc)
+            >= two_weeks_ago
         ]
 
         if not recent_data:
@@ -240,7 +340,7 @@ class PortfolioAnalyzer:
 
         for entry in sorted(self.data, key=lambda x: x["timestamp"]):
             current_balance = Decimal(str(entry["balance"]))
-            current_date = entry["timestamp"].date()
+            current_date = datetime.fromisoformat(entry["timestamp"]).date()
 
             # Only count days where balance changed as trading days
             if previous_balance is None or current_balance != previous_balance:
@@ -275,19 +375,17 @@ class PortfolioAnalyzer:
             }
 
         # Check profit target
-        profit_percentage = 0
+        profit = 0
         if current_balance:
-            profit_percentage = (
-                (current_balance - self.initial_balance) / self.initial_balance
-            ) * 100
+            profit = current_balance - self.initial_balance
 
-            if profit_percentage < self.profit_target:
+            if profit < self.profit_target:
                 return {
                     "eligible": False,
-                    "reason": f"Profit target not met. Required: {self.profit_target}%, Current: {profit_percentage}%",
+                    "reason": f"Profit target not met. Required: {self.profit_target}, Current: {profit}",
                     "trading_days": len(trading_days),
                     "current_week_trading_days": len(current_week_trading_days),
-                    "profit_percentage": profit_percentage,
+                    "profit": profit,
                 }
 
         # Calculate weeks to target met
@@ -305,7 +403,7 @@ class PortfolioAnalyzer:
             "reason": "All conditions met",
             "trading_days": len(trading_days),
             "current_week_trading_days": len(current_week_trading_days),
-            "profit_percentage": profit_percentage,
+            "profit": profit,
             "trading_dates": sorted(list(trading_days)),
             # "current_week_trading_dates": sorted(list(current_week_trading_dates)),
             "first_trade_date": first_trade_date,
@@ -361,61 +459,52 @@ def analyze_portfolio_status(portfolio):
     """
     Celery task to analyze and update portfolio status
     """
-    try:
-        # portfolio = DemoPortfolio.objects.get(id=portfolio_id)
 
-        # Get balance and equity data from your data source
-        balance_equity_data = get_account_data(portfolio.account_id)
+    # portfolio = DemoPortfolio.objects.get(id=portfolio_id)
 
-        analyzer = PortfolioAnalyzer(balance_equity_data, portfolio)
+    # Get balance and equity data from your data source
+    balance_equity_data = get_account_data(portfolio.account_id)
 
-        analyzer.apply_overnight_swap_fees()
+    analyzer = PortfolioAnalyzer(balance_equity_data, portfolio)
 
-        # Check account drawdown
-        account_drawdown = analyzer.check_account_drawdown_violation()
+    analyzer.apply_overnight_swap_fees()
 
-        # Check daily drawdown
-        daily_drawdown = analyzer.check_daily_drawdown_violation()
+    # Check account drawdown
+    account_drawdown = analyzer.check_account_drawdown_violation(portfolio.model_type)
 
-        # Check inactivity
-        is_inactive = analyzer.check_inactivity()
+    # Check daily drawdown
+    daily_drawdown = analyzer.check_daily_drawdown_violation(portfolio.model_type)
 
-        if is_inactive:
-            portfolio.active = False
-            portfolio.inactive_by_inactivity = is_inactive
+    # Check inactivity
+    is_inactive = analyzer.check_inactivity()
 
-        # Check payout eligibility
-        eligibility = analyzer.check_payout_eligibility()
+    if is_inactive:
+        portfolio.active = False
+        portfolio.inactive_by_inactivity = is_inactive
 
-        # Update portfolio status
-        portfolio.blown = account_drawdown["violated"] or daily_drawdown["violated"]
-        portfolio.target_met = eligibility["eligible"]
+    # Check payout eligibility
+    eligibility = analyzer.check_payout_eligibility()
 
-        was_target_met = portfolio.target_met
-        if portfolio.target_met and not was_target_met:
-            portfolio.time_to_payout = eligibility.get("weeks_to_target", 0)
+    # Update portfolio status
+    portfolio.blown = account_drawdown["violated"] or daily_drawdown["violated"]
+    portfolio.target_met = eligibility["eligible"]
 
-        # Save the changes
-        portfolio.save()
+    was_target_met = portfolio.target_met
+    if portfolio.target_met and not was_target_met:
+        portfolio.time_to_payout = eligibility.get("weeks_to_target", 0)
 
-        return {
-            "portfolio_id": portfolio.id,
-            "status_updated": True,
-            "blown": portfolio.blown,
-            "inactive": portfolio.inactive_by_inactivity,
-            "target_met": portfolio.target_met,
-            "account_drawdown": account_drawdown["drawdown_percentage"],
-            "daily_drawdown": daily_drawdown["max_daily_drawdown"],
-            "last_check": timezone.now(),
-            "time_to_payout": portfolio.time_to_payout,
-            "eligibility_details": eligibility,
-        }
+    # Save the changes
+    portfolio.save()
 
-    # except DemoPortfolio.DoesNotExist:
-    #     return {
-    #         'portfolio_id': portfolio_id,
-    #         'status_updated': False,
-    #         'error': 'Portfolio not found'
-    #     }
-    except Exception as e:
-        return {"portfolio_id": portfolio.id, "status_updated": False, "error": str(e)}
+    return {
+        "portfolio_id": portfolio.id,
+        "status_updated": True,
+        "blown": portfolio.blown,
+        "inactive": portfolio.inactive_by_inactivity,
+        "target_met": portfolio.target_met,
+        "account_drawdown": account_drawdown["drawdown_percentage"],
+        "daily_drawdown": daily_drawdown["max_daily_drawdown"],
+        "last_check": timezone.now(),
+        "time_to_payout": portfolio.time_to_payout,
+        "eligibility_details": eligibility,
+    }

@@ -23,4 +23,5 @@ def analyze_portfolio_status_task():
         activated=True,
     )
     for portfolio in portfolios:
-        analyze_portfolio_status(portfolio)
+        data = analyze_portfolio_status(portfolio)
+        print(data)
