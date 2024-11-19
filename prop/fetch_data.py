@@ -36,10 +36,10 @@ def get_postgres_connection():
     return psycopg2.connect(**POSTGRES_SETTINGS)
 
 
-def get_price(symbol):
+def get_price():
     collection = db_merged["merged_live_price"]
     last_item = collection.find_one(sort=[("_id", -1)])
-    return last_item[symbol]
+    return last_item
 
 
 def calculate_profit_loss(position, price):
@@ -101,7 +101,7 @@ def calculate_profit_loss(position, price):
 #     }
 
 
-def get_equity_balance(portfolio, positions):
+def get_equity_balance(portfolio, positions, last_item):
     """
     Calculate equity balance for a portfolio based on its positions.
     Args:
@@ -134,15 +134,15 @@ def get_equity_balance(portfolio, positions):
         status = position["status"]
 
         # Get current price of stock
-        current_price_data = get_price(stock_symbol)
+        current_price_data = last_item[stock_symbol]
         current_price = current_price_data.get("current_price", 0)
 
         if status == "open":
             current_value = quantity * current_price
             if action == "buy":
-                profit_loss = current_value - (quantity * open_price)
+                profit_loss = current_value - float((quantity * open_price))
             elif action == "sell":
-                profit_loss = (quantity * open_price) - current_value
+                profit_loss = float((quantity * open_price)) - current_value
             else:
                 profit_loss = 0
 
@@ -150,12 +150,12 @@ def get_equity_balance(portfolio, positions):
             open_balance += quantity * open_price
 
     # Calculate equity
-    equity = max(balance + total_profit_loss, 0)
+    equity = max(float(balance) + total_profit_loss, 0)
 
     # Prepare response data
     data = {
-        "balance": round(balance + open_balance, 2),
-        "equity": round(equity + open_balance, 2),
+        "balance": round(float(balance + open_balance), 2),
+        "equity": round(equity + float(open_balance), 2),
         "timestamp": datetime.now(WAT_TIMEZONE).strftime("%Y-%m-%dT%H:%M"),
         "account_id": account_id,
     }
@@ -276,11 +276,12 @@ def process_balance_equity_data():
     current_datetime = datetime.now(WAT_TIMEZONE)
     current_time = current_datetime.time()
     current_day = current_datetime.weekday()
+    last_item = get_price()
 
     # Only process during trading hours (Monday-Friday, 10:00-14:30)
-    if 0 <= current_day <= 4 and time(10, 0) <= current_time <= time(14, 30):
+    if 0 <= current_day <= 4 and time(8, 0) <= current_time <= time(14, 30):
         for portfolio in portfolios.values():
-            account_data = get_equity_balance(portfolio, positions)
+            account_data = get_equity_balance(portfolio, positions, last_item)
 
             # Format data for MongoDB
             mongo_data = {
@@ -293,18 +294,18 @@ def process_balance_equity_data():
             print(mongo_data)
 
             # Insert into MongoDB
-            # collection = db_prop[portfolio["account_id"]]
-            # collection.insert_one(mongo_data)
+            collection = db_prop[portfolio["account_id"]]
+            collection.insert_one(mongo_data)
 
 
 if __name__ == "__main__":
     while True:
-        # try:
-        #     process_balance_equity_data()
+        try:
+            process_balance_equity_data()
 
-        #     # Sleep for 2 minutes
-        # except Exception as e:
-        #     print(f"Error occurred: {e}")
-        process_balance_equity_data()
+            # Sleep for 2 minutes
+        except Exception as e:
+            print(f"Error occurred: {e}")
+        # process_balance_equity_data()
         print("sleeping...")
         pytime.sleep(120)
