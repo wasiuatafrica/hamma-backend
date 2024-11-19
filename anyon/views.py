@@ -2789,12 +2789,16 @@ class AdminViewSupportMessageRequestThread(APIView):
         Retrieve all support messages for the current user's thread.
         """
         all_messages = request.GET.get("all")
+        is_prop = request.GET.get("is_prop")
+        is_prop = is_prop.lower() == "true" if is_prop else False
         if all_messages and all_messages.lower() == "true":
 
-            messages = SupportThread.objects.all().order_by("-created")
+            messages = SupportThread.objects.filter(is_prop=is_prop).order_by(
+                "-created"
+            )
         else:
             messages = SupportThread.objects.filter(
-                switched_to_admin_support=True
+                switched_to_admin_support=True, is_prop=is_prop
             ).order_by("-created")
         serializer = self.serializer_class(
             messages, many=True, context={"request": request}
@@ -2832,18 +2836,23 @@ class SupportMessageDisclaimerView(APIView):
 
     def get(self, request, *args, **kwargs):
         thread_value = request.query_params.get("thread_value", None)
+        is_prop = request.GET.get("is_prop")
+        is_prop = is_prop.lower() == "true" if is_prop else False
 
         if thread_value:
             disclaimers = (
                 SupportMessageDisclaimer.objects.filter(
-                    message__thread__thread_id=thread_value
+                    message__thread__thread_id=thread_value,
+                    message__thread__is_prop=is_prop,
                 )
                 .select_related("message", "message__thread")
                 .order_by("-created")
             )
         else:
             disclaimers = (
-                SupportMessageDisclaimer.objects.all()
+                SupportMessageDisclaimer.objects.filter(
+                    message__thread__is_prop=is_prop
+                )
                 .select_related("message", "message__thread")
                 .order_by("-created")
             )

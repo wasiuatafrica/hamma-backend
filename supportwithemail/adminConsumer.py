@@ -1,3 +1,4 @@
+from concurrent.futures import thread
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
@@ -78,9 +79,9 @@ class AdminSupportConsumer(AsyncWebsocketConsumer):
         return data
 
     @database_sync_to_async
-    def previous_switch_to_Admin_request_messages(self):
+    def previous_switch_to_Admin_request_messages(self, is_prop=False):
         prev_messages = models.SupportMessage.objects.filter(
-            is_first_admin_request_message=True
+            is_first_admin_request_message=True, thread__is_prop=is_prop
         ).order_by("-created")
         data = []
         if prev_messages:
@@ -146,6 +147,11 @@ class AdminSupportConsumer(AsyncWebsocketConsumer):
         query_string = self.scope.get("query_string").decode("utf-8")
         parsed_query = parse_qs(query_string)
 
+        # check which bot type is being accessed
+        self.bot_type = parsed_query.get("is_prop", [None])[0]
+        # Safely handle None case
+        self.is_prop = self.bot_type.lower() == "true" if self.bot_type else False
+
         self.thread_id = parsed_query.get("thread_id", [None])[0]
         self.access_token = parsed_query.get("access_token", [None])[0]
         self.admin_user = await self.get_user_id_from_token(self.access_token)
@@ -155,9 +161,12 @@ class AdminSupportConsumer(AsyncWebsocketConsumer):
         self.prev_messages = (
             await self.previous_messages(self.thread_id) if self.thread_id else []
         )
-        self.request_messages = await self.previous_switch_to_Admin_request_messages()
+        self.request_messages = await self.previous_switch_to_Admin_request_messages(
+            self.is_prop
+        )
 
         self.conversation = await self.get_conversation(self.thread_id)
+        self.channel_room_name = "admin_support_group_"
 
         print(self.thread_id, "this is the thread_id")
 
@@ -174,17 +183,20 @@ class AdminSupportConsumer(AsyncWebsocketConsumer):
         # admin wants to connect to a specific thread to reply a user
         if self.thread_id:
             await self.channel_layer.group_add(
-                f"admin_support_group_{self.thread_id}", self.channel_name
+                f"admin_support_group_{str(self.is_prop)}{self.thread_id}",
+                self.channel_name,
             )
-            self.channel_room_name = f"admin_support_group_{self.thread_id}"
+            self.channel_room_name = (
+                f"admin_support_group_{str(self.is_prop)}{self.thread_id}"
+            )
             await self.send_message_to_user({"message": self.prev_messages})
 
         # admin want to only recieve admin request messages
         else:
             await self.channel_layer.group_add(
-                f"switch_to_admin_request", self.channel_name
+                f"switch_to_admin_request_{str(self.is_prop)}", self.channel_name
             )
-            self.channel_room_name = "switch_to_admin_request"
+            self.channel_room_name = f"switch_to_admin_request_{str(self.is_prop)}"
             await self.send_message_to_user({"message": self.request_messages})
 
         print(self.channel_room_name, "this is the admin room name")

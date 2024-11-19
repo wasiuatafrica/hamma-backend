@@ -79,6 +79,7 @@ class AdminSupportThreadsSerializer(serializers.ModelSerializer):
             "id",
             "thread_id",
             "email",
+            "is_prop",
             "switched_to_admin_support",
             "created",
             "updated",

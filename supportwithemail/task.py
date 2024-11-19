@@ -205,7 +205,7 @@ def switch_to_human_assistant(thread_id, message=None):
     }
 
     async_to_sync(channel_layer.group_send)(
-        "switch_to_admin_request",
+        f"switch_to_admin_request_{str(thread.is_prop)}",
         {
             "type": "send_message_to_user",
             "message": json.dumps(user_message_data, cls=DjangoJSONEncoder),
