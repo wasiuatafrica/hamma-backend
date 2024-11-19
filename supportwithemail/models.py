@@ -98,7 +98,7 @@ class SupportMessage(auto_prefetch.Model):
     def save(self, *args, **kwargs):
         if self.sender == "assistant":
             if self.thread.is_prop:
-                self.name = "Julian Hayes (Hamma Prop AI Chatbot)"
+                self.name = "Mansa Musa (Hamma Prop AI Chatbot)"
             else:
                 self.name = "Hamilton (Hamma Chatbot)"
         super(SupportMessage, self).save(*args, **kwargs)
