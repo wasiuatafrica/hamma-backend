@@ -243,11 +243,11 @@ class PortfolioAnalyzer:
             >= two_weeks_ago
         ]
 
-        if not recent_data:
-            logger.info(
-                f"Portfolio {self.portfolio.id} has no data in the last 2 weeks"
-            )
-            return False
+        # if not recent_data:
+        #     logger.info(
+        #         f"Portfolio {self.portfolio.id} has no data in the last 2 weeks"
+        #     )
+        #     return False
 
         # Check if balance has changed in the last 2 weeks
         initial_balance = Decimal(str(recent_data[0]["balance"]))
@@ -259,11 +259,6 @@ class PortfolioAnalyzer:
                     f"Portfolio {self.portfolio.id} is active: balance changed from {initial_balance} to {current_balance}"
                 )
                 return False
-
-        logger.info(
-            f"Portfolio {self.portfolio.id} is inactive: balance remained at {initial_balance} for 2 weeks"
-        )
-        return True
 
     # def check_payout_eligibility(self) -> Dict:
     #     """
