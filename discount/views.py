@@ -14,7 +14,17 @@ User = get_user_model()
 class DiscountCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiscountCode
-        fields = "__all__"
+        fields = [
+            "id",
+            "code",
+            "discount_percentage",
+            "is_active",
+            "expiry_date",
+            "type",
+            "num_of_accounts",
+            "created",
+            "total_used",
+        ]
 
 
 # Now, create the CRUD endpoints using APIView
