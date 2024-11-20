@@ -479,6 +479,7 @@ def analyze_portfolio_status(portfolio):
 
     # Check payout eligibility
     eligibility = analyzer.check_payout_eligibility()
+    print(eligibility)
 
     # Update portfolio status
     portfolio.blown = account_drawdown["violated"] or daily_drawdown["violated"]
