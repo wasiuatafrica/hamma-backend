@@ -23,5 +23,6 @@ def analyze_portfolio_status_task():
         activated=True,
     )
     for portfolio in portfolios:
-        data = analyze_portfolio_status(portfolio)
-        print(data)
+        if portfolio.account_type_level == "challenge":
+            data = analyze_portfolio_status(portfolio)
+            print(data)

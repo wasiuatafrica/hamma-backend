@@ -1,4 +1,3 @@
-from enum import auto
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
@@ -116,6 +115,7 @@ class DemoPortfolio(auto_prefetch.Model):
     discount_code = auto_prefetch.ForeignKey(
         DiscountCode, on_delete=models.SET_NULL, null=True, blank=True
     )
+    account_type_level = models.CharField(max_length=25, default="challenge")
 
     def save(self, *args, **kwargs):
         if not self.account_id:
@@ -148,6 +148,24 @@ class DemoPortfolio(auto_prefetch.Model):
         # if self.is_prop:
         #     return "prop_account"
         return "demo_portfolio"
+
+
+class HammaAccountRequest(auto_prefetch.Model):
+    choices = (
+        ("Eligible", "Eligible"),
+        ("Ineligible", "Ineligible"),
+    )
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)
+    account = models.CharField(max_length=255, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=255, choices=choices, default="Unprocessed", blank=True, null=True
+    )
+    comment = models.CharField(max_length=255, blank=True, default="", null=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user} | {self.account}"
 
 
 class Portfolio(auto_prefetch.Model):

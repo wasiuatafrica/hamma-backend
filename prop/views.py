@@ -1395,6 +1395,21 @@ class PayoutsSummaryView(APIView):
 
         try:
             portfolio = DemoPortfolio.objects.get(id=portfolio_id, user=user)
+
+            if portfolio.account_level_type == "challenge":
+                response_data = {
+                    "available_profit": {"amount": 0, "can_request": False},
+                    "pending_amount": {
+                        "amount": 0,
+                    },
+                    "total_paid": {
+                        "amount": 0,
+                    },
+                    "last_updated": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+                }
+
+                return Response(response_data)
+
             payouts = Payout.objects.filter(portfolio=portfolio)
 
             # Calculate Available Profit
@@ -1413,7 +1428,7 @@ class PayoutsSummaryView(APIView):
             response_data = {
                 "available_profit": {
                     "amount": float(available_profit),
-                    "can_request": available_profit > 0 and portfolio.target_met,
+                    "can_request": pending_amount == 0,
                 },
                 "pending_amount": {
                     "amount": float(pending_amount),
@@ -1637,3 +1652,19 @@ class AdminUserList(APIView):
 
             serialized_data = self.serializer_class(users, many=True).data
             return Response(serialized_data)
+
+
+class HammaAccountRequest(APIView):
+    def get(self, request, account_id):
+        try:
+            account = DemoPortfolio.objects.get(account_id=account_id)
+            return Response({"can_request": account.target_met})
+        except Exception as e:
+            return Response(
+                {"error": "Account not found"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def post(self, request):
+        account_id = request.data.get("account_id")
+        HammaAccountRequest.objects.create(user=request.user, account=account_id)
+        return Response({"message": "Request sent successfully"})
