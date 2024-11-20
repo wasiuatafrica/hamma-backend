@@ -1,26 +1,24 @@
 import logging
 from datetime import datetime, timedelta
 from decimal import Decimal
-from tracemalloc import start
-from accounts.serializers import AdminCustomUserSerializer
-from django.shortcuts import get_object_or_404
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
 import pytz
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
 from django.db.models import (
     Case,
     DecimalField,
     ExpressionWrapper,
     F,
+    Max,
     Q,
     Sum,
     Value,
     When,
-    Max,
 )
 from django.db.models.functions import TruncDate
-from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -28,7 +26,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+import portfolio
 from accounts.models import AdminUserActivityLog, Referral
+from accounts.serializers import AdminCustomUserSerializer
 from affilate.models import ReferralWallet, ReferralWithdrawalRequest, RewardActivities
 from affilate.serializers import (
     ReferralRewardPayoutSerializer,
@@ -36,24 +36,20 @@ from affilate.serializers import (
     ReferralWithdrawalRequestSerializer,
     RewardActivitiesSerializer,
 )
-
-from datetime import datetime
 from anyon.serializers import AdminReceiptsViewSerializer
 from execution.models import DemoPortfolio, DemoPosition, PropReceipt
 from notifications.utils import save_and_send_notification
-import portfolio
 from portfolio.models import PayStackReceipts, Receipts
 
 from .models import Payout
 from .pay_service import PayoutService
 from .serializers import AccountlistSerializer, PayoutDetailSerializer
 from .utils import (
+    calculate_trading_days,
     get_account_data,
     get_equity_balance,
     initiate_first_data,
-    calculate_trading_days,
 )
-from competition.managers.utils import sendMail
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -369,20 +365,55 @@ class PortfolioMetrics(APIView):
         # Calculate drawdown
         if not portfolio.balance_based_drawdown:
             if historical_data:
-                least_equity = min([data["equity"] for data in historical_data])
-                least_balance = min([data["balance"] for data in historical_data])
+                # Get the least equity below the threshold, or use a default value if no data is found
+                least_equity_candidates = [
+                    data["equity"]
+                    for data in historical_data
+                    if data["equity"] < 10000000
+                ]
+                least_equity = (
+                    min(least_equity_candidates)
+                    if least_equity_candidates
+                    else float(initial_balance)
+                )
 
+                # Get the least balance below the threshold, or use a default value if no data is found
+                least_balance_candidates = [
+                    data["balance"]
+                    for data in historical_data
+                    if data["balance"] < 10000000
+                ]
+                least_balance = (
+                    min(least_balance_candidates)
+                    if least_balance_candidates
+                    else float(initial_balance)
+                )
+
+                # Calculate the current drawdown
                 current_drawdown = float(initial_balance) - min(
                     least_equity, least_balance
                 )
             else:
+                # No historical data, set drawdown to 0
                 current_drawdown = 0
         elif portfolio.balance_based_drawdown:
             if historical_data:
-                least_balance = min([data["balance"] for data in historical_data])
+                # Get the least balance below the threshold, or use a default value if no data is found
+                least_balance_candidates = [
+                    data["balance"]
+                    for data in historical_data
+                    if data["balance"] < 10000000
+                ]
+                least_balance = (
+                    min(least_balance_candidates)
+                    if least_balance_candidates
+                    else float(initial_balance)
+                )
 
+                # Calculate the current drawdown
                 current_drawdown = float(initial_balance) - least_balance
             else:
+                # No historical data, set drawdown to 0
                 current_drawdown = 0
 
         trading_days = calculate_trading_days(historical_data)
@@ -444,6 +475,7 @@ class PortfolioMetrics(APIView):
 #             )
 
 from datetime import timedelta
+
 from django.utils import timezone
 
 
@@ -760,6 +792,46 @@ class AccountDataView(APIView):
 #         return Response(receipt_data)
 
 
+def sendMail(
+    template: str,
+    subject: str,
+    to: list,
+    context: object = None,
+    sender: str = None,
+    **kwargs,
+) -> bool:
+    """
+    A wrapper for send_mail
+    Compile a template to html and string and send email
+
+    Arguments:
+        template {str} -- The template location
+        subject {str} -- Mail Subject
+        to {object} -- Mail recipients, can be string or list
+
+    Keyword Arguments:
+        context {object} -- The data to pass to the template (default: {None})
+        sender {str} -- Opeional Sender (default: {None})
+
+    Returns:
+        bool -- send_mail 1 = sent and 0 not sent
+    """
+    html = render_to_string(template, context)
+    try:
+        send_mail(
+            subject,
+            "",
+            "Hamma Trade <hello@hamma.trade>",
+            to,
+            html_message=html,
+            fail_silently=False,
+        )
+        return True
+    except Exception as e:
+        print(str(e))
+        return False
+
+
 class AdminReceiptsView(APIView):
     serializer_class = AdminReceiptsViewSerializer
 
@@ -902,6 +974,163 @@ class AdminReceiptsView(APIView):
             receipts_data, key=lambda x: x["timestamp"], reverse=True
         )
         return Response(receipts_data2)
+
+    def post(self, request):
+
+        statuses = ["approved", "rejected"]
+
+        # id = request.data["id"]
+        # amount = request.data["amount"]
+        receipt_status = request.data["receipt_status"]
+        comment = request.data.get("comment", None)
+
+        receipt_ids = request.data.get("receipt_ids", [])
+        print("recipt ids", receipt_ids)
+
+        if receipt_status not in statuses:
+            return Response("receipt_status must either be approved or rejected ")
+
+        receipt_data = []
+
+        for id in receipt_ids:
+
+            receipt = Receipts.objects.get(id=id)
+            receipt.receipt_status = receipt_status
+            receipt.save()
+
+            if receipt_status == "approved":
+
+                receipt.amount = 180000
+                receipt.save()
+                AdminUserActivityLog.objects.create(
+                    admin=request.user,
+                    user=receipt.user,
+                    action_type="approved_reciept",
+                    description=f"Admin user approved reciept.",
+                )
+                prop_receipt = PropReceipt.objects.filter(receipt=receipt).first()
+
+                prop_account = prop_receipt.account
+                prop_account.receipt_approved = True
+                # prop_account.activated = True
+                prop_account.is_active = True
+                prop_account.save()
+
+                account_info = {
+                    "login": prop_account.account_id,
+                    "password": prop_account.code,
+                    "server": "HammaServer",
+                    "acc_size": (
+                        "Model 1" if prop_account.model_type == "model_1" else "Model 2"
+                    ),
+                    "payout": prop_account.payout.title(),
+                    "broker": prop_account.broker.title(),
+                    "first_name": receipt.user.firstname.title(),
+                }
+
+                # send the user the account details
+                sendMail(
+                    "prop/AccountInfo.html",
+                    "Prop Account Details",
+                    [receipt.user.email],
+                    account_info,
+                )
+
+                try:
+                    # Check if this user was referred by someone
+                    referral = Referral.objects.get(person_referred=receipt.user)
+
+                    # Check if rewards have already been given for this user
+                    existing_reward = RewardActivities.objects.filter(
+                        trader=receipt.user, reward_type="prop_referral"
+                    ).exists()
+
+                    if not existing_reward:
+                        # Credit referrer
+                        referrer_wallet, _ = ReferralWallet.objects.get_or_create(
+                            user=referral.user
+                        )
+                        referrer_wallet.balance += Decimal("18000")
+                        referrer_wallet.save()
+
+                        # Create reward activity for referrer
+                        RewardActivities.objects.create(
+                            user=referral.user,
+                            trader=receipt.user,
+                            reward_type="prop_referral",
+                            amount=18000,
+                            status="processed",
+                            comment="Referral reward for prop account purchase",
+                        )
+
+                        # Credit referee (the user who was referred)
+                        referee_wallet, _ = ReferralWallet.objects.get_or_create(
+                            user=receipt.user
+                        )
+                        referee_wallet.balance += Decimal("18000")
+                        referee_wallet.save()
+
+                        # Create reward activity for referee
+                        RewardActivities.objects.create(
+                            user=receipt.user,
+                            trader=receipt.user,
+                            reward_type="referral_reward",
+                            amount=18000,
+                            status="processed",
+                            comment="Referral reward for prop account purchase",
+                        )
+
+                        # Update referral status
+                        # referral.converted = True
+                        # referral.save()
+
+                except Referral.DoesNotExist:
+                    # No referral relationship exists
+                    pass
+
+                data = {
+                    "id": receipt.id,
+                    "user": receipt.user.id,
+                    "fullname": receipt.user.fullname,
+                    "amount": receipt.amount,
+                    "payment_method": receipt.payment_method,
+                    "receipt_status": receipt.receipt_status,
+                    "comment": receipt.comment,
+                    "created": receipt.created,
+                    "approved_date": receipt.approved_date,
+                    "image_url": receipt.image.url if receipt.image else None,
+                }
+                receipt_data.append(data)
+
+            elif receipt_status == "rejected":
+                receipt.comment = comment
+                receipt.save()
+
+                AdminUserActivityLog.objects.create(
+                    admin=request.user,
+                    user=receipt.user,
+                    action_type="rejected_reciept",
+                    description=f"Admin user rejected reciept.",
+                )
+                data = {
+                    "id": receipt.id,
+                    "user": receipt.user.id,
+                    "fullname": receipt.user.fullname,
+                    "amount": receipt.amount,
+                    "payment_method": receipt.payment_method,
+                    "receipt_status": receipt.receipt_status,
+                    "comment": receipt.comment,
+                    "created": receipt.created,
+                    "approved_date": receipt.approved_date,
+                    "image_url": receipt.image.url if receipt.image else None,
+                }
+                save_and_send_notification(
+                    receipt.user.id,
+                    f"Your payment receipt has been rejected. Reason: {receipt.comment}.",
+                )
+                receipt_data.append(data)
+
+        return Response(receipt_data)
 
 
 class AdminAccountsList(APIView):
