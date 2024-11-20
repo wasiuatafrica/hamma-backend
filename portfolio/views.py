@@ -734,7 +734,7 @@ class ReceiptsView(APIView):
                 account_name = "model_1"
             elif model_type == "model_2":
                 profit_target = 1_500_000
-                account_drawdown_limit = 9_400_00
+                account_drawdown_limit = 9_400_000
                 account_name = "model_2"
             else:
                 raise ValueError("Invalid model type selected")
