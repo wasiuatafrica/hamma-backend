@@ -1895,6 +1895,17 @@ class HammaAccountRequestView(APIView):
         account = DemoPortfolio.objects.get(
             account_id=account_id, account_type_level="challenge", user=request.user
         )
+
+        if account.blown:
+            return Response({"can_request": False, "reason": "Account has been blown"})
+
+        if account.inactive_by_inactivity:
+            return Response(
+                {
+                    "can_request": False,
+                    "reason": "Account has not been active in the last 2 weeks",
+                }
+            )
         target_met = account.target_met
         has_hamma = account.has_hamma
         pending_request = HammaAccountRequest.objects.filter(
