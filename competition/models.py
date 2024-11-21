@@ -11,7 +11,9 @@ from decimal import Decimal
 from portfolio.models import Stock
 import string
 from portfolio.utils import db_merged
-
+from collections import defaultdict
+from collections import defaultdict
+import pandas as pd
 
 User = get_user_model()
 
@@ -162,7 +164,7 @@ class CompetitionPosition(auto_prefetch.Model):
             elif self.action == "sell":
                 profit_loss = self.amount_invested - Decimal(current_value)
         elif self.status == "close":
-            profit_loss = self.profit_loss
+            profit_loss = self.profit_loss - self.commission
         else:
             current_value = 0
             profit_loss = 0
@@ -172,7 +174,11 @@ class CompetitionPosition(auto_prefetch.Model):
     @property
     def current_price(self):
         return get_price(self.stock.symbol)["current_price"]
-
+    @property
+    def commission(self):
+        if self.amount_invested:
+            return float(round((Decimal(0.00435) * self.amount_invested) + Decimal(200),2))
+        return 0
 
 class CompetitionProfitLoss(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(
@@ -261,59 +267,14 @@ def getProfit(portfolio):
     positions = CompetitionPosition.objects.filter(portfolio=portfolio, status="close")
     # print(len(positions))
     if positions:
-        profit = sum([position.profit_loss for position in positions])
+        profit = sum([position.profit_loss -position.commission for position in positions])
         # print(profit)
         return profit, True
     else:
         return 0, False
 
 
-from collections import defaultdict
 
-# def get_leaderboard():
-#     # Base query to get all active competition portfolios
-#     base_query = CompetitionPortfolio.objects.filter(competition__status='current', active=True)
-#     # print(len(base_query))
-#     # Lists to hold leaderboard data and those with zero profit
-#     leaderboard_list = []
-
-#     clan_profits = defaultdict(float)
-#     clan_member_counts = defaultdict(int)
-
-#     # Iterate over each account in the base query
-#     for account in base_query:
-#         # print(account.user)
-#         profit,status = getProfit(account)
-#         # print(profit,status)
-#         if status:
-#             percent= round((profit/1000000)*100,2)
-#             profile= Profile.objects.get(user=account.user)
-#             clan=account.user.clans
-#             data= {
-#                 'name':account.user.firstname,
-#                 'profit':percent,
-#                 'profit_naira':profit,
-#                 'country':profile.country,
-#                 'clan':clan
-#             }
-#             leaderboard_list.append(data)
-
-#             # Increment the clan's total profit and member count
-#             clan_profits[clan] += percent
-#             clan_member_counts[clan] += 1
-#     ranked_clans = [
-#         {
-#             'clan_name': clan,
-#             'average_profit': clan_profits[clan] / clan_member_counts[clan],  # Average profit
-#         }
-#         for clan in sorted(clan_profits.keys(), key=lambda c: clan_profits[c] / clan_member_counts[c], reverse=True)
-#     ]
-
-#     return ranked_clans
-
-
-from collections import defaultdict
-import pandas as pd
 
 
 def get_leaderboard():

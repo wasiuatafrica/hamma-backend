@@ -279,6 +279,10 @@ class Position(auto_prefetch.Model):
     @property
     def current_price(self):
         return get_price(self.stock.symbol)["current_price"]
+def calculate_default_commission(instance):
+    if instance and instance.amount_invested:
+        return round(Decimal(0.00435) * instance.amount_invested, 5)
+    return Decimal(0.0)
 
 
 class DemoPosition(auto_prefetch.Model):
@@ -346,7 +350,7 @@ class DemoPosition(auto_prefetch.Model):
             elif self.action == "sell":
                 profit_loss = self.amount_invested - Decimal(current_value)
         elif self.status == "close":
-            profit_loss = self.profit_loss
+            profit_loss = self.profit_loss - self.commission
             current_value = self.quantity * self.close_price
         else:
             current_value = 0
@@ -362,7 +366,11 @@ class DemoPosition(auto_prefetch.Model):
             return 0
         return price["current_price"]
 
-
+    @property
+    def commission(self):
+        if self.amount_invested:
+            return float(round((Decimal(0.00435) * self.amount_invested) + Decimal(200),2))
+        return 0
 class DemoTrade(models.Model):
     user = auto_prefetch.ForeignKey(
         User, on_delete=models.CASCADE, related_name="demotrades2"

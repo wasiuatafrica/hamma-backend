@@ -25,7 +25,10 @@ from django.urls import reverse, reverse_lazy
 from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
 from django.shortcuts import redirect
-
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Q
 from hackathon.serializers import ClanSerializer
 from . import serializers
 from .tasks import create_returns
@@ -1244,70 +1247,18 @@ def getProfit(portfolio):
     positions = CompetitionPosition.objects.filter(portfolio=portfolio, status="close")
     # print(len(positions))
     if positions:
-        profit = sum([position.profit_loss for position in positions])
+        profit = sum([position.profit_loss -position.commission for position in positions])
         # print(profit)
         return profit, True
     else:
         return 0, False
 
 
-# def calc_profit_days(number,days, acc_size):
-#     from datetime import datetime, timedelta
-
-#     max_time= datetime.utcnow() - timedelta(days=days)
-#     updated=None
-#     user_first_login = None
-#     account = TradeAccount.objects.filter(number=number).last()
-#     user_first_login = account.trader.first_login.login_time
-#     updated = account.created
-
-
-#     if user_first_login  and updated:
-#         timestamp1 = max(user_first_login.timestamp(), updated.timestamp())
-#     else:
-#         timestamp1 = None
-#     records = get_records2(number,timestamp1,max_time.timestamp())
-#     if records:
-#         equ_list = []
-#         for data in records:
-#             equ_list.append(float(data["balance"]))
-#         starting = float(acc_size)
-#         profit = round((equ_list[-1] - starting) , 0)
-#         return profit
-# def cal_profit_percent(number,days,size,profit):
-#     profit_days = calc_profit_days(number,days,size)
-#     percent = round(((profit - profit_days)*100/profit_days),0)
-#     return percent
 class LeaderBoardView(APIView):
     permission_classes = (AllowAny,)
 
     def get(self, request, *args, **kwargs):
         competition = Competition.objects.filter(status="current").first()
-        # print(competition.status)
-        # if competition:
-        #     if timezone.now() > competition.start_date:
-        #         portfolio = CompetitionPortfolio.objects.filter(competition=competition, active=True)
-
-        #         leaderboard_list=[]
-        #         for account in portfolio:
-        #             profit,status = getProfit(account)
-        #             if status:
-        #                 percent= round((profit/1000000)*100,2)
-        #                 if percent >= -5:
-        #                     profile= Profile.objects.get(user=account.user)
-        #                     data= {
-        #                         'name':account.user.firstname,
-        #                         'profit':percent,
-        #                         'profit_naira':profit,
-        #                         'country':profile.country,
-        #                         'clan':account.user.clans
-        #                     }
-        #                     leaderboard_list.append(data)
-        #         sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
-
-        #         return Response(sorted_data)
-        #     else:
-        #         return Response([])
         if competition and timezone.now() > competition.start_date:
             portfolio = CompetitionPortfolio.objects.filter(
                 competition=competition, active=True
@@ -1358,8 +1309,6 @@ class LeaderBoardView(APIView):
             return Response(sorted_data)
 
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
 
 
 @api_view(["GET", "POST"])
@@ -1368,8 +1317,7 @@ def testhtml(request):
     return render(request, "leaderboard/clan-detail.html")
 
 
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Q
+
 
 
 @login_required
@@ -2601,61 +2549,6 @@ class GetAndUpdateUserNotifications(APIView):
         # update_notification
 
 
-# from collections import defaultdict
-# class TopClans(APIView):
-#     permission_classes = (AllowAny,)
-#     def get(self, request):
-#         competition =  Competition.objects.filter(status='current')
-#         if competition.exists() and  timezone.now() > competition.first().start_date:
-#                 portfolio = CompetitionPortfolio.objects.filter(competition=competition.first(), active=True)
-
-#                 leaderboard_list=[]
-
-#                 clan_profits = defaultdict(float)
-#                 clan_member_counts = defaultdict(int)
-
-#                 for account in portfolio:
-
-#                     profit,status = getProfit(account)
-#                     if status:
-#                         percent= round((profit/1000000)*100,2)
-#                         profile= Profile.objects.get(user=account.user)
-#                         clan=account.user.clans
-#                         data= {
-#                             'name':account.user.firstname,
-#                             'profit':percent,
-#                             'profit_naira':profit,
-#                             'country':profile.country,
-#                             'clan':clan
-#                         }
-#                         leaderboard_list.append(data)
-#                         clan_profits[clan] += percent
-#                         clan_member_counts[clan] += 1
-
-#                 ranked_clans = [
-#                     {
-#                         'clan_name': clan,
-#                         'profit': round(clan_profits[clan] / clan_member_counts[clan], 2) # Average profit
-#                     }
-#                     for clan in sorted(clan_profits.keys(), key=lambda c: clan_profits[c] / clan_member_counts[c], reverse=True)
-#                 ]
-#                 for data in ranked_clans:
-#                     clan_name = data['clan_name']
-#                     clan = Clan.objects.get(clan_name=clan_name)
-#                     data['clan_logo'] = clan.clan_logo.url
-#                     data['clan_id'] = clan.id
-#                     data['community_link'] = clan.community_link
-#                     data['description'] = clan.description
-#                     data['members_count'] = clan.member.count() + 1
-#                     data['profit_comparison'] = clan.profit_comparison
-#                 # Return the ranked list of clans
-#                 return Response(ranked_clans[:3])
-
-#         else:
-#             competition = Competition.objects.filter(status='closed').order_by('id').last()
-#             clans= ClanCompetitionSummary.objects.filter(competition=competition).order_by('position')[:3]
-#             data=[{'clan_id':comp.clan.id,'clan_name':comp.clan.clan_name,'community_link':comp.clan.community_link,'clan_logo':comp.clan.clan_logo.url,'description':comp.clan.description, 'profit':comp.profit, 'position':comp.position, 'top_3_count':comp.clan.top_3_count,'profit_comparison':comp.clan.profit_comparison,'members_count':comp.clan.members_count} for comp in clans ]
-#             return Response(data)
 
 from collections import defaultdict
 
