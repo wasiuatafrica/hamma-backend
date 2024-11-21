@@ -36,6 +36,11 @@ class DemoPortfolioAdmin(admin.ModelAdmin):
         "account_name",
         "account_id",
         "balance",
+        "model_type",
+        "is_prop",
+        "blown",
+        "inactive_by_inactivity",
+        "has_hamma",
         "created",
     )
     list_filter = ["is_prop", "created"]

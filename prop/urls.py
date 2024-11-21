@@ -86,6 +86,12 @@ urlpatterns = [
     path(
         "support-accountlist/<email>/", support_views.SupportUserAccounctsList.as_view()
     ),
+    path("hamma-request/<account_id>/", views.HammaAccountRequestView.as_view()),
+    path(
+        "admin-hamma-requests/",
+        admin_views.HammaRequestAdminView.as_view(),
+        name="hamma-requests",
+    ),  # GET for listing
 ]
 
 # # Add router URLs to urlpatterns

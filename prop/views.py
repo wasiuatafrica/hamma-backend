@@ -37,7 +37,12 @@ from affilate.serializers import (
     RewardActivitiesSerializer,
 )
 from anyon.serializers import AdminReceiptsViewSerializer
-from execution.models import DemoPortfolio, DemoPosition, PropReceipt
+from execution.models import (
+    DemoPortfolio,
+    DemoPosition,
+    PropReceipt,
+    HammaAccountRequest,
+)
 from notifications.utils import save_and_send_notification
 from portfolio.models import PayStackReceipts, Receipts
 
@@ -1884,17 +1889,39 @@ class AdminUserList(APIView):
             return Response(serialized_data)
 
 
-class HammaAccountRequest(APIView):
+class HammaAccountRequestView(APIView):
     def get(self, request, account_id):
-        try:
-            account = DemoPortfolio.objects.get(account_id=account_id)
-            return Response({"can_request": account.target_met})
-        except Exception as e:
+        # try:
+        account = DemoPortfolio.objects.get(
+            account_id=account_id, account_type_level="challenge", user=request.user
+        )
+        target_met = account.target_met
+        has_hamma = account.has_hamma
+        pending_request = HammaAccountRequest.objects.filter(
+            user=request.user, account=account, status="Unprocessed"
+        ).exists()
+
+        if target_met and has_hamma:
             return Response(
-                {"error": "Account not found"}, status=status.HTTP_400_BAD_REQUEST
+                {"can_request": False, "reason": "Account already has Hamma"}
+            )
+        if not target_met:
+            return Response(
+                {"can_request": False, "reason": "Account has not met target"}
+            )
+        if pending_request:
+            return Response({"can_request": False, "reason": "Request already sent"})
+
+        if target_met and not has_hamma and not pending_request:
+            return Response(
+                {"can_request": True, "reason": "Account can request Hamma"}
             )
 
-    def post(self, request):
-        account_id = request.data.get("account_id")
+    # except Exception as e:
+    #     return Response(
+    #         {"error": "Account not found"}, status=status.HTTP_400_BAD_REQUEST
+    #     )
+
+    def post(self, request, account_id):
         HammaAccountRequest.objects.create(user=request.user, account=account_id)
         return Response({"message": "Request sent successfully"})
