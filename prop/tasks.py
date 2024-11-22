@@ -2,6 +2,8 @@ from celery.app import shared_task
 from .utils import get_all_balance_equity_data, get_fixed_balance_equity_data
 from .analyzer import analyze_portfolio_status
 from execution.models import DemoPortfolio
+from .utils import sendMail
+import requests
 
 
 @shared_task
@@ -26,3 +28,47 @@ def analyze_portfolio_status_task():
         if portfolio.account_type_level == "challenge":
             data = analyze_portfolio_status(portfolio)
             print(data)
+
+
+def send_3days_pending_account_activation_mail(user):
+    """
+    Send email to the user after 3 days account inactivation.
+    """
+
+    sendMail(
+        "prop/3days-Pending-Activateion.html",
+        "Don’t Miss Out — Activate Your Account Today!",
+        [user.email],
+        {"first_name": user.firstname},
+    )
+
+
+def send_drawdown_volation_mail(user, email, password, key):
+    """
+    Send email to the user after drawdown violation.
+    """
+    # Define the payload
+    payload = {"email": email, "password": password, "key": key}
+
+    # Make a POST request to the Node.js server
+    try:
+        resp = requests.post("http://localhost:3000/", json=payload, timeout=50)
+        if resp.status_code == 200:
+            # Extract the response if successful
+            response_data = resp.json()
+            draw_down_image_url = response_data.get("url", "URL not provided")
+
+            # Send email with the screenshot URL
+            sendMail(
+                "prop/DrawDownVoilation.html",
+                "Important: Drawdown Violation Alert",
+                [user.email],
+                {
+                    "first_name": user.firstname,
+                    "draw_down_image_url": draw_down_image_url,
+                },
+            )
+        else:
+            print(f"Failed to get screenshot: {resp.status_code} - {resp.text}")
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")

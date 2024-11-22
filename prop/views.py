@@ -4,7 +4,6 @@ from decimal import Decimal
 
 import pytz
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
 from django.db.models import (
     Case,
     DecimalField,
@@ -18,7 +17,6 @@ from django.db.models import (
 )
 from django.db.models.functions import TruncDate
 from django.shortcuts import get_object_or_404
-from django.template.loader import render_to_string
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -54,6 +52,11 @@ from .utils import (
     get_account_data,
     get_equity_balance,
     initiate_first_data,
+)
+from .utils import sendMail
+from .tasks import (
+    send_3days_pending_account_activation_mail,
+    send_drawdown_volation_mail,
 )
 
 logger = logging.getLogger(__name__)
@@ -795,46 +798,6 @@ class AccountDataView(APIView):
 #                 receipt_data.append(data)
 
 #         return Response(receipt_data)
-
-
-def sendMail(
-    template: str,
-    subject: str,
-    to: list,
-    context: object = None,
-    sender: str = None,
-    **kwargs,
-) -> bool:
-    """
-    A wrapper for send_mail
-    Compile a template to html and string and send email
-
-    Arguments:
-        template {str} -- The template location
-        subject {str} -- Mail Subject
-        to {object} -- Mail recipients, can be string or list
-
-    Keyword Arguments:
-        context {object} -- The data to pass to the template (default: {None})
-        sender {str} -- Opeional Sender (default: {None})
-
-    Returns:
-        bool -- send_mail 1 = sent and 0 not sent
-    """
-    html = render_to_string(template, context)
-    try:
-        send_mail(
-            subject,
-            "",
-            "Hamma Trade <hello@hamma.trade>",
-            to,
-            html_message=html,
-            fail_silently=False,
-        )
-        return True
-    except Exception as e:
-        print(str(e))
-        return False
 
 
 class AdminReceiptsView(APIView):
@@ -1778,6 +1741,14 @@ class ActivateProp(APIView):
             prop.account_name = account_name
             prop.save()
             initiate_first_data(prop.account_id)
+            # send activated mail
+            sendMail(
+                "prop/AccountActivation.html",
+                "Account Activation Successful",
+                [prop.user.email],
+                {"first_name": prop.user.firstname},
+            )
+
             return Response({"message": "Prop activated successfully"})
         except DemoPortfolio.DoesNotExist:
             return Response(
