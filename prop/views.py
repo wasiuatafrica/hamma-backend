@@ -1912,14 +1912,18 @@ class HammaAccountRequestView(APIView):
             user=request.user, account=account, status="Unprocessed"
         ).exists()
 
-        if target_met and has_hamma:
-            return Response(
-                {"can_request": False, "reason": "Account already has Hamma"}
-            )
+        if pending_request:
+            return Response({"can_request": False, "reason": "Request already sent"})
+
         if not target_met:
             return Response(
                 {"can_request": False, "reason": "Account has not met target"}
             )
+        if has_hamma:
+            return Response(
+                {"can_request": False, "reason": "Account already has Hamma"}
+            )
+
         if pending_request:
             return Response({"can_request": False, "reason": "Request already sent"})
 
