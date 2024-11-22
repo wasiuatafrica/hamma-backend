@@ -1924,9 +1924,6 @@ class HammaAccountRequestView(APIView):
                 {"can_request": False, "reason": "Account already has Hamma"}
             )
 
-        if pending_request:
-            return Response({"can_request": False, "reason": "Request already sent"})
-
         if target_met and not has_hamma and not pending_request:
             return Response(
                 {"can_request": True, "reason": "Account can request Hamma"}
