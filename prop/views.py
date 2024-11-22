@@ -1909,7 +1909,7 @@ class HammaAccountRequestView(APIView):
         target_met = account.target_met
         has_hamma = account.has_hamma
         pending_request = HammaAccountRequest.objects.filter(
-            user=request.user, account=account, status="Unprocessed"
+            user=request.user, account=account_id, status="Unprocessed"
         ).exists()
 
         if pending_request:
