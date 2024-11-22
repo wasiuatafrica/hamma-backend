@@ -15,7 +15,15 @@ from .models import (
     CumulativeMarketReturns,
     MarketReturns,
     PropReceipt,
+    HammaAccountRequest,
 )
+
+
+@admin.register(HammaAccountRequest)
+class HammaAccountRequestAdmin(admin.ModelAdmin):
+    list_display = ["user", "account", "status", "created", "comment", "updated"]
+    search_fields = ["user__email", "account"]
+    list_filter = ["status", "created"]
 
 
 class DemoPositionAdmin(admin.ModelAdmin):
