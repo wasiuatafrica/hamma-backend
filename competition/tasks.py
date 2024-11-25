@@ -1,52 +1,43 @@
+import json
+from collections import defaultdict
+from datetime import datetime, timedelta
+from decimal import Decimal
+
+import pandas as pd
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.contrib.auth import get_user_model
-from numpy import half
-from websocket import send
-import competition
+from django.core.mail import send_mail
+from django.db.models import Avg, F, Sum, Window
+from django.db.models.expressions import F, Window
+from django.db.models.functions import Rank
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django_celery_beat.models import CrontabSchedule, PeriodicTask
 from notifications.utils import save_and_send_notification
-from decimal import Decimal
+from portfolio.models import DashboardFeed
 
+from .managers.utils import sendMail
 from .models import (
+    Clan,
+    ClanCompetitionSummary,
     Competition,
+    CompetitionCumulativeReturns,
     CompetitionCumulativeReturns2,
+    CompetitionDailyReturns,
     CompetitionDailyReturns2,
     CompetitionPortfolio,
-    JoinClanRequest,
-    get_price,
-    CompetitionDailyReturns,
-    ClanCompetitionSummary,
-    CompetitionSummary,
-    Clan,
     CompetitionPosition,
+    CompetitionSummary,
     CompetitionTransaction,
-    CompetitionCumulativeReturns,
+    JoinClanRequest,
 )
 from .start_competition_mails import (
+    send_daily_trade_confirmation,
     send_trade_reminder,
     send_trading_idea,
     send_trading_rules,
-    send_daily_trade_confirmation,
 )
-from django.db.models import Sum, Avg
-from django.db.models.expressions import Window, F
-from django.db.models.functions import Rank
-from accounts.models import UserActivityLog
-from datetime import datetime, timedelta
-from django.template.loader import render_to_string
-from django.core.mail import send_mail
-from django_celery_beat.models import PeriodicTask, CrontabSchedule
-from django.db.models import F, Window
-from django.db.models.functions import Rank
-from django.utils import timezone
-from .managers.utils import sendMail
-from portfolio.models import DashboardFeed
-from django.urls import reverse
-
-
-from collections import defaultdict
-import pandas as pd
-import json
 
 User = get_user_model()
 
@@ -83,7 +74,8 @@ def getProfit(portfolio):
     profit_list = []
     trading_days = set()
     for position in positions:
-        profit_list.append(position.profit_loss)
+        profit_list.append(position.profit_loss - position.commission)
+        # profit_list.append(position.profit_loss)
         if position.updated != position.created:
             trading_days.add(position.updated.date())
     profit = sum(profit_list)
@@ -360,70 +352,25 @@ def four_days_before_end():  # 4
         )
 
 
-# def get_top():
-#     from collections import defaultdict
-#     base_query = CompetitionPortfolio.objects.filter(competition__status='current',active=True)
-
-#     leaderboard_list=[]
-#     zero_profit_list = []
-
-#     for account in base_query:
-#         try:
-#             clan=Clan.objects.filter(member=account.user)
-#         except Clan.DoesNotExist:
-#             clan=Clan.objects.filter(clan_admin=account.user)
-#         if clan:
-#             clan=clan.first()
-#             user_portfolio = base_query.filter(user=account.user).first()
-#             # print(user_portfolio.competition.title)
-#             profit,status = getProfit(user_portfolio)
-#             if status:
-#                 percent= round((profit/1000000)*100,2)
-#                 profile= Profile.objects.get(user=account.user)
-#                 data= {
-#                     'id':user_portfolio.id,
-#                     'active':user_portfolio.active,
-#                     'name':user_portfolio.user.firstname.title(),
-#                     'profit':percent,
-#                     'country':profile.country,
-#                     'clan':clan.clan_name.title(),
-#                 }
-
-#                 leaderboard_list.append(data)
-
-#     sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
-
-#     first = sorted_data[0]
-#     trader = first['name']
-
-#     clan_profits = defaultdict(float)
-#     for entry in sorted_data:
-#         clan_profits[entry['clan']] += entry['profit']
-
-#     ranked_clans = [
-#         {'clan_name': clan, 'profit': total_profit}
-#         for clan, total_profit in sorted(clan_profits.items(), key=lambda x: x[1], reverse=True)
-#     ][:3]
-#     clan = ranked_clans[0]['clan_name']
-#     return trader,clan
-
-
 def get_top():
-    from collections import defaultdict
-    import pandas as pd
 
     base_query = CompetitionPortfolio.objects.filter(
         competition__status="current", active=True
     )
+    # print(base_query)
 
     leaderboard_list = []
     clan_returns = defaultdict(list)
 
     for account in base_query:
+        # print(account.user.email)
         try:
             clan = Clan.objects.filter(member=account.user)
+            if not clan:
+                raise Clan.DoesNotExist
         except Clan.DoesNotExist:
             clan = Clan.objects.filter(clan_admin=account.user)
+        # print(clan)
         if clan:
             clan = clan.first()
             user_portfolio = base_query.filter(user=account.user).first()
@@ -444,6 +391,7 @@ def get_top():
                 clan_returns[clan].append(profit / 1000000)
 
     sorted_data = sorted(leaderboard_list, key=lambda x: x["profit"], reverse=True)
+    # print(sorted_data)
 
     first = sorted_data[0]
     trader = first["name"]
