@@ -4,7 +4,6 @@ from decimal import Decimal
 
 import pytz
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
 from django.db.models import (
     Case,
     DecimalField,
@@ -18,7 +17,6 @@ from django.db.models import (
 )
 from django.db.models.functions import TruncDate
 from django.shortcuts import get_object_or_404
-from django.template.loader import render_to_string
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -45,6 +43,8 @@ from execution.models import (
 )
 from notifications.utils import save_and_send_notification
 from portfolio.models import PayStackReceipts, Receipts
+from datetime import date
+from django.utils.timezone import now
 
 from .models import Payout
 from .pay_service import PayoutService
@@ -54,6 +54,11 @@ from .utils import (
     get_account_data,
     get_equity_balance,
     initiate_first_data,
+)
+from .utils import sendMail
+from .tasks import (
+    send_3days_pending_account_activation_mail,
+    send_drawdown_volation_mail,
 )
 
 logger = logging.getLogger(__name__)
@@ -312,6 +317,17 @@ class ProcessPayoutAPIView(APIView):
                 payout.status = "paid"
                 payout.process_date = timezone.now()
                 payout.processed_by = request.user
+
+                # send mail
+                sendMail(
+                    "prop/Payout_sent.html",
+                    "Prop Account Details",
+                    [payout.portfolio.user.email],
+                    {
+                        "amount": payout.amount,
+                        "sent_to": payout.portfolio.user.bank_info,
+                    },
+                )
 
             else:
                 reason = request.data.get("reason")
@@ -797,46 +813,6 @@ class AccountDataView(APIView):
 #         return Response(receipt_data)
 
 
-def sendMail(
-    template: str,
-    subject: str,
-    to: list,
-    context: object = None,
-    sender: str = None,
-    **kwargs,
-) -> bool:
-    """
-    A wrapper for send_mail
-    Compile a template to html and string and send email
-
-    Arguments:
-        template {str} -- The template location
-        subject {str} -- Mail Subject
-        to {object} -- Mail recipients, can be string or list
-
-    Keyword Arguments:
-        context {object} -- The data to pass to the template (default: {None})
-        sender {str} -- Opeional Sender (default: {None})
-
-    Returns:
-        bool -- send_mail 1 = sent and 0 not sent
-    """
-    html = render_to_string(template, context)
-    try:
-        send_mail(
-            subject,
-            "",
-            "Hamma Trade <hello@hamma.trade>",
-            to,
-            html_message=html,
-            fail_silently=False,
-        )
-        return True
-    except Exception as e:
-        print(str(e))
-        return False
-
-
 class AdminReceiptsView(APIView):
     serializer_class = AdminReceiptsViewSerializer
 
@@ -1024,8 +1000,8 @@ class AdminReceiptsView(APIView):
                 account_info = {
                     "login": prop_account.account_id,
                     "password": prop_account.code,
-                    "server": "HammaServer",
-                    "acc_size": (
+                    "server": "Hamma",
+                    "acc_type": (
                         "Model 1" if prop_account.model_type == "model_1" else "Model 2"
                     ),
                     "payout": prop_account.payout.title(),
@@ -1035,11 +1011,17 @@ class AdminReceiptsView(APIView):
 
                 # send the user the account details
                 sendMail(
-                    "prop/AccountInfo.html",
+                    "prop/Account_Purchase.html",
                     "Prop Account Details",
                     [receipt.user.email],
                     account_info,
                 )
+
+                # record the datetime the account was issued to the user to track 3days activation
+                print("Helooo")
+                demo_acc = DemoPortfolio.objects.get(id=id)
+                demo_acc.issued_at = now()
+                demo_acc.save()
 
                 try:
                     # Check if this user was referred by someone
@@ -1778,6 +1760,14 @@ class ActivateProp(APIView):
             prop.account_name = account_name
             prop.save()
             initiate_first_data(prop.account_id)
+            # send activated mail
+            sendMail(
+                "prop/Account_Activation.html",
+                "Account Activation Successful",
+                [prop.user.email],
+                {"first_name": prop.user.firstname},
+            )
+
             return Response({"message": "Prop activated successfully"})
         except DemoPortfolio.DoesNotExist:
             return Response(
