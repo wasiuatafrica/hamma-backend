@@ -36,7 +36,7 @@ def send_3days_pending_account_activation_mail(user):
     """
 
     sendMail(
-        "prop/3days-Pending-Activateion.html",
+        "prop/Pending_Account_Activation.html",
         "Don’t Miss Out — Activate Your Account Today!",
         [user.email],
         {"first_name": user.firstname},

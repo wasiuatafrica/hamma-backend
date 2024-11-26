@@ -103,6 +103,16 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             str(profile.proof_of_address.url) if str(profile.proof_of_address) else ""
         )
 
+    @property
+    def bank_info(self):
+        profile = Profile.objects.get(user__email=self.email)
+        # print(profile, "jbabah")
+        return (
+            f"{profile.bank_name} - {profile.account_number}"
+            if profile.bank_name
+            else f"{profile.paypal_address}"
+        )
+
 
 class Profile(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(

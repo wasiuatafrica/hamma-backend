@@ -316,6 +316,17 @@ class ProcessPayoutAPIView(APIView):
                 payout.process_date = timezone.now()
                 payout.processed_by = request.user
 
+                # send mail
+                sendMail(
+                    "prop/Payout_sent.html",
+                    "Prop Account Details",
+                    [payout.portfolio.user.email],
+                    {
+                        "amount": payout.amount,
+                        "sent_to": payout.portfolio.user.bank_info,
+                    },
+                )
+
             else:
                 reason = request.data.get("reason")
                 if not reason:
@@ -988,7 +999,7 @@ class AdminReceiptsView(APIView):
                     "login": prop_account.account_id,
                     "password": prop_account.code,
                     "server": "HammaServer",
-                    "acc_size": (
+                    "acc_type": (
                         "Model 1" if prop_account.model_type == "model_1" else "Model 2"
                     ),
                     "payout": prop_account.payout.title(),
@@ -998,7 +1009,7 @@ class AdminReceiptsView(APIView):
 
                 # send the user the account details
                 sendMail(
-                    "prop/AccountInfo.html",
+                    "prop/Account_Purchase.html",
                     "Prop Account Details",
                     [receipt.user.email],
                     account_info,
@@ -1743,7 +1754,7 @@ class ActivateProp(APIView):
             initiate_first_data(prop.account_id)
             # send activated mail
             sendMail(
-                "prop/AccountActivation.html",
+                "prop/Account_Activation.html",
                 "Account Activation Successful",
                 [prop.user.email],
                 {"first_name": prop.user.firstname},
