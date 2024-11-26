@@ -6,6 +6,7 @@ from .utils import sendMail
 import requests
 from django.utils import timezone
 from datetime import timedelta
+from django.utils.timezone import now, timedelta
 
 
 @shared_task
@@ -34,7 +35,7 @@ def send_3days_pending_account_activation_mail():
     """
     Send email to the user after 3 days account inactivation.
     """
-    three_days_ago = timezone.now() - timedelta(days=3)
+    three_days_ago = now() - timedelta(days=3)
 
     portfolios = DemoPortfolio.objects.filter(
         is_prop=True,
@@ -42,7 +43,7 @@ def send_3days_pending_account_activation_mail():
         inactive_by_inactivity=False,
         activated=False,
         receipt_approved=True,
-        issued_at__gt=three_days_ago,  # issued date is less than (older than) 3 days ago
+        issued_at__lt=three_days_ago,  # issued date is less than (older than) 3 days ago
     )
 
     for acc in portfolios:

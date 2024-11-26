@@ -44,6 +44,7 @@ from execution.models import (
 from notifications.utils import save_and_send_notification
 from portfolio.models import PayStackReceipts, Receipts
 from datetime import date
+from django.utils.timezone import now
 
 from .models import Payout
 from .pay_service import PayoutService
@@ -999,7 +1000,7 @@ class AdminReceiptsView(APIView):
                 account_info = {
                     "login": prop_account.account_id,
                     "password": prop_account.code,
-                    "server": "HammaServer",
+                    "server": "Hamma",
                     "acc_type": (
                         "Model 1" if prop_account.model_type == "model_1" else "Model 2"
                     ),
@@ -1017,9 +1018,9 @@ class AdminReceiptsView(APIView):
                 )
 
                 # record the datetime the account was issued to the user to track 3days activation
-
+                print("Helooo")
                 demo_acc = DemoPortfolio.objects.get(id=id)
-                demo_acc.issued_at = date.today()
+                demo_acc.issued_at = now()
                 demo_acc.save()
 
                 try:

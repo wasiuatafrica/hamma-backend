@@ -123,7 +123,7 @@ class DemoPortfolio(auto_prefetch.Model):
         on_delete=models.CASCADE,
         related_name="has_hamma2",
     )
-    issued_at = models.DateField(null=True, blank=True)
+    issued_at = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.account_id:
