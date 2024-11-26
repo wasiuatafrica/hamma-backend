@@ -22,7 +22,11 @@ def get_current_prop_data_task():
 @shared_task
 def analyze_portfolio_status_task():
     portfolios = DemoPortfolio.objects.filter(
-        is_prop=True, blown=False, inactive_by_inactivity=False, activated=True
+        is_prop=True,
+        blown=False,
+        inactive_by_inactivity=False,
+        activated=True,
+        user__email="nwaforglory6@gmail.com",
     )
     for portfolio in portfolios:
         if portfolio.account_type_level == "challenge":

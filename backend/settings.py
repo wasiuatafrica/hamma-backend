@@ -10,6 +10,7 @@ env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 DEBUG = os.environ.get("DEBUG") == "True"
 SECRET_KEY = os.environ.get("SECRET_KEY")
+SCREENSHOT_URL = os.environ.get("SCREENSHOT_URL")
 
 
 ALLOWED_HOSTS = ["*"]
