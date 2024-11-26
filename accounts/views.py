@@ -91,7 +91,7 @@ class VerifyToken(APIView):
         ReferralWallet.objects.create(user=user)
         DemoPortfolio.objects.create(user=user)
         if source == "prop":
-            send_prop_welcome_email.delay(id)
+            send_prop_welcome_email.delay(user.id)
         else:
             send_welcome_email.delay(user.id)
         models.UserActivityLog.objects.create(
