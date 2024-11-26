@@ -39,7 +39,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     def __str__(self):
-        return str(self.email) if self.email else ""
+        try:
+            return f"User: {self.email}"
+        except Exception as e:
+            return f"User ID: {self.id}"
 
     @property
     def clans(self):
