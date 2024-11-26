@@ -144,7 +144,7 @@ class Profile(auto_prefetch.Model):
     paypal_address = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.user} Profile"
+        return f"{self.user.email} Profile"
 
     @property
     def referrer(self):
@@ -182,7 +182,7 @@ class Referral(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user} Referral"
+        return f"{self.user.email} Referral"
 
     @property
     def stage(self):
@@ -250,7 +250,7 @@ class UserActivityLog(models.Model):
     device_type = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self) -> str:
-        return f"{self.user} - {self.action_type} - {self.timestamp.date()}"
+        return f"{self.user.email} - {self.action_type} - {self.timestamp.date()}"
 
     @property
     def userfullname(self):

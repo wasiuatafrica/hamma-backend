@@ -146,9 +146,9 @@ class DemoPortfolio(auto_prefetch.Model):
 
     def __str__(self):
         return (
-            f"{self.user} - {self.account_name} - {self.account_id}"
+            f"{self.user.email} - {self.account_name} - {self.account_id}"
             if self.account_id
-            else f"{self.user} - {self.account_name}"
+            else f"{self.user.email} - {self.account_name}"
         )
 
     @property
@@ -173,7 +173,7 @@ class HammaAccountRequest(auto_prefetch.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user} | {self.account}"
+        return f"{self.user.email} | {self.account}"
 
 
 class Portfolio(auto_prefetch.Model):
@@ -202,7 +202,7 @@ class Portfolio(auto_prefetch.Model):
         )
 
     def __str__(self):
-        return f"{self.user}"
+        return f"{self.user.email}"
 
     @property
     def account_type(self):
@@ -431,7 +431,7 @@ class DemoDailyReturns(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user} {self.portfolio_returns} - {self.created.date()}"
+        return f"{self.user.email} {self.portfolio_returns} - {self.created.date()}"
 
 
 class DemoDailyReturns2(auto_prefetch.Model):
@@ -448,7 +448,7 @@ class DemoDailyReturns2(auto_prefetch.Model):
 
     def __str__(self):
         return (
-            f"{self.user}-{self.portfolio.account_name}-{self.portfolio_returns}"
+            f"{self.user.email}-{self.portfolio.account_name}-{self.portfolio_returns}"
             if self.portfolio and self.portfolio.account_name
             else self.user
         )
@@ -468,9 +468,9 @@ class DailyReturns2(auto_prefetch.Model):
 
     def __str__(self):
         if self.portfolio:
-            return f"{self.portfolio.id} {self.user} {self.portfolio_returns} - {self.created.date()}"
+            return f"{self.portfolio.id} {self.user.email} {self.portfolio_returns} - {self.created.date()}"
         else:
-            return f"{self.user} {self.portfolio_returns} - {self.created.date()}"
+            return f"{self.user.email} {self.portfolio_returns} - {self.created.date()}"
 
 
 class MarketReturns(auto_prefetch.Model):
@@ -532,9 +532,9 @@ class DemoCumulativeReturns(auto_prefetch.Model):
 
     def __str__(self):
         if self.created:
-            return f"{self.user} {self.portfolio_returns} - {self.created.date()}"
+            return f"{self.user.email} {self.portfolio_returns} - {self.created.date()}"
         else:
-            return f"{self.user} {self.portfolio_returns}"
+            return f"{self.user.email} {self.portfolio_returns}"
 
 
 class DailyReturns(auto_prefetch.Model):
@@ -547,7 +547,7 @@ class DailyReturns(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user} - {self.created}"
+        return f"{self.user.email} - {self.created}"
 
 
 class CumulativeReturns(auto_prefetch.Model):
@@ -563,7 +563,7 @@ class CumulativeReturns(auto_prefetch.Model):
     created = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user} - {self.created}"
+        return f"{self.user.email} - {self.created}"
 
 
 class WithdrawalRequest(auto_prefetch.Model):

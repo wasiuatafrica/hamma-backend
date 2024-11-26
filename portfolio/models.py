@@ -100,7 +100,7 @@ class Wallet(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user} - {self.balance}"
+        return f"{self.user.email} - {self.balance}"
 
 
 class BonusWallet(auto_prefetch.Model):
@@ -109,7 +109,7 @@ class BonusWallet(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user} - {self.balance}"
+        return f"{self.user.email} - {self.balance}"
 
 
 class Stock(auto_prefetch.Model):
@@ -283,7 +283,7 @@ class Receipts(auto_prefetch.Model):
     flag = models.BooleanField(default=False, null=True, blank=True)
 
     def __str__(self) -> str:
-        return f"{self.user}-{self.amount} - {self.receipt_status}"
+        return f"{self.user.email}-{self.amount} - {self.receipt_status}"
 
 
 class PayStackReceipts(auto_prefetch.Model):
@@ -297,7 +297,7 @@ class PayStackReceipts(auto_prefetch.Model):
     flag = models.BooleanField(default=False, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user}-{self.amount}"
+        return f"{self.user.email}-{self.amount}"
 
 
 class Transaction(auto_prefetch.Model):
@@ -321,7 +321,7 @@ class Transaction(auto_prefetch.Model):
     channel = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.user} - {self.transaction_type} - {self.amount}"
+        return f"{self.user.email} - {self.transaction_type} - {self.amount}"
 
 
 class DemoTransaction(auto_prefetch.Model):
@@ -417,7 +417,7 @@ class AlertAITracker(auto_prefetch.Model):
     count = models.IntegerField(default=0)
 
     def __str__(self) -> str:
-        return f"{self.user} - {self.created} - {self.count}"
+        return f"{self.user.email} - {self.created} - {self.count}"
 
 
 class Conversation(auto_prefetch.Model):
@@ -537,7 +537,7 @@ class ButtonClick(auto_prefetch.Model):
     device_type = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user} -{self.page} - {self.button_name}"
+        return f"{self.user.email} -{self.page} - {self.button_name}"
 
 
 class StockWatchlist(auto_prefetch.Model):

@@ -83,7 +83,7 @@ class CompetitionPortfolio(auto_prefetch.Model):
 
     def __str__(self):
         # print(self.user.clan)
-        return f"{self.competition.title} {self.user}|clan= {self.user.clans}|acc_name={self.account_name}"
+        return f"{self.competition.title} {self.user.email}|clan= {self.user.clans}|acc_name={self.account_name}"
 
     @property
     def profit(self):
@@ -174,11 +174,15 @@ class CompetitionPosition(auto_prefetch.Model):
     @property
     def current_price(self):
         return get_price(self.stock.symbol)["current_price"]
+
     @property
     def commission(self):
         if self.amount_invested:
-            return float(round((Decimal(0.00435) * self.amount_invested) + Decimal(200),2))
+            return float(
+                round((Decimal(0.00435) * self.amount_invested) + Decimal(200), 2)
+            )
         return 0
+
 
 class CompetitionProfitLoss(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(
@@ -206,10 +210,10 @@ class CompetitionDailyReturns(auto_prefetch.Model):
     first_entry = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.user} - {self.created}"
+        return f"{self.user.email} - {self.created}"
 
     def __str__(self):
-        return f"{self.user} - {self.created}"
+        return f"{self.user.email} - {self.created}"
 
 
 class CompetitionCumulativeReturns(auto_prefetch.Model):
@@ -230,10 +234,10 @@ class CompetitionCumulativeReturns(auto_prefetch.Model):
     first_entry = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.user} - {self.created}"
+        return f"{self.user.email} - {self.created}"
 
     def __str__(self):
-        return f"{self.user} - {self.created}"
+        return f"{self.user.email} - {self.created}"
 
 
 class CompetitionTransaction(auto_prefetch.Model):
@@ -267,14 +271,13 @@ def getProfit(portfolio):
     positions = CompetitionPosition.objects.filter(portfolio=portfolio, status="close")
     # print(len(positions))
     if positions:
-        profit = sum([position.profit_loss -position.commission for position in positions])
+        profit = sum(
+            [position.profit_loss - position.commission for position in positions]
+        )
         # print(profit)
         return profit, True
     else:
         return 0, False
-
-
-
 
 
 def get_leaderboard():
@@ -489,7 +492,7 @@ class JoinClanRequest(auto_prefetch.Model):
     date_request = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user} | {self.clan} | {self.approved}| {self.date_request}"
+        return f"{self.user.email} | {self.clan} | {self.approved}| {self.date_request}"
 
     @property
     def user_name(self):
