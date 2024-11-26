@@ -15,7 +15,7 @@ from portfolio.models import Wallet
 from . import models, serializers
 from .models import TradingProfile
 from .serializers import TradingProfileSerializer
-from .tasks import send_welcome_email, set_up_user
+from .tasks import send_welcome_email, send_prop_welcome_email
 from .utils import SetTOTP, resendToken, sms_2FA, verify_token, verifyTOTP
 
 User = get_user_model()
@@ -71,6 +71,7 @@ class VerifyToken(APIView):
         token = request.data.get("token")
         user_email = request.data.get("user_email")
         device_type = request.data.get("device_type", None)
+        source = request.data.get("source", None)
 
         if not token and user_email:
             return Response(
@@ -86,20 +87,13 @@ class VerifyToken(APIView):
 
         user = User.objects.get(email=user_email)
 
-        # Portfolio.objects.create(user=user)
-        # ReferralWallet.objects.create(user=user)
-        # DemoPortfolio.objects.create(user=user)
-        # send_welcome_email.delay(user.id)
-        # # set_up_user.delay(user_email)
-        # activity=models.UserActivityLog.objects.create(user=user, action_type="verified_account",description="User verified their account.")
-
-        # return Response({"detail":"Account verifed."})
-
-        # Portfolio.objects.create(user=user)
         Wallet.objects.create(user=user)
         ReferralWallet.objects.create(user=user)
         DemoPortfolio.objects.create(user=user)
-        send_welcome_email.delay(user.id)
+        if source == "prop":
+            send_prop_welcome_email.delay(id)
+        else:
+            send_welcome_email.delay(user.id)
         models.UserActivityLog.objects.create(
             user=user,
             action_type="verified_account",
