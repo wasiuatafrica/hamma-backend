@@ -41,6 +41,7 @@ def send_3days_pending_account_activation_mail():
         blown=False,
         inactive_by_inactivity=False,
         activated=False,
+        receipt_approved=True,
         issued_at__gt=three_days_ago,  # issued date is less than (older than) 3 days ago
     )
 
