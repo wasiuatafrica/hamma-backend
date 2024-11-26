@@ -43,6 +43,7 @@ from execution.models import (
 )
 from notifications.utils import save_and_send_notification
 from portfolio.models import PayStackReceipts, Receipts
+from datetime import date
 
 from .models import Payout
 from .pay_service import PayoutService
@@ -1014,6 +1015,12 @@ class AdminReceiptsView(APIView):
                     [receipt.user.email],
                     account_info,
                 )
+
+                # record the datetime the account was issued to the user to track 3days activation
+
+                demo_acc = DemoPortfolio.objects.get(id=id)
+                demo_acc.issued_at = date.today()
+                demo_acc.save()
 
                 try:
                     # Check if this user was referred by someone

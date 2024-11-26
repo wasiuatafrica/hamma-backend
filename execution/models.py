@@ -116,6 +116,7 @@ class DemoPortfolio(auto_prefetch.Model):
         DiscountCode, on_delete=models.SET_NULL, null=True, blank=True
     )
     account_type_level = models.CharField(max_length=25, default="challenge")
+<<<<<<< HEAD
     has_hamma = auto_prefetch.ForeignKey(
         "DemoPortfolio",
         blank=True,
@@ -123,6 +124,9 @@ class DemoPortfolio(auto_prefetch.Model):
         on_delete=models.CASCADE,
         related_name="has_hamma2",
     )
+=======
+    issued_at = models.DateField(null=True, blank=True)
+>>>>>>> 4119b00 (added templates)
 
     def save(self, *args, **kwargs):
         if not self.account_id:

@@ -1,9 +1,11 @@
 from celery.app import shared_task
 from .utils import get_all_balance_equity_data, get_fixed_balance_equity_data
 from .analyzer import analyze_portfolio_status
-from execution.models import DemoPortfolio
+from execution.models import DemoPortfolio, Portfolio
 from .utils import sendMail
 import requests
+from django.utils import timezone
+from datetime import timedelta
 
 
 @shared_task
@@ -19,10 +21,7 @@ def get_current_prop_data_task():
 @shared_task
 def analyze_portfolio_status_task():
     portfolios = DemoPortfolio.objects.filter(
-        is_prop=True,
-        blown=False,
-        inactive_by_inactivity=False,
-        activated=True,
+        is_prop=True, blown=False, inactive_by_inactivity=False, activated=True
     )
     for portfolio in portfolios:
         if portfolio.account_type_level == "challenge":
@@ -30,17 +29,29 @@ def analyze_portfolio_status_task():
             print(data)
 
 
-def send_3days_pending_account_activation_mail(user):
+@shared_task
+def send_3days_pending_account_activation_mail():
     """
     Send email to the user after 3 days account inactivation.
     """
+    three_days_ago = timezone.now() - timedelta(days=3)
 
-    sendMail(
-        "prop/Pending_Account_Activation.html",
-        "Don’t Miss Out — Activate Your Account Today!",
-        [user.email],
-        {"first_name": user.firstname},
+    portfolios = DemoPortfolio.objects.filter(
+        is_prop=True,
+        blown=False,
+        inactive_by_inactivity=False,
+        activated=False,
+        issued_at__gt=three_days_ago,  # issued date is less than (older than) 3 days ago
     )
+
+    for acc in portfolios:
+        # send reminder mails
+        sendMail(
+            "prop/Pending_Account_Activation.html",
+            "Don’t Miss Out — Activate Your Account Today!",
+            [acc.user.email],
+            {"first_name": acc.user.firstname},
+        )
 
 
 def send_drawdown_volation_mail(user, email, password, key):
