@@ -43,8 +43,6 @@ def send_3days_pending_account_activation_mail():
 
     portfolios = DemoPortfolio.objects.filter(
         is_prop=True,
-        blown=False,
-        inactive_by_inactivity=False,
         activated=False,
         receipt_approved=True,
         issued_at__lt=three_days_ago,  # issued date is less than (older than) 3 days ago

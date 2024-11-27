@@ -174,28 +174,28 @@ class PortfolioAnalyzer:
         # check for drawdown violation to send mail
         violated = max_drawdown_percentage > max_drawdown_allowed
 
-        if violated:
-            # send daily draw down violation mail
-            # check if the screenshot server exists
-            # resp = get_screenshot(email="ideafabulous@gmail.com", account_id="33642544")
-            resp = get_screenshot(
-                email=self.portfolio.user.email, account_id=self.portfolio.account_id
-            )
-            if resp["status"]:
+        # if violated:
+        #     # send daily draw down violation mail
+        #     # check if the screenshot server exists
+        #     # resp = get_screenshot(email="ideafabulous@gmail.com", account_id="33642544")
+        #     resp = get_screenshot(
+        #         email=self.portfolio.user.email, account_id=self.portfolio.account_id
+        #     )
+        #     if resp["status"]:
 
-                sendMail(
-                    "prop/Drawdown.html",
-                    "Account Drawdown Violation Alert",
-                    [self.portfolio.user.email],
-                    {
-                        "ddd_limit": max_drawdown_allowed
-                        * self.initial_balance,  # daily draw down limit
-                        "current_dd": max_drawdown_percentage * self.initial_balance,
-                        "exceeded_by": f"{max_drawdown_percentage - max_drawdown_allowed}%",
-                        "screenshot_url": resp["screenshot_url"],
-                        "first_name": self.portfolio.user.firstname,
-                    },
-                )
+        #         sendMail(
+        #             "prop/Drawdown.html",
+        #             "Account Drawdown Violation Alert",
+        #             [self.portfolio.user.email],
+        #             {
+        #                 "ddd_limit": max_drawdown_allowed
+        #                 * self.initial_balance,  # daily draw down limit
+        #                 "current_dd": max_drawdown_percentage * self.initial_balance,
+        #                 "exceeded_by": f"{max_drawdown_percentage - max_drawdown_allowed}%",
+        #                 "screenshot_url": resp["screenshot_url"],
+        #                 "first_name": self.portfolio.user.firstname,
+        #             },
+        #         )
         return {
             "violated": violated,
             "drawdown_percentage": float(max_drawdown_percentage),
@@ -245,26 +245,26 @@ class PortfolioAnalyzer:
 
         # Determine if a violation occurred
         violated = max_drawdown_achieved > max_drawdown_allowed
-        if not violated:
-            # send daily draw down violation mail
-            # resp = get_screenshot(email="ideafabulous@gmail.com", account_id="33642544")
-            resp = get_screenshot(
-                email=self.portfolio.user.email, account_id=self.portfolio.account_id
-            )
-            if resp["status"]:
-                sendMail(
-                    "prop/Daily_drawdown.html",
-                    "Daily Drawdown Violation Alert",
-                    [self.portfolio.user.email],
-                    {
-                        "ddd_limit": max_drawdown_allowed
-                        * initial_balance,  # daily draw down limit
-                        "current_dd": max_drawdown_achieved * initial_balance,
-                        "exceeded_by": f"{max_drawdown_achieved - max_drawdown_allowed}%",
-                        "screenshot_url": resp["screenshot_url"],
-                        "first_name": self.portfolio.user.firstname,
-                    },
-                )
+        # if not violated:
+        #     # send daily draw down violation mail
+        #     # resp = get_screenshot(email="ideafabulous@gmail.com", account_id="33642544")
+        #     resp = get_screenshot(
+        #         email=self.portfolio.user.email, account_id=self.portfolio.account_id
+        #     )
+        #     if resp["status"]:
+        #         sendMail(
+        #             "prop/Daily_drawdown.html",
+        #             "Daily Drawdown Violation Alert",
+        #             [self.portfolio.user.email],
+        #             {
+        #                 "ddd_limit": max_drawdown_allowed
+        #                 * initial_balance,  # daily draw down limit
+        #                 "current_dd": max_drawdown_achieved * initial_balance,
+        #                 "exceeded_by": f"{max_drawdown_achieved - max_drawdown_allowed}%",
+        #                 "screenshot_url": resp["screenshot_url"],
+        #                 "first_name": self.portfolio.user.firstname,
+        #             },
+        #         )
 
         return {
             "violated": violated,

@@ -106,13 +106,13 @@ class PayoutService:
     @transaction.atomic
     def process_payout_request(self):
         """Process the payout request and create a Payout record"""
-        is_eligible, conditions = self.check_payout_eligibility()
+        # is_eligible, conditions = self.check_payout_eligibility()
 
-        if not is_eligible:
-            failed_conditions = [k for k, v in conditions.items() if not v]
-            raise ValueError(
-                f"Payout conditions not met: {', '.join(failed_conditions)}"
-            )
+        # if not is_eligible:
+        #     failed_conditions = [k for k, v in conditions.items() if not v]
+        #     raise ValueError(
+        #         f"Payout conditions not met: {', '.join(failed_conditions)}"
+        #     )
 
         # amount, split_percentage = self.calculate_payout_amount()
 

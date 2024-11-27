@@ -46,6 +46,8 @@ from portfolio.models import PayStackReceipts, Receipts
 from datetime import date
 from django.utils.timezone import now
 
+import prop
+
 from .models import Payout
 from .pay_service import PayoutService
 from .serializers import AccountlistSerializer, PayoutDetailSerializer
@@ -180,52 +182,60 @@ class RequestPayoutAPIView(APIView):
             portfolio = DemoPortfolio.objects.get(id=portfolio_id, user=request.user)
 
             payout_service = PayoutService(portfolio)
-            is_eligible, conditions = payout_service.check_payout_eligibility()
+            # is_eligible, conditions = payout_service.check_payout_eligibility()
 
-            # Prepare detailed error messages for failed conditions
-            error_messages = {
-                "minimum_trading_days": "Minimum trading days requirement not met (2 days per week required)",
-                "profit_target_met": "No profit available for payout",
-                "drawdown_limits": "Account has exceeded drawdown limits",
-                "minimum_trades": "Minimum trades requirement not met",
-                "active_account": "Account is not active or has been blown",
-                "payout_timing": "Payout request can only be made between Wednesdays and 12pm on Fridays",
-                "no_open_trades": "Cannot request payout while having open trades",
-            }
+            # # Prepare detailed error messages for failed conditions
+            # error_messages = {
+            #     "minimum_trading_days": "Minimum trading days requirement not met (2 days per week required)",
+            #     "profit_target_met": "No profit available for payout",
+            #     "drawdown_limits": "Account has exceeded drawdown limits",
+            #     "minimum_trades": "Minimum trades requirement not met",
+            #     "active_account": "Account is not active or has been blown",
+            #     "payout_timing": "Payout request can only be made between Wednesdays and 12pm on Fridays",
+            #     "no_open_trades": "Cannot request payout while having open trades",
+            # }
 
-            if not is_eligible:
-                failed_conditions = []
-                for condition, passed in conditions.items():
-                    if not passed:
-                        failed_conditions.append(
-                            {
-                                "condition": condition,
-                                "message": error_messages.get(
-                                    condition, "Condition not met"
-                                ),
-                            }
-                        )
+            # if not is_eligible:
+            #     failed_conditions = []
+            #     for condition, passed in conditions.items():
+            #         if not passed:
+            #             failed_conditions.append(
+            #                 {
+            #                     "condition": condition,
+            #                     "message": error_messages.get(
+            #                         condition, "Condition not met"
+            #                     ),
+            #                 }
+            #             )
 
+            #     return Response(
+            #         {
+            #             "error": "Payout conditions not met",
+            #             "failed_conditions": failed_conditions,
+            #             "details": {
+            #                 "open_trades_count": DemoPosition.objects.filter(
+            #                     portfolio=portfolio, status="open"
+            #                 ).count(),
+            #                 "trading_days_this_week": DemoPosition.objects.filter(
+            #                     portfolio=portfolio,
+            #                     created__gte=timezone.now() - timedelta(days=7),
+            #                     status="close",
+            #                 )
+            #                 .dates("created", "day")
+            #                 .count(),
+            #                 "current_profit": float(
+            #                     get_equity_balance(portfolio)["equity"]
+            #                     - portfolio.initial_balance
+            #                 ),
+            #             },
+            #         },
+            #         status=status.HTTP_400_BAD_REQUEST,
+            #     )
+
+            if portfolio.account_type_level == "challenge":
                 return Response(
                     {
-                        "error": "Payout conditions not met",
-                        "failed_conditions": failed_conditions,
-                        "details": {
-                            "open_trades_count": DemoPosition.objects.filter(
-                                portfolio=portfolio, status="open"
-                            ).count(),
-                            "trading_days_this_week": DemoPosition.objects.filter(
-                                portfolio=portfolio,
-                                created__gte=timezone.now() - timedelta(days=7),
-                                status="close",
-                            )
-                            .dates("created", "day")
-                            .count(),
-                            "current_profit": float(
-                                get_equity_balance(portfolio)["equity"]
-                                - portfolio.initial_balance
-                            ),
-                        },
+                        "error": "Cannot request payout for challenge account",
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
@@ -333,7 +343,7 @@ class ProcessPayoutAPIView(APIView):
                 # send mail
                 sendMail(
                     "prop/Payout_sent.html",
-                    "Prop Account Details",
+                    "💸 Payout Sent: Your Earnings Are On the Way!",
                     [payout.portfolio.user.email],
                     {
                         "amount": payout.amount,
@@ -1007,6 +1017,7 @@ class AdminReceiptsView(APIView):
                 prop_account.receipt_approved = True
                 # prop_account.activated = True
                 prop_account.is_active = True
+                prop_account.issued_at = timezone.now()
                 prop_account.save()
 
                 account_info = {
@@ -1024,7 +1035,7 @@ class AdminReceiptsView(APIView):
                 # send the user the account details
                 sendMail(
                     "prop/Account_Purchase.html",
-                    "Prop Account Details",
+                    "🚀 You’re In! Welcome to the Hamma Trading Squad 🎉",
                     [receipt.user.email],
                     account_info,
                 )
@@ -1625,7 +1636,7 @@ class PayoutsSummaryView(APIView):
         try:
             portfolio = DemoPortfolio.objects.get(id=portfolio_id, user=user)
 
-            if portfolio.account_level_type == "challenge":
+            if portfolio.account_type_level == "challenge":
                 response_data = {
                     "available_profit": {"amount": 0, "can_request": False},
                     "pending_amount": {
@@ -1777,7 +1788,7 @@ class ActivateProp(APIView):
                 "prop/Account_Activation.html",
                 "Account Activation Successful",
                 [prop.user.email],
-                {"first_name": prop.user.firstname},
+                {"first_name": prop.user.firstname.title()},
             )
 
             return Response({"message": "Prop activated successfully"})
