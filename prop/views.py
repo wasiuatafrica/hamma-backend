@@ -257,6 +257,18 @@ class RequestPayoutAPIView(APIView):
             payout = payout_service.process_payout_request()
             serializer = PayoutDetailSerializer(payout)
 
+            # send payout mail
+            sendMail(
+                "prop/Payout.html",
+                "Update on Your Payout Request",
+                [request.user.email],
+                {
+                    "first_name": request.user.firstname,
+                    "amount": payout.amount,
+                    "payment_type": request.user.payment_type,
+                },
+            )
+
             return Response(
                 {
                     "message": "Payout request submitted successfully",

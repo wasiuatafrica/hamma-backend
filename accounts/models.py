@@ -113,6 +113,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             else f"{profile.paypal_address}"
         )
 
+    @property
+    def payment_type(self):
+        profile = Profile.objects.get(user__email=self.email)
+        # print(profile, "jbabah")
+        return f"Bank Transfer" if profile.bank_name else f"Paypal"
+
 
 class Profile(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(
