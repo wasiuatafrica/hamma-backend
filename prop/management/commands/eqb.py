@@ -4,6 +4,7 @@ from prop.utils import get_all_balance_equity_data, get_fixed_balance_equity_dat
 from prop.tasks import analyze_portfolio_status_task
 from accounts.tasks import send_prop_welcome_email
 from django.contrib.auth import get_user_model
+from prop.analyzer import get_screenshot
 
 User = get_user_model()
 
@@ -11,7 +12,9 @@ User = get_user_model()
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        data = analyze_portfolio_status_task()
-        print(data)
+        # data = analyze_portfolio_status_task()
+        # print(data)
         # user = User.objects.get(email="nexxyb@gmail.com")
         # send_prop_welcome_email(user.id)
+        shot = get_screenshot(email="ideafabulous@gmail.com", account_id="33642544")
+        print(shot)

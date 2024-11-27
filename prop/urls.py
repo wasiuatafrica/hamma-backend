@@ -4,6 +4,7 @@ from rest_framework import routers
 from .views import MyReferralWalletManagement
 from . import admin_views
 from . import support_views
+from . import analytics_views
 
 
 urlpatterns = [
@@ -92,6 +93,10 @@ urlpatterns = [
         admin_views.HammaRequestAdminView.as_view(),
         name="hamma-requests",
     ),  # GET for listing
+    path("analytics/", analytics_views.DemoAnalyticsView.as_view()),
+    path("graph/", analytics_views.DemoPortfolioAnalyticsView.as_view()),
+    path("analytics2/", analytics_views.DemoStatsAPIView.as_view()),
+    path("barchart/", analytics_views.PortfoliosByTypeView.as_view()),
 ]
 
 # # Add router URLs to urlpatterns
