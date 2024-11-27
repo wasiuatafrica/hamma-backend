@@ -11,7 +11,7 @@ User = get_user_model()
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        # data = analyze_portfolio_status_task()
-        # print(data)
-        user = User.objects.get(email="nexxyb@gmail.com")
-        send_prop_welcome_email(user.id)
+        data = analyze_portfolio_status_task()
+        print(data)
+        # user = User.objects.get(email="nexxyb@gmail.com")
+        # send_prop_welcome_email(user.id)

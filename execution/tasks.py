@@ -1,4 +1,5 @@
 import json
+import requests
 import os
 import time as timer
 from concurrent.futures import ThreadPoolExecutor
@@ -9,6 +10,7 @@ from random import uniform
 import boto3
 import pandas as pd
 import pytz
+from backend import settings
 import shortuuid
 from asgiref.sync import async_to_sync
 from celery import shared_task
