@@ -72,6 +72,7 @@ class VerifyToken(APIView):
         user_email = request.data.get("user_email")
         device_type = request.data.get("device_type", None)
         source = request.data.get("source", None)
+        print(user_email, token, source, device_type)
 
         if not token and user_email:
             return Response(
