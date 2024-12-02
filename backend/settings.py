@@ -179,6 +179,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://superstars.gohamma.com",
     "https://gohamma.com",
     "https://hamma.trade",
+    "https://hqr.hamma.trade/",
 ]
 
 DATE_INPUT_FORMATS = ["%d-%m-%Y"]
