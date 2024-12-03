@@ -410,6 +410,16 @@ class PortfolioAnalyzer:
 
             previous_balance = current_balance
 
+        positions = self.portfolio.positions.filter(status="open")
+
+        if positions:
+            return {
+                "eligible": False,
+                "reason": "Account has open positions",
+                "trading_days": len(trading_days),
+                "current_week_trading_days": len(current_week_trading_days),
+            }
+
         # Check total trading days requirement
         if len(trading_days) < 6:
             return {
@@ -539,7 +549,7 @@ def analyze_portfolio_status(portfolio):
 
     # Check payout eligibility
     eligibility = analyzer.check_payout_eligibility()
-    # print(eligibility)
+    print(eligibility)
 
     # Update portfolio status
     portfolio.blown = account_drawdown["violated"] or daily_drawdown["violated"]

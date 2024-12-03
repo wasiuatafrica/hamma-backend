@@ -28,7 +28,7 @@ def analyze_portfolio_status_task():
         activated=True,
         # account_id="33642544"
     )
-    print(portfolios)
+    # print(portfolios)
     for portfolio in portfolios:
         if portfolio.account_type_level == "challenge":
             data = analyze_portfolio_status(portfolio)
