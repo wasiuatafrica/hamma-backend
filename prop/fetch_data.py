@@ -279,7 +279,7 @@ def process_balance_equity_data():
     last_item = get_price()
 
     # Only process during trading hours (Monday-Friday, 10:00-14:30)
-    if 0 <= current_day <= 4 and time(8, 0) <= current_time <= time(14, 30):
+    if 0 <= current_day <= 4 and time(8, 0) <= current_time <= time(14, 42):
         for portfolio in portfolios.values():
             account_data = get_equity_balance(portfolio, positions, last_item)
 

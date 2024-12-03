@@ -1228,6 +1228,8 @@ class UserAccounctsList(APIView):
 
 
 class PortfolioDailyProfitLossView(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, portfolio_id):
         try:
             period = request.query_params.get("period", "7d")  # Default to 7 days
@@ -1255,8 +1257,54 @@ class PortfolioDailyProfitLossView(APIView):
 
             start_date = end_date - timedelta(days=days)
             portfolio = DemoPortfolio.objects.get(id=portfolio_id)
+            print(portfolio.id)
 
             # Get all closed positions for the period
+            # positions = DemoPosition.objects.filter(
+            #     portfolio=portfolio,
+            #     status="close",
+            #     updated__gte=start_date,
+            #     updated__lte=end_date,
+            # ).annotate(
+            #     date=TruncDate("updated"),
+            #     commission_calculated=ExpressionWrapper(
+            #         (F("amount_invested") * Decimal("0.00435")) + Decimal("200"),
+            #         output_field=DecimalField(),
+            #     ),
+            # )
+
+            # print(positions)
+            # for pos in positions:
+            #     print(pos.profit_loss)
+
+            # # Group by date and calculate daily totals including commission
+            # daily_data = (
+            #     positions.values("date")
+            #     .annotate(
+            #         profit_sum=Sum(
+            #             Case(
+            #                 When(
+            #                     profit_loss__gt=0,
+            #                     then=F("profit_loss") - F("commission_calculated"),
+            #                 ),
+            #                 default=Value(0),
+            #                 output_field=DecimalField(),
+            #             )
+            #         ),
+            #         loss_sum=Sum(
+            #             Case(
+            #                 When(
+            #                     profit_loss__lt=0,
+            #                     then=F("profit_loss") - F("commission_calculated"),
+            #                 ),
+            #                 default=Value(0),
+            #                 output_field=DecimalField(),
+            #             )
+            #         ),
+            #         total_commission=Sum("commission_calculated"),
+            #     )
+            #     .order_by("date")
+            # )
             positions = DemoPosition.objects.filter(
                 portfolio=portfolio,
                 status="close",
@@ -1264,21 +1312,23 @@ class PortfolioDailyProfitLossView(APIView):
                 updated__lte=end_date,
             ).annotate(
                 date=TruncDate("updated"),
-                commission=ExpressionWrapper(
+                commission_calculated=ExpressionWrapper(
                     (F("amount_invested") * Decimal("0.00435")) + Decimal("200"),
                     output_field=DecimalField(),
                 ),
+                net_profit_loss=F("profit_loss")
+                - F("commission_calculated"),  # Calculate net profit/loss here
             )
 
-            # Group by date and calculate daily totals including commission
+            # Group by date and calculate daily totals
             daily_data = (
                 positions.values("date")
                 .annotate(
                     profit_sum=Sum(
                         Case(
                             When(
-                                profit_loss__gt=0,
-                                then=F("profit_loss") - F("commission"),
+                                net_profit_loss__gt=0,  # Use net_profit_loss instead
+                                then=F("net_profit_loss"),
                             ),
                             default=Value(0),
                             output_field=DecimalField(),
@@ -1287,17 +1337,19 @@ class PortfolioDailyProfitLossView(APIView):
                     loss_sum=Sum(
                         Case(
                             When(
-                                profit_loss__lt=0,
-                                then=F("profit_loss") - F("commission"),
+                                net_profit_loss__lt=0,  # Use net_profit_loss instead
+                                then=F("net_profit_loss"),
                             ),
                             default=Value(0),
                             output_field=DecimalField(),
                         )
                     ),
-                    total_commission=Sum("commission"),
+                    total_commission=Sum("commission_calculated"),
                 )
                 .order_by("date")
             )
+            print("here")
+            print(daily_data)
 
             # Calculate totals
             total_profit = Decimal("0")
