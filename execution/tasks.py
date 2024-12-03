@@ -322,6 +322,7 @@ def process_limit_order(id, in_competition=False):
             position = get_object_or_404(DemoPosition, id=id)
 
             user = position.portfolio.user
+            account_type = "PROP" if position.portfolio.is_prop else "DEMO"
 
             expired = False
 
@@ -346,7 +347,7 @@ def process_limit_order(id, in_competition=False):
                         expired = True
                         save_and_send_notification(
                             user.id,
-                            f"DEMO: Your pending order has been cancelled because the position cannot be filled before close of trade session today.",
+                            f"{account_type}: Your pending order has been cancelled because the position cannot be filled before close of trade session today.",
                         )
 
                 elif position.time_in_force == "week":
@@ -367,7 +368,7 @@ def process_limit_order(id, in_competition=False):
 
                         save_and_send_notification(
                             user.id,
-                            f"DEMO: Your pending order has been cancelled because the position cannot be filled before close of trade session.",
+                            f"{account_type}: Your pending order has been cancelled because the position cannot be filled before close of trade session.",
                         )
 
                 if not expired and current_time_lagos < target_time:
@@ -414,7 +415,7 @@ def process_limit_order(id, in_competition=False):
 
                                 save_and_send_notification(
                                     user.id,
-                                    f" DEMO: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value:{position.amount_invested}naira ",
+                                    f"{account_type}: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value:{position.amount_invested}naira ",
                                 )
                             else:
                                 save_and_send_notification(
@@ -454,7 +455,7 @@ def process_limit_order(id, in_competition=False):
 
                                 save_and_send_notification(
                                     user.id,
-                                    f" DEMO: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value:{position.amount_invested}naira ",
+                                    f"{account_type}: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value:{position.amount_invested}naira ",
                                 )
                             else:
                                 save_and_send_notification(
@@ -524,7 +525,9 @@ def log_activity(user, position, amount, action_type):
 
 
 def send_trade_notification(user, position, price, amount, action_type):
-    trade_type = "COMPETITION" if action_type == "competition_open_trade" else "DEMO"
+    trade_type = (
+        "COMPETITION" if action_type == "competition_open_trade" else action_type
+    )
     save_and_send_notification(
         user.id,
         f"{trade_type}: You opened position {position.quantity} units of {position.stock.symbol} at {price} per unit. Total value: {amount} naira",
@@ -643,6 +646,7 @@ def process_demo_limit_order(id):
     )
 
     if position.status == "pending":
+        account_type = "PROP" if position.portfolio.is_prop else "DEMO"
         # Expiry conditions for day and week positions
         if position.time_in_force == "day" and current_time_lagos > target_time:
             cancel_order(
@@ -666,10 +670,11 @@ def process_demo_limit_order(id):
         # Check price and execute trade
         data = get_price(position.stock.symbol)
         price = data["current_price"]
+
         if position.action == "buy" and price <= position.limit_price:
-            execute_trade(position, price, user, "demo_open_trade", DemoTransaction)
+            execute_trade(position, price, user, account_type, DemoTransaction)
         elif position.action == "sell" and price >= position.limit_price:
-            execute_trade(position, price, user, "demo_open_trade", DemoTransaction)
+            execute_trade(position, price, user, account_type, DemoTransaction)
 
     # Disable periodic task if order is no longer pending
     # else:
@@ -1019,6 +1024,7 @@ def process_market_data(prompt, convsersation_id, user_id, channel_name):
     user = User.objects.get(id=user_id)
 
     portfolio = get_object_or_404(DemoPortfolio, user=user)
+    account_type = "PROP" if portfolio.is_prop else "DEMO"
     conversation = Conversation.objects.get(name=convsersation_id)
     extracted_data = json.loads(loaded_data)
 
@@ -1108,7 +1114,7 @@ def process_market_data(prompt, convsersation_id, user_id, channel_name):
                 )
                 save_and_send_notification(
                     user.id,
-                    f" DEMO: You opened position {position.quantity} units of {position.stock.symbol} at {position.open_price} per unit. Total value:{position.quantity * position.open_price} naira ",
+                    f" {account_type}: You opened position {position.quantity} units of {position.stock.symbol} at {position.open_price} per unit. Total value:{position.quantity * position.open_price} naira ",
                 )
 
                 marketai.position_created = True
@@ -1317,6 +1323,7 @@ def process_market_data2(prompt, convsersation_id, user_id, channel_name):
     user = User.objects.get(id=user_id)
 
     portfolio = get_object_or_404(DemoPortfolio, user=user)
+    account_type = "PROP" if portfolio.is_prop else "DEMO"
     # positions_query = DemoPosition.objects.filter(portfolio=portfolio)
     # positions = DemoPositionSerializer (positions_query, many=True).data
 
@@ -1490,7 +1497,7 @@ def process_market_data2(prompt, convsersation_id, user_id, channel_name):
                         # Message.objects.create(user =user, sender='bot',room=conversation, content=message)
                         save_and_send_notification(
                             user.id,
-                            f" DEMO: You opened position on {position.quantity} units of {position.stock.symbol} at {position.open_price} per unit. Total value:{position.quantity * position.open_price} naira ",
+                            f"{account_type}: You opened position on {position.quantity} units of {position.stock.symbol} at {position.open_price} per unit. Total value:{position.quantity * position.open_price} naira ",
                         )
 
                         marketai.position_created = True
