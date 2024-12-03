@@ -26,8 +26,9 @@ def analyze_portfolio_status_task():
         blown=False,
         inactive_by_inactivity=False,
         activated=True,
-        user__email="nwaforglory6@gmail.com",
+        # account_id="33642544"
     )
+    print(portfolios)
     for portfolio in portfolios:
         if portfolio.account_type_level == "challenge":
             data = analyze_portfolio_status(portfolio)

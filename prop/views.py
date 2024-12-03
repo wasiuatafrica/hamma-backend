@@ -1770,6 +1770,11 @@ class ActivateProp(APIView):
         user = request.user
         account_id = request.data.get("account_id")
         account_name = request.data.get("account_name")
+        if not account_id or not account_name:
+            return Response(
+                {"error": "Account ID and account name are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         try:
             prop = DemoPortfolio.objects.get(account_id=account_id, user=user)
             if prop.activated:

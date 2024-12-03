@@ -10,7 +10,7 @@ env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 DEBUG = os.environ.get("DEBUG") == "True"
 SECRET_KEY = os.environ.get("SECRET_KEY")
-SCREENSHOT_URL = "http://localhost:3100"
+SCREENSHOT_URL = "http://ec2-13-60-197-214.eu-north-1.compute.amazonaws.com:3100"
 
 
 ALLOWED_HOSTS = ["*"]
@@ -179,7 +179,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://superstars.gohamma.com",
     "https://gohamma.com",
     "https://hamma.trade",
-    "https://hqr.hamma.trade/",
+    "https://hqr.hamma.trade",
 ]
 
 DATE_INPUT_FORMATS = ["%d-%m-%Y"]

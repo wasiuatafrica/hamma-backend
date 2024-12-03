@@ -27,7 +27,7 @@ def get_equity_balance(portfolio):
     def pl_cv(position):
         pl, cur_val, price = position.calculate_profit_loss()
         symbol = position.stock.symbol
-        print(pl)
+        # print(pl)
         data2 = {
             "stock": symbol,
             "current_value": round(cur_val, 2),
@@ -42,7 +42,7 @@ def get_equity_balance(portfolio):
         pl_cv_list = [result for result in futures if result]
 
     profit_loss_list = [x[0] for x in pl_cv_list]
-    print(profit_loss_list)
+    # print(profit_loss_list)
     profit_loss = sum(profit_loss_list) if profit_loss_list else 0
     equity1 = round(balance + profit_loss, 2)
     equity = equity1 if equity1 >= 0 else 0
@@ -109,6 +109,7 @@ def get_fixed_balance_equity_data():
         blown=False,
     )
     for account in prop_accounts:
+        print(account)
         account_data = get_equity_balance(account)
         mongo_data = {
             "balance": (
