@@ -32,6 +32,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     last_ip = models.GenericIPAddressField(blank=True, null=True)
     last_location = models.CharField(max_length=100, blank=True, null=True)
     last_device = models.TextField(blank=True, null=True)
+    signup_route = models.CharField(max_length=100, default="competition")
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["firstname", "lastname"]

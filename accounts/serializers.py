@@ -7,6 +7,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         max_length=128, min_length=8, write_only=True, style={"input_type": "password"}
     )
+    signup_route = serializers.CharField(max_length=200, required=False)
 
     class Meta:
         model = models.CustomUser
@@ -23,6 +24,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "totp_url",
             "date_joined",
             "last_login",
+            "signup_route",
         ]
         extra_kwargs = {
             "password": {"write_only": True, "required": True},

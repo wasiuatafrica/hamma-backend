@@ -42,6 +42,7 @@ class CustomUserAdmin(UserAdmin):
         "is_staff",
         "is_active",
         "twofa_type",
+        "signup_route",
     )
 
     fieldsets = (
@@ -61,6 +62,7 @@ class CustomUserAdmin(UserAdmin):
                     "last_ip",
                     "last_location",
                     "last_device",
+                    "signup_route",
                 )
             },
         ),
@@ -91,14 +93,16 @@ class CustomUserAdmin(UserAdmin):
                     "last_device",
                     "is_staff",
                     "is_active",
+                    "signup_route",
                 ),
             },
         ),
     )
 
-    search_fields = ("email",)
+    search_fields = ("email", "firstname", "lastname")
     ordering = ("-date_joined",)
     readonly_fields = ("id",)
+    list_filter = ["signup_route"]
 
 
 admin.site.register(CustomUser, CustomUserAdmin)

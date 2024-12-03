@@ -1925,6 +1925,7 @@ class UserPendingReceipts(APIView):
 
 class AdminUserList(APIView):
     serializer_class = AdminCustomUserSerializer
+    permission_classes = [AllowAny]
 
     def get_object(self, user_id):
         # Get a single user by ID
@@ -1948,12 +1949,13 @@ class AdminUserList(APIView):
             return Response(serialized_data)
         else:
             # Return a list of all users
-            users = (
-                User.objects.filter(demoportfolio2__is_prop=True)
-                .annotate(latest_created=Max("demoportfolio2__created"))
-                .order_by("-latest_created")
-                .distinct()
-            )
+            # users = (
+            #     User.objects.filter(demoportfolio2__is_prop=True)
+            #     .annotate(latest_created=Max("demoportfolio2__created"))
+            #     .order_by("-latest_created")
+            #     .distinct()
+            # )
+            users = User.objects.filter(signup_route="hamma_trade")
 
             serialized_data = self.serializer_class(users, many=True).data
             return Response(serialized_data)
