@@ -142,7 +142,7 @@ class PortfolioAnalyzer:
         Returns:
             dict: Information about drawdown violation.
         """
-        print(self.data)
+        # print(self.data)
         if not self.data:
             return {"violated": False, "drawdown_percentage": 0}
 
@@ -177,12 +177,16 @@ class PortfolioAnalyzer:
         violated = max_drawdown_percentage > max_drawdown_allowed
 
         if violated:
+            # update portfolio
+            self.portfolio.blown = True
+            self.portfolio.save()
             # send daily draw down violation mail
             # check if the screenshot server exists
             # resp = get_screenshot(email="ideafabulous@gmail.com", account_id="33642544")
             resp = get_screenshot(
                 email=self.portfolio.user.email, account_id=self.portfolio.account_id
             )
+            print("resp", resp)
             if resp["status"]:
 
                 sendMail(
@@ -192,8 +196,10 @@ class PortfolioAnalyzer:
                     {
                         "ddd_limit": max_drawdown_allowed
                         * self.initial_balance,  # daily draw down limit
-                        "current_dd": max_drawdown_percentage * self.initial_balance,
-                        "exceeded_by": f"{max_drawdown_percentage - max_drawdown_allowed}%",
+                        "current_dd": round(
+                            max_drawdown_percentage * self.initial_balance, 2
+                        ),
+                        "exceeded_by": f"{round(max_drawdown_percentage - max_drawdown_allowed,2)}%",
                         "screenshot_url": resp["screenshot_url"],
                         "first_name": self.portfolio.user.firstname,
                     },
@@ -247,7 +253,10 @@ class PortfolioAnalyzer:
 
         # Determine if a violation occurred
         violated = max_drawdown_achieved > max_drawdown_allowed
-        if not violated:
+        if violated:
+            # update portfolio
+            self.portfolio.blown = True
+            self.portfolio.save()
             # send daily draw down violation mail
             # resp = get_screenshot(email="ideafabulous@gmail.com", account_id="33642544")
             resp = get_screenshot(
@@ -261,8 +270,8 @@ class PortfolioAnalyzer:
                     {
                         "ddd_limit": max_drawdown_allowed
                         * initial_balance,  # daily draw down limit
-                        "current_dd": max_drawdown_achieved * initial_balance,
-                        "exceeded_by": f"{max_drawdown_achieved - max_drawdown_allowed}%",
+                        "current_dd": round(max_drawdown_achieved * initial_balance, 2),
+                        "exceeded_by": f"{round(max_drawdown_achieved - max_drawdown_allowed,2)}%",
                         "screenshot_url": resp["screenshot_url"],
                         "first_name": self.portfolio.user.firstname,
                     },
@@ -509,7 +518,7 @@ def analyze_portfolio_status(portfolio):
 
     # Get balance and equity data from your data source
     balance_equity_data = get_account_data(portfolio.account_id)
-    print(balance_equity_data)
+    # print(balance_equity_data)
 
     analyzer = PortfolioAnalyzer(balance_equity_data, portfolio)
 

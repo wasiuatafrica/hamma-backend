@@ -12,10 +12,10 @@ from execution.models import DemoPortfolio, DemoPosition
 client = MongoClient(
     os.environ.get("MONGO_STRING"), tls=True, tlsAllowInvalidCertificates=True
 )
-if os.environ.get("server") == "local":
-    db_prop = client["prop_data"]
-else:
-    db_prop = client["prop_data_prod"]
+# if os.environ.get("server") == "local":
+#     db_prop = client["prop_data"]
+# else:
+db_prop = client["prop_data_prod"]
 
 wat = pytz.timezone("Africa/Lagos")
 
