@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -86,9 +86,11 @@ class DiscountCodeDetailView(APIView):
 
 
 class DiscountCodeValidity(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, code, format=None):
         try:
-            discount_code = DiscountCode.objects.get(code=code)
+            discount_code = DiscountCode.objects.get(code=code.upper().strip())
             code_details = {
                 "code": discount_code.code,
                 "discount_percentage": discount_code.discount_percentage,
