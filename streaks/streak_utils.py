@@ -228,9 +228,14 @@ def create_daily_activity(user, streak_run, trade_date, account, portfolio_field
 def reset_streak(user, account, portfolio_field, streak_info):
     """Reset streak for user."""
     active_streak_run = get_active_streak_run(user, account, portfolio_field)
+    print(active_streak_run, "this is the active run")
     if active_streak_run:
         active_streak_run.end_streak()
     streak_info.reset_streak()
+    # start another streak run
+    UserStreakRun.objects.create(
+        user=user, previous_streak=active_streak_run, demo_portfolio=account
+    )
 
 
 @shared_task
