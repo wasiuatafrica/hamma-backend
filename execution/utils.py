@@ -1109,7 +1109,9 @@ def daily_returns7():
         and current_time_lagos.weekday() < 5
     ):
 
-        portfolios = DemoPortfolio.objects.all()
+        # portfolios = DemoPortfolio.objects.all()
+        portfolios = DemoPortfolio.objects.filter(account_id="58065619")
+        print(portfolios)
         for portfolio in portfolios:
             positions_today = DemoPosition.objects.filter(
                 portfolio=portfolio, status="close", updated__date=today
@@ -1231,13 +1233,14 @@ def daily_returns7():
                 else:
                     days_passed = days_since_date(portfolio_creation_date)
                 # print('days',days_passed)
-                n_bars = 1 + days_passed
+                n_bars = 2 + days_passed
                 df2 = tv.get_hist(
                     symbol="ASI",
                     exchange="NSENG",
                     interval=Interval.in_daily,
                     n_bars=n_bars,
                 )
+                print(df2)
                 ASI_daily_selected = df2.reset_index()
                 ASI_daily_selected["ASI_daily_retuns"] = (
                     ASI_daily_selected["close"].pct_change() * 100

@@ -25,7 +25,7 @@ These models provide flexibility for traders who prioritize either high growth o
 Profit Split Structure
 
 The profit-sharing system incentivizes performance and long-term engagement:
-- 90% of profits for the trader within the first 4 weeks of account activation.
+- 90% of profits for the trader within the first 4 weeks of account passing the evaluation.
 - 60% of profits for trades between weeks 5 and 12.
 - 40% of profits for trades beyond 12 weeks.
 
@@ -36,17 +36,105 @@ Trading Rules and Policies
 To ensure fairness and compliance, all traders must adhere to the following guidelines:
 - Maintain a minimum of two trading days per week.
 - Inactivity for more than two consecutive weeks will result in account suspension.
-- Scalping is permitted, but trades must be held for at least five minutes.
-- One-sided betting is strictly prohibited.
 - Copy trading is not allowed under any circumstances.
 
 
-Hamma Prop Account Documentation
+Why Hamma Prop Trading?
+At Hamma Prop Trading, we're all about making trading success achievable for everyone. Here's why traders love us:
+
+Tailored Trading Environment: We have two Models of the same account size
+Model 1: For traders who are focused on High growth with high risks
+Model 2: For traders seeking lower risk and steady returns.
+
+Transparent Costs: No hidden fees — just a one-time fee to start.
+
+Massive Profit Split: Get paid up to 90% profit split on your funded account
+
+Weekly Rewards
+Get weekly payouts for consistent income.
+
+Easy Access: With our mobile-optimized platform you can track your progress in real-time and on the go.
+
+
+Who is Hamma Prop Trading ideal for?
+Whether you’re a beginner seeking to learn or an experienced trader aiming to scale your success, Hamma Prop Trading offers the tools, structure, and support to help you excel.
+
+What trading models does Hamma Prop Trading offer?
+We understand that every trader has unique preferences. That’s why we provide two trading models:
+
+Model 1: Focus on high growth potential.
+Model 2: Aimed at traders seeking lower risk and steady returns.
+
+Is this an Investment offer?
+This is not an Investment offer. 
+
 
 FAQs
+What is a Model Account
+The Model account is a single-step evaluation account. Achieve the trading objective for your preferred model to get a funded Account. 
 
-What is a Challenge Account
-The challenge account is a single-step evaluation account. This account has two models Model 1 and Model 2. Achieve the profit trading objective for your preferred model to get a Hamma Account. 
+How quickly can I get an account?
+After purchasing an account and uploading your receipt to your dashboard, it takes 1 business day to process. 
+
+
+How long will it take to get a funded account
+It takes 3 business days, if eligible 
+
+What KYC do you need?
+KYC which stands for Know-Your-Customer, you are required to upload only a valid ID of yourself (Driver’s license, international passport, Voter’s card, or National ID/NIN)
+
+
+How often do I get paid?
+You can get paid weekly. Withdrawals are processed every Friday
+
+What is the difference between Model 1 and Model 2
+The differences between Model 1 and Model 2  are as follows
+Profit target
+The Profit target for Model 1 is 25% (N2,500,000) while the profit target for Model 2 is 15% (N1,500,000).
+
+Drawdown
+For Model 1, the daily drawdown is 5% and the overall account drawdown is 10%. However, for Model 2, the daily drawdown is 3% and the overall account drawdown is 6%. 
+
+Is drawdown Balance-based, Equity-based or both
+Only the DAILY  drawdown is based on balance. For the overall account drawdown, you can decide if you want a balanced-based or both balance and equity-based account. 
+
+Are signals or Expert Advisors (EA or Robots) Allowed?
+Signals and Expert Advisors are allowed! Just make sure the robot is not breaking any of our rules.
+In addition, we might ask you to share the details of the inner workings of the EA/robot with us. ‘Blackbox’ robots are not allowed. If this request is not granted, we reserve the right not to release payments and terminate your account.
+
+Am I free to use my own unique trading style?
+Yes, you are free to use your trading style provided it does not violate any of the trading rules.
+
+Do you allow scalping?
+Scalping is allowed. Nonetheless, trades involving holding positions for less than 5 minutes are prohibited.
+
+I want to partner with you. How should I contact you?
+All our contact lines are open and you can contact us via any of these means.
+
+Email Address: hello@hamma.trade
+Whatsapp: 0906 556 6388
+
+We’re only a dm away on both Facebook, Instagram and Twitter
+
+Facebook/Instagram: hamma.trade
+Twitter: hamma_trade
+
+
+I need more clarification. How can I contact you?
+All our contact lines are open and you can contact us via any of these means.
+
+Email Address: hello@hamma.trade
+Whatsapp: 0906 556 6388
+We’re only a dm away on both Facebook and Instagram.
+
+Facebook/Instagram: hamma.trade
+Twitter: hamma_trade
+
+I want to make Hamma better. How do I make a suggestion or complaint?
+Kindly send an email to hello@hamma.trade
+
+
+How it Works
 
 What is the daily drawdown and overall account drawdown
 For Model 1
@@ -64,83 +152,29 @@ Account drawdown: You are allowed a maximum overall account drawdown of 6%. That
 
 
 What is the profit split on the funded account?
-The profit split on the funded/Hamma account depends on how quickly you were able to pass the challenge accounts. 
+The profit split on the funded account depends on how quickly you were able to pass the model accounts. 
 
 You earn:
-90% of the profit you make on your account when you pass the challenge account within 4 weeks of placing your first trade on your account. 
-60% of the profit you make on your account when you pass the challenge account between 5 and 12 weeks of placing your first trade on your account. 
-40% of the profit you make on your account when you pass the challenge account after 12 weeks of placing your first trade on your account. 
+90% of the profit you make on your account when you pass any of the model accounts within 4 weeks of placing your first trade on your account. 
+60% of the profit you make on your account when you pass any of the model accounts between 5 and 12 weeks of placing your first trade on your account. 
+40% of the profit you make on your account when you pass any of the model accounts after 12 weeks of placing your first trade on your account. 
 
-
-
-
-What is a Hamma account?
-Hamma Account is a funded account where you can trade and withdraw your profit split weekly or monthly. 
 
 How many percent is the profit split
 You earn:
-90% of the profit you make on your account when you pass the challenge account within 4 weeks of placing your first trade on your account. 
-60% of the profit you make on your account when you pass the challenge account between 5 and 12 weeks of placing your first trade on your account. 
-40% of the profit you make on your account when you pass the challenge account after 12 weeks of placing your first trade on your account. 
+90% of the profit you make on your account when you pass any of the model accounts within 4 weeks of placing your first trade on your account. 
+60% of the profit you make on your account when you pass any of the model accounts between 5 and 12 weeks of placing your first trade on your account. 
+40% of the profit you make on your account when you pass any of the model accounts after 12 weeks of placing your first trade on your account. 
 
+How many days must I trade on my model account
+You are required to open and close a position for, at least, 2 days in a week. 
 
-How many days must I trade on my challenge account
-You are required to open and close a position for, at least, 6 days. 
-
-How many days must I trade on my Hamma/funded account
+How many days must I trade on my funded account
 You are required to open and close a position for, at least, 6 days
 
-What is the difference between Model 1 and Model 2
-The primary difference between Model 1 and Model 2 is the profit target. 
-
-The Profit target for Model 1 is 25% (N2,500,000) while the profit target for Model 2 is 15% (N1,500,000).
-
-Is drawdown Balance-based, Equity-based or both
-The drawdown is based on both balance and Equity. However, you have the option to decide if you want a balanced-based account or an Equity-based account. 
-
-How quickly can I get an account?
-After purchasing an account and uploading your receipt to your dashboard, it takes 1 business day to process. 
-
-How long will it take to get a funded account
-It takes 3 business days, if eligible 
-
-Can I get a second chance on any of the models
-There are no second-chance accounts on any of the models
-
-Is there a talent bonus for any of the models
-There is no talent bonus for any of the models
-
-What KYC do you need?
-KYC which stands for Know-Your-Customer, you are required to upload only a valid ID of yourself (Driver’s license, international passport, Voter’s card, or National ID/NIN)
-
-
-How often do I get paid?
-You can get paid weekly. Withdrawals are processed every Friday
-
-Why Hamma?
-As an online trading platform designed for GenZs and Millennials,  Hamma offers an intuitive interface making stock trading fun and easy to use. 
-
-Nigerian-Based Assets:  Hamma is specifically for trading the Nigerian stock market as you trade the forex market. 
-
-Low Fees: You get to maximize your profits as Hamma commissions cost as low as N200 per trade.
-
-Real-Time Analytics: Access to live data and market insights ensures smarter, faster decisions.
-
-Mobile-Friendly: Trade anywhere, anytime, with our uniquely designed interface suitable for any mobile device. 
-
-Community-Oriented: Interact with other like minds - GenZ and Millennials. Join a community share insights, strategies and make money together.
-
-Fun and Swift Support: We’ve got you. Chat with fun-filled human support and get a swift response. 
-
-
-What is Hamma?
-Hamma is the Next-Gen Trading Platform for Nigerian Stocks. Hamma isn't just another online trading platform — it's designed for Gen Z and Millennials who want to actually make money actively trading the Nigerian stock market.
-
-Is this an Investment offer?
-This is not an Investment offer. 
 
 Will I be responsible for the losses?
-We cover all expenses incurred while trading either the Competition or Hamma account. You do not get to bear the losses.
+We cover all expenses incurred while trading either the model or funded account. You do not get to bear the losses.
 
 Can I swing a trade?
 Yes, you can swing your trades provided you do not violate any of our trading rules.
@@ -155,66 +189,56 @@ Do you offer an instant funded account?
 We do not offer instant-funded accounts.
 
 Is there a monthly or recurring fee?
-There is no recurring fee. traders make a one-time payment.
+There is no recurring fee. You get to make a one-time payment.
 Please note that there is no refund.
 
-Do I need to reach a certain percentage in profit before receiving my payout on the Hamma/funded account?
-On the funded/Hamma account there is no profit target. Simply trade, make profits and withdraw your profit split.
+Do I need to reach a certain percentage in profit before receiving my payout on the funded account?
+On the funded account there is no profit target. Simply trade, make profits and withdraw your profit split.
 
-Do I have to pass another evaluation stage after the Challenge account stage?
-No, the Challenge account is the only evaluation stage you are required to pass.
+Do I have to pass another evaluation stage after the Model account?
+No, the Model account is the only evaluation stage you are required to pass.
 
+Where can I interact with other traders on your platform?
+…
 
 What are my payment options?
-You can make a payment using your local bank account.
-
-Do you charge commissions?
-Yes, we charge a fixed fee of N200 per trade. However, there are other third-party fees which are deducted; 
-SEC fee: 0.3% of the trade cost
-CSCS fee: 0.06% of the trade cost
-Stamp Duty: 0.075% of the trade cost
+You can purchase an account using your local bank account for Nigerians and Paypal for traders outside of Nigeria. 
 
 
-How can I visit your office?
-We have offices in Abuja and Lagos. You can book an appointment on ‘’ for our Abuja office or ‘’ for our Lagos office.
+Rules
 
-Are signals or Expert Advisors (EA or Robots) Allowed?
-Signals and Expert Advisors are allowed! Just make sure the robot is not breaking any of our rules.
-In addition, we might ask you to share the details of the inner workings of the EA/robot with us. ‘Blackbox’ robots are not allowed. If this request is not granted, we reserve the right not to release payments and terminate your account.
+How many days must I trade on my model account
+You are required to open and close a position for, at least, 2 days in a week. 
 
-Am I free to use my own unique trading style?
-Yes, you are free to use your trading style provided it does not violate any of the trading rules.
+What is the profit target for the Model 1 account?
+The profit target for the Model 1 account is 25%. This means that you are required to grow your account balance from N10,000,000 to N12,500,000.
 
-Do you allow scalping?
-Scalping is allowed.
+What is the profit target for the Model 2 account?
+The profit target for the Model 2 account is 15%. This means that you are required to grow your account balance from N10,000,000 to N11,500,000.
 
-I want to partner with you. How should I contact you?
-All our contact lines are open and you can contact us via any of these means.
+How will I know that I have passed the Model account stage?
+To pass the model account, you would have
+1. Met the profit target on your model account
+2. Traded for at least 2 days in a week on your account
+3. Adhere to the drawdown rules
 
-Email Address: traders@gohamma.com
-Whatsapp: 0906 556 6388
+What are the drawdown rules?
+For Model 1
+Daily drawdown: You are allowed a maximum daily drawdown of 5%.
+This means that your trading account balance should not go below 5% of the day's starting equity. For example, your starting balance for the day is N10,500,000. 5% of N10,500,000 is N525,000  which means that your balance must not go below N9,975,000
 
-We’re only a dm away on both Facebook, Instagram and Twitter
-
-Facebook/Instagram: hamma.trade
-Twitter: hamma_trade
-
-
-I need more clarification. How can I contact you?
-All our contact lines are open and you can contact us via any of these means.
-
-Email Address: traders@gohamma.com
-Whatsapp: 0906 556 6388
-We’re only a dm away on both Facebook and Instagram.
-
-Facebook/Instagram: hamma.trade
-Twitter: hamma_trade
-
-I want to make Hamma better. How do I make a suggestion or complaint?
-Kindly send a mail to traders@gohamma.com
+Account drawdown: You are allowed a maximum overall account drawdown of 10%. That is, your balance must not go lower than N8,500,000
 
 
-Additionally, Talent Bonuses and Second Chance Accounts (SCA) are not part of this program.
+For Model 2
+Daily drawdown: You are allowed a maximum daily drawdown of 3%.
+This means that your trading account balance should not go below 3% of the day's starting equity. For example, your starting balance for the day is N10,000,000. 3% of N10,000,000 is N300,000  which means that your balance must not go below N9,700,000
+
+Account drawdown: You are allowed a maximum overall account drawdown of 6%. That is, your balance must not go lower than N9,400,000
+
+Is there a profit target on the funded account?
+Not at all, there is no profit target on your funded account. Simply, trade, make profits and withdraw your profit split.
+
 
 Payout Schedule
 
