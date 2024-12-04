@@ -93,13 +93,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        # users = User.objects.filter(is_active=True)
+        users = User.objects.all()
+        print(users.count())
 
-        # for user in users:
-        #     print(user)
-        # test_email3(user.email,user.firstname.title(),"extension2" ,'More Time to Win: Hamma Competition Deadline Extended!')
+        for user in users:
+            print(user)
+            test_email4(user.email, user.firstname.title())
 
         # test_email4("nexxyb@gmail.com", "Wasiu")
-        test_email4("edetjoseph05@gmail.com", "Joseph")
-        test_email4("ayo@gohamma.com", "Ayo")
-        test_email4("teamgohamma@gmail.com", "Ayo")
+        # test_email4("edetjoseph05@gmail.com", "Joseph")
+        # test_email4("ayo@gohamma.com", "Ayo")
+        # test_email4("teamgohamma@gmail.com", "Ayo")

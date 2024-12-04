@@ -1358,9 +1358,11 @@ class PortfolioDailyProfitLossView(APIView):
 
             daily_results = []
             for entry in daily_data:
-                profit = Decimal(str(entry["profit_sum"] or 0))
-                loss = Decimal(str(entry["loss_sum"] or 0))
-                commission = Decimal(str(entry["total_commission"] or 0))
+                profit = round(Decimal(str(entry["profit_sum"] or 0)), 2)
+                loss = round(
+                    Decimal(str(entry["loss_sum"] or 0)),
+                )
+                commission = round(Decimal(str(entry["total_commission"] or 0)), 2)
 
                 total_profit += profit
                 total_loss += loss
