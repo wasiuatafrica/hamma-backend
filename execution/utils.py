@@ -1045,7 +1045,7 @@ def competition_daily_returns7():
                 else:
                     days_passed = days_since_date(portfolio_creation_date)
                 # print('days',days_passed)
-                n_bars = 1 + days_passed
+                n_bars = 2 + days_passed
                 df2 = tv.get_hist(
                     symbol="ASI",
                     exchange="NSENG",
