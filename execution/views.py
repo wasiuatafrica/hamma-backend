@@ -384,6 +384,7 @@ class DemoTradeAPIView(APIView):
 
         else:
             portfolio = DemoPortfolio.objects.filter(user=request.user).first()
+            account_type = "PROP" if portfolio.is_prop else "DEMO"
 
             if order_type == "market":
                 market_price = round(Decimal(get_price(symbol)["current_price"]), 2)
@@ -447,7 +448,7 @@ class DemoTradeAPIView(APIView):
 
                 save_and_send_notification(
                     request.user.id,
-                    f" DEMO: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ",
+                    f" {account_type}: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ",
                 )
 
                 return Response(
@@ -520,7 +521,7 @@ class DemoTradeAPIView(APIView):
 
                 save_and_send_notification(
                     request.user.id,
-                    f" DEMO: Your limit order will be opened when the condition you set is met.",
+                    f" {account_type}: Your limit order will be opened when the condition you set is met.",
                 )
 
                 return Response(
@@ -2906,6 +2907,8 @@ class SingleDemoTradeAPIView(APIView):
             if demo_account.user != request.user:
                 return Response("Permission denied", status.HTTP_403_FORBIDDEN)
 
+            account_type = "PROP" if demo_account.is_prop else "DEMO"
+
             portfolio = demo_account
 
             if order_type == "market":
@@ -2958,7 +2961,7 @@ class SingleDemoTradeAPIView(APIView):
 
                     save_and_send_notification(
                         request.user.id,
-                        f" DEMO: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ",
+                        f"{account_type}: You opened position {quantity} units of {stock.symbol} at {position.open_price} per unit. Total value:{quantity * position.open_price}naira ",
                     )
 
                     return Response(
@@ -3010,7 +3013,7 @@ class SingleDemoTradeAPIView(APIView):
 
                 save_and_send_notification(
                     request.user.id,
-                    f" DEMO: Your limit order will be opened when the condition you set is met.",
+                    f"{account_type}: Your limit order will be opened when the condition you set is met.",
                 )
 
                 return Response(
@@ -3152,13 +3155,10 @@ class NewHome(APIView):
             if in_competition:
                 portfolio = in_competition
                 compositions = CompetitionPosition.objects.filter(
-                    portfolio=portfolio,)
-                positions = compositions.filter(
-                    status="open"
+                    portfolio=portfolio,
                 )
-                positions2 = compositions.filter(
-                    status="close"
-                )
+                positions = compositions.filter(status="open")
+                positions2 = compositions.filter(status="close")
 
                 today = timezone.now()
                 position_data_dict = {}
@@ -3167,9 +3167,13 @@ class NewHome(APIView):
                     if daily.updated.month == today.month:
                         date_key = daily.updated.date()
                         if date_key in position_data_dict:
-                            position_data_dict[date_key] += daily.profit_loss - daily.commission
+                            position_data_dict[date_key] += (
+                                daily.profit_loss - daily.commission
+                            )
                         else:
-                            position_data_dict[date_key] = daily.profit_loss - daily.commission
+                            position_data_dict[date_key] = (
+                                daily.profit_loss - daily.commission
+                            )
 
                 position_data_list2 = [
                     {"profit_loss": profit_loss, "date": date}
@@ -3192,7 +3196,9 @@ class NewHome(APIView):
                         if (start_date + timedelta(n)).weekday() < 5
                     )
                 ]
-                profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
+                profit_loss2 = sum(
+                    [pos.profit_loss - pos.commission for pos in positions2]
+                )
 
                 balance = portfolio.balance
 
@@ -3309,7 +3315,7 @@ class NewHome(APIView):
                 return Response("Permission denied", status.HTTP_403_FORBIDDEN)
 
             portfolio = demo_account
-            demo_positions_q =  DemoPosition.objects.filter(portfolio=portfolio)
+            demo_positions_q = DemoPosition.objects.filter(portfolio=portfolio)
             # portfolio= DemoPortfolio.objects.get_or_create(user=request.user)[0]
             positions = demo_positions_q.filter(status="open")
             positions2 = demo_positions_q.filter(status="close")
@@ -3321,9 +3327,13 @@ class NewHome(APIView):
                 if daily.updated.month == today.month:
                     date_key = daily.updated.date()
                     if date_key in position_data_dict:
-                        position_data_dict[date_key] += daily.profit_loss - daily.commission
+                        position_data_dict[date_key] += (
+                            daily.profit_loss - daily.commission
+                        )
                     else:
-                        position_data_dict[date_key] = daily.profit_loss - daily.commission
+                        position_data_dict[date_key] = (
+                            daily.profit_loss - daily.commission
+                        )
 
             position_data_list2 = [
                 {"profit_loss": profit_loss, "date": date}
@@ -4447,7 +4457,7 @@ def get_holdings_positions(queryset):
             if position.action == "buy":
                 profit_loss = Decimal(current_value) - position.amount_invested
             elif position.action == "sell":
-                profit_loss = position.amount_invested - Decimal(current_value) 
+                profit_loss = position.amount_invested - Decimal(current_value)
         elif position.status == "close":
             profit_loss = position.profit_loss - position.commission
             current_value = position.quantity * position.close_price
@@ -4456,7 +4466,9 @@ def get_holdings_positions(queryset):
             profit_loss = 0
         # print(type(profit_loss))
         if position.amount_invested != 0:
-            percent_change = round(float(profit_loss) / float(position.amount_invested) * 100, 2)
+            percent_change = round(
+                float(profit_loss) / float(position.amount_invested) * 100, 2
+            )
         else:
             percent_change = None
 
