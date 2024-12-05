@@ -950,7 +950,8 @@ def competition_daily_returns7():
                         float(position.amount_invested) for position in positions
                     ],
                     "Profit_Loss": [
-                        float(position.profit_loss) for position in positions
+                        float(position.profit_loss - position.commission)
+                        for position in positions
                     ],
                 }
                 df = pd.DataFrame(data)
@@ -1109,9 +1110,9 @@ def daily_returns7():
         and current_time_lagos.weekday() < 5
     ):
 
-        portfolios = DemoPortfolio.objects.all()
-        # portfolios = DemoPortfolio.objects.filter(account_id="58065619")
-        print(portfolios)
+        # portfolios = DemoPortfolio.objects.all()
+        portfolios = DemoPortfolio.objects.filter(account_id="12343162")
+        # print(portfolios)
         for portfolio in portfolios:
             positions_today = DemoPosition.objects.filter(
                 portfolio=portfolio, status="close", updated__date=today
@@ -1138,7 +1139,8 @@ def daily_returns7():
                         float(position.amount_invested) for position in positions
                     ],
                     "Profit_Loss": [
-                        float(position.profit_loss) for position in positions
+                        float(position.profit_loss - position.commission)
+                        for position in positions
                     ],
                 }
                 df = pd.DataFrame(data)
@@ -1164,7 +1166,7 @@ def daily_returns7():
                 # print(df)
 
                 df_final = df.groupby("Closedate").tail(1).reset_index(drop=True)
-                # print(df_final)
+                print(df_final)
 
                 # Save the last row to the database
                 last_row = df_final.iloc[-1]
@@ -1199,7 +1201,7 @@ def daily_returns7():
                 cum_table["cum_returns"] = (
                     cum_table.running_pl / cum_table.Balance
                 ) * 100
-
+                print("nex cum")
                 print(cum_table)
                 last_row_cum = cum_table.iloc[-1]
 
@@ -1240,6 +1242,7 @@ def daily_returns7():
                     interval=Interval.in_daily,
                     n_bars=n_bars,
                 )
+                print("df2")
                 print(df2)
                 ASI_daily_selected = df2.reset_index()
                 ASI_daily_selected["ASI_daily_retuns"] = (
