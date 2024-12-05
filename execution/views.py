@@ -3528,9 +3528,13 @@ class NewSupportHome(APIView):
                     if daily.updated.month == today.month:
                         date_key = daily.updated.date()
                         if date_key in position_data_dict:
-                            position_data_dict[date_key] += daily.profit_loss
+                            position_data_dict[date_key] += (
+                                daily.profit_loss - daily.commission
+                            )
                         else:
-                            position_data_dict[date_key] = daily.profit_loss
+                            position_data_dict[date_key] = (
+                                daily.profit_loss - daily.commission
+                            )
 
                 position_data_list2 = [
                     {"profit_loss": profit_loss, "date": date}
@@ -3553,7 +3557,9 @@ class NewSupportHome(APIView):
                         if (start_date + timedelta(n)).weekday() < 5
                     )
                 ]
-                profit_loss2 = sum([pos.profit_loss for pos in positions2])
+                profit_loss2 = sum(
+                    [pos.profit_loss - pos.commission for pos in positions2]
+                )
 
                 balance = portfolio.balance
 
@@ -3683,9 +3689,13 @@ class NewSupportHome(APIView):
                 if daily.updated.month == today.month:
                     date_key = daily.updated.date()
                     if date_key in position_data_dict:
-                        position_data_dict[date_key] += daily.profit_loss
+                        position_data_dict[date_key] += (
+                            daily.profit_loss - daily.commission
+                        )
                     else:
-                        position_data_dict[date_key] = daily.profit_loss
+                        position_data_dict[date_key] = (
+                            daily.profit_loss - daily.commission
+                        )
 
             position_data_list2 = [
                 {"profit_loss": profit_loss, "date": date}
@@ -3708,8 +3718,7 @@ class NewSupportHome(APIView):
                     if (start_date + timedelta(n)).weekday() < 5
                 )
             ]
-            profit_loss2 = sum([pos.profit_loss for pos in positions2])
-
+            profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
             balance = portfolio.balance
 
             def pl_cv(position):
@@ -4501,6 +4510,7 @@ def get_holdings_positions(queryset):
             "stop_loss": position.stop_loss,
             "trailing_sl": position.trailing_stop_loss,
             "comment": position.comment,
+            "commission": position.commission,
         }
         all_holdings.append(data)
     return all_holdings

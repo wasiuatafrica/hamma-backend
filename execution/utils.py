@@ -1110,8 +1110,8 @@ def daily_returns7():
         and current_time_lagos.weekday() < 5
     ):
 
-        # portfolios = DemoPortfolio.objects.all()
-        portfolios = DemoPortfolio.objects.filter(account_id="12343162")
+        portfolios = DemoPortfolio.objects.all()
+        # portfolios = DemoPortfolio.objects.filter(account_id="12343162")
         # print(portfolios)
         for portfolio in portfolios:
             positions_today = DemoPosition.objects.filter(
