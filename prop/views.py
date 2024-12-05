@@ -1146,7 +1146,7 @@ class AdminReceiptsView(APIView):
 class AdminAccountsList(APIView):
 
     def get(self, request):
-        accounts = DemoPortfolio.objects.filter(is_prop=True)
+        accounts = DemoPortfolio.objects.filter(is_prop=True).order_by("-created")
 
         serializer = AccountlistSerializer(accounts, many=True)
         return Response(serializer.data)
@@ -1157,7 +1157,7 @@ class UserAccounctsList(APIView):
     def get(self, request):
         accounts = DemoPortfolio.objects.filter(
             user=request.user, is_prop=True, receipt_approved=True
-        )
+        ).order_by("-created")
         serializer = AccountlistSerializer(accounts, many=True)
         return Response(serializer.data)
 
@@ -1957,7 +1957,9 @@ class AdminUserList(APIView):
             #     .order_by("-latest_created")
             #     .distinct()
             # )
-            users = User.objects.filter(signup_route="hamma_trade")
+            users = User.objects.filter(signup_route="hamma_trade").order_by(
+                "-latest_created"
+            )
 
             serialized_data = self.serializer_class(users, many=True).data
             return Response(serialized_data)
