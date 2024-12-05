@@ -1958,7 +1958,7 @@ class AdminUserList(APIView):
             #     .distinct()
             # )
             users = User.objects.filter(signup_route="hamma_trade").order_by(
-                "-latest_created"
+                "-date_joined"
             )
 
             serialized_data = self.serializer_class(users, many=True).data
