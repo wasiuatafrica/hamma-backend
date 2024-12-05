@@ -134,13 +134,11 @@ class UserDailyStreak(DemoPortfolioFieldModel):
         Retrieve the current active streak run for this user.
         """
         if self.demo_portfolio:
-            return (
-                UserStreakRun.objects.filter(
-                    user=self.user, is_active=True, demo_portfolio=self.demo_portfolio
-                )
-                .order_by("-start_date")
-                .first()
-            )
+            runs = UserStreakRun.objects.filter(
+                user=self.user, is_active=True, demo_portfolio=self.demo_portfolio
+            ).order_by("-start_date")
+            # print(runs.id)
+            return runs.first()
         else:
             return (
                 UserStreakRun.objects.filter(

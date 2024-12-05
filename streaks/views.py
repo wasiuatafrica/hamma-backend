@@ -261,6 +261,7 @@ class LongestStreakAPIView(APIView):
 
 
 class CurrentStreakAPIView(APIView):
+    permission_classes = [AllowAny]
     """
     Get the details of the current active streak for a user.
     """
@@ -279,18 +280,19 @@ class CurrentStreakAPIView(APIView):
         start_of_week = today - timedelta(
             days=today.weekday()
         )  # Monday of current week
-
+        # user = User.objects.get(email="nexxyb@gmail.com")
+        # user=request.user
         # Get account and streak info based on account type
         if account_type == "competition_account":
             account = get_object_or_404(CompetitionPortfolio, id=account_id)
             streak_info = UserDailyStreak.objects.filter(
-                user=request.user,
+                # user=user,
                 comp_portfolio=account,
             ).first()
         elif account_type == "demo_portfolio":
             account = get_object_or_404(DemoPortfolio, id=account_id)
             streak_info = UserDailyStreak.objects.filter(
-                user=request.user,
+                # user=user,
                 demo_portfolio=account,
             ).first()
         else:
@@ -300,6 +302,7 @@ class CurrentStreakAPIView(APIView):
 
         if streak_info:
             serializer = UserDailyStreakSerializer(streak_info)
+            print(serializer.data)
 
             # Count trades for the specific account this week
             if account_type == "competition_account":

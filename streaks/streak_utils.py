@@ -139,8 +139,8 @@ def process_accounts(accounts, portfolio_type, today, current_time, market_close
             streak_info = get_or_create_streak_info(user, account, portfolio_field)
             # print(f"Streak info: {streak_info.__dict__}")
             # Skip if already processed today
-            if check_activity_exists(user, account, portfolio_field, today):
-                continue
+            # if check_activity_exists(user, account, portfolio_field, today):
+            #     continue
 
             if has_open_trade:
                 process_trading_day(user, account, portfolio_field, streak_info, today)
@@ -204,6 +204,7 @@ def process_trading_day(user, account, portfolio_field, streak_info, today):
             streak_info.update_streak(is_new_run=False)
         else:
             # Start new streak
+            active_streak_run.end_streak()
             new_streak_run = create_new_streak_run(
                 user, today, account, portfolio_field
             )
