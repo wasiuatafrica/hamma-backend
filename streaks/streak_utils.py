@@ -71,7 +71,7 @@ def update_user_streaks_daily():
     """
     today = timezone.now().date()
     current_time = timezone.now().time()
-    market_close_time = time(14, 30)
+    market_close_time = time(14, 40)
 
     # Get all active accounts
     demo_accounts = DemoPortfolio.objects.all()
@@ -91,6 +91,11 @@ def update_user_streaks_daily():
         current_time,
         market_close_time,
     )
+    # demo_accounts = DemoPortfolio.objects.filter(account_id="79720109")
+    # print(demo_accounts)
+    # process_accounts(
+    #     demo_accounts, PortfolioType.DEMO, today, current_time, market_close_time
+    # )
 
 
 class PortfolioType:
@@ -132,7 +137,7 @@ def process_accounts(accounts, portfolio_type, today, current_time, market_close
 
         with transaction.atomic():
             streak_info = get_or_create_streak_info(user, account, portfolio_field)
-
+            # print(f"Streak info: {streak_info.__dict__}")
             # Skip if already processed today
             if check_activity_exists(user, account, portfolio_field, today):
                 continue
@@ -181,21 +186,34 @@ def get_active_streak_run(user, account, portfolio_field):
 def process_trading_day(user, account, portfolio_field, streak_info, today):
     """Process a day with trading activity."""
     active_streak_run = get_active_streak_run(user, account, portfolio_field)
+    # print(active_streak_run.__dict__, "this is the active run")
 
     if active_streak_run:
+        # print("here1")
         last_trade_date = get_last_trade_date(
             user, active_streak_run, account, portfolio_field
         )
+        # print(last_trade_date, "this is the last trade date")
         previous_trading_day = get_previous_trading_day(today)
+        # print(previous_trading_day, "this is the previous trading day")
 
         if last_trade_date and last_trade_date.trade_date == previous_trading_day:
             create_daily_activity(
                 user, active_streak_run, today, account, portfolio_field
             )
             streak_info.update_streak(is_new_run=False)
+        else:
+            # Start new streak
+            new_streak_run = create_new_streak_run(
+                user, today, account, portfolio_field
+            )
+            create_daily_activity(user, new_streak_run, today, account, portfolio_field)
+            streak_info.update_streak(is_new_run=True)
     else:
         # Start new streak
+        # print("here2")
         new_streak_run = create_new_streak_run(user, today, account, portfolio_field)
+        # print(new_streak_run.__dict__, "this is the new run")
         create_daily_activity(user, new_streak_run, today, account, portfolio_field)
         streak_info.update_streak(is_new_run=True)
 
@@ -233,9 +251,9 @@ def reset_streak(user, account, portfolio_field, streak_info):
         active_streak_run.end_streak()
     streak_info.reset_streak()
     # start another streak run
-    UserStreakRun.objects.create(
-        user=user, previous_streak=active_streak_run, demo_portfolio=account
-    )
+    # UserStreakRun.objects.create(
+    #     user=user, previous_streak=active_streak_run, demo_portfolio=account
+    # )
 
 
 @shared_task
