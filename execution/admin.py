@@ -46,6 +46,7 @@ class DemoPortfolioAdmin(admin.ModelAdmin):
         "balance",
         "model_type",
         "is_prop",
+        "target_met",
         "blown",
         "inactive_by_inactivity",
         "has_hamma",

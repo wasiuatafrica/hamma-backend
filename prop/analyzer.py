@@ -410,7 +410,7 @@ class PortfolioAnalyzer:
 
             previous_balance = current_balance
 
-        positions = self.portfolio.positions.filter(status="open")
+        positions = self.portfolio.demopositions2.filter(status="open")
 
         if positions:
             return {
