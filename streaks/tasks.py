@@ -32,7 +32,7 @@ def update_user_streaks_daily_task():
 
     if (
         current_time_lagos.time() >= time(10, 5)
-        and current_time_lagos.time() <= time(14, 40)
+        and current_time_lagos.time() <= time(16, 40)
         and current_time_lagos.weekday() < 5
     ):
         # logger.info("Updating user streaks during trading hours")
