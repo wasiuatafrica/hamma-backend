@@ -28,16 +28,19 @@ User = get_user_model()
 def update_user_streaks_daily_task():
     # update_user_streaks_daily()
     lagos_timezone = pytz.timezone("Africa/Lagos")
-    current_time_lagos = timezone.now().astimezone(lagos_timezone)
+    current_time_lagos = timezone.now().astimezone(
+        lagos_timezone
+    )  # - timedelta(days=2)
 
     if (
         current_time_lagos.time() >= time(10, 5)
-        and current_time_lagos.time() <= time(16, 40)
+        and current_time_lagos.time() <= time(14, 40)
         and current_time_lagos.weekday() < 5
     ):
         # logger.info("Updating user streaks during trading hours")
         print("Updating user streaks during trading hours")
         update_user_streaks_daily()
+
     else:
         # logger.info(f"Streak checking is outside trading hours: {current_time_lagos}")
         print(f"Streak checking is outside trading hours: {current_time_lagos}")
