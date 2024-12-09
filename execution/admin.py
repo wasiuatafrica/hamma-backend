@@ -27,8 +27,22 @@ class HammaAccountRequestAdmin(admin.ModelAdmin):
 
 
 class DemoPositionAdmin(admin.ModelAdmin):
-    search_fields = ["portfolio__user__email", "portfolio__account_name"]
-    list_display = ["id", "portfolio", "stock", "quantity", "open_price", "created"]
+    search_fields = [
+        "portfolio__user__email",
+        "portfolio__account_name",
+        "portfolio__account_id",
+    ]
+    list_display = [
+        "id",
+        "portfolio",
+        "stock",
+        "quantity",
+        "open_price",
+        "amount_invested",
+        "profit_loss",
+        "created",
+        "updated",
+    ]
     list_filter = ["status", "created"]
 
 
