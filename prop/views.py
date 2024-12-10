@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 import pytz
@@ -18,13 +18,14 @@ from django.db.models import (
 from django.db.models.functions import TruncDate
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.timezone import now
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-import portfolio
+import prop
 from accounts.models import AdminUserActivityLog, Referral
 from accounts.serializers import AdminCustomUserSerializer
 from affilate.models import ReferralWallet, ReferralWithdrawalRequest, RewardActivities
@@ -38,16 +39,13 @@ from anyon.serializers import AdminReceiptsViewSerializer
 from execution.models import (
     DemoPortfolio,
     DemoPosition,
-    PropReceipt,
     HammaAccountRequest,
+    PropReceipt,
 )
 from notifications.utils import save_and_send_notification
 from portfolio.models import PayStackReceipts, Receipts
-from datetime import date
-from django.utils.timezone import now
 
-import prop
-
+from .analyzer import analyze_hamma_request_eligibility
 from .models import Payout
 from .pay_service import PayoutService
 from .serializers import AccountlistSerializer, PayoutDetailSerializer
@@ -56,11 +54,7 @@ from .utils import (
     get_account_data,
     get_equity_balance,
     initiate_first_data,
-)
-from .utils import sendMail
-from .tasks import (
-    send_3days_pending_account_activation_mail,
-    send_drawdown_volation_mail,
+    sendMail,
 )
 
 logger = logging.getLogger(__name__)
@@ -1982,6 +1976,10 @@ class HammaAccountRequestView(APIView):
                     "reason": "Account has not been active in the last 2 weeks",
                 }
             )
+        if account.demopositions2.filter(status="open").exists():
+            return Response(
+                {"can_request": False, "reason": "Account has open positions"}
+            )
         target_met = account.target_met
         has_hamma = account.has_hamma
         pending_request = HammaAccountRequest.objects.filter(
@@ -2011,5 +2009,29 @@ class HammaAccountRequestView(APIView):
     #     )
 
     def post(self, request, account_id):
-        HammaAccountRequest.objects.create(user=request.user, account=account_id)
-        return Response({"message": "Request sent successfully"})
+        try:
+            account = DemoPortfolio.objects.get(
+                account_id=account_id, account_type_level="challenge", user=request.user
+            )
+
+            analysis = analyze_hamma_request_eligibility(account)
+            print(analysis)
+            if analysis["eligibility_details"]["eligible"]:
+                account.time_to_payout = analysis["eligibility_details"].get(
+                    "weeks_to_target", 0
+                )
+                account.save()
+                HammaAccountRequest.objects.create(
+                    user=request.user, account=account_id
+                )
+                return Response({"message": "Request sent successfully"})
+            else:
+                return Response(
+                    {"error": analysis["eligibility_details"]["reason"]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except Exception as e:
+            print(e)
+            return Response(
+                {"error": "Account not found"}, status=status.HTTP_400_BAD_REQUEST
+            )

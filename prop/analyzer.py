@@ -375,8 +375,8 @@ class PortfolioAnalyzer:
         Also calculates time_to_payout when target is met
         """
         # Skip checks if target is already met
-        if self.portfolio.target_met:
-            return {"eligible": True, "reason": "Target already met"}
+        # if self.portfolio.target_met:
+        #     return {"eligible": True, "reason": "Target already met"}
 
         if self.portfolio.blown or self.portfolio.inactive_by_inactivity:
             return {"eligible": False, "reason": "Account is blown or inactive"}
@@ -519,6 +519,59 @@ class PortfolioAnalyzer:
             )
 
 
+def analyze_hamma_request_eligibility(portfolio):
+    """
+    Celery task to analyze and update portfolio status
+    """
+
+    # portfolio = DemoPortfolio.objects.get(id=portfolio_id)
+
+    # Get balance and equity data from your data source
+    balance_equity_data = get_account_data(portfolio.account_id)
+    # print(balance_equity_data)
+
+    analyzer = PortfolioAnalyzer(balance_equity_data, portfolio)
+
+    # Check account drawdown
+    account_drawdown = analyzer.check_account_drawdown_violation(portfolio.model_type)
+
+    # Check daily drawdown
+    daily_drawdown = analyzer.check_daily_drawdown_violation(portfolio.model_type)
+
+    # Check inactivity
+    is_inactive = analyzer.check_inactivity()
+
+    if is_inactive:
+        portfolio.active = False
+        portfolio.inactive_by_inactivity = is_inactive
+
+    # Check payout eligibility
+    print("checking payout eligibility")
+    eligibility = analyzer.check_payout_eligibility()
+    print(eligibility)
+
+    # Update portfolio status
+    portfolio.blown = account_drawdown["violated"] or daily_drawdown["violated"]
+    portfolio.target_met = eligibility["eligible"]
+
+    # Save the changes
+    portfolio.save()
+
+    return {
+        "account_id": portfolio.account_id,
+        "portfolio_id": portfolio.id,
+        "status_updated": True,
+        "blown": portfolio.blown,
+        "inactive": portfolio.inactive_by_inactivity,
+        "target_met": portfolio.target_met,
+        "account_drawdown": account_drawdown["drawdown_percentage"],
+        "daily_drawdown": daily_drawdown["max_daily_drawdown"],
+        "last_check": timezone.now(),
+        "time_to_payout": portfolio.time_to_payout,
+        "eligibility_details": eligibility,
+    }
+
+
 def analyze_portfolio_status(portfolio):
     """
     Celery task to analyze and update portfolio status
@@ -556,8 +609,8 @@ def analyze_portfolio_status(portfolio):
     portfolio.target_met = eligibility["eligible"]
 
     was_target_met = portfolio.target_met
-    if portfolio.target_met and not was_target_met:
-        portfolio.time_to_payout = eligibility.get("weeks_to_target", 0)
+    # if portfolio.target_met and not was_target_met:
+    #     portfolio.time_to_payout = eligibility.get("weeks_to_target", 0)
 
     # Save the changes
     portfolio.save()
