@@ -80,7 +80,7 @@ def resendToken(instance, _type):
         html_message = render_to_string("accounts/token.html", context)
     plain_message = ""
     subject = "Token"
-    from_email = "teamgohamma@gmail.com"
+    from_email = "Hamma Team <hello@gohamma.com>"
     recipient_list = [instance.email]
     send_mail(
         subject, plain_message, from_email, recipient_list, html_message=html_message

@@ -289,7 +289,7 @@ def two_days_before_start():  # 2
         )
         plain_message = ""
         subject = "Before Stepping on Hamma Stage!"
-        from_email = "Hamma Team <teamgohamma@gmail.com>"
+        from_email = "Hamma Team <hello@gohamma.com>"
         recipient_list = [user.email]
         send_mail(
             subject,
@@ -318,7 +318,7 @@ def saturday_evening():  # 3
             plain_message = ""
 
             subject = "Get to the Top of the Leaderboard with these Pro Tips"
-            from_email = "Hamma Team <teamgohamma@gmail.com>"
+            from_email = "Hamma Team <hello@gohamma.com>"
             recipient_list = [user.email]
             send_mail(
                 subject,
@@ -341,7 +341,7 @@ def four_days_before_end():  # 4
         plain_message = ""
         # subject = "Keep Pushing Forward - You're Doing Great!"
         subject = "Finish Strong in the Hamma Trading Competition!"
-        from_email = "Hamma Team <teamgohamma@gmail.com>"
+        from_email = "Hamma Team <hello@gohamma.com>"
         recipient_list = [user.email]
         send_mail(
             subject,
@@ -431,7 +431,7 @@ def friday_evening():  # 5
             html_message = render_to_string("competition/friday_evening.html", context)
             plain_message = ""
             subject = "Guess Who Made Top Trader for the Week?"
-            from_email = "Hamma Team <teamgohamma@gmail.com>"
+            from_email = "Hamma Team <hello@gohamma.com>"
             recipient_list = [user.email]
             send_mail(
                 subject,
@@ -456,7 +456,7 @@ def mid_competition():  # 7
         plain_message = ""
         subject = f" {user.firstname.title()}, Where Do You Stand?"
         # subject = "DO THIS IF YOU DON'T WANT TO WIN"
-        from_email = "Hamma Team <teamgohamma@gmail.com>"
+        from_email = "Hamma Team <hello@gohamma.com>"
         recipient_list = [user.email]
         send_mail(
             subject,
@@ -481,7 +481,7 @@ def last_day():  # 8
         html_message = render_to_string("competition/last_day.html", context)
         plain_message = ""
         subject = "Congratulations - You're a Hamma Trading Competition Champion!"
-        from_email = "Hamma Team <teamgohamma@gmail.com>"
+        from_email = "Hamma Team <hello@gohamma.com>"
         recipient_list = [user.email]
         send_mail(
             subject,
@@ -510,7 +510,7 @@ def two_days_before_end():  # 9
         plain_message = ""
 
         subject = "Keep Pushing Forward - You're Doing Great!"
-        from_email = "Hamma Team <teamgohamma@gmail.com>"
+        from_email = "Hamma Team <hello@gohamma.com>"
         recipient_list = [user.email]
         send_mail(
             subject,
@@ -531,7 +531,7 @@ def three_days_after_end():  # 10
         )
         plain_message = ""
         subject = "A Peak into the Past"
-        from_email = "Hamma Team <teamgohamma@gmail.com>"
+        from_email = "Hamma Team <hello@gohamma.com>"
         recipient_list = [user.email]
         send_mail(
             subject,

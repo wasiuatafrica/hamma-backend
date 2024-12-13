@@ -36,7 +36,7 @@ def after_signup_36h(id):  # 36h
     html_message = render_to_string("competition/after_signup_36h.html", context)
     plain_message = ""
     subject = "Are We Friends on Social Media?"
-    from_email = "Hamma Team <teamgohamma@gmail.com>"
+    from_email = "Hamma Team <hello@gohamma.com>"
     recipient_list = [user.email]
     send_mail(
         subject, plain_message, from_email, recipient_list, html_message=html_message
@@ -54,7 +54,7 @@ def welcome_1c(id):  # 24h
     html_message = render_to_string("competition/welcome_1c.html", context)
     plain_message = ""
     subject = "Why You Should Create a Clan!"
-    from_email = "Hamma Team <teamgohamma@gmail.com>"
+    from_email = "Hamma Team <hello@gohamma.com>"
     recipient_list = [user.email]
     send_mail(
         subject, plain_message, from_email, recipient_list, html_message=html_message
@@ -69,7 +69,7 @@ def welcome_1b(id):  # 12h
     html_message = render_to_string("competition/welcome_1b.html", context)
     plain_message = ""
     subject = "Why You Should Join a Clan!"
-    from_email = "Hamma Team <teamgohamma@gmail.com>"
+    from_email = "Hamma Team <hello@gohamma.com>"
     recipient_list = [user.email]
     send_mail(
         subject, plain_message, from_email, recipient_list, html_message=html_message
@@ -101,7 +101,7 @@ def send_welcome_email(id):
     html_message = render_to_string("competition/welcome_competition2.html", context)
     plain_message = ""
     subject = "Welcome to Hamma"
-    from_email = "Hamma Team <teamgohamma@gmail.com>"
+    from_email = "Hamma Team <hello@gohamma.com>"
     recipient_list = [user.email]
     send_mail(
         subject, plain_message, from_email, recipient_list, html_message=html_message
