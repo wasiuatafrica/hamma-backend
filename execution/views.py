@@ -4189,6 +4189,9 @@ class NewDemoCloseTrade(APIView):
                     portfolio=in_competition, id=position_id
                 ).first()
 
+                if not position.stock.active:
+                    return Response("Stock is not active", status.HTTP_400_BAD_REQUEST)
+
                 if position.status == "open":
                     pl, cur_val, price = position.calculate_profit_loss()
 
@@ -4261,6 +4264,9 @@ class NewDemoCloseTrade(APIView):
 
             if not position:
                 return Response("Position not found", status.HTTP_404_NOT_FOUND)
+
+            if not position.stock.active:
+                return Response("Stock is not active", status.HTTP_400_BAD_REQUEST)
 
             # position =  get_object_or_404(DemoPosition, id=id)
             if position.status == "open":
@@ -4459,7 +4465,11 @@ def get_holdings_positions(queryset):
     all_holdings = []
     for position in queryset:
         symbol = position.stock.symbol
-        price = all_prices[symbol]["current_price"]
+        try:
+            price = all_prices[symbol]["current_price"]
+        except Exception as e:
+            price = 0
+            print(e)
         current_value = round(position.quantity * price, 2)
 
         if position.status == "open":
