@@ -36,6 +36,7 @@ class DemoPositionAdmin(admin.ModelAdmin):
         "id",
         "portfolio",
         "stock",
+        "status",
         "quantity",
         "open_price",
         "amount_invested",
@@ -43,7 +44,7 @@ class DemoPositionAdmin(admin.ModelAdmin):
         "created",
         "updated",
     ]
-    list_filter = ["status", "created"]
+    list_filter = ["status", "created", "stock"]
 
 
 admin.site.register(DemoPosition, DemoPositionAdmin)
