@@ -726,22 +726,37 @@ class ReceiptsView(APIView):
         elif account_type == "prop_account":
             receipt_image = request.data.get("image")
             receipt = Receipts.objects.create(user=request.user, image=receipt_image)
+            account_size = request.data.get("account_size", "10000000")
 
             model_type = request.data.get("model_type")
             if model_type == "model_1":
-                profit_target = 2_500_000
-                account_drawdown_limit = 9_000_000
+                if account_size == "10000000":
+                    profit_target = 2_500_000
+                    account_drawdown_limit = 9_000_000
+                elif account_size == "5000000":
+                    profit_target = 1_250_000
+                    account_drawdown_limit = 4_500_000
+                elif account_size == "1000000":
+                    profit_target = 250_000
+                    account_drawdown_limit = 900_000
                 account_name = "model_1"
             elif model_type == "model_2":
-                profit_target = 1_500_000
-                account_drawdown_limit = 9_400_000
+                if account_size == "10000000":
+                    profit_target = 1_500_000
+                    account_drawdown_limit = 9_400_000
+                elif account_size == "5000000":
+                    profit_target = 750_000
+                    account_drawdown_limit = 4_700_000
+                elif account_size == "1000000":
+                    profit_target = 150_000
+                    account_drawdown_limit = 940_000
                 account_name = "model_2"
             else:
                 raise ValueError("Invalid model type selected")
 
             is_prop = True
-            balance = 10_000_000
-            initial_balance = 10_000_000
+            balance = int(account_size)
+            initial_balance = int(account_size)
             is_active = False
             code = get_random_string(length=8).upper()
             balance_based = True if drawdown_type == "balance" else False

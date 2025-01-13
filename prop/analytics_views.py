@@ -313,21 +313,47 @@ class DemoPortfolioAnalyticsView(APIView):
         ### Demo Portfolio Analytics ###
         # Define model types and account labels
         portfolio_labels = [
-            "model_1",
-            "model_2",
+            "model_1_10M",
+            "model_1_5M",
+            "model_1_1M",
+            "model_2_10M",
+            "model_2_5M",
+            "model_2_1M",
         ]
 
         demo_portfolios = demo_portfolios.annotate(
             portfolio_label=Case(
+                # Model 1 combinations
                 When(
                     model_type="model_1",
                     initial_balance=10000000,
-                    then=Value("model_1"),
+                    then=Value("model_1_10M"),
                 ),
+                When(
+                    model_type="model_1",
+                    initial_balance=5000000,
+                    then=Value("model_1_5M"),
+                ),
+                When(
+                    model_type="model_1",
+                    initial_balance=1000000,
+                    then=Value("model_1_1M"),
+                ),
+                # Model 2 combinations
                 When(
                     model_type="model_2",
                     initial_balance=10000000,
-                    then=Value("model_2"),
+                    then=Value("model_2_10M"),
+                ),
+                When(
+                    model_type="model_2",
+                    initial_balance=5000000,
+                    then=Value("model_2_5M"),
+                ),
+                When(
+                    model_type="model_2",
+                    initial_balance=1000000,
+                    then=Value("model_2_1M"),
                 ),
                 default=None,
                 output_field=CharField(),
@@ -691,13 +717,225 @@ class DemoStatsAPIView(APIView):
         return Response(response_data)
 
 
+# class DemoStatsAPIView(APIView):
+#     permission_classes = [AllowAny]
+
+#     def get(self, request, *args, **kwargs):
+#         now = timezone.now()
+#         time_ranges = {
+#             "last_month": (now - timedelta(weeks=4), now),
+#             "last_6_months": (now - timedelta(days=182), now),
+#             "last_year": (now - timedelta(days=365), now),
+#         }
+
+#         previous_time_ranges = {
+#             "last_month": (now - timedelta(weeks=8), now - timedelta(weeks=4)),
+#             "last_6_months": (now - timedelta(days=365), now - timedelta(days=182)),
+#             "last_year": (now - timedelta(days=730), now - timedelta(days=365)),
+#         }
+
+#         account_sizes = [10000000, 5000000, 1000000]
+#         total_users = User.objects.all()
+
+#         def calculate_metrics(total_users, start_date, end_date):
+#             metrics_by_size = {}
+
+#             for account_size in account_sizes:
+#                 if start_date and end_date:
+#                     users_in_period = total_users.filter(
+#                         date_joined__gte=start_date, date_joined__lt=end_date
+#                     )
+#                     blown_accounts = DemoPortfolio.objects.filter(
+#                         is_prop=True,
+#                         updated__gte=start_date,
+#                         updated__lt=end_date,
+#                         blown=True,
+#                         initial_balance=account_size
+#                     )
+#                 else:
+#                     users_in_period = total_users
+#                     blown_accounts = DemoPortfolio.objects.filter(
+#                         is_prop=True,
+#                         blown=True,
+#                         initial_balance=account_size
+#                     )
+
+#                 # Users with demo portfolios for specific account size
+#                 users_with_portfolios = users_in_period.filter(
+#                     demoportfolio2__is_prop=True,
+#                     demoportfolio2__created__gt=F("date_joined") + timedelta(weeks=4),
+#                     demoportfolio2__is_active=True,
+#                     demoportfolio2__initial_balance=account_size
+#                 ).distinct()
+
+#                 percentage_with_portfolios = (
+#                     users_with_portfolios.count() / users_in_period.count() * 100
+#                     if users_in_period.count() > 0
+#                     else 0
+#                 )
+
+#                 # Users with portfolios within 4 weeks for specific account size
+#                 users_with_portfolios_within_4weeks = users_in_period.filter(
+#                     demoportfolio2__is_prop=True,
+#                     demoportfolio2__created__lte=F("date_joined") + timedelta(weeks=4),
+#                     demoportfolio2__is_active=True,
+#                     demoportfolio2__initial_balance=account_size
+#                 ).distinct()
+
+#                 percentage_with_portfolios_within_4weeks = (
+#                     users_with_portfolios_within_4weeks.count() / users_in_period.count() * 100
+#                     if users_in_period.count() > 0
+#                     else 0
+#                 )
+
+#                 # Users with referrals who got specific account size
+#                 users_with_referrals = users_in_period.annotate(
+#                     weeks_since_registration=F("date_joined") + timedelta(weeks=4)
+#                 ).filter(
+#                     referral__person_referred__date_joined__lte=F("weeks_since_registration"),
+#                     referral__person_referred__demoportfolio2__initial_balance=account_size
+#                 )
+
+#                 percentage_with_referrals = (
+#                     users_with_referrals.count() / users_in_period.count() * 100
+#                     if users_in_period.count() > 0
+#                     else 0
+#                 )
+
+#                 # Users with multiple referrals for specific account size
+#                 users_with_multiple_referrals = users_in_period.annotate(
+#                     weeks_since_registration=F("date_joined") + timedelta(weeks=4)
+#                 ).annotate(
+#                     num_referrals=Count(
+#                         'referral',
+#                         filter=Q(
+#                             referral__person_referred__demoportfolio2__initial_balance=account_size,
+#                             referral__person_referred__date_joined__lte=F("weeks_since_registration")
+#                         )
+#                     )
+#                 ).filter(num_referrals__gte=2)
+
+#                 percentage_with_multiple_referrals = (
+#                     users_with_multiple_referrals.count() / users_in_period.count() * 100
+#                     if users_in_period.count() > 0
+#                     else 0
+#                 )
+
+#                 # Users with multiple referrals who became traders with specific account size
+#                 users_with_multiple_referrals_traders = (
+#                     users_in_period.annotate(
+#                         first_portfolio_date=Subquery(
+#                             DemoPortfolio.objects.filter(
+#                                 user=OuterRef("pk"),
+#                                 is_prop=True,
+#                                 initial_balance=account_size
+#                             ).values('created').order_by('created')[:1]
+#                         )
+#                     ).annotate(
+#                         num_trader_referrals=Subquery(
+#                             Referral.objects.filter(
+#                                 user=OuterRef("pk"),
+#                                 person_referred__demoportfolio2__initial_balance=account_size,
+#                                 person_referred__demoportfolio2__created__lte=OuterRef("first_portfolio_date") + timedelta(weeks=4),
+#                                 person_referred__demoportfolio2__created__gt=OuterRef("first_portfolio_date"),
+#                             ).values('user')
+#                             .annotate(count=Count('person_referred', distinct=True))
+#                             .values('count')[:1]
+#                         )
+#                     ).filter(num_trader_referrals__gte=1)
+#                 )
+
+#                 percentage_with_multiple_referrals_traders = (
+#                     users_with_multiple_referrals_traders.count() / users_in_period.count() * 100
+#                     if users_in_period.count() > 0
+#                     else 0
+#                 )
+
+#                 # Stats for specific account size
+#                 metrics_by_size[f"{account_size:,}"] = {
+#                     "percentage_with_portfolios": percentage_with_portfolios,
+#                     "percentage_with_portfolios_within_4weeks": percentage_with_portfolios_within_4weeks,
+#                     "percentage_with_referrals": percentage_with_referrals,
+#                     "percentage_with_multiple_referrals": percentage_with_multiple_referrals,
+#                     "percentage_with_multiple_referrals_traders": percentage_with_multiple_referrals_traders,
+#                     "num_blown": blown_accounts.count(),
+#                     "avg_time_to_blown": blown_accounts.aggregate(
+#                         avg_time=Avg(F("updated") - F("created"))
+#                     )["avg_time"],
+#                 }
+
+#             return metrics_by_size
+
+#         # Calculate metrics for each period
+#         response_data = {}
+#         for period_name, (start_date, end_date) in time_ranges.items():
+#             response_data[period_name] = calculate_metrics(total_users, start_date, end_date)
+
+#         # Calculate total metrics
+#         response_data["total"] = calculate_metrics(total_users, None, None)
+
+#         def calculate_change(current, previous):
+#             if previous == 0:
+#                 return None if current == 0 else 100
+#             return ((current - previous) / previous) * 100
+
+#         def add_changes_to_metrics(current_period, previous_period):
+#             result = {}
+#             for account_size in account_sizes:
+#                 size_key = f"{account_size:,}"
+#                 metrics = [
+#                     "percentage_with_portfolios",
+#                     "percentage_with_portfolios_within_4weeks",
+#                     "percentage_with_referrals",
+#                     "percentage_with_multiple_referrals",
+#                     "percentage_with_multiple_referrals_traders",
+#                     "num_blown",
+#                 ]
+
+#                 result[size_key] = {}
+#                 for metric in metrics:
+#                     result[size_key][metric] = {
+#                         "current": round(current_period[size_key][metric], 2),
+#                         "change": (
+#                             round(
+#                                 calculate_change(
+#                                     current_period[size_key][metric],
+#                                     previous_period[size_key][metric]
+#                                 ),
+#                                 1,
+#                             )
+#                             if calculate_change(
+#                                 current_period[size_key][metric],
+#                                 previous_period[size_key][metric]
+#                             ) is not None
+#                             else None
+#                         ),
+#                     }
+
+#                 result[size_key]["avg_time_to_blown"] = (
+#                     current_period[size_key]["avg_time_to_blown"].days
+#                     if current_period[size_key]["avg_time_to_blown"]
+#                     else None
+#                 )
+
+#             return result
+
+#         # Add comparison changes for each period
+#         for period_name in time_ranges.keys():
+#             current_period = response_data[period_name]
+#             previous_period = calculate_metrics(total_users, *previous_time_ranges[period_name])
+#             response_data[period_name] = add_changes_to_metrics(current_period, previous_period)
+
+#         return Response(response_data)
+
+
 class PortfoliosByTypeView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
         now = timezone.now()
 
-        # Define time periods
+        # Define time periods (unchanged)
         periods = {
             "last_24_hours": now - timedelta(hours=24),
             "last_1_week": now - timedelta(weeks=1),
@@ -710,10 +948,13 @@ class PortfoliosByTypeView(APIView):
         broker_data = {}
         balance_data = {}
         model_type_data = {}
+        combined_stats_data = (
+            {}
+        )  # New dictionary for combined model_type and balance stats
 
-        # For each time period, filter portfolios by creation date and group by broker, initial_balance, and model_type
+        # For each time period, filter portfolios
         for period, start_time in periods.items():
-            # Broker against count
+            # Broker against count (unchanged)
             portfolios_per_broker = (
                 DemoPortfolio.objects.filter(
                     created__gte=start_time, is_active=True, is_prop=True
@@ -736,7 +977,7 @@ class PortfoliosByTypeView(APIView):
                 DemoPortfolio.objects.filter(
                     created__gte=start_time, is_active=True, is_prop=True
                 )
-                .values("initial_balance")
+                .values("initial_balance", "model_type")  # Added model_type
                 .annotate(portfolio_count=Count("id"))
                 .order_by("-portfolio_count")
             )
@@ -744,17 +985,18 @@ class PortfoliosByTypeView(APIView):
             balance_data[period] = [
                 {
                     "initial_balance": portfolio["initial_balance"],
+                    "model_type": portfolio["model_type"],
                     "portfolio_count": portfolio["portfolio_count"],
                 }
                 for portfolio in portfolios_per_balance
             ]
 
-            # Model type against count
+            # Model type against count (with initial_balance)
             portfolios_per_model_type = (
                 DemoPortfolio.objects.filter(
                     created__gte=start_time, is_active=True, is_prop=True
                 )
-                .values("model_type")
+                .values("model_type", "initial_balance")
                 .annotate(portfolio_count=Count("id"))
                 .order_by("-portfolio_count")
             )
@@ -762,12 +1004,57 @@ class PortfoliosByTypeView(APIView):
             model_type_data[period] = [
                 {
                     "model_type": portfolio["model_type"],
+                    "initial_balance": portfolio["initial_balance"],
                     "portfolio_count": portfolio["portfolio_count"],
                 }
                 for portfolio in portfolios_per_model_type
             ]
 
-        # Total (all-time) data
+            # Combined statistics
+            combined_stats = (
+                DemoPortfolio.objects.filter(
+                    created__gte=start_time, is_active=True, is_prop=True
+                )
+                .values("model_type", "initial_balance")
+                .annotate(
+                    total_count=Count("id"),
+                    blown_count=Count("id", filter=Q(blown=True)),
+                    passed_count=Count("id", filter=Q(target_met=True)),
+                    blown_rate=ExpressionWrapper(
+                        F("blown_count") * 100.0 / F("total_count"),
+                        output_field=FloatField(),
+                    ),
+                    pass_rate=ExpressionWrapper(
+                        F("passed_count") * 100.0 / F("total_count"),
+                        output_field=FloatField(),
+                    ),
+                    avg_time_to_blown=Avg(
+                        F("updated") - F("created"), filter=Q(blown=True)
+                    ),
+                )
+                .order_by("model_type", "initial_balance")
+            )
+
+            combined_stats_data[period] = [
+                {
+                    "model_type": stat["model_type"],
+                    "initial_balance": stat["initial_balance"],
+                    "total_count": stat["total_count"],
+                    "blown_count": stat["blown_count"],
+                    "passed_count": stat["passed_count"],
+                    "blown_rate": round(stat["blown_rate"] or 0, 2),
+                    "pass_rate": round(stat["pass_rate"] or 0, 2),
+                    "avg_time_to_blown": (
+                        str(stat["avg_time_to_blown"])
+                        if stat["avg_time_to_blown"]
+                        else None
+                    ),
+                }
+                for stat in combined_stats
+            ]
+
+        # Total (all-time) data calculations
+        # Similar updates for total calculations...
         total_portfolios_per_broker = (
             DemoPortfolio.objects.filter(is_active=True, is_prop=True)
             .values("broker")
@@ -777,14 +1064,14 @@ class PortfoliosByTypeView(APIView):
 
         total_portfolios_per_balance = (
             DemoPortfolio.objects.filter(is_active=True, is_prop=True)
-            .values("initial_balance")
+            .values("initial_balance", "model_type")
             .annotate(portfolio_count=Count("id"))
             .order_by("-portfolio_count")
         )
 
         total_portfolios_per_model_type = (
             DemoPortfolio.objects.filter(is_active=True, is_prop=True)
-            .values("model_type")
+            .values("model_type", "initial_balance")
             .annotate(portfolio_count=Count("id"))
             .order_by("-portfolio_count")
         )
@@ -801,6 +1088,7 @@ class PortfoliosByTypeView(APIView):
         balance_data["total"] = [
             {
                 "initial_balance": portfolio["initial_balance"],
+                "model_type": portfolio["model_type"],
                 "portfolio_count": portfolio["portfolio_count"],
             }
             for portfolio in total_portfolios_per_balance
@@ -809,19 +1097,11 @@ class PortfoliosByTypeView(APIView):
         model_type_data["total"] = [
             {
                 "model_type": portfolio["model_type"],
+                "initial_balance": portfolio["initial_balance"],
                 "portfolio_count": portfolio["portfolio_count"],
             }
             for portfolio in total_portfolios_per_model_type
         ]
-
-        # Additional statistics for model types
-        model_type_statistics = {}
-        for period, start_time in periods.items():
-            model_type_statistics[period] = {
-                "blown_rates": self.get_blown_rates(start_time),
-                "pass_rates": self.get_pass_rates(start_time),
-                "average_time_to_blown": self.get_average_time_to_blown(start_time),
-            }
 
         # Return all sets of data
         return Response(
@@ -829,49 +1109,6 @@ class PortfoliosByTypeView(APIView):
                 "broker_data": broker_data,
                 "balance_data": balance_data,
                 "model_type_data": model_type_data,
-                "model_type_statistics": model_type_statistics,
+                "combined_statistics": combined_stats_data,
             }
-        )
-
-    def get_blown_rates(self, start_time):
-        """Calculate blown rates for each model type"""
-        return (
-            DemoPortfolio.objects.filter(created__gte=start_time, is_prop=True)
-            .values("model_type")
-            .annotate(
-                total_count=Count("id"),
-                blown_count=Count("id", filter=Q(blown=True)),
-                blown_rate=ExpressionWrapper(
-                    F("blown_count") * 100.0 / F("total_count"),
-                    output_field=FloatField(),
-                ),
-            )
-            .order_by("model_type")
-        )
-
-    def get_pass_rates(self, start_time):
-        """Calculate pass rates for each model type"""
-        return (
-            DemoPortfolio.objects.filter(created__gte=start_time, is_prop=True)
-            .values("model_type")
-            .annotate(
-                total_count=Count("id"),
-                passed_count=Count("id", filter=Q(target_met=True)),
-                pass_rate=ExpressionWrapper(
-                    F("passed_count") * 100.0 / F("total_count"),
-                    output_field=FloatField(),
-                ),
-            )
-            .order_by("model_type")
-        )
-
-    def get_average_time_to_blown(self, start_time):
-        """Calculate average time to blown for each model type"""
-        return (
-            DemoPortfolio.objects.filter(
-                created__gte=start_time, blown=True, is_prop=True
-            )
-            .values("model_type")
-            .annotate(avg_time=Avg(F("updated") - F("created")))
-            .order_by("model_type")
         )

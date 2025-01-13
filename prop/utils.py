@@ -4,6 +4,8 @@ from decimal import Decimal
 from pymongo import MongoClient
 import os
 
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
 import pytz
 from django.utils import timezone
 
@@ -15,6 +17,7 @@ client = MongoClient(
 # if os.environ.get("server") == "local":
 #     db_prop = client["prop_data"]
 # else:
+#     db_prop = client["prop_data_prod"]
 db_prop = client["prop_data_prod"]
 
 wat = pytz.timezone("Africa/Lagos")
@@ -140,15 +143,25 @@ def get_account_data(account_id):
     return data if data else []
 
 
-def initiate_first_data(account_id):
+def initiate_first_data(account_id, account_size=None):
     collection = db_prop[account_id]
-    data = {
-        "balance": float(10000000),
-        "equity": float(10000000),
-        "timestamp": timezone.now().astimezone(wat).strftime("%Y-%m-%dT%H:%M"),
-        "account_id": account_id,
-    }
+    if not account_size or str(account_size) == "10000000":
+        data = {
+            "balance": float(10000000),
+            "equity": float(10000000),
+            "timestamp": timezone.now().astimezone(wat).strftime("%Y-%m-%dT%H:%M"),
+            "account_id": account_id,
+        }
+    else:
+
+        data = {
+            "balance": float(account_size),
+            "equity": float(account_size),
+            "timestamp": timezone.now().astimezone(wat).strftime("%Y-%m-%dT%H:%M"),
+            "account_id": account_id,
+        }
     collection.insert_one(data)
+    return
 
 
 def calculate_trading_days(data):
@@ -187,10 +200,6 @@ def calculate_trading_days(data):
             trading_days_list.append(date)
 
     return len(trading_days_list)
-
-
-from django.template.loader import render_to_string
-from django.core.mail import send_mail
 
 
 def sendMail(

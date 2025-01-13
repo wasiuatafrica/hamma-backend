@@ -370,6 +370,7 @@ class PortfolioMetrics(APIView):
     def get(self, request, portfolio_id):
         # try:
         portfolio = DemoPortfolio.objects.get(account_id=portfolio_id)
+        account_size = int(portfolio.initial_balance)
 
         # Get timezone
         wat = pytz.timezone("Africa/Lagos")
@@ -406,7 +407,7 @@ class PortfolioMetrics(APIView):
                 least_equity_candidates = [
                     data["equity"]
                     for data in historical_data
-                    if data["equity"] < 10000000
+                    if data["equity"] < account_size
                 ]
                 least_equity = (
                     min(least_equity_candidates)
@@ -418,7 +419,7 @@ class PortfolioMetrics(APIView):
                 least_balance_candidates = [
                     data["balance"]
                     for data in historical_data
-                    if data["balance"] < 10000000
+                    if data["balance"] < account_size
                 ]
                 least_balance = (
                     min(least_balance_candidates)
@@ -439,7 +440,7 @@ class PortfolioMetrics(APIView):
                 least_balance_candidates = [
                     data["balance"]
                     for data in historical_data
-                    if data["balance"] < 10000000
+                    if data["balance"] < account_size
                 ]
                 least_balance = (
                     min(least_balance_candidates)
@@ -465,7 +466,7 @@ class PortfolioMetrics(APIView):
                 "balance": f"{current_balance:.2f}",
                 "equity": f"{current_equity:.2f}",
                 "floating_profit_loss": f"{profit_loss:.2f}",
-                "account_drawdown": 10000000 - portfolio.account_drawdown_limit,
+                "account_drawdown": account_size - portfolio.account_drawdown_limit,
                 "current_account_drawdown": f"{current_drawdown:.2f}",
                 "trading_days": trading_days,
                 "closed_trades": total_trades,
@@ -866,6 +867,7 @@ class AdminReceiptsView(APIView):
                     "user": receipt.user.id,
                     "flag": receipt.flag,
                     "timestamp": receipt.created.timestamp(),
+                    "account_size": prop_receipt.account.initial_balance,
                     "discount_code": (
                         {
                             "code": (
@@ -908,6 +910,7 @@ class AdminReceiptsView(APIView):
                     "fullname": paystack_receipt.user.fullname,
                     "flag": paystack_receipt.flag,
                     "timestamp": paystack_receipt.date.timestamp(),
+                    "account_size": prop_receipt.account.initial_balance,
                     "discount_code": (
                         {
                             "code": (
@@ -948,6 +951,7 @@ class AdminReceiptsView(APIView):
                     "user": receipt.user.id,
                     "flag": receipt.flag,
                     "timestamp": receipt.created.timestamp(),
+                    "account_size": int(prop_receipt.account.initial_balance),
                     "discount_code": (
                         {
                             "code": (
@@ -997,15 +1001,22 @@ class AdminReceiptsView(APIView):
 
             if receipt_status == "approved":
 
-                receipt.amount = 180000
+                prop_receipt = PropReceipt.objects.filter(receipt=receipt).first()
+
+                if str(prop_receipt.account.initial_balance) == "10000000":
+                    receipt.amount = 180000
+                elif str(prop_receipt.account.initial_balance) == "5000000":
+                    receipt.amount = 99000
+                elif str(prop_receipt.account.initial_balance) == "1000000":
+                    receipt.amount = 25000
                 receipt.save()
+
                 AdminUserActivityLog.objects.create(
                     admin=request.user,
                     user=receipt.user,
                     action_type="approved_reciept",
                     description=f"Admin user approved reciept.",
                 )
-                prop_receipt = PropReceipt.objects.filter(receipt=receipt).first()
 
                 prop_account = prop_receipt.account
                 prop_account.receipt_approved = True
@@ -1021,6 +1032,7 @@ class AdminReceiptsView(APIView):
                     "acc_type": (
                         "Model 1" if prop_account.model_type == "model_1" else "Model 2"
                     ),
+                    "account_size": int(prop_account.initial_balance),
                     "payout": prop_account.payout.title(),
                     "broker": prop_account.broker.title(),
                     "first_name": receipt.user.firstname.title(),
@@ -1054,7 +1066,14 @@ class AdminReceiptsView(APIView):
                         referrer_wallet, _ = ReferralWallet.objects.get_or_create(
                             user=referral.user
                         )
-                        referrer_wallet.balance += Decimal("18000")
+                        if str(demo_acc.initial_balance) == "10000000":
+                            ref_amount = Decimal("18000")
+                        elif str(demo_acc.initial_balance) == "5000000":
+                            ref_amount = Decimal("9900")
+                        elif str(demo_acc.initial_balance) == "1000000":
+                            ref_amount = Decimal("2500")
+
+                        referrer_wallet.balance += ref_amount
                         referrer_wallet.save()
 
                         # Create reward activity for referrer
@@ -1062,7 +1081,7 @@ class AdminReceiptsView(APIView):
                             user=referral.user,
                             trader=receipt.user,
                             reward_type="prop_referral",
-                            amount=18000,
+                            amount=ref_amount,
                             status="processed",
                             comment="Referral reward for prop account purchase",
                         )
@@ -1071,7 +1090,7 @@ class AdminReceiptsView(APIView):
                         referee_wallet, _ = ReferralWallet.objects.get_or_create(
                             user=receipt.user
                         )
-                        referee_wallet.balance += Decimal("18000")
+                        referee_wallet.balance += ref_amount
                         referee_wallet.save()
 
                         # Create reward activity for referee
@@ -1079,7 +1098,7 @@ class AdminReceiptsView(APIView):
                             user=receipt.user,
                             trader=receipt.user,
                             reward_type="referral_reward",
-                            amount=18000,
+                            amount=ref_amount,
                             status="processed",
                             comment="Referral reward for prop account purchase",
                         )
@@ -1101,6 +1120,7 @@ class AdminReceiptsView(APIView):
                     "receipt_status": receipt.receipt_status,
                     "comment": receipt.comment,
                     "created": receipt.created,
+                    "account_size": prop_account.initial_balance,
                     "approved_date": receipt.approved_date,
                     "image_url": receipt.image.url if receipt.image else None,
                 }
@@ -1125,6 +1145,7 @@ class AdminReceiptsView(APIView):
                     "receipt_status": receipt.receipt_status,
                     "comment": receipt.comment,
                     "created": receipt.created,
+                    "account_size": prop_account.initial_balance,
                     "approved_date": receipt.approved_date,
                     "image_url": receipt.image.url if receipt.image else None,
                 }
@@ -1835,7 +1856,7 @@ class ActivateProp(APIView):
                 prop.activated = True
             prop.account_name = account_name
             prop.save()
-            initiate_first_data(prop.account_id)
+            initiate_first_data(prop.account_id, int(prop.initial_balance))
             # send activated mail
             sendMail(
                 "prop/Account_Activation.html",
