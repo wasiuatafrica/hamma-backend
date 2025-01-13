@@ -1047,10 +1047,10 @@ class AdminReceiptsView(APIView):
                 )
 
                 # record the datetime the account was issued to the user to track 3days activation
-                print("Helooo")
-                demo_acc = DemoPortfolio.objects.get(id=id)
-                demo_acc.issued_at = now()
-                demo_acc.save()
+                # print("Helooo")
+                # demo_acc = DemoPortfolio.objects.get(id=id)
+                # demo_acc.issued_at = now()
+                # demo_acc.save()
 
                 try:
                     # Check if this user was referred by someone
@@ -1066,11 +1066,11 @@ class AdminReceiptsView(APIView):
                         referrer_wallet, _ = ReferralWallet.objects.get_or_create(
                             user=referral.user
                         )
-                        if str(demo_acc.initial_balance) == "10000000":
+                        if str(prop_account.initial_balance) == "10000000":
                             ref_amount = Decimal("18000")
-                        elif str(demo_acc.initial_balance) == "5000000":
+                        elif str(prop_account.initial_balance) == "5000000":
                             ref_amount = Decimal("9900")
-                        elif str(demo_acc.initial_balance) == "1000000":
+                        elif str(prop_account.initial_balance) == "1000000":
                             ref_amount = Decimal("2500")
 
                         referrer_wallet.balance += ref_amount
