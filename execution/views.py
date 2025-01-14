@@ -1,61 +1,58 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.shortcuts import get_object_or_404
-import competition
-import portfolio
-from portfolio.models import Stock, DemoTransaction, Wallet
-from notifications.utils import save_and_send_notification
-from rest_framework.permissions import IsAuthenticated
-from accounts.utils import User, get_referrer
-from affilate.models import BrokageCommission, RewardActivities, ReferralWallet
+import json
+import random
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
 from decimal import Decimal
 
-# from .tasks import process_trade, update_equity
-from portfolio.utils import get_price
-import random
-from datetime import datetime, timedelta
-from concurrent.futures import ThreadPoolExecutor
-from django.db.models import Sum
-from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import shortuuid
-import json
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.db.models import Sum
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from accounts.models import UserActivityLog
-from waitlist import serializer
+from django_celery_beat.models import IntervalSchedule, PeriodicTask
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .models import (
-    CompetitionCumulativeMarketReturns,
-    CompetitionMarketReturns,
-    DailyReturns2,
-    DemoCumulativeReturns,
-    DemoPosition,
-    DemoPortfolio,
-    DemoDailyReturns2,
-    MarketReturns,
-    CumulativeMarketReturns,
-    Portfolio,
-    Position,
-    CumulativeReturns,
-)
+import competition
+from accounts.models import UserActivityLog
+from accounts.utils import User, get_referrer
+from affilate.models import BrokageCommission, ReferralWallet, RewardActivities
+from competition import models as competion_models
+from competition import serializers as competition_serializer_module
+from competition import tasks as competition_task
 from competition.models import (
     Competition,
     CompetitionCumulativeReturns,
     CompetitionCumulativeReturns2,
-    CompetitionDailyReturns2,
-    CompetitionPosition,
     CompetitionDailyReturns,
+    CompetitionDailyReturns2,
     CompetitionPortfolio,
+    CompetitionPosition,
     CompetitionTransaction,
 )
-from django.contrib.auth import get_user_model
+from notifications.utils import save_and_send_notification
+from portfolio.models import DemoTransaction, Stock, Wallet
+from portfolio.utils import get_price, get_stockdata2
+
 from . import serializers as exec_serializer
-from competition import (
-    tasks as competition_task,
-    models as competion_models,
-    serializers as competition_serializer_module,
+from .models import (
+    CompetitionCumulativeMarketReturns,
+    CompetitionMarketReturns,
+    CumulativeMarketReturns,
+    CumulativeReturns,
+    DailyReturns2,
+    DemoCumulativeReturns,
+    DemoDailyReturns2,
+    DemoPortfolio,
+    DemoPosition,
+    MarketReturns,
+    Portfolio,
+    Position,
 )
-from portfolio.utils import get_stockdata2
 
 User = get_user_model()
 # class DemoTradeAPIView(APIView):
@@ -4135,193 +4132,359 @@ class SupportNewOverView(APIView):
             return Response(data)
 
 
+# class NewDemoCloseTrade(APIView):
+
+#     def get_account(self, id):
+#         demo_account = DemoPortfolio.objects.filter(id=id).first()
+#         return demo_account if demo_account else None
+
+#     def get_competion_account(self, id, competion):
+#         competition_demo_account = CompetitionPortfolio.objects.filter(
+#             competition=competition, active=True, id=id
+#         ).first()
+#         return competition_demo_account if competition_demo_account else None
+
+#     def post(self, request, *args, **kwargs):
+
+#         account_type = kwargs.get("account_type")
+#         device_type = request.data.get("device_type", None)
+#         valid_account_types = ["demo_portfolio", "competition_account"]
+
+#         if not account_type in valid_account_types:
+#             return Response(
+#                 f"Account type should be {valid_account_types}.",
+#                 status.HTTP_400_BAD_REQUEST,
+#             )
+
+#         if account_type == "competition_account":
+
+#             competition = Competition.objects.filter(status="current").first()
+
+#             # get the competion account
+#             id = kwargs.get("id")
+#             position_id = kwargs.get("position_id")
+
+#             demo_account = CompetitionPortfolio.objects.filter(
+#                 competition__status="current", active=True, id=id
+#             )
+
+#             if demo_account.exists:
+#                 demo_account = demo_account.first()
+#             else:
+#                 demo_account = None
+
+#             if demo_account is None:
+#                 return Response("Account not found", status.HTTP_404_NOT_FOUND)
+#             if demo_account.user != request.user:
+#                 return Response("Permission denied", status.HTTP_403_FORBIDDEN)
+
+#             in_competition = demo_account
+
+#             # in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
+#             if in_competition and timezone.now() > competition.start_date:
+#                 position = CompetitionPosition.objects.filter(
+#                     portfolio=in_competition, id=position_id
+#                 ).first()
+
+#                 if not position.stock.active:
+#                     return Response("Stock is not active", status.HTTP_400_BAD_REQUEST)
+
+#                 if position.status == "open":
+#                     pl, cur_val, price = position.calculate_profit_loss()
+
+#                     trade_commission = (
+#                         round(Decimal(0.00435) * position.amount_invested, 2) + 200
+#                     )
+
+#                     position.status = "close"
+#                     position.close_price = Decimal(price)
+#                     position.profit_loss = pl
+#                     position.comment = "closed by trader"
+#                     position.save()
+
+#                     CompetitionTransaction.objects.create(
+#                         user=request.user,
+#                         transaction_type="close trade",
+#                         amount=cur_val,
+#                         status="completed",
+#                     )
+
+#                     CompetitionTransaction.objects.create(
+#                         user=request.user,
+#                         transaction_type="trade commission",
+#                         amount=trade_commission,
+#                         status="completed",
+#                     )
+
+#                     UserActivityLog.objects.create(
+#                         user=request.user,
+#                         action_type="competition_closed_trade",
+#                         description=f"User closed competition trade with symbol {position.stock.symbol}.",
+#                         device_type=device_type,
+#                     )
+#                     position.portfolio.balance += (
+#                         position.amount_invested
+#                         + position.profit_loss
+#                         - trade_commission
+#                     )
+#                     position.portfolio.save()
+
+#                     data = {
+#                         "id": position.id,
+#                         "stock": position.stock.symbol,
+#                         "quantity": position.quantity,
+#                         "open_price": position.open_price,
+#                         "close_price": position.close_price,
+#                         "open_time": position.created.isoformat(),
+#                         "close_time": position.updated.isoformat(),
+#                         "profit_loss": position.profit_loss,
+#                         "order_id": position.order_id,
+#                     }
+#                     return Response(data)
+#                 else:
+#                     return Response("Position is already closed")
+#         else:
+
+#             id = kwargs.get("id")
+#             position_id = kwargs.get("position_id")
+
+#             demo_account = self.get_account(id)
+#             if demo_account is None:
+#                 return Response("Account not found", status.HTTP_404_NOT_FOUND)
+#             if demo_account.user != request.user:
+#                 return Response("Permission denied", status.HTTP_403_FORBIDDEN)
+
+#             portfolio = demo_account
+#             position = DemoPosition.objects.filter(
+#                 portfolio=portfolio, id=position_id
+#             ).first()
+
+#             if not position:
+#                 return Response("Position not found", status.HTTP_404_NOT_FOUND)
+
+#             if not position.stock.active:
+#                 return Response("Stock is not active", status.HTTP_400_BAD_REQUEST)
+
+#             # position =  get_object_or_404(DemoPosition, id=id)
+#             if position.status == "open":
+#                 pl, cur_val, price = position.calculate_profit_loss()
+
+#                 trade_commission = (
+#                     round(Decimal(0.00435) * position.amount_invested, 2) + 200
+#                 )
+
+#                 position.status = "close"
+#                 position.close_price = Decimal(price)
+#                 position.comment = "closed by trader"
+#                 position.profit_loss = pl
+
+#                 position.save()
+
+#                 DemoTransaction.objects.create(
+#                     user=request.user,
+#                     transaction_type="close trade",
+#                     amount=cur_val,
+#                     status="completed",
+#                 )
+
+#                 DemoTransaction.objects.create(
+#                     user=request.user,
+#                     transaction_type="trade commission",
+#                     amount=trade_commission,
+#                     status="completed",
+#                 )
+
+#                 UserActivityLog.objects.create(
+#                     user=request.user,
+#                     action_type="demo_closed_trade",
+#                     description=f"User closed demo trade with symbol {position.stock.symbol}.",
+#                     device_type=device_type,
+#                 )
+#                 position.portfolio.balance += (
+#                     position.amount_invested + position.profit_loss - trade_commission
+#                 )
+#                 position.portfolio.save()
+
+#                 data = {
+#                     "id": position.id,
+#                     "stock": position.stock.symbol,
+#                     "quantity": position.quantity,
+#                     "open_price": position.open_price,
+#                     "close_price": position.close_price,
+#                     "open_time": position.created.isoformat(),
+#                     "close_time": position.updated.isoformat(),
+#                     "profit_loss": position.profit_loss,
+#                     "order_id": position.order_id,
+#                 }
+#                 return Response(data)
+#             else:
+#                 return Response("Position is not open")
+
+
 class NewDemoCloseTrade(APIView):
-
     def get_account(self, id):
-        demo_account = DemoPortfolio.objects.filter(id=id).first()
-        return demo_account if demo_account else None
+        return DemoPortfolio.objects.filter(id=id).first()
 
-    def get_competion_account(self, id, competion):
-        competition_demo_account = CompetitionPortfolio.objects.filter(
+    def get_competition_account(self, id, competition):
+        return CompetitionPortfolio.objects.filter(
             competition=competition, active=True, id=id
         ).first()
-        return competition_demo_account if competition_demo_account else None
 
+    def _process_close_trade(self, position, user, device_type, transaction_model):
+        """
+        Helper method to process trade closure with atomic transaction
+        """
+        pl, cur_val, price = position.calculate_profit_loss()
+        trade_commission = round(Decimal(0.00435) * position.amount_invested, 2) + 200
+
+        position.status = "close"
+        position.close_price = Decimal(price)
+        position.profit_loss = pl
+        position.comment = "closed by trader"
+        position.save()
+
+        # Create transaction records
+        transaction_model.objects.create(
+            user=user,
+            transaction_type="close trade",
+            amount=cur_val,
+            status="completed",
+        )
+
+        transaction_model.objects.create(
+            user=user,
+            transaction_type="trade commission",
+            amount=trade_commission,
+            status="completed",
+        )
+
+        # Create activity log
+        trade_type = (
+            "competition"
+            if transaction_model.__name__ == "CompetitionTransaction"
+            else "demo"
+        )
+        UserActivityLog.objects.create(
+            user=user,
+            action_type=f"{trade_type}_closed_trade",
+            description=f"User closed {trade_type} trade with symbol {position.stock.symbol}.",
+            device_type=device_type,
+        )
+
+        # Update portfolio balance
+        position.portfolio.balance += (
+            position.amount_invested + position.profit_loss - trade_commission
+        )
+        position.portfolio.save()
+
+        return {
+            "id": position.id,
+            "stock": position.stock.symbol,
+            "quantity": position.quantity,
+            "open_price": position.open_price,
+            "close_price": position.close_price,
+            "open_time": position.created.isoformat(),
+            "close_time": position.updated.isoformat(),
+            "profit_loss": position.profit_loss,
+            "order_id": position.order_id,
+        }
+
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
+        try:
+            account_type = kwargs.get("account_type")
+            device_type = request.data.get("device_type")
+            valid_account_types = ["demo_portfolio", "competition_account"]
 
-        account_type = kwargs.get("account_type")
-        device_type = request.data.get("device_type", None)
-        valid_account_types = ["demo_portfolio", "competition_account"]
+            if account_type not in valid_account_types:
+                return Response(
+                    f"Account type should be {valid_account_types}.",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-        if not account_type in valid_account_types:
-            return Response(
-                f"Account type should be {valid_account_types}.",
-                status.HTTP_400_BAD_REQUEST,
-            )
-
-        if account_type == "competition_account":
-
-            competition = Competition.objects.filter(status="current").first()
-
-            # get the competion account
             id = kwargs.get("id")
             position_id = kwargs.get("position_id")
 
-            demo_account = CompetitionPortfolio.objects.filter(
-                competition__status="current", active=True, id=id
-            )
+            if account_type == "competition_account":
+                competition = Competition.objects.filter(status="current").first()
+                demo_account = self.get_competition_account(id, competition)
 
-            if demo_account.exists:
-                demo_account = demo_account.first()
+                if not demo_account:
+                    return Response(
+                        "Account not found", status=status.HTTP_404_NOT_FOUND
+                    )
+
+                if demo_account.user != request.user:
+                    return Response(
+                        "Permission denied", status=status.HTTP_403_FORBIDDEN
+                    )
+
+                if not timezone.now() > competition.start_date:
+                    return Response(
+                        "Competition hasn't started", status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                position = (
+                    CompetitionPosition.objects.filter(
+                        portfolio=demo_account, id=position_id
+                    )
+                    .select_for_update()
+                    .first()
+                )
+
+                transaction_model = CompetitionTransaction
+
             else:
-                demo_account = None
+                demo_account = self.get_account(id)
 
-            if demo_account is None:
-                return Response("Account not found", status.HTTP_404_NOT_FOUND)
-            if demo_account.user != request.user:
-                return Response("Permission denied", status.HTTP_403_FORBIDDEN)
-
-            in_competition = demo_account
-
-            # in_competition =  CompetitionPortfolio.objects.filter(user=request.user, competition=competition,active=True).first()
-            if in_competition and timezone.now() > competition.start_date:
-                position = CompetitionPosition.objects.filter(
-                    portfolio=in_competition, id=position_id
-                ).first()
-
-                if not position.stock.active:
-                    return Response("Stock is not active", status.HTTP_400_BAD_REQUEST)
-
-                if position.status == "open":
-                    pl, cur_val, price = position.calculate_profit_loss()
-
-                    trade_commission = (
-                        round(Decimal(0.00435) * position.amount_invested, 2) + 200
+                if not demo_account:
+                    return Response(
+                        "Account not found", status=status.HTTP_404_NOT_FOUND
                     )
 
-                    position.status = "close"
-                    position.close_price = Decimal(price)
-                    position.profit_loss = pl
-                    position.comment = "closed by trader"
-                    position.save()
-
-                    CompetitionTransaction.objects.create(
-                        user=request.user,
-                        transaction_type="close trade",
-                        amount=cur_val,
-                        status="completed",
+                if demo_account.user != request.user:
+                    return Response(
+                        "Permission denied", status=status.HTTP_403_FORBIDDEN
                     )
 
-                    CompetitionTransaction.objects.create(
-                        user=request.user,
-                        transaction_type="trade commission",
-                        amount=trade_commission,
-                        status="completed",
-                    )
+                position = (
+                    DemoPosition.objects.filter(portfolio=demo_account, id=position_id)
+                    .select_for_update()
+                    .first()
+                )
 
-                    UserActivityLog.objects.create(
-                        user=request.user,
-                        action_type="competition_closed_trade",
-                        description=f"User closed competition trade with symbol {position.stock.symbol}.",
-                        device_type=device_type,
-                    )
-                    position.portfolio.balance += (
-                        position.amount_invested
-                        + position.profit_loss
-                        - trade_commission
-                    )
-                    position.portfolio.save()
-
-                    data = {
-                        "id": position.id,
-                        "stock": position.stock.symbol,
-                        "quantity": position.quantity,
-                        "open_price": position.open_price,
-                        "close_price": position.close_price,
-                        "open_time": position.created.isoformat(),
-                        "close_time": position.updated.isoformat(),
-                        "profit_loss": position.profit_loss,
-                        "order_id": position.order_id,
-                    }
-                    return Response(data)
-                else:
-                    return Response("Position is already closed")
-        else:
-
-            id = kwargs.get("id")
-            position_id = kwargs.get("position_id")
-
-            demo_account = self.get_account(id)
-            if demo_account is None:
-                return Response("Account not found", status.HTTP_404_NOT_FOUND)
-            if demo_account.user != request.user:
-                return Response("Permission denied", status.HTTP_403_FORBIDDEN)
-
-            portfolio = demo_account
-            position = DemoPosition.objects.filter(
-                portfolio=portfolio, id=position_id
-            ).first()
+                transaction_model = DemoTransaction
 
             if not position:
-                return Response("Position not found", status.HTTP_404_NOT_FOUND)
+                return Response("Position not found", status=status.HTTP_404_NOT_FOUND)
 
             if not position.stock.active:
-                return Response("Stock is not active", status.HTTP_400_BAD_REQUEST)
-
-            # position =  get_object_or_404(DemoPosition, id=id)
-            if position.status == "open":
-                pl, cur_val, price = position.calculate_profit_loss()
-
-                trade_commission = (
-                    round(Decimal(0.00435) * position.amount_invested, 2) + 200
+                return Response(
+                    "Stock is not active", status=status.HTTP_400_BAD_REQUEST
                 )
 
-                position.status = "close"
-                position.close_price = Decimal(price)
-                position.comment = "closed by trader"
-                position.profit_loss = pl
-
-                position.save()
-
-                DemoTransaction.objects.create(
-                    user=request.user,
-                    transaction_type="close trade",
-                    amount=cur_val,
-                    status="completed",
+            if position.status != "open":
+                return Response(
+                    "Position is not open", status=status.HTTP_400_BAD_REQUEST
                 )
 
-                DemoTransaction.objects.create(
-                    user=request.user,
-                    transaction_type="trade commission",
-                    amount=trade_commission,
-                    status="completed",
-                )
+            result = self._process_close_trade(
+                position=position,
+                user=request.user,
+                device_type=device_type,
+                transaction_model=transaction_model,
+            )
 
-                UserActivityLog.objects.create(
-                    user=request.user,
-                    action_type="demo_closed_trade",
-                    description=f"User closed demo trade with symbol {position.stock.symbol}.",
-                    device_type=device_type,
-                )
-                position.portfolio.balance += (
-                    position.amount_invested + position.profit_loss - trade_commission
-                )
-                position.portfolio.save()
+            return Response(result)
 
-                data = {
-                    "id": position.id,
-                    "stock": position.stock.symbol,
-                    "quantity": position.quantity,
-                    "open_price": position.open_price,
-                    "close_price": position.close_price,
-                    "open_time": position.created.isoformat(),
-                    "close_time": position.updated.isoformat(),
-                    "profit_loss": position.profit_loss,
-                    "order_id": position.order_id,
-                }
-                return Response(data)
-            else:
-                return Response("Position is not open")
+        except ValidationError as e:
+            transaction.set_rollback(True)
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            transaction.set_rollback(True)
+            return Response(
+                "An error occurred", status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class NewDemoClosePendingTrade(APIView):
