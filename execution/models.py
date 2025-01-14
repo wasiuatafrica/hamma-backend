@@ -13,6 +13,7 @@ from competition.models import CompetitionPortfolio
 import random
 import string
 from portfolio.utils import db_merged
+from simple_history.models import HistoricalRecords
 
 User = get_user_model()
 
@@ -124,6 +125,7 @@ class DemoPortfolio(auto_prefetch.Model):
         related_name="has_hamma2",
     )
     issued_at = models.DateTimeField(null=True, blank=True)
+    history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
         if not self.account_id:
@@ -170,6 +172,7 @@ class HammaAccountRequest(auto_prefetch.Model):
         max_length=255, choices=choices, default="Unprocessed", blank=True, null=True
     )
     comment = models.CharField(max_length=255, blank=True, default="", null=True)
+    history = HistoricalRecords()
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -577,6 +580,7 @@ class WithdrawalRequest(auto_prefetch.Model):
         max_length=20, default="Unprocessed", blank=True, null=True
     )
     flag = models.BooleanField(default=False, null=True, blank=True)
+    history = HistoricalRecords()
 
     @property
     def bank_name(self):
@@ -630,6 +634,7 @@ class PropReceipt(auto_prefetch.Model):
     discount_code = auto_prefetch.ForeignKey(
         DiscountCode, on_delete=models.CASCADE, blank=True, null=True
     )
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.account} - {self.receipt}"

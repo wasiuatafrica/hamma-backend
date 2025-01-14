@@ -3,6 +3,7 @@ from django.utils import timezone
 import auto_prefetch
 from execution.models import DemoPortfolio
 from django.contrib.auth import get_user_model
+from simple_history.models import HistoricalRecords
 
 User = get_user_model()
 
@@ -35,6 +36,7 @@ class Payout(auto_prefetch.Model):
         related_name="processed_payouts",
         blank=True,
     )
+    history = HistoricalRecords()
 
     class Meta(auto_prefetch.Model.Meta):
         ordering = ["-request_date"]

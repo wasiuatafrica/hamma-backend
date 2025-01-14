@@ -5,6 +5,7 @@ from django.utils import timezone
 from accounts.managers import CustomUserManager
 import auto_prefetch
 import random
+from simple_history.models import HistoricalRecords
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
@@ -33,6 +34,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     last_location = models.CharField(max_length=100, blank=True, null=True)
     last_device = models.TextField(blank=True, null=True)
     signup_route = models.CharField(max_length=100, default="competition")
+    history = HistoricalRecords()
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["firstname", "lastname"]
@@ -149,6 +151,7 @@ class Profile(auto_prefetch.Model):
     bank_name = models.CharField(max_length=255, blank=True, null=True)
     account_number = models.CharField(max_length=255, blank=True, null=True)
     paypal_address = models.CharField(max_length=255, blank=True, null=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.user.email} Profile"
@@ -187,6 +190,7 @@ class Referral(auto_prefetch.Model):
     converted = models.BooleanField(default=False)
     paid = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.user.email} Referral"
@@ -294,6 +298,7 @@ class AdminUserActivityLog(models.Model):
 class Unsubscribe(models.Model):
     email = models.EmailField(_("email address"), unique=True)
     created = models.DateTimeField(auto_now_add=True)
+    history = HistoricalRecords()
 
 
 class TradingProfile(models.Model):
@@ -353,6 +358,7 @@ class TradingProfile(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Trading Profile"

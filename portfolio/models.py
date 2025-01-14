@@ -8,6 +8,7 @@ from django.db import close_old_connections, models
 from django.db.models import Avg, F, Sum
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from simple_history.models import HistoricalRecords
 
 User = get_user_model()
 
@@ -98,6 +99,8 @@ class Wallet(auto_prefetch.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    history = HistoricalRecords()
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.user.email} - {self.balance}"
@@ -281,6 +284,7 @@ class Receipts(auto_prefetch.Model):
     approved_date = models.DateTimeField(auto_now=True)
     payment_method = models.CharField(max_length=20, default="Bank Transfer")
     flag = models.BooleanField(default=False, null=True, blank=True)
+    history = HistoricalRecords()
 
     def __str__(self) -> str:
         return f"{self.user.email}-{self.amount} - {self.receipt_status}"
@@ -295,6 +299,7 @@ class PayStackReceipts(auto_prefetch.Model):
     receipt_status = models.CharField(max_length=20, default="unprocessed")
     comment = models.TextField(blank=True, null=True)
     flag = models.BooleanField(default=False, null=True, blank=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.user.email}-{self.amount}"
@@ -378,6 +383,7 @@ class Alert(auto_prefetch.Model):
     trigerred = models.BooleanField(default=False)
     last_email_sent = models.DateTimeField(null=True, blank=True)
     last_checked = models.DateTimeField(null=True, blank=True)
+    history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
         if not self.expire:
@@ -401,6 +407,7 @@ class AlertAI(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True)
     alert_created = models.BooleanField(default=False)
     extracted_parameters = models.TextField()
+    history = HistoricalRecords()
 
 
 class MarketAI(auto_prefetch.Model):

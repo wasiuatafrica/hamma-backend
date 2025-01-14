@@ -14,6 +14,7 @@ from portfolio.utils import db_merged
 from collections import defaultdict
 from collections import defaultdict
 import pandas as pd
+from simple_history.models import HistoricalRecords
 
 User = get_user_model()
 
@@ -45,6 +46,7 @@ class Competition(auto_prefetch.Model):
     second_prize = models.CharField(max_length=200, null=True, blank=True)
     third_prize = models.CharField(max_length=200, null=True, blank=True)
     message = models.TextField(null=True, blank=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.title} | {self.status}"
@@ -62,6 +64,7 @@ class CompetitionPortfolio(auto_prefetch.Model):
     active = models.BooleanField(default=True)
     account_name = models.CharField(max_length=20, default="Competition Account 1")
     account_id = models.CharField(max_length=20, null=True, blank=True)
+    history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
         if not self.account_id:
@@ -333,6 +336,7 @@ class Clan(auto_prefetch.Model):
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     position = models.PositiveIntegerField(blank=True, null=True)
     position_index = models.PositiveIntegerField(blank=True, null=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.clan_name} "
@@ -555,6 +559,7 @@ class TopClanPayout(auto_prefetch.Model):
     competition = auto_prefetch.ForeignKey(
         Competition, on_delete=models.CASCADE, null=True, blank=True
     )
+    history = HistoricalRecords()
 
     def __str__(self):
 
@@ -591,6 +596,7 @@ class TopClanMembersPayout(auto_prefetch.Model):
     portfolio = auto_prefetch.ForeignKey(
         CompetitionPortfolio, on_delete=models.CASCADE, null=True, blank=True
     )
+    history = HistoricalRecords()
 
 
 class TopClanPayoutButtonShows(auto_prefetch.Model):
@@ -644,6 +650,7 @@ class TopTraderPayout(auto_prefetch.Model):
         Competition, on_delete=models.CASCADE, null=True, blank=True
     )
     profit = models.IntegerField(null=True, blank=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return "Payout" + "-" + str(self.portfolio.user.email)
