@@ -1247,7 +1247,9 @@ def getProfit(portfolio):
     positions = CompetitionPosition.objects.filter(portfolio=portfolio, status="close")
     # print(len(positions))
     if positions:
-        profit = sum([position.profit_loss -position.commission for position in positions])
+        profit = sum(
+            [position.profit_loss - position.commission for position in positions]
+        )
         # print(profit)
         return profit, True
     else:
@@ -1274,7 +1276,7 @@ class LeaderBoardView(APIView):
                         data = {
                             "name": account.user.firstname,
                             "profit": percent,
-                            "profit_naira": profit,
+                            "profit_naira": round(profit, 2),
                             "country": profile.country,
                             "clan": account.user.clans,
                         }
@@ -1297,7 +1299,7 @@ class LeaderBoardView(APIView):
                     data = {
                         "name": account.user.firstname,
                         "profit": account.percent,
-                        "profit_naira": account.profit,
+                        "profit_naira": round(account.profit, 2),
                         "country": profile.country,
                         "clan": account.clan.clan_name,
                     }
@@ -1309,15 +1311,10 @@ class LeaderBoardView(APIView):
             return Response(sorted_data)
 
 
-
-
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def testhtml(request):
     return render(request, "leaderboard/clan-detail.html")
-
-
-
 
 
 @login_required
@@ -2547,7 +2544,6 @@ class GetAndUpdateUserNotifications(APIView):
             # print(id["id"], "Helooooo",user_id,update)
         return Response({"detail": "Success"})
         # update_notification
-
 
 
 from collections import defaultdict
