@@ -1,6 +1,12 @@
 from django.urls import path, include
 from django.urls.conf import re_path
 from . import views
+from .supportviews import (
+    EditUserInfoView,
+    ClearKYCImagesView,
+    DeactivateUserView,
+    UserTradingAccountsView,
+)
 
 urlpatterns = [
     path(
@@ -75,4 +81,24 @@ urlpatterns = [
     path("support/disclaimer/", views.SupportMessageDisclaimerView.as_view()),
     path("opened-email/", views.OpenedEmailLogsAdminView.as_view()),
     path("other-ideas/", views.ViewOtherIdeasAdminView.as_view()),
+    path(
+        "users/<int:user_id>/edit/",
+        EditUserInfoView.as_view(),
+        name="admin-edit-user",
+    ),
+    path(
+        "users/<int:user_id>/clear-kyc/",
+        ClearKYCImagesView.as_view(),
+        name="admin-clear-kyc",
+    ),
+    path(
+        "users/<int:user_id>/deactivate/",
+        DeactivateUserView.as_view(),
+        name="admin-deactivate-user",
+    ),
+    path(
+        "users/<int:user_id>/trading-accounts/",
+        UserTradingAccountsView.as_view(),
+        name="admin-user-trading-accounts",
+    ),
 ]
