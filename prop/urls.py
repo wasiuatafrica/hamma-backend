@@ -97,6 +97,8 @@ urlpatterns = [
     path("graph/", analytics_views.DemoPortfolioAnalyticsView.as_view()),
     path("analytics2/", analytics_views.DemoStatsAPIView.as_view()),
     path("barchart/", analytics_views.PortfoliosByTypeView.as_view()),
+    # NEW
+    path("new-support-payoutlist/", views.PayoutListAPIView2.as_view()),
 ]
 
 # # Add router URLs to urlpatterns

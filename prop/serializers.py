@@ -36,6 +36,8 @@ class PayoutDetailSerializer(serializers.ModelSerializer):
 
 
 class AccountlistSerializer(serializers.ModelSerializer):
+    user_email = serializers.CharField(source="user.email", read_only=True)
+
     class Meta:
         model = DemoPortfolio
         # fields = "__all__"

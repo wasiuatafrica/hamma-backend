@@ -56,6 +56,21 @@ def get_notifications(user_id):
     return notifications[:30]
 
 
+def get_all_notifications(user_id):
+    response = table.query(
+        KeyConditionExpression="user_id = :uid",
+        ExpressionAttributeValues={
+            ":uid": str(user_id),
+        },
+    )
+
+    notifications = response.get("Items", [])
+    notifications.sort(key=lambda x: x["timestamp"], reverse=True)
+
+    # notifications={"Glory":1, "Book":3}
+    return notifications[:30]
+
+
 def update_notification(user_id, notification_id):
     try:
         response = table.update_item(

@@ -126,6 +126,22 @@ class PayoutListAPIView(APIView):
         return Response(serializer.data)
 
 
+class PayoutListAPIView2(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        """Get list of payouts"""
+        email = request.query_params.get("user_email", None)
+        if not email:
+            return Response(
+                {"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        payouts = Payout.objects.filter(portfolio__user__email=email)
+
+        serializer = PayoutDetailSerializer(payouts, many=True)
+        return Response(serializer.data)
+
+
 class AdminPayoutListAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
