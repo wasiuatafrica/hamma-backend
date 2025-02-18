@@ -513,7 +513,7 @@ class PortfolioAnalyzer:
 
             DemoTransaction.objects.create(
                 user=self.portfolio.user,
-                transaction_type=f"swap fees deduction for {self.portfolio.account_id}",
+                transaction_type=f"swap fees",
                 amount=total_swap_fee,
                 status="completed",
             )
