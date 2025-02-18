@@ -23,6 +23,15 @@ from .models import (
 )
 
 
+@admin.register(DemoTransaction)
+class DemoTransactionAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "transaction_type", "amount", "date", "status")
+    search_fields = ("user__username", "transaction_type", "status")
+    list_filter = ("transaction_type", "status", "date")
+    ordering = ("-date",)
+    date_hierarchy = "date"
+
+
 @admin.register(BonusWallet)
 class BonusWalletAdmin(admin.ModelAdmin):
     list_display = ("user", "balance", "created")
