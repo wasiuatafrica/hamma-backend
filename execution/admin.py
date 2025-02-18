@@ -17,10 +17,11 @@ from .models import (
     PropReceipt,
     HammaAccountRequest,
 )
+from simple_history.admin import SimpleHistoryAdmin
 
 
 @admin.register(HammaAccountRequest)
-class HammaAccountRequestAdmin(admin.ModelAdmin):
+class HammaAccountRequestAdmin(SimpleHistoryAdmin):
     list_display = ["user", "account", "status", "created", "comment", "updated"]
     search_fields = ["user__email", "account"]
     list_filter = ["status", "created"]
@@ -51,7 +52,7 @@ admin.site.register(DemoPosition, DemoPositionAdmin)
 admin.site.register(DemoTrade)
 
 
-class DemoPortfolioAdmin(admin.ModelAdmin):
+class DemoPortfolioAdmin(SimpleHistoryAdmin):
     search_fields = ["user__email", "account_name", "account_id"]
     list_display = (
         "id",
@@ -104,5 +105,5 @@ admin.site.register(MarketReturns)
 admin.site.register(Position)
 admin.site.register(Portfolio)
 admin.site.register(DailyReturns)
-admin.site.register(WithdrawalRequest)
-admin.site.register(PropReceipt)
+admin.site.register(WithdrawalRequest, SimpleHistoryAdmin)
+admin.site.register(PropReceipt, SimpleHistoryAdmin)

@@ -1,5 +1,6 @@
 from portfolio.utils import client
 from portfolio.models import Stock
+from django.utils import timezone
 
 riskdb = client["stock_classification"]
 risk_collection = riskdb["risk_classification"]
@@ -127,6 +128,7 @@ def classify():
     last_item = collection.find_one(sort=[("_id", -1)])
     last_item.pop("_id")
     classified_assets = {}
+    now = timezone.now()
     for symbol, data in last_item.items():
         if symbol in active_symbols:
             print(f"classifying {symbol}")
