@@ -3357,7 +3357,7 @@ class NewHome(APIView):
             ]
             profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
 
-            balance = portfolio.balance
+            balance = portfolio.balance + Decimal(portfolio.get_commissions())
 
             def pl_cv(position):
                 pl, cur_val, price = position.calculate_profit_loss()
@@ -3718,7 +3718,8 @@ class NewSupportHome(APIView):
                 )
             ]
             profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
-            balance = portfolio.balance
+            # balance = portfolio.balance
+            balance = portfolio.balance + Decimal(portfolio.get_commissions())
 
             def pl_cv(position):
                 pl, cur_val, price = position.calculate_profit_loss()
@@ -4006,6 +4007,8 @@ class NewOverView(APIView):
         if not daily_data:
             return []
 
+        # print(daily_data)
+
         # Convert to DataFrame
         df = pd.DataFrame(daily_data)
 
@@ -4261,6 +4264,8 @@ class SupportNewOverView(APIView):
         """
         if not daily_data:
             return []
+
+        print(daily_data)
 
         # Convert to DataFrame
         df = pd.DataFrame(daily_data)
