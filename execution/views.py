@@ -4641,7 +4641,8 @@ def get_holdings_positions(queryset):
             elif position.action == "sell":
                 profit_loss = position.amount_invested - Decimal(current_value)
         elif position.status == "close":
-            profit_loss = position.profit_loss - position.commission
+            # profit_loss = position.profit_loss - position.commission
+            profit_loss = position.profit_loss
             current_value = position.quantity * position.close_price
         else:
             current_value = 0
@@ -4684,6 +4685,7 @@ def get_holdings_positions(queryset):
             "trailing_sl": position.trailing_stop_loss,
             "comment": position.comment,
             "commission": position.commission,
+            "swap_fee": position.swap_fee,
         }
         all_holdings.append(data)
     return all_holdings
@@ -4740,7 +4742,8 @@ class NewDemoHolding(APIView):
                 positions = CompetitionPosition.objects.filter(
                     portfolio=portfolio
                 ).order_by("-updated")
-                balance = portfolio.balance
+                # balance = portfolio.balance
+                balance = float(portfolio.balance) + portfolio.get_commissions()
 
                 if positions:
 
@@ -4783,10 +4786,11 @@ class NewDemoHolding(APIView):
                     )
 
                     hold_data = {
-                        "balance": balance + open_balance,
+                        "balance": balance + float(open_balance),
                         "floating_pl": floating_pl,
-                        "closed_pl": closed_pl,
-                        "equity": balance + floating_pl + open_balance,
+                        "closed_pl": float(closed_pl)
+                        - float(portfolio.get_swap_fees()),
+                        "equity": balance + float(floating_pl) + float(open_balance),
                         "holdings": positions_data,
                     }
 
@@ -4816,7 +4820,8 @@ class NewDemoHolding(APIView):
             positions = DemoPosition.objects.filter(portfolio=portfolio).order_by(
                 "-updated"
             )
-            balance = portfolio.balance
+            # balance = portfolio.balance
+            balance = float(portfolio.balance) + portfolio.get_commissions()
 
             if positions:
 
@@ -4853,10 +4858,10 @@ class NewDemoHolding(APIView):
                 open_balance = open_trade_sum
 
                 hold_data = {
-                    "balance": balance + open_balance,
+                    "balance": balance + float(open_balance),
                     "floating_pl": floating_pl,
-                    "closed_pl": closed_pl,
-                    "equity": balance + floating_pl + open_balance,
+                    "closed_pl": float(closed_pl) - float(portfolio.get_swap_fees()),
+                    "equity": balance + float(floating_pl) + float(open_balance),
                     "holdings": positions_data,
                 }
 
@@ -4927,7 +4932,8 @@ class NewSupportDemoHolding(APIView):
                 positions = CompetitionPosition.objects.filter(
                     portfolio=portfolio
                 ).order_by("-updated")
-                balance = portfolio.balance
+                # balance = portfolio.balance
+                balance = float(portfolio.balance) + portfolio.get_commissions()
 
                 if positions:
 
@@ -4970,10 +4976,11 @@ class NewSupportDemoHolding(APIView):
                     )
 
                     hold_data = {
-                        "balance": balance + open_balance,
+                        "balance": balance + float(open_balance),
                         "floating_pl": floating_pl,
-                        "closed_pl": closed_pl,
-                        "equity": balance + floating_pl + open_balance,
+                        "closed_pl": float(closed_pl)
+                        - float(portfolio.get_swap_fees()),
+                        "equity": balance + float(floating_pl) + float(open_balance),
                         "holdings": positions_data,
                     }
 
@@ -5003,7 +5010,8 @@ class NewSupportDemoHolding(APIView):
             positions = DemoPosition.objects.filter(portfolio=portfolio).order_by(
                 "-updated"
             )
-            balance = portfolio.balance
+            # balance = portfolio.balance
+            balance = float(portfolio.balance) + portfolio.get_commissions()
 
             if positions:
 
@@ -5040,10 +5048,10 @@ class NewSupportDemoHolding(APIView):
                 open_balance = open_trade_sum
 
                 hold_data = {
-                    "balance": balance + open_balance,
+                    "balance": balance + float(open_balance),
                     "floating_pl": floating_pl,
-                    "closed_pl": closed_pl,
-                    "equity": balance + floating_pl + open_balance,
+                    "closed_pl": float(closed_pl) - float(portfolio.get_swap_fees()),
+                    "equity": balance + float(floating_pl) + float(open_balance),
                     "holdings": positions_data,
                 }
 

@@ -112,6 +112,7 @@ class DemoPortfolio(auto_prefetch.Model):
     updated = models.DateTimeField(auto_now=True, null=True, blank=True)
     balance_based_drawdown = models.BooleanField(default=False)
     last_swap_charge_date = models.DateField(null=True, blank=True)
+
     passed_date = models.DateTimeField(blank=True, null=True)
     discount_code = auto_prefetch.ForeignKey(
         DiscountCode, on_delete=models.SET_NULL, null=True, blank=True
@@ -158,6 +159,20 @@ class DemoPortfolio(auto_prefetch.Model):
         # if self.is_prop:
         #     return "prop_account"
         return "demo_portfolio"
+
+    def get_swap_fees(self):
+        positions = self.demopositions2.all()
+        swap_fees = positions.aggregate(models.Sum("swap_fee", default=0.0))[
+            "swap_fee__sum"
+        ]
+
+        return swap_fees
+
+    def get_commissions(self):
+        positions = self.demopositions2.all()
+        commissions = sum([position.commission for position in positions])
+
+        return commissions
 
 
 class HammaAccountRequest(auto_prefetch.Model):
@@ -349,6 +364,7 @@ class DemoPosition(auto_prefetch.Model):
         max_digits=10, decimal_places=2, blank=True, null=True
     )
     comment = models.TextField(null=True, blank=True)
+    swap_fee = models.PositiveIntegerField(default=0.0)
 
     def __str__(self):
         return f"{self.portfolio.user} - {self.stock.symbol} - {self.action} - {self.status}| {self.updated}"
