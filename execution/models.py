@@ -385,7 +385,8 @@ class DemoPosition(auto_prefetch.Model):
             elif self.action == "sell":
                 profit_loss = self.amount_invested - Decimal(current_value)
         elif self.status == "close":
-            profit_loss = self.profit_loss - self.commission
+            # profit_loss = self.profit_loss - self.commission
+            profit_loss = self.profit_loss
             current_value = self.quantity * self.close_price
         else:
             current_value = 0
