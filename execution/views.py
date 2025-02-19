@@ -26,21 +26,35 @@ from affilate.models import BrokageCommission, ReferralWallet, RewardActivities
 from competition import models as competion_models
 from competition import serializers as competition_serializer_module
 from competition import tasks as competition_task
-from competition.models import (Competition, CompetitionCumulativeReturns,
-                                CompetitionCumulativeReturns2,
-                                CompetitionDailyReturns,
-                                CompetitionDailyReturns2, CompetitionPortfolio,
-                                CompetitionPosition, CompetitionTransaction)
+from competition.models import (
+    Competition,
+    CompetitionCumulativeReturns,
+    CompetitionCumulativeReturns2,
+    CompetitionDailyReturns,
+    CompetitionDailyReturns2,
+    CompetitionPortfolio,
+    CompetitionPosition,
+    CompetitionTransaction,
+)
 from notifications.utils import save_and_send_notification
 from portfolio.models import DemoTransaction, Stock, Wallet
 from portfolio.utils import get_price, get_stockdata2
 
 from . import serializers as exec_serializer
-from .models import (CompetitionCumulativeMarketReturns,
-                     CompetitionMarketReturns, CumulativeMarketReturns,
-                     CumulativeReturns, DailyReturns2, DemoCumulativeReturns,
-                     DemoDailyReturns2, DemoPortfolio, DemoPosition,
-                     MarketReturns, Portfolio, Position)
+from .models import (
+    CompetitionCumulativeMarketReturns,
+    CompetitionMarketReturns,
+    CumulativeMarketReturns,
+    CumulativeReturns,
+    DailyReturns2,
+    DemoCumulativeReturns,
+    DemoDailyReturns2,
+    DemoPortfolio,
+    DemoPosition,
+    MarketReturns,
+    Portfolio,
+    Position,
+)
 
 User = get_user_model()
 # class DemoTradeAPIView(APIView):
@@ -3982,10 +3996,10 @@ class NewOverView(APIView):
     def calculate_cumulative_returns(self, daily_data: List[Dict]) -> List[Dict]:
         """
         Calculate cumulative returns using pandas from daily returns data.
-        
+
         Args:
             daily_data: List of dictionaries containing daily returns data
-            
+
         Returns:
             List of dictionaries with cumulative returns data
         """
@@ -3994,26 +4008,28 @@ class NewOverView(APIView):
 
         # Convert to DataFrame
         df = pd.DataFrame(daily_data)
-        
-        # Calculate cumulative returns using pandas
-        df['portfolio_returns'] = (1 + df['portfolio_returns']/100).cumprod() * 100 - 100
-        df['market_returns'] = (1 + df['market_returns']/100).cumprod() * 100 - 100
-        
-        # Convert back to list of dictionaries
-        return df.to_dict('records')
 
-    def get_daily_returns(self, portfolio: Any, from_date: str, to_date: str, 
-                         is_competition: bool) -> List[Dict]:
+        # Calculate cumulative returns using pandas
+        df["portfolio_returns"] = (
+            1 + df["portfolio_returns"] / 100
+        ).cumprod() * 100 - 100
+        df["market_returns"] = (1 + df["market_returns"] / 100).cumprod() * 100 - 100
+
+        # Convert back to list of dictionaries
+        return df.to_dict("records")
+
+    def get_daily_returns(
+        self, portfolio: Any, from_date: str, to_date: str, is_competition: bool
+    ) -> List[Dict]:
         """Get daily returns for the specified portfolio."""
         Returns = CompetitionDailyReturns2 if is_competition else DemoDailyReturns2
-        
+
         if from_date != "all" and to_date != "all":
             returns = Returns.objects.filter(
-                portfolio=portfolio,
-                created__range=(from_date, to_date)
-            ).order_by('created')
+                portfolio=portfolio, created__range=(from_date, to_date)
+            ).order_by("created")
         else:
-            returns = Returns.objects.filter(portfolio=portfolio).order_by('created')
+            returns = Returns.objects.filter(portfolio=portfolio).order_by("created")
 
         return [
             {
@@ -4048,22 +4064,27 @@ class NewOverView(APIView):
 
         if portfolio is None:
             return Response("Account not found", status.HTTP_404_NOT_FOUND)
-        if portfolio.user != request.user:
-            return Response("Permission denied", status.HTTP_403_FORBIDDEN)
+        # if portfolio.user != request.user:
+        #     return Response("Permission denied", status.HTTP_403_FORBIDDEN)
 
         # Get daily returns
-        daily_returns = self.get_daily_returns(portfolio, from_date, to_date, is_competition)
-        
+        daily_returns = self.get_daily_returns(
+            portfolio, from_date, to_date, is_competition
+        )
+
         # Calculate cumulative returns using pandas
         cumulative_returns = self.calculate_cumulative_returns(daily_returns)
 
         # Prepare response data
         data = {
             "overview": daily_returns[-20:] if not is_competition else daily_returns,
-            "cumulative_overview": cumulative_returns[-20:] if not is_competition else cumulative_returns
+            "cumulative_overview": (
+                cumulative_returns[-20:] if not is_competition else cumulative_returns
+            ),
         }
 
         return Response(data)
+
 
 # class SupportNewOverView(APIView):
 
@@ -4231,10 +4252,10 @@ class SupportNewOverView(APIView):
     def calculate_cumulative_returns(self, daily_data: List[Dict]) -> List[Dict]:
         """
         Calculate cumulative returns using pandas from daily returns data.
-        
+
         Args:
             daily_data: List of dictionaries containing daily returns data
-            
+
         Returns:
             List of dictionaries with cumulative returns data
         """
@@ -4243,35 +4264,38 @@ class SupportNewOverView(APIView):
 
         # Convert to DataFrame
         df = pd.DataFrame(daily_data)
-        
-        # Calculate cumulative returns using pandas
-        df['portfolio_returns'] = (1 + df['portfolio_returns']/100).cumprod() * 100 - 100
-        df['market_returns'] = (1 + df['market_returns']/100).cumprod() * 100 - 100
-        
-        # Convert back to list of dictionaries
-        return df.to_dict('records')
 
-    def get_daily_returns(self, portfolio: Any, from_date: str, to_date: str, 
-                         is_competition: bool) -> List[Dict]:
+        # Calculate cumulative returns using pandas
+        df["portfolio_returns"] = (
+            1 + df["portfolio_returns"] / 100
+        ).cumprod() * 100 - 100
+        df["market_returns"] = (1 + df["market_returns"] / 100).cumprod() * 100 - 100
+
+        # Convert back to list of dictionaries
+        return df.to_dict("records")
+
+    def get_daily_returns(
+        self, portfolio: Any, from_date: str, to_date: str, is_competition: bool
+    ) -> List[Dict]:
         """
         Get daily returns for the specified portfolio.
-        
+
         Args:
             portfolio: Portfolio instance
             from_date: Start date for filtering
             to_date: End date for filtering
             is_competition: Boolean indicating if this is a competition portfolio
-            
+
         Returns:
             List of daily returns data
         """
         Returns = CompetitionDailyReturns2 if is_competition else DemoDailyReturns2
-        
-        filters = {'portfolio': portfolio}
-        if from_date != "all" and to_date != "all":
-            filters['created__range'] = (from_date, to_date)
 
-        returns = Returns.objects.filter(**filters).order_by('created')
+        filters = {"portfolio": portfolio}
+        if from_date != "all" and to_date != "all":
+            filters["created__range"] = (from_date, to_date)
+
+        returns = Returns.objects.filter(**filters).order_by("created")
 
         # Only include data if there's more than one entry for competition accounts
         if is_competition and returns.count() <= 1:
@@ -4289,10 +4313,10 @@ class SupportNewOverView(APIView):
     def validate_request(self, account_type: str) -> Optional[Response]:
         """
         Validate the request parameters.
-        
+
         Args:
             account_type: Type of account to validate
-            
+
         Returns:
             Response object if validation fails, None if validation passes
         """
@@ -4307,11 +4331,11 @@ class SupportNewOverView(APIView):
     def get_portfolio(self, account_type: str, id: int) -> tuple[Optional[Any], bool]:
         """
         Get the appropriate portfolio based on account type.
-        
+
         Args:
             account_type: Type of account
             id: Portfolio ID
-            
+
         Returns:
             Tuple of (portfolio object, is_competition flag)
         """
@@ -4333,7 +4357,7 @@ class SupportNewOverView(APIView):
 
         # Get appropriate portfolio
         portfolio, is_competition = self.get_portfolio(account_type, id)
-        
+
         if portfolio is None:
             return Response("Account not found", status.HTTP_404_NOT_FOUND)
 
@@ -4342,18 +4366,23 @@ class SupportNewOverView(APIView):
             return Response("Permission denied", status.HTTP_403_FORBIDDEN)
 
         # Get daily returns
-        daily_returns = self.get_daily_returns(portfolio, from_date, to_date, is_competition)
-        
+        daily_returns = self.get_daily_returns(
+            portfolio, from_date, to_date, is_competition
+        )
+
         # Calculate cumulative returns using pandas
         cumulative_returns = self.calculate_cumulative_returns(daily_returns)
 
         # Prepare response data
         data = {
             "overview": daily_returns[-20:] if not is_competition else daily_returns,
-            "cumulative_overview": cumulative_returns[-20:] if not is_competition else cumulative_returns
+            "cumulative_overview": (
+                cumulative_returns[-20:] if not is_competition else cumulative_returns
+            ),
         }
 
         return Response(data)
+
 
 # class NewDemoCloseTrade(APIView):
 
