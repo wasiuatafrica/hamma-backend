@@ -3102,6 +3102,8 @@ class SupportSingleDemoTradeAPIView(APIView):
 
 
 ####################### New home view ###############################################
+
+
 def calculate_cumulative_returns(overview_data: List[Dict]) -> List[Dict]:
     """
     Calculate cumulative returns from daily returns using pandas.
@@ -3174,8 +3176,8 @@ class NewHome(APIView):
 
             if demo_account is None:
                 return Response("Account not found", status.HTTP_404_NOT_FOUND)
-            # if demo_account.user != request.user:
-            #     return Response("Permission denied", status.HTTP_403_FORBIDDEN)
+            if demo_account.user != request.user:
+                return Response("Permission denied", status.HTTP_403_FORBIDDEN)
 
             in_competition = demo_account
 
@@ -3196,13 +3198,11 @@ class NewHome(APIView):
                         date_key = daily.updated.date()
                         if date_key in position_data_dict:
                             position_data_dict[date_key] += (
-                                # daily.profit_loss - daily.commission
-                                daily.profit_loss
+                                daily.profit_loss - daily.commission
                             )
                         else:
                             position_data_dict[date_key] = (
-                                # daily.profit_loss - daily.commission
-                                daily.profit_loss
+                                daily.profit_loss - daily.commission
                             )
 
                 position_data_list2 = [
@@ -3293,6 +3293,7 @@ class NewHome(APIView):
                 else:
                     overview = []
                     cumulative_overview = []
+
                 equity1 = round(balance + profit_loss, 2)
                 equity = equity1 if equity1 >= 0 else 0
 
@@ -3351,13 +3352,11 @@ class NewHome(APIView):
                     date_key = daily.updated.date()
                     if date_key in position_data_dict:
                         position_data_dict[date_key] += (
-                            # daily.profit_loss - daily.commission
-                            daily.profit_loss
+                            daily.profit_loss - daily.commission
                         )
                     else:
                         position_data_dict[date_key] = (
-                            # daily.profit_loss - daily.commission
-                            daily.profit_loss
+                            daily.profit_loss - daily.commission
                         )
 
             position_data_list2 = [
@@ -3381,10 +3380,9 @@ class NewHome(APIView):
                     if (start_date + timedelta(n)).weekday() < 5
                 )
             ]
-            # profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
-            profit_loss2 = sum([pos.profit_loss for pos in positions2])
+            profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
 
-            balance = portfolio.balance + Decimal(portfolio.get_commissions())
+            balance = portfolio.balance
 
             def pl_cv(position):
                 pl, cur_val, price = position.calculate_profit_loss()
@@ -3452,6 +3450,7 @@ class NewHome(APIView):
             else:
                 overview = []
                 cumulative_overview = []
+
             equity1 = round(balance + profit_loss, 2)
             equity = equity1 if equity1 >= 0 else 0
 
@@ -3703,13 +3702,11 @@ class NewSupportHome(APIView):
                     date_key = daily.updated.date()
                     if date_key in position_data_dict:
                         position_data_dict[date_key] += (
-                            # daily.profit_loss - daily.commission
-                            daily.profit_loss
+                            daily.profit_loss - daily.commission
                         )
                     else:
                         position_data_dict[date_key] = (
-                            # daily.profit_loss - daily.commission
-                            daily.profit_loss
+                            daily.profit_loss - daily.commission
                         )
 
             position_data_list2 = [
@@ -3733,10 +3730,8 @@ class NewSupportHome(APIView):
                     if (start_date + timedelta(n)).weekday() < 5
                 )
             ]
-            # profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
-            profit_loss2 = sum([pos.profit_loss for pos in positions2])
-            # balance = portfolio.balance
-            balance = portfolio.balance + Decimal(portfolio.get_commissions())
+            profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
+            balance = portfolio.balance
 
             def pl_cv(position):
                 pl, cur_val, price = position.calculate_profit_loss()
@@ -3838,566 +3833,312 @@ class NewSupportHome(APIView):
             return Response(data)
 
 
-# class NewOverView(APIView):
-
-#     def get_account(self, id):
-#         demo_account = DemoPortfolio.objects.filter(id=id).first()
-#         return demo_account if demo_account else None
-
-#     def get_competion_account(self, id, competion):
-#         competition_demo_account = CompetitionPortfolio.objects.filter(
-#             active=True, id=id
-#         ).first()
-#         return competition_demo_account if competition_demo_account else None
-
-#     def get(self, request, *args, **kwargs):
-
-#         account_type = kwargs.get("account_type")
-#         from_date = kwargs.get("from_date", None)
-#         to_date = kwargs.get("to_date", None)
-
-#         valid_account_types = ["demo_portfolio", "competition_account"]
-
-#         if not account_type in valid_account_types:
-#             return Response(
-#                 f"Account type should be {valid_account_types}.",
-#                 status.HTTP_400_BAD_REQUEST,
-#             )
-#         two_weeks_ago = datetime.now().date() - timedelta(weeks=2)
-
-#         if account_type == "competition_account":
-
-#             id = kwargs.get("id")
-
-#             demo_account = CompetitionPortfolio.objects.filter(active=True, id=id)
-
-#             if demo_account.exists:
-#                 demo_account = demo_account.first()
-#             else:
-#                 demo_account = None
-
-#             if demo_account is None:
-#                 return Response("Account not found", status.HTTP_404_NOT_FOUND)
-#             if demo_account.user != request.user:
-#                 return Response("Permission denied", status.HTTP_403_FORBIDDEN)
-
-#             in_competition = demo_account
-
-#             if in_competition:
-#                 portfolio = in_competition
-
-#                 if from_date != "all" and to_date != "all":
-
-#                     daily_profitloss = CompetitionDailyReturns2.objects.filter(
-#                         portfolio=portfolio, created__range=(from_date, to_date)
-#                     ).order_by("created")
-#                     cumulative_profitloss = (
-#                         CompetitionCumulativeReturns2.objects.filter(
-#                             portfolio=portfolio, created__range=(from_date, to_date)
-#                         ).order_by("created")
-#                     )
-#                 else:
-
-#                     daily_profitloss = CompetitionDailyReturns2.objects.filter(
-#                         portfolio=in_competition
-#                     ).order_by("created")
-#                     cumulative_profitloss = (
-#                         CompetitionCumulativeReturns2.objects.filter(
-#                             portfolio=in_competition
-#                         ).order_by("created")
-#                     )
-
-#                 overview = []
-#                 cumulative_overview = []
-
-#                 if daily_profitloss and daily_profitloss.count() > 1:
-#                     for returns in daily_profitloss:
-#                         overview.append(
-#                             {
-#                                 "portfolio_returns": returns.portfolio_returns,
-#                                 "market_returns": returns.market_returns,
-#                                 "date": returns.created.date(),
-#                             }
-#                         )
-
-#                 if cumulative_profitloss and cumulative_profitloss.count() > 1:
-#                     for returns in cumulative_profitloss:
-#                         cumulative_overview.append(
-#                             {
-#                                 "portfolio_returns": returns.portfolio_returns,
-#                                 "market_returns": returns.market_returns,
-#                                 "date": returns.created.date(),
-#                             }
-#                         )
-
-#                 data = {
-#                     "overview": overview,
-#                     "cumulative_overview": cumulative_overview,
-#                 }
-
-#                 return Response(data)
-#         else:
-
-#             id = kwargs.get("id")
-
-#             demo_account = self.get_account(id)
-#             if demo_account is None:
-#                 return Response("Account not found", status.HTTP_404_NOT_FOUND)
-#             if demo_account.user != request.user:
-#                 return Response("Permission denied", status.HTTP_403_FORBIDDEN)
-
-#             portfolio = demo_account
-#             if from_date != "all" and to_date != "all":
-#                 daily_profitloss = DemoDailyReturns2.objects.filter(
-#                     portfolio=portfolio, created__range=(from_date, to_date)
-#                 ).order_by("created")
-#                 cumulative_profitloss = DemoCumulativeReturns.objects.filter(
-#                     portfolio=portfolio, created__range=(from_date, to_date)
-#                 ).order_by("created")
-#             else:
-
-#                 daily_profitloss = DemoDailyReturns2.objects.filter(
-#                     portfolio=portfolio
-#                 ).order_by("created")
-#                 cumulative_profitloss = DemoCumulativeReturns.objects.filter(
-#                     portfolio=portfolio
-#                 ).order_by("created")
-
-#             overview = []
-#             cumulative_overview = []
-
-#             if daily_profitloss:
-#                 for returns in daily_profitloss:
-#                     overview.append(
-#                         {
-#                             "portfolio_returns": returns.portfolio_returns,
-#                             "market_returns": returns.market_returns,
-#                             "date": returns.created.date(),
-#                         }
-#                     )
-
-#             if cumulative_profitloss:
-#                 for returns in cumulative_profitloss:
-#                     cumulative_overview.append(
-#                         {
-#                             "portfolio_returns": returns.portfolio_returns,
-#                             "market_returns": returns.market_returns,
-#                             "date": returns.created.date(),
-#                         }
-#                     )
-
-#             data = {
-#                 "overview": overview[-20:],
-#                 "cumulative_overview": cumulative_overview[-20:],
-#             }
-
-#             return Response(data)
-
-
 class NewOverView(APIView):
-    """API View for portfolio overview with daily and cumulative returns."""
 
-    def get_account(self, id: int) -> Optional[Any]:
-        """Retrieve demo portfolio account."""
-        return DemoPortfolio.objects.filter(id=id).first()
+    def get_account(self, id):
+        demo_account = DemoPortfolio.objects.filter(id=id).first()
+        return demo_account if demo_account else None
 
-    def get_competition_account(self, id: int) -> Optional[Any]:
-        """Retrieve competition portfolio account."""
-        return CompetitionPortfolio.objects.filter(active=True, id=id).first()
-
-    def calculate_cumulative_returns(self, daily_data: List[Dict]) -> List[Dict]:
-        """
-        Calculate cumulative returns using pandas from daily returns data.
-
-        Args:
-            daily_data: List of dictionaries containing daily returns data
-
-        Returns:
-            List of dictionaries with cumulative returns data
-        """
-        if not daily_data:
-            return []
-
-        # print(daily_data)
-
-        # Convert to DataFrame
-        df = pd.DataFrame(daily_data)
-
-        # Calculate cumulative returns using pandas
-        df["portfolio_returns"] = (
-            1 + df["portfolio_returns"] / 100
-        ).cumprod() * 100 - 100
-        df["market_returns"] = (1 + df["market_returns"] / 100).cumprod() * 100 - 100
-
-        # Convert back to list of dictionaries
-        return df.to_dict("records")
-
-    def get_daily_returns(
-        self, portfolio: Any, from_date: str, to_date: str, is_competition: bool
-    ) -> List[Dict]:
-        """Get daily returns for the specified portfolio."""
-        Returns = CompetitionDailyReturns2 if is_competition else DemoDailyReturns2
-
-        if from_date != "all" and to_date != "all":
-            returns = Returns.objects.filter(
-                portfolio=portfolio, created__range=(from_date, to_date)
-            ).order_by("created")
-        else:
-            returns = Returns.objects.filter(portfolio=portfolio).order_by("created")
-
-        return [
-            {
-                "portfolio_returns": r.portfolio_returns,
-                "market_returns": r.market_returns,
-                "date": r.created.date(),
-            }
-            for r in returns
-        ]
+    def get_competion_account(self, id, competion):
+        competition_demo_account = CompetitionPortfolio.objects.filter(
+            active=True, id=id
+        ).first()
+        return competition_demo_account if competition_demo_account else None
 
     def get(self, request, *args, **kwargs):
-        """Handle GET request for portfolio overview."""
+
         account_type = kwargs.get("account_type")
         from_date = kwargs.get("from_date", None)
         to_date = kwargs.get("to_date", None)
-        id = kwargs.get("id")
 
         valid_account_types = ["demo_portfolio", "competition_account"]
-        if account_type not in valid_account_types:
+
+        if not account_type in valid_account_types:
             return Response(
                 f"Account type should be {valid_account_types}.",
                 status.HTTP_400_BAD_REQUEST,
             )
+        two_weeks_ago = datetime.now().date() - timedelta(weeks=2)
 
-        # Handle competition account
         if account_type == "competition_account":
-            portfolio = CompetitionPortfolio.objects.filter(active=True, id=id).first()
-            is_competition = True
+
+            id = kwargs.get("id")
+
+            demo_account = CompetitionPortfolio.objects.filter(active=True, id=id)
+
+            if demo_account.exists:
+                demo_account = demo_account.first()
+            else:
+                demo_account = None
+
+            if demo_account is None:
+                return Response("Account not found", status.HTTP_404_NOT_FOUND)
+            if demo_account.user != request.user:
+                return Response("Permission denied", status.HTTP_403_FORBIDDEN)
+
+            in_competition = demo_account
+
+            if in_competition:
+                portfolio = in_competition
+
+                if from_date != "all" and to_date != "all":
+
+                    daily_profitloss = CompetitionDailyReturns2.objects.filter(
+                        portfolio=portfolio, created__range=(from_date, to_date)
+                    ).order_by("created")
+                    cumulative_profitloss = (
+                        CompetitionCumulativeReturns2.objects.filter(
+                            portfolio=portfolio, created__range=(from_date, to_date)
+                        ).order_by("created")
+                    )
+                else:
+
+                    daily_profitloss = CompetitionDailyReturns2.objects.filter(
+                        portfolio=in_competition
+                    ).order_by("created")
+                    cumulative_profitloss = (
+                        CompetitionCumulativeReturns2.objects.filter(
+                            portfolio=in_competition
+                        ).order_by("created")
+                    )
+
+                overview = []
+                cumulative_overview = []
+
+                if daily_profitloss and daily_profitloss.count() > 1:
+                    for returns in daily_profitloss:
+                        overview.append(
+                            {
+                                "portfolio_returns": returns.portfolio_returns,
+                                "market_returns": returns.market_returns,
+                                "date": returns.created.date(),
+                            }
+                        )
+
+                if cumulative_profitloss and cumulative_profitloss.count() > 1:
+                    for returns in cumulative_profitloss:
+                        cumulative_overview.append(
+                            {
+                                "portfolio_returns": returns.portfolio_returns,
+                                "market_returns": returns.market_returns,
+                                "date": returns.created.date(),
+                            }
+                        )
+
+                data = {
+                    "overview": overview,
+                    "cumulative_overview": cumulative_overview,
+                }
+
+                return Response(data)
         else:
-            portfolio = self.get_account(id)
-            is_competition = False
 
-        if portfolio is None:
-            return Response("Account not found", status.HTTP_404_NOT_FOUND)
-        if portfolio.user != request.user:
-            return Response("Permission denied", status.HTTP_403_FORBIDDEN)
+            id = kwargs.get("id")
 
-        # Get daily returns
-        daily_returns = self.get_daily_returns(
-            portfolio, from_date, to_date, is_competition
-        )
+            demo_account = self.get_account(id)
+            if demo_account is None:
+                return Response("Account not found", status.HTTP_404_NOT_FOUND)
+            if demo_account.user != request.user:
+                return Response("Permission denied", status.HTTP_403_FORBIDDEN)
 
-        # Calculate cumulative returns using pandas
-        cumulative_returns = self.calculate_cumulative_returns(daily_returns)
+            portfolio = demo_account
+            if from_date != "all" and to_date != "all":
+                daily_profitloss = DemoDailyReturns2.objects.filter(
+                    portfolio=portfolio, created__range=(from_date, to_date)
+                ).order_by("created")
+                cumulative_profitloss = DemoCumulativeReturns.objects.filter(
+                    portfolio=portfolio, created__range=(from_date, to_date)
+                ).order_by("created")
+            else:
 
-        # Prepare response data
-        data = {
-            "overview": daily_returns[-20:] if not is_competition else daily_returns,
-            "cumulative_overview": (
-                cumulative_returns[-20:] if not is_competition else cumulative_returns
-            ),
-        }
+                daily_profitloss = DemoDailyReturns2.objects.filter(
+                    portfolio=portfolio
+                ).order_by("created")
+                cumulative_profitloss = DemoCumulativeReturns.objects.filter(
+                    portfolio=portfolio
+                ).order_by("created")
 
-        return Response(data)
+            overview = []
+            cumulative_overview = []
 
+            if daily_profitloss:
+                for returns in daily_profitloss:
+                    overview.append(
+                        {
+                            "portfolio_returns": returns.portfolio_returns,
+                            "market_returns": returns.market_returns,
+                            "date": returns.created.date(),
+                        }
+                    )
 
-# class SupportNewOverView(APIView):
+            if cumulative_profitloss:
+                for returns in cumulative_profitloss:
+                    cumulative_overview.append(
+                        {
+                            "portfolio_returns": returns.portfolio_returns,
+                            "market_returns": returns.market_returns,
+                            "date": returns.created.date(),
+                        }
+                    )
 
-#     def get_account(self, id):
-#         demo_account = DemoPortfolio.objects.filter(id=id).first()
-#         return demo_account if demo_account else None
+            data = {
+                "overview": overview[-20:],
+                "cumulative_overview": cumulative_overview[-20:],
+            }
 
-#     def get_competion_account(self, id, competion):
-#         competition_demo_account = CompetitionPortfolio.objects.filter(
-#             active=True, id=id
-#         ).first()
-#         return competition_demo_account if competition_demo_account else None
-
-#     def get(self, request, *args, **kwargs):
-
-#         account_type = kwargs.get("account_type")
-#         from_date = kwargs.get("from_date", None)
-#         to_date = kwargs.get("to_date", None)
-
-#         valid_account_types = ["demo_portfolio", "competition_account"]
-
-#         if not account_type in valid_account_types:
-#             return Response(
-#                 f"Account type should be {valid_account_types}.",
-#                 status.HTTP_400_BAD_REQUEST,
-#             )
-#         two_weeks_ago = datetime.now().date() - timedelta(weeks=2)
-
-#         if account_type == "competition_account":
-
-#             id = kwargs.get("id")
-
-#             demo_account = CompetitionPortfolio.objects.filter(active=True, id=id)
-
-#             if demo_account.exists:
-#                 demo_account = demo_account.first()
-#             else:
-#                 demo_account = None
-
-#             if demo_account is None:
-#                 return Response("Account not found", status.HTTP_404_NOT_FOUND)
-
-#             in_competition = demo_account
-
-#             if in_competition:
-#                 portfolio = in_competition
-
-#                 if from_date != "all" and to_date != "all":
-
-#                     daily_profitloss = CompetitionDailyReturns2.objects.filter(
-#                         portfolio=portfolio, created__range=(from_date, to_date)
-#                     ).order_by("created")
-#                     cumulative_profitloss = (
-#                         CompetitionCumulativeReturns2.objects.filter(
-#                             portfolio=portfolio, created__range=(from_date, to_date)
-#                         ).order_by("created")
-#                     )
-#                 else:
-
-#                     daily_profitloss = CompetitionDailyReturns2.objects.filter(
-#                         portfolio=in_competition
-#                     ).order_by("created")
-#                     cumulative_profitloss = (
-#                         CompetitionCumulativeReturns2.objects.filter(
-#                             portfolio=in_competition
-#                         ).order_by("created")
-#                     )
-
-#                 overview = []
-#                 cumulative_overview = []
-
-#                 if daily_profitloss and daily_profitloss.count() > 1:
-#                     for returns in daily_profitloss:
-#                         overview.append(
-#                             {
-#                                 "portfolio_returns": returns.portfolio_returns,
-#                                 "market_returns": returns.market_returns,
-#                                 "date": returns.created.date(),
-#                             }
-#                         )
-
-#                 if cumulative_profitloss and cumulative_profitloss.count() > 1:
-#                     for returns in cumulative_profitloss:
-#                         cumulative_overview.append(
-#                             {
-#                                 "portfolio_returns": returns.portfolio_returns,
-#                                 "market_returns": returns.market_returns,
-#                                 "date": returns.created.date(),
-#                             }
-#                         )
-
-#                 data = {
-#                     "overview": overview,
-#                     "cumulative_overview": cumulative_overview,
-#                 }
-
-#                 return Response(data)
-#         else:
-
-#             id = kwargs.get("id")
-
-#             demo_account = self.get_account(id)
-#             if demo_account is None:
-#                 return Response("Account not found", status.HTTP_404_NOT_FOUND)
-
-#             portfolio = demo_account
-#             if from_date != "all" and to_date != "all":
-#                 daily_profitloss = DemoDailyReturns2.objects.filter(
-#                     portfolio=portfolio, created__range=(from_date, to_date)
-#                 ).order_by("created")
-#                 cumulative_profitloss = DemoCumulativeReturns.objects.filter(
-#                     portfolio=portfolio, created__range=(from_date, to_date)
-#                 ).order_by("created")
-#             else:
-
-#                 daily_profitloss = DemoDailyReturns2.objects.filter(
-#                     portfolio=portfolio
-#                 ).order_by("created")
-#                 cumulative_profitloss = DemoCumulativeReturns.objects.filter(
-#                     portfolio=portfolio
-#                 ).order_by("created")
-
-#             overview = []
-#             cumulative_overview = []
-
-#             if daily_profitloss:
-#                 for returns in daily_profitloss:
-#                     overview.append(
-#                         {
-#                             "portfolio_returns": returns.portfolio_returns,
-#                             "market_returns": returns.market_returns,
-#                             "date": returns.created.date(),
-#                         }
-#                     )
-
-#             if cumulative_profitloss:
-#                 for returns in cumulative_profitloss:
-#                     cumulative_overview.append(
-#                         {
-#                             "portfolio_returns": returns.portfolio_returns,
-#                             "market_returns": returns.market_returns,
-#                             "date": returns.created.date(),
-#                         }
-#                     )
-
-#             data = {
-#                 "overview": overview[-20:],
-#                 "cumulative_overview": cumulative_overview[-20:],
-#             }
-
-#             return Response(data)
+            return Response(data)
 
 
 class SupportNewOverView(APIView):
-    """API View for portfolio support overview with daily and cumulative returns."""
 
-    def get_account(self, id: int) -> Optional[Any]:
-        """Retrieve demo portfolio account."""
-        return DemoPortfolio.objects.filter(id=id).first()
+    def get_account(self, id):
+        demo_account = DemoPortfolio.objects.filter(id=id).first()
+        return demo_account if demo_account else None
 
-    def get_competition_account(self, id: int) -> Optional[Any]:
-        """Retrieve competition portfolio account."""
-        return CompetitionPortfolio.objects.filter(active=True, id=id).first()
+    def get_competion_account(self, id, competion):
+        competition_demo_account = CompetitionPortfolio.objects.filter(
+            active=True, id=id
+        ).first()
+        return competition_demo_account if competition_demo_account else None
 
-    def calculate_cumulative_returns(self, daily_data: List[Dict]) -> List[Dict]:
-        """
-        Calculate cumulative returns using pandas from daily returns data.
+    def get(self, request, *args, **kwargs):
 
-        Args:
-            daily_data: List of dictionaries containing daily returns data
+        account_type = kwargs.get("account_type")
+        from_date = kwargs.get("from_date", None)
+        to_date = kwargs.get("to_date", None)
 
-        Returns:
-            List of dictionaries with cumulative returns data
-        """
-        if not daily_data:
-            return []
-
-        print(daily_data)
-
-        # Convert to DataFrame
-        df = pd.DataFrame(daily_data)
-
-        # Calculate cumulative returns using pandas
-        df["portfolio_returns"] = (
-            1 + df["portfolio_returns"] / 100
-        ).cumprod() * 100 - 100
-        df["market_returns"] = (1 + df["market_returns"] / 100).cumprod() * 100 - 100
-
-        # Convert back to list of dictionaries
-        return df.to_dict("records")
-
-    def get_daily_returns(
-        self, portfolio: Any, from_date: str, to_date: str, is_competition: bool
-    ) -> List[Dict]:
-        """
-        Get daily returns for the specified portfolio.
-
-        Args:
-            portfolio: Portfolio instance
-            from_date: Start date for filtering
-            to_date: End date for filtering
-            is_competition: Boolean indicating if this is a competition portfolio
-
-        Returns:
-            List of daily returns data
-        """
-        Returns = CompetitionDailyReturns2 if is_competition else DemoDailyReturns2
-
-        filters = {"portfolio": portfolio}
-        if from_date != "all" and to_date != "all":
-            filters["created__range"] = (from_date, to_date)
-
-        returns = Returns.objects.filter(**filters).order_by("created")
-
-        # Only include data if there's more than one entry for competition accounts
-        if is_competition and returns.count() <= 1:
-            return []
-
-        return [
-            {
-                "portfolio_returns": r.portfolio_returns,
-                "market_returns": r.market_returns,
-                "date": r.created.date(),
-            }
-            for r in returns
-        ]
-
-    def validate_request(self, account_type: str) -> Optional[Response]:
-        """
-        Validate the request parameters.
-
-        Args:
-            account_type: Type of account to validate
-
-        Returns:
-            Response object if validation fails, None if validation passes
-        """
         valid_account_types = ["demo_portfolio", "competition_account"]
-        if account_type not in valid_account_types:
+
+        if not account_type in valid_account_types:
             return Response(
                 f"Account type should be {valid_account_types}.",
                 status.HTTP_400_BAD_REQUEST,
             )
-        return None
+        two_weeks_ago = datetime.now().date() - timedelta(weeks=2)
 
-    def get_portfolio(self, account_type: str, id: int) -> tuple[Optional[Any], bool]:
-        """
-        Get the appropriate portfolio based on account type.
-
-        Args:
-            account_type: Type of account
-            id: Portfolio ID
-
-        Returns:
-            Tuple of (portfolio object, is_competition flag)
-        """
         if account_type == "competition_account":
-            return CompetitionPortfolio.objects.filter(active=True, id=id).first(), True
-        return self.get_account(id), False
 
-    def get(self, request, *args, **kwargs):
-        """Handle GET request for portfolio overview."""
-        account_type = kwargs.get("account_type")
-        from_date = kwargs.get("from_date", None)
-        to_date = kwargs.get("to_date", None)
-        id = kwargs.get("id")
+            id = kwargs.get("id")
 
-        # Validate request parameters
-        validation_error = self.validate_request(account_type)
-        if validation_error:
-            return validation_error
+            demo_account = CompetitionPortfolio.objects.filter(active=True, id=id)
 
-        # Get appropriate portfolio
-        portfolio, is_competition = self.get_portfolio(account_type, id)
+            if demo_account.exists:
+                demo_account = demo_account.first()
+            else:
+                demo_account = None
 
-        if portfolio is None:
-            return Response("Account not found", status.HTTP_404_NOT_FOUND)
+            if demo_account is None:
+                return Response("Account not found", status.HTTP_404_NOT_FOUND)
 
-        # For competition accounts, we don't need to check user permissions
-        # if not is_competition and portfolio.user != request.user:
-        #     return Response("Permission denied", status.HTTP_403_FORBIDDEN)
+            in_competition = demo_account
 
-        # Get daily returns
-        daily_returns = self.get_daily_returns(
-            portfolio, from_date, to_date, is_competition
-        )
+            if in_competition:
+                portfolio = in_competition
 
-        # Calculate cumulative returns using pandas
-        cumulative_returns = self.calculate_cumulative_returns(daily_returns)
+                if from_date != "all" and to_date != "all":
 
-        # Prepare response data
-        data = {
-            "overview": daily_returns[-20:] if not is_competition else daily_returns,
-            "cumulative_overview": (
-                cumulative_returns[-20:] if not is_competition else cumulative_returns
-            ),
-        }
+                    daily_profitloss = CompetitionDailyReturns2.objects.filter(
+                        portfolio=portfolio, created__range=(from_date, to_date)
+                    ).order_by("created")
+                    cumulative_profitloss = (
+                        CompetitionCumulativeReturns2.objects.filter(
+                            portfolio=portfolio, created__range=(from_date, to_date)
+                        ).order_by("created")
+                    )
+                else:
 
-        return Response(data)
+                    daily_profitloss = CompetitionDailyReturns2.objects.filter(
+                        portfolio=in_competition
+                    ).order_by("created")
+                    cumulative_profitloss = (
+                        CompetitionCumulativeReturns2.objects.filter(
+                            portfolio=in_competition
+                        ).order_by("created")
+                    )
+
+                overview = []
+                cumulative_overview = []
+
+                if daily_profitloss and daily_profitloss.count() > 1:
+                    for returns in daily_profitloss:
+                        overview.append(
+                            {
+                                "portfolio_returns": returns.portfolio_returns,
+                                "market_returns": returns.market_returns,
+                                "date": returns.created.date(),
+                            }
+                        )
+
+                if cumulative_profitloss and cumulative_profitloss.count() > 1:
+                    for returns in cumulative_profitloss:
+                        cumulative_overview.append(
+                            {
+                                "portfolio_returns": returns.portfolio_returns,
+                                "market_returns": returns.market_returns,
+                                "date": returns.created.date(),
+                            }
+                        )
+
+                data = {
+                    "overview": overview,
+                    "cumulative_overview": cumulative_overview,
+                }
+
+                return Response(data)
+        else:
+
+            id = kwargs.get("id")
+
+            demo_account = self.get_account(id)
+            if demo_account is None:
+                return Response("Account not found", status.HTTP_404_NOT_FOUND)
+
+            portfolio = demo_account
+            if from_date != "all" and to_date != "all":
+                daily_profitloss = DemoDailyReturns2.objects.filter(
+                    portfolio=portfolio, created__range=(from_date, to_date)
+                ).order_by("created")
+                cumulative_profitloss = DemoCumulativeReturns.objects.filter(
+                    portfolio=portfolio, created__range=(from_date, to_date)
+                ).order_by("created")
+            else:
+
+                daily_profitloss = DemoDailyReturns2.objects.filter(
+                    portfolio=portfolio
+                ).order_by("created")
+                cumulative_profitloss = DemoCumulativeReturns.objects.filter(
+                    portfolio=portfolio
+                ).order_by("created")
+
+            overview = []
+            cumulative_overview = []
+
+            if daily_profitloss:
+                for returns in daily_profitloss:
+                    overview.append(
+                        {
+                            "portfolio_returns": returns.portfolio_returns,
+                            "market_returns": returns.market_returns,
+                            "date": returns.created.date(),
+                        }
+                    )
+
+            if cumulative_profitloss:
+                for returns in cumulative_profitloss:
+                    cumulative_overview.append(
+                        {
+                            "portfolio_returns": returns.portfolio_returns,
+                            "market_returns": returns.market_returns,
+                            "date": returns.created.date(),
+                        }
+                    )
+
+            data = {
+                "overview": overview[-20:],
+                "cumulative_overview": cumulative_overview[-20:],
+            }
+
+            return Response(data)
 
 
 # class NewDemoCloseTrade(APIView):
@@ -4909,8 +4650,7 @@ def get_holdings_positions(queryset):
             elif position.action == "sell":
                 profit_loss = position.amount_invested - Decimal(current_value)
         elif position.status == "close":
-            # profit_loss = position.profit_loss - position.commission
-            profit_loss = position.profit_loss
+            profit_loss = position.profit_loss - position.commission
             current_value = position.quantity * position.close_price
         else:
             current_value = 0
@@ -4954,6 +4694,12 @@ def get_holdings_positions(queryset):
             "comment": position.comment,
             "commission": position.commission,
             "swap_fee": position.swap_fee,
+            "net_profit_loss": round(
+                float(position.profit_loss)
+                - float(position.commission)
+                - float(position.swap_fee),
+                2,
+            ),
         }
         all_holdings.append(data)
     return all_holdings
@@ -5010,8 +4756,7 @@ class NewDemoHolding(APIView):
                 positions = CompetitionPosition.objects.filter(
                     portfolio=portfolio
                 ).order_by("-updated")
-                # balance = portfolio.balance
-                balance = float(portfolio.balance) + portfolio.get_commissions()
+                balance = portfolio.balance
 
                 if positions:
 
@@ -5054,11 +4799,10 @@ class NewDemoHolding(APIView):
                     )
 
                     hold_data = {
-                        "balance": balance + float(open_balance),
+                        "balance": balance + open_balance,
                         "floating_pl": floating_pl,
-                        "closed_pl": float(closed_pl)
-                        - float(portfolio.get_swap_fees()),
-                        "equity": balance + float(floating_pl) + float(open_balance),
+                        "closed_pl": closed_pl,
+                        "equity": balance + floating_pl + open_balance,
                         "holdings": positions_data,
                     }
 
@@ -5088,8 +4832,7 @@ class NewDemoHolding(APIView):
             positions = DemoPosition.objects.filter(portfolio=portfolio).order_by(
                 "-updated"
             )
-            # balance = portfolio.balance
-            balance = float(portfolio.balance) + portfolio.get_commissions()
+            balance = portfolio.balance
 
             if positions:
 
@@ -5126,10 +4869,11 @@ class NewDemoHolding(APIView):
                 open_balance = open_trade_sum
 
                 hold_data = {
-                    "balance": balance + float(open_balance),
+                    "balance": balance + open_balance,
                     "floating_pl": floating_pl,
+                    # "closed_pl": closed_pl,
                     "closed_pl": float(closed_pl) - float(portfolio.get_swap_fees()),
-                    "equity": balance + float(floating_pl) + float(open_balance),
+                    "equity": balance + floating_pl + open_balance,
                     "holdings": positions_data,
                 }
 
@@ -5200,8 +4944,7 @@ class NewSupportDemoHolding(APIView):
                 positions = CompetitionPosition.objects.filter(
                     portfolio=portfolio
                 ).order_by("-updated")
-                # balance = portfolio.balance
-                balance = float(portfolio.balance) + portfolio.get_commissions()
+                balance = portfolio.balance
 
                 if positions:
 
@@ -5244,11 +4987,10 @@ class NewSupportDemoHolding(APIView):
                     )
 
                     hold_data = {
-                        "balance": balance + float(open_balance),
+                        "balance": balance + open_balance,
                         "floating_pl": floating_pl,
-                        "closed_pl": float(closed_pl)
-                        - float(portfolio.get_swap_fees()),
-                        "equity": balance + float(floating_pl) + float(open_balance),
+                        "closed_pl": closed_pl,
+                        "equity": balance + floating_pl + open_balance,
                         "holdings": positions_data,
                     }
 
@@ -5278,8 +5020,7 @@ class NewSupportDemoHolding(APIView):
             positions = DemoPosition.objects.filter(portfolio=portfolio).order_by(
                 "-updated"
             )
-            # balance = portfolio.balance
-            balance = float(portfolio.balance) + portfolio.get_commissions()
+            balance = portfolio.balance
 
             if positions:
 
@@ -5316,10 +5057,11 @@ class NewSupportDemoHolding(APIView):
                 open_balance = open_trade_sum
 
                 hold_data = {
-                    "balance": balance + float(open_balance),
+                    "balance": balance + open_balance,
                     "floating_pl": floating_pl,
+                    # "closed_pl": closed_pl,
                     "closed_pl": float(closed_pl) - float(portfolio.get_swap_fees()),
-                    "equity": balance + float(floating_pl) + float(open_balance),
+                    "equity": balance + floating_pl + open_balance,
                     "holdings": positions_data,
                 }
 
