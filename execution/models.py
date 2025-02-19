@@ -170,7 +170,13 @@ class DemoPortfolio(auto_prefetch.Model):
 
     def get_commissions(self):
         positions = self.demopositions2.all()
-        commissions = sum([position.commission for position in positions])
+        commissions = sum(
+            [
+                position.commission
+                for position in positions
+                if position.status == "close"
+            ]
+        )
 
         return commissions
 
