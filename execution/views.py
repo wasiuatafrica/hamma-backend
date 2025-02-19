@@ -3145,8 +3145,8 @@ class NewHome(APIView):
 
             if demo_account is None:
                 return Response("Account not found", status.HTTP_404_NOT_FOUND)
-            if demo_account.user != request.user:
-                return Response("Permission denied", status.HTTP_403_FORBIDDEN)
+            # if demo_account.user != request.user:
+            #     return Response("Permission denied", status.HTTP_403_FORBIDDEN)
 
             in_competition = demo_account
 
