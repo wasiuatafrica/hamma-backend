@@ -3102,8 +3102,6 @@ class SupportSingleDemoTradeAPIView(APIView):
 
 
 ####################### New home view ###############################################
-
-
 def calculate_cumulative_returns(self, overview_data: List[Dict]) -> List[Dict]:
     """
     Calculate cumulative returns from daily returns using pandas.
@@ -3291,7 +3289,7 @@ class NewHome(APIView):
                         }
                         for returns in daily_profitloss
                     ]
-                    cumulative_overview = self.calculate_cumulative_returns(overview)
+                    cumulative_overview = calculate_cumulative_returns(overview)
                 else:
                     overview = []
                     cumulative_overview = []
@@ -3448,7 +3446,7 @@ class NewHome(APIView):
                     }
                     for returns in daily_profitloss
                 ]
-                cumulative_overview = self.calculate_cumulative_returns(overview)
+                cumulative_overview = calculate_cumulative_returns(overview)
             else:
                 overview = []
                 cumulative_overview = []
@@ -3483,205 +3481,6 @@ class NewHome(APIView):
             }
 
             return Response(data)
-
-
-# def calculate_cumulative_returns(daily_returns: List[Dict]) -> List[Dict]:
-#     """
-#     Calculate cumulative returns from daily returns using pandas.
-
-#     Args:
-#         daily_returns: List of dictionaries containing daily returns data
-
-#     Returns:
-#         List of dictionaries with cumulative returns data
-#     """
-#     if not daily_returns:
-#         return []
-
-#     # Convert to DataFrame
-#     df = pd.DataFrame(daily_returns)
-#     df["date"] = pd.to_datetime(df["date"])
-
-#     # Calculate cumulative returns (1 + r1)(1 + r2)...(1 + rn) - 1
-#     df["portfolio_returns"] = (1 + df["portfolio_returns"] / 100).cumprod() - 1
-#     df["market_returns"] = (1 + df["market_returns"] / 100).cumprod() - 1
-
-#     # Convert to percentage and round to 2 decimal places
-#     df["portfolio_returns"] = (df["portfolio_returns"] * 100).round(2)
-#     df["market_returns"] = (df["market_returns"] * 100).round(2)
-
-#     # Convert back to list of dictionaries
-#     return df.to_dict("records")
-
-
-# class NewHome2(APIView):
-#     def get_account(self, id: int) -> Optional[Any]:
-#         return DemoPortfolio.objects.filter(id=id).first()
-
-#     def get_competition_account(self, id: int) -> Optional[Any]:
-#         return CompetitionPortfolio.objects.filter(active=True, id=id).first()
-
-#     def process_positions_data(self, positions: Any, portfolio: Any) -> Dict[str, Any]:
-#         today = timezone.now()
-
-#         # Process closed positions
-#         closed_positions = positions.filter(status="close")
-#         position_data_dict = {}
-
-#         for daily in closed_positions:
-#             if daily.updated.month == today.month:
-#                 date_key = daily.updated.date()
-#                 position_data_dict[date_key] = (
-#                     position_data_dict.get(date_key, 0) + daily.profit_loss
-#                 )
-
-#         # Generate final list with dates
-#         start_date = (
-#             min(position_data_dict.keys()) if position_data_dict else today.date()
-#         )
-#         final_list = [
-#             {
-#                 "profit_loss": round(position_data_dict.get(date, 0), 2),
-#                 "date": date.strftime("%Y-%m-%d"),
-#             }
-#             for date in (
-#                 start_date + timedelta(n)
-#                 for n in range((today.date() - start_date).days + 1)
-#                 if (start_date + timedelta(n)).weekday() < 5
-#             )
-#         ]
-
-#         # Process open positions
-#         open_positions = positions.filter(status="open")
-
-#         def pl_cv(position):
-#             pl, cur_val, _ = position.calculate_profit_loss()
-#             return pl, {
-#                 "stock": position.stock.symbol,
-#                 "current_value": round(cur_val, 2),
-#                 "pl": round(pl, 2),
-#                 "open_date": position.created,
-#             }
-
-#         with ThreadPoolExecutor() as executor:
-#             pl_cv_list = [
-#                 result for result in executor.map(pl_cv, open_positions) if result
-#             ]
-
-#         # Calculate final values
-#         profit_loss = sum(x[0] for x in pl_cv_list) if pl_cv_list else 0
-#         closed_pl = sum(pos.profit_loss for pos in closed_positions)
-#         open_balance = sum(position.amount_invested for position in open_positions)
-
-#         return {
-#             "final_list": final_list,
-#             "profit_loss": profit_loss,
-#             "closed_pl": closed_pl,
-#             "open_balance": open_balance,
-#             "pl_cv_list": pl_cv_list,
-#         }
-
-#     def get(self, request, *args, **kwargs):
-#         account_type = kwargs.get("account_type")
-#         valid_account_types = ["demo_portfolio", "competition_account"]
-
-#         if account_type not in valid_account_types:
-#             return Response(
-#                 f"Account type should be {valid_account_types}.",
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-
-#         id = kwargs.get("id")
-
-#         if account_type == "competition_account":
-#             portfolio = self.get_competition_account(id)
-#             if not portfolio:
-#                 return Response("Account not found", status=status.HTTP_404_NOT_FOUND)
-
-#             daily_returns = CompetitionDailyReturns2.objects.filter(
-#                 portfolio=portfolio
-#             ).order_by("created")
-
-#         else:
-#             portfolio = self.get_account(id)
-#             if not portfolio:
-#                 return Response("Account not found", status=status.HTTP_404_NOT_FOUND)
-#             if portfolio.user != request.user:
-#                 return Response("Permission denied", status=status.HTTP_403_FORBIDDEN)
-
-#             daily_returns = DemoDailyReturns2.objects.filter(
-#                 portfolio=portfolio
-#             ).order_by("created")
-
-#         # Process positions
-#         positions_data = self.process_positions_data(
-#             (
-#                 DemoPosition.objects.filter(portfolio=portfolio)
-#                 if account_type == "demo_portfolio"
-#                 else CompetitionPosition.objects.filter(portfolio=portfolio)
-#             ),
-#             portfolio,
-#         )
-
-#         # Calculate overview and cumulative overview
-#         overview = [
-#             {
-#                 "portfolio_returns": round(returns.portfolio_returns, 2),
-#                 "market_returns": round(returns.market_returns, 2),
-#                 "date": returns.created.date(),
-#             }
-#             for returns in daily_returns
-#             if daily_returns.count() > 1
-#         ]
-
-#         cumulative_overview = calculate_cumulative_returns(overview)
-
-#         # Calculate final values
-#         balance = (
-#             portfolio.balance + Decimal(portfolio.get_commissions())
-#             if account_type == "demo_portfolio"
-#             else portfolio.balance
-#         )
-#         equity = max(round(balance + positions_data["profit_loss"], 2), 0)
-
-#         response_data = {
-#             "balance": round(balance + positions_data["open_balance"], 2),
-#             "starting_balance": (
-#                 float(portfolio.initial_balance)
-#                 if account_type == "demo_portfolio"
-#                 else 1000000
-#             ),
-#             "equity": equity + positions_data["open_balance"],
-#             "floating_pl": round(positions_data["profit_loss"], 2),
-#             "closed_pl": round(positions_data["closed_pl"], 2),
-#             "positions": positions_data["final_list"],
-#             "current_value": [x[1] for x in positions_data["pl_cv_list"]],
-#             "overview": overview,
-#             "cumulative_overview": cumulative_overview,
-#             "calendar": [
-#                 {
-#                     "date": daily.created.date(),
-#                     "return": round(daily.portfolio_returns, 2),
-#                 }
-#                 for daily in daily_returns[1:]
-#                 if daily_returns.count() > 1
-#             ],
-#             "remaining_balance": round(balance, 2),
-#             "close_positions": [
-#                 {
-#                     "stock": pos.stock.symbol,
-#                     "profit_loss": round(pos.profit_loss, 2),
-#                     "close_date": pos.updated,
-#                 }
-#                 for pos in positions_data["positions"].filter(status="close")
-#             ],
-#             "open_positions": [
-#                 {"symbol": x[1]["stock"], "profit_loss": round(x[1]["pl"], 2)}
-#                 for x in positions_data["pl_cv_list"]
-#             ],
-#         }
-
-#         return Response(response_data)
 
 
 class NewSupportHome(APIView):
@@ -3840,10 +3639,11 @@ class NewSupportHome(APIView):
                         }
                         for returns in daily_profitloss
                     ]
-                    cumulative_overview = self.calculate_cumulative_returns(overview)
+                    cumulative_overview = calculate_cumulative_returns(overview)
                 else:
                     overview = []
                     cumulative_overview = []
+
                 equity1 = round(balance + profit_loss, 2)
                 equity = equity1 if equity1 >= 0 else 0
 
@@ -3929,8 +3729,7 @@ class NewSupportHome(APIView):
                     if (start_date + timedelta(n)).weekday() < 5
                 )
             ]
-            # profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
-            profit_loss2 = sum([pos.profit_loss for pos in positions2])
+            profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
             # balance = portfolio.balance
             balance = portfolio.balance + Decimal(portfolio.get_commissions())
 
@@ -3996,10 +3795,11 @@ class NewSupportHome(APIView):
                     }
                     for returns in daily_profitloss
                 ]
-                cumulative_overview = self.calculate_cumulative_returns(overview)
+                cumulative_overview = calculate_cumulative_returns(overview)
             else:
                 overview = []
                 cumulative_overview = []
+
             equity1 = round(balance + profit_loss, 2)
             equity = equity1 if equity1 >= 0 else 0
 
@@ -4031,189 +3831,6 @@ class NewSupportHome(APIView):
             }
 
             return Response(data)
-
-
-# class NewSupportHome(APIView):
-#     def get_account(self, id: int) -> Optional[Any]:
-#         """Get demo portfolio account."""
-#         return DemoPortfolio.objects.filter(id=id).first()
-
-#     def get_competition_account(self, id: int) -> Optional[Any]:
-#         """Get competition portfolio account."""
-#         return CompetitionPortfolio.objects.filter(active=True, id=id).first()
-
-#     def calculate_position_metrics(self, positions: Any, today: Any) -> Dict[str, Any]:
-#         """Calculate metrics for closed positions."""
-#         position_data_dict = {}
-
-#         for pos in positions:
-#             if pos.updated.month == today.month:
-#                 date_key = pos.updated.date()
-#                 pl = pos.profit_loss - pos.commission
-#                 position_data_dict[date_key] = position_data_dict.get(date_key, 0) + pl
-
-#         if not position_data_dict:
-#             return {"final_list": [], "start_date": today.date()}
-
-#         start_date = min(position_data_dict.keys())
-
-#         final_list = [
-#             {
-#                 "profit_loss": round(position_data_dict.get(date, 0), 2),
-#                 "date": date.strftime("%Y-%m-%d"),
-#             }
-#             for date in (
-#                 start_date + timedelta(n)
-#                 for n in range((today.date() - start_date).days + 1)
-#                 if (start_date + timedelta(n)).weekday() < 5
-#             )
-#         ]
-
-#         return {"final_list": final_list, "start_date": start_date}
-
-#     def calculate_open_positions(self, positions: Any) -> Dict[str, Any]:
-#         """Calculate metrics for open positions."""
-
-#         def pl_cv(position):
-#             pl, cur_val, _ = position.calculate_profit_loss()
-#             return pl, {
-#                 "stock": position.stock.symbol,
-#                 "current_value": round(cur_val, 2),
-#                 "pl": round(pl, 2),
-#                 "open_date": position.created,
-#             }
-
-#         with ThreadPoolExecutor() as executor:
-#             pl_cv_list = [result for result in executor.map(pl_cv, positions) if result]
-
-#         return {
-#             "pl_cv_list": pl_cv_list,
-#             "profit_loss": sum(x[0] for x in pl_cv_list) if pl_cv_list else 0,
-#             "current_value_list": [x[1] for x in pl_cv_list],
-#             "open_positions": [
-#                 {"symbol": x[1]["stock"], "profit_loss": round(x[1]["pl"], 2)}
-#                 for x in pl_cv_list
-#             ],
-#         }
-
-#     def calculate_returns(self, daily_returns: Any) -> Dict[str, Any]:
-#         """Calculate overview and cumulative returns."""
-#         if not daily_returns or daily_returns.count() <= 1:
-#             return {"overview": [], "cumulative_overview": [], "calendar": []}
-
-#         overview = [
-#             {
-#                 "portfolio_returns": round(returns.portfolio_returns, 2),
-#                 "market_returns": round(returns.market_returns, 2),
-#                 "date": returns.created.date(),
-#             }
-#             for returns in daily_returns
-#         ]
-
-#         # Calculate cumulative returns using pandas
-#         df = pd.DataFrame(overview)
-#         if not df.empty:
-#             df["portfolio_returns"] = (1 + df["portfolio_returns"] / 100).cumprod() - 1
-#             df["market_returns"] = (1 + df["market_returns"] / 100).cumprod() - 1
-#             df["portfolio_returns"] = (df["portfolio_returns"] * 100).round(2)
-#             df["market_returns"] = (df["market_returns"] * 100).round(2)
-#             cumulative_overview = df.to_dict("records")
-#         else:
-#             cumulative_overview = []
-
-#         calendar = [
-#             {"date": daily.created.date(), "return": round(daily.portfolio_returns, 2)}
-#             for daily in daily_returns[1:]
-#         ]
-
-#         return {
-#             "overview": overview,
-#             "cumulative_overview": cumulative_overview,
-#             "calendar": calendar,
-#         }
-
-#     def get(self, request, *args, **kwargs):
-#         account_type = kwargs.get("account_type")
-#         valid_account_types = ["demo_portfolio", "competition_account"]
-
-#         if account_type not in valid_account_types:
-#             return Response(
-#                 f"Account type should be {valid_account_types}.",
-#                 status.HTTP_400_BAD_REQUEST,
-#             )
-
-#         id = kwargs.get("id")
-
-#         # Get appropriate portfolio based on account type
-#         if account_type == "competition_account":
-#             portfolio = self.get_competition_account(id)
-#             if not portfolio:
-#                 return Response("Account not found", status.HTTP_404_NOT_FOUND)
-
-#             positions_model = CompetitionPosition
-#             daily_returns_model = CompetitionDailyReturns2
-#             starting_balance = 1000000
-
-#         else:
-#             portfolio = self.get_account(id)
-#             if not portfolio:
-#                 return Response("Account not found", status.HTTP_404_NOT_FOUND)
-
-#             positions_model = DemoPosition
-#             daily_returns_model = DemoDailyReturns2
-#             starting_balance = float(portfolio.initial_balance)
-
-#         # Get positions
-#         positions = positions_model.objects.filter(portfolio=portfolio)
-#         open_positions = positions.filter(status="open")
-#         closed_positions = positions.filter(status="close")
-
-#         # Calculate metrics
-#         today = timezone.now()
-#         position_metrics = self.calculate_position_metrics(closed_positions, today)
-#         open_position_metrics = self.calculate_open_positions(open_positions)
-
-#         # Calculate returns
-#         daily_returns = daily_returns_model.objects.filter(
-#             portfolio=portfolio
-#         ).order_by("created")
-#         returns_data = self.calculate_returns(daily_returns)
-
-#         # Calculate final values
-#         balance = (
-#             portfolio.balance + Decimal(portfolio.get_commissions())
-#             if account_type == "demo_portfolio"
-#             else portfolio.balance
-#         )
-#         open_balance = sum(position.amount_invested for position in open_positions)
-#         profit_loss = open_position_metrics["profit_loss"]
-#         closed_pl = sum(pos.profit_loss - pos.commission for pos in closed_positions)
-#         equity = max(round(balance + profit_loss, 2), 0)
-
-#         data = {
-#             "balance": round(balance + open_balance, 2),
-#             "starting_balance": starting_balance,
-#             "equity": equity + open_balance,
-#             "floating_pl": round(profit_loss, 2),
-#             "closed_pl": round(closed_pl, 2),
-#             "positions": position_metrics["final_list"],
-#             "current_value": open_position_metrics["current_value_list"],
-#             "overview": returns_data["overview"],
-#             "cumulative_overview": returns_data["cumulative_overview"],
-#             "calendar": returns_data["calendar"],
-#             "remaining_balance": round(balance, 2),
-#             "close_positions": [
-#                 {
-#                     "stock": position.stock.symbol,
-#                     "profit_loss": round(position.profit_loss, 2),
-#                     "close_date": position.updated,
-#                 }
-#                 for position in closed_positions
-#             ],
-#             "open_positions": open_position_metrics["open_positions"],
-#         }
-
-#         return Response(data)
 
 
 # class NewOverView(APIView):
