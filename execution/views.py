@@ -3102,7 +3102,7 @@ class SupportSingleDemoTradeAPIView(APIView):
 
 
 ####################### New home view ###############################################
-def calculate_cumulative_returns(self, overview_data: List[Dict]) -> List[Dict]:
+def calculate_cumulative_returns(overview_data: List[Dict]) -> List[Dict]:
     """
     Calculate cumulative returns from daily returns using pandas.
     """
