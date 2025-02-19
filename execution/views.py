@@ -3733,7 +3733,8 @@ class NewSupportHome(APIView):
                     if (start_date + timedelta(n)).weekday() < 5
                 )
             ]
-            profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
+            # profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
+            profit_loss2 = sum([pos.profit_loss for pos in positions2])
             # balance = portfolio.balance
             balance = portfolio.balance + Decimal(portfolio.get_commissions())
 
