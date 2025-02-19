@@ -3351,11 +3351,13 @@ class NewHome(APIView):
                     date_key = daily.updated.date()
                     if date_key in position_data_dict:
                         position_data_dict[date_key] += (
-                            daily.profit_loss - daily.commission
+                            # daily.profit_loss - daily.commission
+                            daily.profit_loss
                         )
                     else:
                         position_data_dict[date_key] = (
-                            daily.profit_loss - daily.commission
+                            # daily.profit_loss - daily.commission
+                            daily.profit_loss
                         )
 
             position_data_list2 = [
@@ -3701,11 +3703,13 @@ class NewSupportHome(APIView):
                     date_key = daily.updated.date()
                     if date_key in position_data_dict:
                         position_data_dict[date_key] += (
-                            daily.profit_loss - daily.commission
+                            # daily.profit_loss - daily.commission
+                            daily.profit_loss
                         )
                     else:
                         position_data_dict[date_key] = (
-                            daily.profit_loss - daily.commission
+                            # daily.profit_loss - daily.commission
+                            daily.profit_loss
                         )
 
             position_data_list2 = [
