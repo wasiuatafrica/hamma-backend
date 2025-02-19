@@ -3380,7 +3380,7 @@ class NewHome(APIView):
                     if (start_date + timedelta(n)).weekday() < 5
                 )
             ]
-            profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
+            profit_loss2 = float(sum([pos.profit_loss - pos.commission for pos in positions2])) -float(portfolio.get_swap_fees())
 
             balance = portfolio.balance
 
@@ -3730,7 +3730,8 @@ class NewSupportHome(APIView):
                     if (start_date + timedelta(n)).weekday() < 5
                 )
             ]
-            profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
+            # profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
+            profit_loss2 = float(sum([pos.profit_loss - pos.commission for pos in positions2])) -float(portfolio.get_swap_fees())
             balance = portfolio.balance
 
             def pl_cv(position):
