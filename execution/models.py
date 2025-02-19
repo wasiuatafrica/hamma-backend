@@ -371,6 +371,7 @@ class DemoPosition(auto_prefetch.Model):
     )
     comment = models.TextField(null=True, blank=True)
     swap_fee = models.PositiveIntegerField(default=0.0)
+    closed_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.portfolio.user} - {self.stock.symbol} - {self.action} - {self.status}| {self.updated}"

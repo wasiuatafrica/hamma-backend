@@ -1853,7 +1853,12 @@ def calc_take_profit():
                         position.close_price = Decimal(current_price)
                         position.profit_loss = profit_loss
                         position.comment = "take profit executed"
+
                         position.save()
+
+                        if isinstance(position.porfolio, DemoPortfolio):
+                            position.closed_at = timezone.now()
+                            position.save()
 
                         CompetitionTransaction.objects.create(
                             user=position.portfolio.user,
@@ -1952,6 +1957,10 @@ def calc_stop_loss():
                         position.profit_loss = profit_loss
                         position.comment = "stop loss executed"
                         position.save()
+
+                        if isinstance(position.porfolio, DemoPortfolio):
+                            position.closed_at = timezone.now()
+                            position.save()
 
                         CompetitionTransaction.objects.create(
                             user=position.portfolio.user,
@@ -2082,6 +2091,10 @@ def close_position(position, current_price):
     position.profit_loss = profit_loss
     position.comment = "trailing stop  executed"
     position.save()
+
+    if isinstance(position.porfolio, DemoPortfolio):
+        position.closed_at = timezone.now()
+        position.save()
 
     # # Log transaction and notify user
     # CompetitionTransaction.objects.create(

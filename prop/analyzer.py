@@ -505,6 +505,10 @@ class PortfolioAnalyzer:
             self.portfolio.last_swap_charge_date = current_date
             self.portfolio.save()
 
+            for position in overnight_positions:
+                position.swap_fee = 1000
+                position.save()
+
             # Log the swap fee charge
             logger.info(
                 f"Applied overnight swap fee of {total_swap_fee} to portfolio {self.portfolio.id} "

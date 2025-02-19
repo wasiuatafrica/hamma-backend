@@ -3380,7 +3380,9 @@ class NewHome(APIView):
                     if (start_date + timedelta(n)).weekday() < 5
                 )
             ]
-            profit_loss2 = float(sum([pos.profit_loss - pos.commission for pos in positions2])) -float(portfolio.get_swap_fees())
+            profit_loss2 = float(
+                sum([pos.profit_loss - pos.commission for pos in positions2])
+            ) - float(portfolio.get_swap_fees())
 
             balance = portfolio.balance
 
@@ -3731,7 +3733,9 @@ class NewSupportHome(APIView):
                 )
             ]
             # profit_loss2 = sum([pos.profit_loss - pos.commission for pos in positions2])
-            profit_loss2 = float(sum([pos.profit_loss - pos.commission for pos in positions2])) -float(portfolio.get_swap_fees())
+            profit_loss2 = float(
+                sum([pos.profit_loss - pos.commission for pos in positions2])
+            ) - float(portfolio.get_swap_fees())
             balance = portfolio.balance
 
             def pl_cv(position):
@@ -4353,6 +4357,10 @@ class NewDemoCloseTrade(APIView):
         position.comment = "closed by trader"
         position.save()
 
+        if isinstance(position.portfolio, DemoPortfolio):
+            position.closed_at = timezone.now()
+            position.save()
+
         # Create transaction records
         transaction_model.objects.create(
             user=user,
@@ -4651,7 +4659,8 @@ def get_holdings_positions(queryset):
             elif position.action == "sell":
                 profit_loss = position.amount_invested - Decimal(current_value)
         elif position.status == "close":
-            profit_loss = position.profit_loss - position.commission
+            # profit_loss = position.profit_loss - position.commission
+            profit_loss = position.profit_loss
             current_value = position.quantity * position.close_price
         else:
             current_value = 0
@@ -4702,6 +4711,8 @@ def get_holdings_positions(queryset):
                 2,
             ),
         }
+        if isinstance(position.portfolio, DemoPortfolio):
+            data["close_time"] = position.closed_at if position.closed_at else "-"
         all_holdings.append(data)
     return all_holdings
 
@@ -4802,7 +4813,9 @@ class NewDemoHolding(APIView):
                     hold_data = {
                         "balance": balance + open_balance,
                         "floating_pl": floating_pl,
-                        "closed_pl": closed_pl,
+                        # "closed_pl": closed_pl,
+                        "closed_pl": float(closed_pl)
+                        - float(portfolio.get_commissions()),
                         "equity": balance + floating_pl + open_balance,
                         "holdings": positions_data,
                     }
@@ -4852,6 +4865,7 @@ class NewDemoHolding(APIView):
                         if data["status"] == "close"
                     ]
                 )
+                print(closed_pl)
                 open_trade_sum = sum(
                     [
                         data["invested"]
@@ -4873,7 +4887,9 @@ class NewDemoHolding(APIView):
                     "balance": balance + open_balance,
                     "floating_pl": floating_pl,
                     # "closed_pl": closed_pl,
-                    "closed_pl": float(closed_pl) - float(portfolio.get_swap_fees()),
+                    "closed_pl": float(closed_pl)
+                    - float(portfolio.get_swap_fees())
+                    - float(portfolio.get_commissions()),
                     "equity": balance + floating_pl + open_balance,
                     "holdings": positions_data,
                 }
@@ -4964,6 +4980,7 @@ class NewSupportDemoHolding(APIView):
                             if data["status"] == "close"
                         ]
                     )
+
                     open_trade_sum = sum(
                         [
                             data["invested"]
@@ -4990,7 +5007,9 @@ class NewSupportDemoHolding(APIView):
                     hold_data = {
                         "balance": balance + open_balance,
                         "floating_pl": floating_pl,
-                        "closed_pl": closed_pl,
+                        # "closed_pl": closed_pl,
+                        "closed_pl": float(closed_pl)
+                        - float(portfolio.get_commissions()),
                         "equity": balance + floating_pl + open_balance,
                         "holdings": positions_data,
                     }
@@ -5040,6 +5059,9 @@ class NewSupportDemoHolding(APIView):
                         if data["status"] == "close"
                     ]
                 )
+                print(closed_pl)
+                print(portfolio.get_commissions())
+                print(portfolio.get_swap_fees())
                 open_trade_sum = sum(
                     [
                         data["invested"]
@@ -5061,7 +5083,10 @@ class NewSupportDemoHolding(APIView):
                     "balance": balance + open_balance,
                     "floating_pl": floating_pl,
                     # "closed_pl": closed_pl,
-                    "closed_pl": float(closed_pl) - float(portfolio.get_swap_fees()),
+                    # "closed_pl": float(closed_pl) - float(portfolio.get_swap_fees()),
+                    "closed_pl": float(closed_pl)
+                    - float(portfolio.get_swap_fees())
+                    - float(portfolio.get_commissions()),
                     "equity": balance + floating_pl + open_balance,
                     "holdings": positions_data,
                 }
