@@ -4064,8 +4064,8 @@ class NewOverView(APIView):
 
         if portfolio is None:
             return Response("Account not found", status.HTTP_404_NOT_FOUND)
-        # if portfolio.user != request.user:
-        #     return Response("Permission denied", status.HTTP_403_FORBIDDEN)
+        if portfolio.user != request.user:
+            return Response("Permission denied", status.HTTP_403_FORBIDDEN)
 
         # Get daily returns
         daily_returns = self.get_daily_returns(
@@ -4362,8 +4362,8 @@ class SupportNewOverView(APIView):
             return Response("Account not found", status.HTTP_404_NOT_FOUND)
 
         # For competition accounts, we don't need to check user permissions
-        if not is_competition and portfolio.user != request.user:
-            return Response("Permission denied", status.HTTP_403_FORBIDDEN)
+        # if not is_competition and portfolio.user != request.user:
+        #     return Response("Permission denied", status.HTTP_403_FORBIDDEN)
 
         # Get daily returns
         daily_returns = self.get_daily_returns(
