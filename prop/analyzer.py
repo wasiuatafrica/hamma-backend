@@ -375,8 +375,8 @@ class PortfolioAnalyzer:
         Also calculates time_to_payout when target is met
         """
         # Skip checks if target is already met
-        # if self.portfolio.target_met:
-        #     return {"eligible": True, "reason": "Target already met"}
+        if self.portfolio.target_met:
+            return {"eligible": True, "reason": "Target already met"}
 
         if self.portfolio.blown or self.portfolio.inactive_by_inactivity:
             return {"eligible": False, "reason": "Account is blown or inactive"}

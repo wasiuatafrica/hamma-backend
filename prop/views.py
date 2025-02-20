@@ -1193,71 +1193,6 @@ class UserAccounctsList(APIView):
         return Response(serializer.data)
 
 
-# class PortfolioDailyProfitLossView(APIView):
-#     def get(self, request, portfolio_id):
-#         try:
-#             # Get the number of days from query params, default to 7
-#             days = int(request.query_params.get("days", 7))
-
-#             # Calculate the start date
-#             end_date = timezone.now()
-#             start_date = end_date - timedelta(days=days)
-
-#             # Get the portfolio
-#             portfolio = DemoPortfolio.objects.get(id=portfolio_id)
-
-#             # Query closed positions and group them by date
-#             daily_data = (
-#                 DemoPosition.objects.filter(
-#                     portfolio=portfolio,
-#                     status="close",
-#                     updated__gte=start_date,
-#                     updated__lte=end_date,
-#                 )
-#                 .annotate(date=TruncDate("updated"))
-#                 .values("date")
-#                 .annotate(
-#                     profit_sum=Sum("profit_loss", filter=Q(profit_loss__gt=0)),
-#                     loss_sum=Sum("profit_loss", filter=Q(profit_loss__lt=0)),
-#                 )
-#                 .order_by("date")
-#             )
-
-#             # Calculate total profit and loss
-#             total_profit = sum(d["profit_sum"] or 0 for d in daily_data)
-#             total_loss = sum(d["loss_sum"] or 0 for d in daily_data)
-
-#             # Format the response
-#             daily_results = [
-#                 {
-#                     "date": entry["date"].strftime("%Y-%m-%d"),
-#                     "profit": float(entry["profit_sum"] or 0),
-#                     "loss": float(entry["loss_sum"] or 0),
-#                 }
-#                 for entry in daily_data
-#             ]
-
-#             response_data = {
-#                 "summary": {
-#                     "total_profit": float(total_profit),
-#                     "total_loss": float(total_loss),
-#                     "net_profit": float(total_profit + total_loss),
-#                     "percentage_change": calculate_percentage_change(
-#                         total_profit, total_loss
-#                     ),
-#                 },
-#                 "daily_data": daily_results,
-#                 "last_updated": timezone.now().strftime("%Y-%m-%d %H:%M"),
-#             }
-
-#             return Response(response_data)
-
-#         except DemoPortfolio.DoesNotExist:
-#             return Response({"error": "Portfolio not found"}, status=404)
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=400)
-
-
 class PortfolioDailyProfitLossView(APIView):
     permission_classes = [AllowAny]
 
@@ -1290,52 +1225,6 @@ class PortfolioDailyProfitLossView(APIView):
             portfolio = DemoPortfolio.objects.get(id=portfolio_id)
             print(portfolio.id)
 
-            # Get all closed positions for the period
-            # positions = DemoPosition.objects.filter(
-            #     portfolio=portfolio,
-            #     status="close",
-            #     updated__gte=start_date,
-            #     updated__lte=end_date,
-            # ).annotate(
-            #     date=TruncDate("updated"),
-            #     commission_calculated=ExpressionWrapper(
-            #         (F("amount_invested") * Decimal("0.00435")) + Decimal("200"),
-            #         output_field=DecimalField(),
-            #     ),
-            # )
-
-            # print(positions)
-            # for pos in positions:
-            #     print(pos.profit_loss)
-
-            # # Group by date and calculate daily totals including commission
-            # daily_data = (
-            #     positions.values("date")
-            #     .annotate(
-            #         profit_sum=Sum(
-            #             Case(
-            #                 When(
-            #                     profit_loss__gt=0,
-            #                     then=F("profit_loss") - F("commission_calculated"),
-            #                 ),
-            #                 default=Value(0),
-            #                 output_field=DecimalField(),
-            #             )
-            #         ),
-            #         loss_sum=Sum(
-            #             Case(
-            #                 When(
-            #                     profit_loss__lt=0,
-            #                     then=F("profit_loss") - F("commission_calculated"),
-            #                 ),
-            #                 default=Value(0),
-            #                 output_field=DecimalField(),
-            #             )
-            #         ),
-            #         total_commission=Sum("commission_calculated"),
-            #     )
-            #     .order_by("date")
-            # )
             positions = DemoPosition.objects.filter(
                 portfolio=portfolio,
                 status="close",
@@ -1435,131 +1324,63 @@ class PortfolioDailyProfitLossView(APIView):
             logger.error(f"Error in PortfolioDailyProfitLossView: {str(e)}")
             return Response({"error": str(e)}, status=400)
 
-    # class PortfolioDailyProfitLossView(APIView):
-    #     def get(self, request, portfolio_id):
-    #         try:
-    #             # Get date range from query parameters
-    #             start_date_str = request.query_params.get("start_date")
-    #             end_date_str = request.query_params.get("end_date")
-    #             print(start_date_str, end_date_str)
-
-    #             # If no dates provided, default to last 7 days
-    #             if not start_date_str or not end_date_str:
-    #                 end_date = timezone.now()
-    #                 start_date = end_date - timedelta(days=7)
-    #             else:
-    #                 try:
-    #                     start_date = timezone.datetime.strptime(start_date_str, "%Y-%m-%d")
-    #                     end_date = timezone.datetime.strptime(end_date_str, "%Y-%m-%d")
-    #                     # Set end_date to end of day
-    #                     end_date = end_date.replace(hour=23, minute=59, second=59)
-    #                 except ValueError:
-    #                     return Response(
-    #                         {"error": "Invalid date format. Use YYYY-MM-DD"}, status=400
-    #                     )
-
-    #             portfolio = DemoPortfolio.objects.get(id=portfolio_id)
-
-    #             # Get all closed positions for the period
-    #             positions = DemoPosition.objects.filter(
-    #                 portfolio=portfolio,
-    #                 status="close",
-    #                 updated__gte=start_date,
-    #                 updated__lte=end_date,
-    #             ).annotate(
-    #                 date=TruncDate("updated"),
-    #                 commission=ExpressionWrapper(
+    # def calculate_percentage_change(self, portfolio, start_date, end_date):
+    #     """
+    #     Calculate percentage change over the period
+    #     Returns positive percentage for profit and negative for loss
+    #     """
+    #     try:
+    #         # Get positions at the start and end of the period
+    #         start_positions = DemoPosition.objects.filter(
+    #             portfolio=portfolio, updated__lt=start_date, status="close"
+    #         ).aggregate(
+    #             total_profit_loss=Sum("profit_loss"),
+    #             total_commission=Sum(
+    #                 ExpressionWrapper(
     #                     (F("amount_invested") * Decimal("0.00435")) + Decimal("200"),
     #                     output_field=DecimalField(),
-    #                 ),
-    #             )
-
-    #             # Rest of the code remains the same...
-    #             # Group by date and calculate daily totals including commission
-    #             daily_data = (
-    #                 positions.values("date")
-    #                 .annotate(
-    #                     profit_sum=Sum(
-    #                         Case(
-    #                             When(
-    #                                 profit_loss__gt=0,
-    #                                 then=F("profit_loss") - F("commission"),
-    #                             ),
-    #                             default=Value(0),
-    #                             output_field=DecimalField(),
-    #                         )
-    #                     ),
-    #                     loss_sum=Sum(
-    #                         Case(
-    #                             When(
-    #                                 profit_loss__lt=0,
-    #                                 then=F("profit_loss") - F("commission"),
-    #                             ),
-    #                             default=Value(0),
-    #                             output_field=DecimalField(),
-    #                         )
-    #                     ),
-    #                     total_commission=Sum("commission"),
     #                 )
-    #                 .order_by("date")
-    #             )
+    #             ),
+    #         )
 
-    #             # Calculate totals
-    #             total_profit = Decimal("0")
-    #             total_loss = Decimal("0")
-    #             total_commission = Decimal("0")
-
-    #             daily_results = []
-    #             for entry in daily_data:
-    #                 profit = Decimal(str(entry["profit_sum"] or 0))
-    #                 loss = Decimal(str(entry["loss_sum"] or 0))
-    #                 commission = Decimal(str(entry["total_commission"] or 0))
-
-    #                 total_profit += profit
-    #                 total_loss += loss
-    #                 total_commission += commission
-
-    #                 daily_results.append(
-    #                     {
-    #                         "date": entry["date"].strftime("%Y-%m-%d"),
-    #                         "profit": float(profit),
-    #                         "loss": float(loss),
-    #                         "commission": float(commission),
-    #                         "net": float(profit + loss),
-    #                     }
+    #         end_positions = DemoPosition.objects.filter(
+    #             portfolio=portfolio, updated__lte=end_date, status="close"
+    #         ).aggregate(
+    #             total_profit_loss=Sum("profit_loss"),
+    #             total_commission=Sum(
+    #                 ExpressionWrapper(
+    #                     (F("amount_invested") * Decimal("0.00435")) + Decimal("200"),
+    #                     output_field=DecimalField(),
     #                 )
+    #             ),
+    #         )
 
-    #             net_profit = total_profit + total_loss
-    #             wat = pytz.timezone("Africa/Lagos")
-    #             response_data = {
-    #                 "summary": {
-    #                     "total_profit": float(total_profit),
-    #                     "total_loss": float(total_loss),
-    #                     "total_commission": float(total_commission),
-    #                     "net_profit": float(net_profit),
-    #                     "percentage_change": self.calculate_percentage_change(
-    #                         portfolio, start_date, end_date
-    #                     ),
-    #                 },
-    #                 "daily_data": daily_results,
-    #                 "last_updated": timezone.now()
-    #                 .astimezone(wat)
-    #                 .strftime("%Y-%m-%d %H:%M"),
-    #                 "period": {
-    #                     "start_date": start_date.strftime("%Y-%m-%d"),
-    #                     "end_date": end_date.strftime("%Y-%m-%d"),
-    #                 },
-    #             }
+    #         # Calculate net values including commission
+    #         start_net = Decimal(
+    #             str(start_positions["total_profit_loss"] or 0)
+    #         ) - Decimal(str(start_positions["total_commission"] or 0))
 
-    #             return Response(response_data)
+    #         end_net = Decimal(str(end_positions["total_profit_loss"] or 0)) - Decimal(
+    #             str(end_positions["total_commission"] or 0)
+    #         )
 
-    #         except DemoPortfolio.DoesNotExist:
-    #             return Response({"error": "Portfolio not found"}, status=404)
-    #         except Exception as e:
-    #             logger.error(f"Error in PortfolioDailyProfitLossView: {str(e)}")
-    #             return Response({"error": str(e)}, status=400)
+    #         # Calculate the difference in profit/loss
+    #         profit_difference = end_net - start_net
 
-    # calculate_percentage_change method remains the same
+    #         # Get the reference value (initial balance or start period balance)
+    #         reference_balance = portfolio.initial_balance + start_net
+
+    #         if reference_balance == 0:
+    #             return 0
+
+    #         # Calculate percentage change
+    #         percentage_change = (profit_difference / reference_balance) * 100
+    #         return round(float(percentage_change), 2)
+
+    #     except Exception as e:
+    #         logger.error(f"Error calculating percentage change: {e}")
+    #         return 0
+
     def calculate_percentage_change(self, portfolio, start_date, end_date):
         """
         Calculate percentage change over the period
@@ -1568,7 +1389,7 @@ class PortfolioDailyProfitLossView(APIView):
         try:
             # Get positions at the start and end of the period
             start_positions = DemoPosition.objects.filter(
-                portfolio=portfolio, updated__lt=start_date, status="close"
+                portfolio=portfolio, closed_at__lt=start_date, status="close"
             ).aggregate(
                 total_profit_loss=Sum("profit_loss"),
                 total_commission=Sum(
@@ -1577,10 +1398,11 @@ class PortfolioDailyProfitLossView(APIView):
                         output_field=DecimalField(),
                     )
                 ),
+                total_swap_fee=Sum("swap_fee"),
             )
 
             end_positions = DemoPosition.objects.filter(
-                portfolio=portfolio, updated__lte=end_date, status="close"
+                portfolio=portfolio, closed_at__lte=end_date, status="close"
             ).aggregate(
                 total_profit_loss=Sum("profit_loss"),
                 total_commission=Sum(
@@ -1589,15 +1411,20 @@ class PortfolioDailyProfitLossView(APIView):
                         output_field=DecimalField(),
                     )
                 ),
+                total_swap_fee=Sum("swap_fee"),
             )
 
-            # Calculate net values including commission
-            start_net = Decimal(
-                str(start_positions["total_profit_loss"] or 0)
-            ) - Decimal(str(start_positions["total_commission"] or 0))
+            # Calculate net values including commission and swap fees
+            start_net = (
+                Decimal(str(start_positions["total_profit_loss"] or 0))
+                - Decimal(str(start_positions["total_commission"] or 0))
+                - Decimal(str(start_positions["total_swap_fee"] or 0))
+            )
 
-            end_net = Decimal(str(end_positions["total_profit_loss"] or 0)) - Decimal(
-                str(end_positions["total_commission"] or 0)
+            end_net = (
+                Decimal(str(end_positions["total_profit_loss"] or 0))
+                - Decimal(str(end_positions["total_commission"] or 0))
+                - Decimal(str(end_positions["total_swap_fee"] or 0))
             )
 
             # Calculate the difference in profit/loss
