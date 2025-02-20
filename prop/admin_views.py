@@ -194,14 +194,16 @@ class HammaRequestAdminView(APIView):
                 with transaction.atomic():
                     new_portfolio = DemoPortfolio.objects.create(
                         user=demo_portfolio.user,
-                        balance=10_000_000,
+                        balance=demo_portfolio.initial_balance,
                         account_name=demo_portfolio.model_type,
-                        initial_balance=10_000_000,
+                        initial_balance=demo_portfolio.initial_balance,
                         is_prop=demo_portfolio.is_prop,
                         account_drawdown_limit=demo_portfolio.account_drawdown_limit,
                         model_type=demo_portfolio.model_type,
                         balance_based_drawdown=demo_portfolio.balance_based_drawdown,
                         account_type_level="hamma",
+                        receipt_approved=True,
+                        time_to_payout=demo_portfolio.time_to_payout,
                     )
 
                     # Update the old portfolio to link to the new one
