@@ -26,7 +26,7 @@ def analyze_portfolio_status_task():
         blown=False,
         inactive_by_inactivity=False,
         activated=True,
-        # account_id="33642544"
+        # account_id="76441051",
     )
     # print(portfolios)
     for portfolio in portfolios:

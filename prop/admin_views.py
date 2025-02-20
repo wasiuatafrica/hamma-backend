@@ -136,7 +136,7 @@ class HammaRequestAdminView(APIView):
         """
         account = request.GET.get("account", None)
         email = request.GET.get("email", None)
-        requests = HammaAccountRequest.objects.all()
+        requests = HammaAccountRequest.objects.all().order_by("-created")
 
         if account:
             requests = requests.filter(account__icontains=account)

@@ -1539,6 +1539,29 @@ class UserReceiptsView(APIView):
         return Response(receipts_data)
 
 
+class AdminSingleUserReceiptsView(APIView):
+    def get(self, request, id):
+        receipts_data = []
+
+        prop_receipt_ids = PropReceipt.objects.values_list("receipt_id", flat=True)
+
+        for receipt in Receipts.objects.filter(
+            user__id=id, id__in=prop_receipt_ids
+        ).order_by("-created"):
+            receipt_dict = {
+                "amount": receipt.amount,
+                "upload_date": receipt.created,
+                "receipt_status": receipt.receipt_status,
+                "payment_method": receipt.payment_method,
+                "comment": receipt.comment,
+                "approved_date": receipt.approved_date,
+                "image_url": receipt.image.url,
+            }
+
+            receipts_data.append(receipt_dict)
+        return Response(receipts_data)
+
+
 class PayoutsSummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -1829,6 +1852,7 @@ class HammaAccountRequestView(APIView):
         account = DemoPortfolio.objects.get(
             account_id=account_id, account_type_level="challenge", user=request.user
         )
+        print(account.account_id)
 
         if account.blown:
             return Response({"can_request": False, "reason": "Account has been blown"})
