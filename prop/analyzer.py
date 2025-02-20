@@ -506,7 +506,7 @@ class PortfolioAnalyzer:
             self.portfolio.save()
 
             for position in overnight_positions:
-                position.swap_fee = 1000
+                position.swap_fee += 1000
                 position.save()
 
             # Log the swap fee charge

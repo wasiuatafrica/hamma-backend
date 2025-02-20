@@ -1019,11 +1019,11 @@ class AdminReceiptsView(APIView):
 
                 prop_receipt = PropReceipt.objects.filter(receipt=receipt).first()
 
-                if str(prop_receipt.account.initial_balance) == "10000000":
+                if int(prop_receipt.account.initial_balance) == 10000000:
                     receipt.amount = 180000
-                elif str(prop_receipt.account.initial_balance) == "5000000":
+                elif int(prop_receipt.account.initial_balance) == 5000000:
                     receipt.amount = 99000
-                elif str(prop_receipt.account.initial_balance) == "1000000":
+                elif int(prop_receipt.account.initial_balance) == 1000000:
                     receipt.amount = 25000
                 receipt.save()
 
