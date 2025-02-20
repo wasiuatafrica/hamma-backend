@@ -4659,10 +4659,12 @@ def get_holdings_positions(queryset):
             elif position.action == "sell":
                 profit_loss = position.amount_invested - Decimal(current_value)
             net_profit_loss = 0
+            commission = 0
         elif position.status == "close":
             # profit_loss = position.profit_loss - position.commission
             profit_loss = position.profit_loss
             current_value = position.quantity * position.close_price
+            commission = position.commission
             net_profit_loss = (
                 round(
                     float(profit_loss)
@@ -4678,6 +4680,7 @@ def get_holdings_positions(queryset):
             current_value = 0
             profit_loss = 0
             net_profit_loss = 0
+            commission = 0
         # print(type(profit_loss))
         if position.amount_invested != 0:
             percent_change = round(
@@ -4715,7 +4718,7 @@ def get_holdings_positions(queryset):
             "stop_loss": position.stop_loss,
             "trailing_sl": position.trailing_stop_loss,
             "comment": position.comment,
-            "commission": position.commission,
+            "commission": commission,
             "net_profit_loss": net_profit_loss,
         }
         if isinstance(position.portfolio, DemoPortfolio):
