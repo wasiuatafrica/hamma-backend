@@ -42,7 +42,9 @@ class DemoPositionAdmin(admin.ModelAdmin):
         "open_price",
         "amount_invested",
         "profit_loss",
+        "swap_fee",
         "created",
+        "closed_at",
         "updated",
     ]
     list_filter = ["status", "created", "stock"]
