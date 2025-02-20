@@ -1228,8 +1228,8 @@ class PortfolioDailyProfitLossView(APIView):
             positions = DemoPosition.objects.filter(
                 portfolio=portfolio,
                 status="close",
-                updated__gte=start_date,
-                updated__lte=end_date,
+                closed_at__gte=start_date,
+                closed_at__lte=end_date,
             ).annotate(
                 date=TruncDate("updated"),
                 commission_calculated=ExpressionWrapper(
