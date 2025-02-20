@@ -1539,14 +1539,14 @@ class UserReceiptsView(APIView):
         return Response(receipts_data)
 
 
-class AdminSingleUserReceiptsView(APIView):
-    def get(self, request, id):
+class SupportSingleUserReceiptsView(APIView):
+    def get(self, request, email):
         receipts_data = []
 
         prop_receipt_ids = PropReceipt.objects.values_list("receipt_id", flat=True)
 
         for receipt in Receipts.objects.filter(
-            user__id=id, id__in=prop_receipt_ids
+            user__email=email, id__in=prop_receipt_ids
         ).order_by("-created"):
             receipt_dict = {
                 "amount": receipt.amount,

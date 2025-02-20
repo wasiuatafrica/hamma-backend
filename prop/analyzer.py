@@ -586,6 +586,7 @@ def analyze_portfolio_status(portfolio):
     # Get balance and equity data from your data source
     balance_equity_data = get_account_data(portfolio.account_id)
     # print(balance_equity_data)
+    was_target_met = portfolio.target_met
 
     analyzer = PortfolioAnalyzer(balance_equity_data, portfolio)
 
@@ -612,9 +613,8 @@ def analyze_portfolio_status(portfolio):
     portfolio.blown = account_drawdown["violated"] or daily_drawdown["violated"]
     portfolio.target_met = eligibility["eligible"]
 
-    was_target_met = portfolio.target_met
-    # if portfolio.target_met and not was_target_met:
-    #     portfolio.time_to_payout = eligibility.get("weeks_to_target", 0)
+    if portfolio.target_met and not was_target_met:
+        portfolio.time_to_payout = eligibility.get("weeks_to_target", 0)
 
     # Save the changes
     portfolio.save()

@@ -26,6 +26,7 @@ def analyze_portfolio_status_task():
         blown=False,
         inactive_by_inactivity=False,
         activated=True,
+        has_hamma__isnull=True,
         # account_id="76441051",
     )
     # print(portfolios)
