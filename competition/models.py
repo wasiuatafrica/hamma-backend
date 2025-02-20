@@ -101,6 +101,18 @@ class CompetitionPortfolio(auto_prefetch.Model):
     def account_type(self):
         return "competition_account"
 
+    def get_commissions(self):
+        positions = self.composition.all()
+        commissions = sum(
+            [
+                position.commission
+                for position in positions
+                if position.status == "close"
+            ]
+        )
+
+        return commissions
+
 
 class CompetitionPosition(auto_prefetch.Model):
     OPEN = "open"

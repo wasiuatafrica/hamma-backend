@@ -1380,7 +1380,7 @@ class PortfolioDailyProfitLossView(APIView):
                 .order_by("date")
             )
             print("here")
-            print(daily_data)
+            # print(daily_data)
 
             # Calculate totals
             total_profit = Decimal("0")
@@ -1409,7 +1409,7 @@ class PortfolioDailyProfitLossView(APIView):
                     }
                 )
 
-            net_profit = total_profit + total_loss
+            net_profit = total_profit + total_loss - Decimal(portfolio.get_swap_fees())
             wat = pytz.timezone("Africa/Lagos")
             response_data = {
                 "summary": {
