@@ -68,7 +68,9 @@ urlpatterns = [
         admin_views.ReferralPayoutManagement.as_view({"put": "update_request_status"}),
     ),
     path("user-receipts/", views.UserReceiptsView.as_view()),
-    path("support-user-receipts/<email>/", views.AdminSingleUserReceiptsView.as_view()),
+    path(
+        "support-user-receipts/<email>/", views.SupportSingleUserReceiptsView.as_view()
+    ),
     path(
         "payout-request-status/<portfolio_id>/",
         views.PayoutsSummaryView.as_view(),
