@@ -1231,7 +1231,7 @@ class PortfolioDailyProfitLossView(APIView):
                 closed_at__gte=start_date,
                 closed_at__lte=end_date,
             ).annotate(
-                date=TruncDate("updated"),
+                date=TruncDate("closed_at"),
                 commission_calculated=ExpressionWrapper(
                     (F("amount_invested") * Decimal("0.00435")) + Decimal("200"),
                     output_field=DecimalField(),

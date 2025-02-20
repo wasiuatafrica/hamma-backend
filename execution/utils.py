@@ -1115,7 +1115,7 @@ def daily_returns7():
         # print(portfolios)
         for portfolio in portfolios:
             positions_today = DemoPosition.objects.filter(
-                portfolio=portfolio, status="close", updated__date=today
+                portfolio=portfolio, status="close", closed_at__date=today
             )
 
             if positions_today.exists():
