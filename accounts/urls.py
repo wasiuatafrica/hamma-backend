@@ -7,6 +7,7 @@ urlpatterns = [
     # path("sign-with-google/", views.SignupwithGoogle.as_view()),
     path("verify_token/", views.VerifyToken.as_view(), name="verify_token"),
     path("profile/", views.ProfileView.as_view(), name="profile"),
+    path("support-profile/", views.SupportProfileView.as_view(), name="profile"),
     path("2fa_on_off/", views.SetOrOff2FA.as_view(), name="2fa_on_off"),
     path("login/", views.LoginWithEmailView.as_view(), name="login"),
     path("login-with-2fa/", views.LoginWith2FA.as_view()),

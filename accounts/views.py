@@ -178,6 +178,30 @@ class ProfileView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class SupportProfileView(APIView):
+    queryset = models.Profile.objects.all()
+    serializer_class = serializers.ProfileSerializer
+
+    def get_object(self, email):
+        try:
+            return models.Profile.objects.get(user__email=email)
+        except models.Profile.DoesNotExist:
+            return None
+
+    def get(self, request, email):
+        # Get an instance by ID
+        instance = self.get_object(email)
+        if instance is None:
+            return Response(
+                {"detail": "User instance not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = self.serializer_class(instance)
+        user = serializers.CustomUserSerializer(request.user, many=False).data
+        return Response(
+            {"detail": serializer.data, "user": user}, status=status.HTTP_200_OK
+        )
+
+
 # Set up 2fa for account
 class SetOrOff2FA(APIView):
 
