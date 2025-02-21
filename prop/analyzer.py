@@ -654,13 +654,6 @@ def analyze_portfolio_status_after_close(portfolio):
     # Check daily drawdown
     daily_drawdown = analyzer.check_daily_drawdown_violation(portfolio.model_type)
 
-    # Check inactivity
-    is_inactive = analyzer.check_inactivity()
-
-    if is_inactive:
-        portfolio.active = False
-        portfolio.inactive_by_inactivity = is_inactive
-
     # Check payout eligibility
     eligibility = analyzer.check_payout_eligibility()
     print(eligibility)

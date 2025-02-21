@@ -34,11 +34,6 @@ def analyze_portfolio_status_task():
         if portfolio.account_type_level == "challenge":
             data = analyze_portfolio_status(portfolio)
             print(data)
-            if data["eligibility_details"]["eligible"]:
-                portfolio.time_to_payout = data["eligibility_details"][
-                    "weeks_to_target"
-                ]
-                portfolio.save()
 
 
 @shared_task
@@ -56,11 +51,7 @@ def analyze_portfolio_after_close_task(account_id):
     for portfolio in portfolios:
         if portfolio.account_type_level == "challenge":
             data = analyze_portfolio_status_after_close(portfolio)
-            if data["eligibility_details"]["eligible"]:
-                portfolio.time_to_payout = data["eligibility_details"][
-                    "weeks_to_target"
-                ]
-                portfolio.save()
+            print(data)
 
 
 @shared_task
