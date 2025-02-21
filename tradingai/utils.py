@@ -405,7 +405,7 @@ def process_recommendation(
     ).values_list("symbol", flat=True)
 
     watchlisted_stocks_symbols = [symbol for symbol in watchlisted_stocks]
-    print(watchlisted_stocks_symbols)
+    # print(watchlisted_stocks_symbols)
     preferred_stocks = trader_profile.preferred_stocks + watchlisted_stocks_symbols
     stocks = [StockData(data) for symbol, data in last_item.items()]
     profile = (
@@ -418,7 +418,7 @@ def process_recommendation(
         trader_profile.market_sentiment1,
         trader_profile.preferred_asset_type.lower(),
     )
-    print(profile)
+    # print(profile)
     trader = TraderProfile(
         trader_profile.trader.id,
         trader_profile.risk_tolerance.lower(),
@@ -430,11 +430,11 @@ def process_recommendation(
         trader_profile.preferred_asset_type.split(" ")[0].lower(),
     )
     recommendations = get_stock_recommendations(trader, stocks)
-    print(recommendations)
+    # print(recommendations)
     recommended_symbols = [
         rec["symbol"] for rec in recommendations["recommended_stocks"]
     ]
-    print(recommended_symbols, len(recommended_symbols))
+    # print(recommended_symbols, len(recommended_symbols))
     # generated_signals = [
     #     {symbol: signals_data[symbol]} for symbol in set(recommended_symbols)
     # ]
