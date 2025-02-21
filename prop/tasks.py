@@ -1,6 +1,6 @@
 from celery.app import shared_task
 from .utils import get_all_balance_equity_data, get_fixed_balance_equity_data
-from .analyzer import analyze_portfolio_status
+from .analyzer import analyze_portfolio_status, analyze_portfolio_status_after_close
 from execution.models import DemoPortfolio, Portfolio
 from .utils import sendMail
 import requests
@@ -34,6 +34,33 @@ def analyze_portfolio_status_task():
         if portfolio.account_type_level == "challenge":
             data = analyze_portfolio_status(portfolio)
             print(data)
+            if data["eligibility_details"]["eligible"]:
+                portfolio.time_to_payout = data["eligibility_details"][
+                    "weeks_to_target"
+                ]
+                portfolio.save()
+
+
+@shared_task
+def analyze_portfolio_after_close_task(account_id):
+    portfolios = DemoPortfolio.objects.filter(
+        is_prop=True,
+        blown=False,
+        inactive_by_inactivity=False,
+        activated=True,
+        has_hamma__isnull=True,
+        account_id=account_id,
+        # account_id="76441051",
+    )
+    # print(portfolios)
+    for portfolio in portfolios:
+        if portfolio.account_type_level == "challenge":
+            data = analyze_portfolio_status_after_close(portfolio)
+            if data["eligibility_details"]["eligible"]:
+                portfolio.time_to_payout = data["eligibility_details"][
+                    "weeks_to_target"
+                ]
+                portfolio.save()
 
 
 @shared_task

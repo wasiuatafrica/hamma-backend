@@ -3117,8 +3117,8 @@ def calculate_cumulative_returns(overview_data: List[Dict]) -> List[Dict]:
         return []
 
     # Calculate cumulative returns
-    df["portfolio_returns"] = (1 + df["portfolio_returns"] / 100).cumprod() - 1
-    df["market_returns"] = (1 + df["market_returns"] / 100).cumprod() - 1
+    df["portfolio_returns"] = (1 + df["portfolio_returns"] / 100).cumsum() - 1
+    df["market_returns"] = (1 + df["market_returns"] / 100).cumsum() - 1
 
     # Convert to percentage and round to 2 decimal places
     df["portfolio_returns"] = (df["portfolio_returns"] * 100).round(2)
