@@ -3135,7 +3135,7 @@ class SupportSingleDemoTradeAPIView(APIView):
 #     ]
 
 
-def calculate_cumulative_sum_returns(overview_data: List[Dict]) -> List[Dict]:
+def calculate_cumulative_returns(overview_data: List[Dict]) -> List[Dict]:
     """
     Calculate cumulative returns as the SUM of daily returns (non-standard).
     """
