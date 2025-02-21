@@ -11,7 +11,7 @@ def schedule_alert(sender, created, instance, **kwargs):
     if not created:
         if (
             instance.status == "close"
-            and instance.is_prop
+            and instance.portfolio.is_prop
             and instance.closed_at.date() == today
         ):
             analyze_portfolio_after_close_task.delay(instance.portfolio.account_id)

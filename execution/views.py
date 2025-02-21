@@ -4517,6 +4517,8 @@ class NewDemoCloseTrade(APIView):
                     "Position is not open", status=status.HTTP_400_BAD_REQUEST
                 )
 
+            print("here")
+
             result = self._process_close_trade(
                 position=position,
                 user=request.user,
@@ -4531,6 +4533,7 @@ class NewDemoCloseTrade(APIView):
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             transaction.set_rollback(True)
+            print(e)
             return Response(
                 "An error occurred", status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
