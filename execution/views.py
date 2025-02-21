@@ -39,7 +39,7 @@ from competition.models import (
 from notifications.utils import save_and_send_notification
 from portfolio.models import DemoTransaction, Stock, Wallet
 from portfolio.utils import get_price, get_stockdata2
-from prop.tasks import analyze_portfolio_after_close_task
+
 from . import serializers as exec_serializer
 from .models import (
     CompetitionCumulativeMarketReturns,
@@ -4388,15 +4388,9 @@ class NewDemoCloseTrade(APIView):
         position.comment = "closed by trader"
         position.save()
 
-        print(type(position.portfolio))
-
         if isinstance(position.portfolio, DemoPortfolio):
             position.closed_at = timezone.now()
-            print(position.closed_at)
             position.save()
-
-            if position.portfolio.is_prop:
-                analyze_portfolio_after_close_task.delay(position.portfolio.account_id)
 
         # Create transaction records
         transaction_model.objects.create(
