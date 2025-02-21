@@ -2216,6 +2216,9 @@ class DemoPorfoliosAccounts(APIView):
                 "balance": accounts.balance + open_balance,
                 "user": accounts.user.id,
                 "account_id": accounts.account_id,
+                "is_prop": False,
+                "account_type_level": "not_applicable",
+                "model_typee": "not_applicable",
             }
             demo_data.append(data)
 
@@ -2236,6 +2239,9 @@ class DemoPorfoliosAccounts(APIView):
                 "user": accounts.user.id,
                 "account_id": accounts.account_id,
                 "activated": accounts.activated,
+                "is_prop": True,
+                "account_type_level": accounts.account_type_level,
+                "model_type": accounts.model_type,
             }
             prop_data.append(data)
 
@@ -4884,8 +4890,8 @@ class NewDemoHolding(APIView):
             demo_account = self.get_account(id)
             if demo_account is None:
                 return Response("Account not found", status.HTTP_404_NOT_FOUND)
-            if demo_account.user != request.user:
-                return Response("Permission denied", status.HTTP_403_FORBIDDEN)
+            # if demo_account.user != request.user:
+            #     return Response("Permission denied", status.HTTP_403_FORBIDDEN)
 
             portfolio = demo_account
 

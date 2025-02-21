@@ -1139,7 +1139,11 @@ def daily_returns7():
                         float(position.amount_invested) for position in positions
                     ],
                     "Profit_Loss": [
-                        float(position.profit_loss - position.commission)
+                        float(
+                            position.profit_loss
+                            - position.commission
+                            - position.swap_fee
+                        )
                         for position in positions
                     ],
                 }
