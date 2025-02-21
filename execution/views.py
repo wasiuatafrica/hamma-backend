@@ -3104,9 +3104,40 @@ class SupportSingleDemoTradeAPIView(APIView):
 ####################### New home view ###############################################
 
 
-def calculate_cumulative_returns(overview_data: List[Dict]) -> List[Dict]:
+# def calculate_cumulative_returns(overview_data: List[Dict]) -> List[Dict]:
+#     """
+#     Calculate cumulative returns from daily returns using pandas.
+#     """
+#     if not overview_data:
+#         return []
+
+#     # Convert to DataFrame
+#     df = pd.DataFrame(overview_data)
+#     if df.empty:
+#         return []
+
+#     # Calculate cumulative returns
+#     df["portfolio_returns"] = (1 + df["portfolio_returns"] / 100).cumprod() - 1
+#     df["market_returns"] = (1 + df["market_returns"] / 100).cumprod() - 1
+
+#     # Convert to percentage and round to 2 decimal places
+#     df["portfolio_returns"] = (df["portfolio_returns"] * 100).round(2)
+#     df["market_returns"] = (df["market_returns"] * 100).round(2)
+
+#     # Ensure date is preserved in the output
+#     return [
+#         {
+#             "portfolio_returns": row["portfolio_returns"],
+#             "market_returns": row["market_returns"],
+#             "date": row["date"],
+#         }
+#         for _, row in df.iterrows()
+#     ]
+
+
+def calculate_cumulative_sum_returns(overview_data: List[Dict]) -> List[Dict]:
     """
-    Calculate cumulative returns from daily returns using pandas.
+    Calculate cumulative returns as the SUM of daily returns (non-standard).
     """
     if not overview_data:
         return []
@@ -3116,13 +3147,13 @@ def calculate_cumulative_returns(overview_data: List[Dict]) -> List[Dict]:
     if df.empty:
         return []
 
-    # Calculate cumulative returns
-    df["portfolio_returns"] = (1 + df["portfolio_returns"] / 100).cumsum() - 1
-    df["market_returns"] = (1 + df["market_returns"] / 100).cumsum() - 1
+    # Calculate cumulative SUM of returns
+    df["portfolio_returns"] = df["portfolio_returns"].cumsum()
+    df["market_returns"] = df["market_returns"].cumsum()
 
-    # Convert to percentage and round to 2 decimal places
-    df["portfolio_returns"] = (df["portfolio_returns"] * 100).round(2)
-    df["market_returns"] = (df["market_returns"] * 100).round(2)
+    # Round to 2 decimal places
+    df["portfolio_returns"] = df["portfolio_returns"].round(2)
+    df["market_returns"] = df["market_returns"].round(2)
 
     # Ensure date is preserved in the output
     return [
