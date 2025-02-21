@@ -204,7 +204,7 @@ class HammaRequestAdminView(APIView):
                         account_type_level="hamma",
                         receipt_approved=True,
                         time_to_payout=demo_portfolio.time_to_payout,
-                        activated=True,
+                        # activated=True,
                     )
 
                     # Update the old portfolio to link to the new one
