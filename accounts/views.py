@@ -196,7 +196,8 @@ class SupportProfileView(APIView):
                 {"detail": "User instance not found"}, status=status.HTTP_404_NOT_FOUND
             )
         serializer = self.serializer_class(instance)
-        user = serializers.CustomUserSerializer(request.user, many=False).data
+        user_object = User.objects.get(email=email)
+        user = serializers.CustomUserSerializer(user_object, many=False).data
         return Response(
             {"detail": serializer.data, "user": user}, status=status.HTTP_200_OK
         )
