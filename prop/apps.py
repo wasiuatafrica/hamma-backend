@@ -5,5 +5,5 @@ class PropfolioConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "prop"
 
-    def ready(self):
-        import prop.signals
+    # def ready(self):
+    #     import prop.signals
