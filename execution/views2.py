@@ -1562,7 +1562,7 @@ class NewHome(APIView):
             "cumulative_overview": calculate_cumulative_returns(daily_returns, account),
             "calendar": self.get_calendar_data(daily_returns),
             # "positions": positions_history,
-            # "current_value": position_data["current_value"],
+            "current_value": position_data["current_value"],
             "close_positions": position_data["close_positions"],
             "open_positions": position_data["open_positions"],
         }
