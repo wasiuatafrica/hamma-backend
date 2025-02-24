@@ -63,44 +63,6 @@ def calculate_profit_loss(position, price):
     return profit_loss, current_value, price
 
 
-# def get_equity_balance(portfolio, positions):
-#     # Get balance from portfolio
-#     print(portfolio)
-#     print(positions)
-#     balance = portfolio["balance"]
-#     account_id = portfolio["account_id"]
-
-#     # Filter positions for this portfolio
-#     portfolio_positions = [
-#         pos for pos in positions if pos["portfolio_id"] == portfolio["id"]
-#     ]
-
-#     print("here1")
-
-#     # Calculate profit/loss and current value for each position
-#     def pl_cv(position):
-#         symbol = position["stock_symbol"]
-#         price_data = get_price(symbol)
-#         price = price_data.get("current_price", 0)
-#         profit_loss, current_value, _ = calculate_profit_loss(position, price)
-#         return profit_loss
-
-#     with ThreadPoolExecutor() as executor:
-#         futures = executor.map(pl_cv, portfolio_positions)
-#         profit_loss_list = list(futures)
-#     print("here2")
-#     profit_loss = sum(profit_loss_list) if profit_loss_list else 0
-#     equity = round(balance + profit_loss, 2)
-#     open_balance = sum(position["amount_invested"] for position in portfolio_positions)
-
-#     return {
-#         "balance": round(balance + open_balance, 2),
-#         "equity": equity + open_balance if equity >= 0 else 0,
-#         "timestamp": datetime.now(WAT_TIMEZONE).strftime("%Y-%m-%dT%H:%M"),
-#         "account_id": account_id,
-#     }
-
-
 def get_equity_balance(portfolio, positions, last_item):
     """
     Calculate equity balance for a portfolio based on its positions.
@@ -161,47 +123,6 @@ def get_equity_balance(portfolio, positions, last_item):
     }
 
     return data
-
-
-# def fetch_portfolio_data():
-#     """Fetch portfolio and position data from PostgreSQL."""
-#     conn = get_postgres_connection()
-#     cursor = conn.cursor(cursor_factory=DictCursor)
-
-#     try:
-#         cursor.execute(
-#             """
-#             SELECT dp.*, dpos.*
-#             FROM execution_demoportfolio dp
-#             LEFT JOIN execution_demoposition dpos ON dp.id = dpos.portfolio_id
-#             WHERE dp.is_prop = TRUE
-#             AND dp.is_active = TRUE
-#             AND dp.inactive_by_inactivity = FALSE
-#             AND dp.activated = TRUE
-#             AND dp.blown = FALSE;
-#             """
-#         )
-#         results = cursor.fetchall()
-
-#         # Organize data
-#         portfolios = {}
-#         positions = []
-#         for row in results:
-#             portfolio_id = row["id"]
-#             if portfolio_id not in portfolios:
-#                 portfolios[portfolio_id] = {
-#                     "id": portfolio_id,
-#                     "balance": row["balance"],
-#                     "account_id": row["account_id"],
-#                 }
-#             if row["portfolio_id"]:
-#                 positions.append(row)
-
-#         return portfolios, positions
-
-#     finally:
-#         cursor.close()
-#         conn.close()
 
 
 def fetch_portfolio_data():
