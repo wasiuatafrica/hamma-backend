@@ -28,7 +28,7 @@ from rest_framework.permissions import (
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from tradingai.views import AIFeatureMixin
 from accounts.models import Referral, UserActivityLog
 from affilate.models import ReferralWallet, RewardActivities
 from competition.managers.utils import sendMail
@@ -485,34 +485,34 @@ class MiniData(APIView):
         return Response(data)
 
 
-class GetSingleStock(APIView):
-    serializer_class = StockSerializer
-    permission_classes = [
-        AllowAny,
-    ]
+# class GetSingleStock(APIView):
+#     serializer_class = StockSerializer
+#     permission_classes = [
+#         AllowAny,
+#     ]
 
-    def get(self, request, *args, **kwargs):
-        symbol = self.kwargs.get("symbol")
-        queryset = get_object_or_404(Stock, symbol=symbol)
+#     def get(self, request, *args, **kwargs):
+#         symbol = self.kwargs.get("symbol")
+#         queryset = get_object_or_404(Stock, symbol=symbol)
 
-        details = get_details3([queryset])
-        overview = get_symbol_overview(symbol)
-        fundamental = get_symbol_fundamentals(symbol)
-        news = get_stock_news(symbol)
-        calendar = get_calendar(symbol)
-        signal = get_signal(symbol)
+#         details = get_details3([queryset])
+#         overview = get_symbol_overview(symbol)
+#         fundamental = get_symbol_fundamentals(symbol)
+#         news = get_stock_news(symbol)
+#         calendar = get_calendar(symbol)
+#         signal = get_signal(symbol)
 
-        response_data = {
-            "stock_detail": details,
-            "order_book": [],
-            "overview": overview,
-            "fundamental": fundamental,
-            "news": news,
-            "calendar": calendar,
-            "signal": signal,
-            # 'historical_data':historical_data
-        }
-        return Response(response_data)
+#         response_data = {
+#             "stock_detail": details,
+#             "order_book": [],
+#             "overview": overview,
+#             "fundamental": fundamental,
+#             "news": news,
+#             "calendar": calendar,
+#             "signal": signal,
+#             # 'historical_data':historical_data
+#         }
+#         return Response(response_data)
 
 
 # async def fetch_stock_data(symbol, stock):
@@ -560,6 +560,39 @@ class GetSingleStock(APIView):
 #         }
 
 #         return Response(response_data)
+
+
+class GetSingleStock(APIView, AIFeatureMixin):
+    permission_classes = [
+        AllowAny,
+    ]
+
+    def get(self, request, *args, **kwargs):
+        symbol = self.kwargs.get("symbol")
+        stock = get_object_or_404(Stock, symbol=symbol)
+
+        # Basic data available to all users
+        response_data = {
+            "stock_detail": get_details3([stock]),
+            "overview": get_symbol_overview(symbol),
+            "fundamental": get_symbol_fundamentals(symbol),
+            "news": get_stock_news(symbol),
+            "calendar": get_calendar(symbol),
+        }
+
+        # Check AI feature access for signal
+        has_access, message, days_remaining, is_trial = self.check_ai_access(
+            request.user
+        )
+
+        if has_access:
+            response_data["signal"] = get_signal(symbol)
+            if days_remaining >= 0:  # Trial period
+                response_data["trial_days_remaining"] = days_remaining
+        else:
+            response_data["signal"] = []
+
+        return Response(response_data)
 
 
 class StockDetail(generics.RetrieveAPIView):
