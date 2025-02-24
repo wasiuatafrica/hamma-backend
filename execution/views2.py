@@ -59,7 +59,9 @@ from .models import (
 
 from django.db import transaction
 from .utils import send_trade_notification
+import logging
 
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
