@@ -1182,11 +1182,11 @@ def calculate_cumulative_returns(
             )
 
     # For debugging
-    print("Cumulative Returns Data:")
-    for r in result:
-        print(
-            f"Date: {r['date']}, Portfolio: {r['portfolio_returns']}, Market: {r['market_returns']}"
-        )
+    # print("Cumulative Returns Data:")
+    # for r in result:
+    #     print(
+    #         f"Date: {r['date']}, Portfolio: {r['portfolio_returns']}, Market: {r['market_returns']}"
+    #     )
 
     return result
 

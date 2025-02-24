@@ -2300,28 +2300,6 @@ class SupportDemoPorfoliosAccounts(APIView):
         """
         email = kwargs.get("email")
 
-        # competition = competion_models.Competition.objects.filter(status='current').first()
-        # if competition:
-        #     competition_account = CompetitionPortfolio.objects.filter(user__email=email,competition=competition)
-        #     if competition_account.exists():
-        #         competition_account = competition_account.first()
-
-        #         compositions = CompetitionPosition.objects.filter(portfolio=competition_account, status='open')
-        #         com_open_balance = sum([position.amount_invested for position in compositions])
-        #         comdata = {
-        #             "id": competition_account.id,
-        #             'account_name':competition_account.account_name,
-        #             "account_type":competition_account.account_type,
-        #             "balance":competition_account.balance + com_open_balance,
-        #             "user":competition_account.user.id,
-        #             "account_id": competition_account.account_id,
-        #             'active':competition_account.active
-        #         }
-        #     else:
-        #         comdata = []
-        # else:
-        #     comdata = []
-
         competition_account = CompetitionPortfolio.objects.filter(
             user__email=email
         ).order_by("id")
@@ -2346,7 +2324,7 @@ class SupportDemoPorfoliosAccounts(APIView):
         else:
             comdata = []
 
-        demo_accounts = DemoPortfolio.objects.filter(user__email=email)
+        demo_accounts = DemoPortfolio.objects.filter(user__email=email, is_prop=False)
         demo_data = []
         for accounts in demo_accounts:
             positions = DemoPosition.objects.filter(portfolio=accounts, status="open")
@@ -2360,11 +2338,43 @@ class SupportDemoPorfoliosAccounts(APIView):
                 "balance": accounts.balance + open_balance,
                 "user": accounts.user.id,
                 "account_id": accounts.account_id,
+                "is_prop": False,
+                "account_type_level": "not_applicable",
+                "model_typee": "not_applicable",
             }
             demo_data.append(data)
 
+        prop_accounts = DemoPortfolio.objects.filter(
+            user__email=email, is_prop=True, activated=True
+        )
+        prop_data = []
+        for accounts in prop_accounts:
+            positions = DemoPosition.objects.filter(portfolio=accounts, status="open")
+            # print(accounts.user)
+            # print(positions)
+            open_balance = sum([position.amount_invested for position in positions])
+            data = {
+                "id": accounts.id,
+                "account_name": accounts.account_name,
+                "account_type": accounts.account_type,
+                "balance": accounts.balance + open_balance,
+                "user": accounts.user.id,
+                "account_id": accounts.account_id,
+                "activated": accounts.activated,
+                "is_prop": True,
+                "account_type_level": accounts.account_type_level,
+                "model_type": accounts.model_type,
+            }
+            prop_data.append(data)
+
         # serializer = self.serializer_class(demo_accounts, many=True)
-        return Response({"demo_accounts": demo_data, "competition_account": comdata})
+        return Response(
+            {
+                "demo_accounts": demo_data,
+                "competition_account": comdata,
+                "prop_accounts": prop_data,
+            }
+        )
 
 
 class PorfoliosAccounts(APIView):

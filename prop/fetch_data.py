@@ -144,7 +144,8 @@ def fetch_portfolio_data():
             AND dp.is_active = TRUE
             AND dp.inactive_by_inactivity = FALSE
             AND dp.activated = TRUE
-            AND dp.blown = FALSE;
+            AND dp.blown = FALSE
+            AND dp.has_hamma_id IS NULL;
             """
         )
         results = cursor.fetchall()

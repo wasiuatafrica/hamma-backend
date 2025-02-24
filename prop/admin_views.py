@@ -205,6 +205,9 @@ class HammaRequestAdminView(APIView):
                         receipt_approved=True,
                         time_to_payout=demo_portfolio.time_to_payout,
                         issued_at=now(),
+                        profit_target=demo_portfolio.profit_target,
+                        payout=demo_portfolio.payout,
+                        broker=demo_portfolio.broker,
                         # activated=True,
                     )
 
