@@ -1,6 +1,7 @@
 # myapp/management/commands/update_closed_at.py
 from django.core.management.base import BaseCommand
 from execution.models import DemoPosition
+from competition.models import CompetitionPosition
 
 
 class Command(BaseCommand):
@@ -8,8 +9,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # Filter for positions that are closed and do not have closed_at set
-        closed_positions = DemoPosition.objects.filter(
-            status=DemoPosition.CLOSED, closed_at__isnull=True
+        closed_positions = CompetitionPosition.objects.filter(
+            status=CompetitionPosition.CLOSED, closed_at__isnull=True
         )
         count = closed_positions.count()
 

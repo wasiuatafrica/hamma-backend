@@ -25,7 +25,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-import prop
 from accounts.models import AdminUserActivityLog, Referral
 from accounts.serializers import AdminCustomUserSerializer
 from affilate.models import ReferralWallet, ReferralWithdrawalRequest, RewardActivities
@@ -46,7 +45,7 @@ from notifications.utils import save_and_send_notification
 from portfolio.models import PayStackReceipts, Receipts
 
 from .analyzer import analyze_hamma_request_eligibility
-from .models import Payout
+from .models import Payout, PropReferralWallet, PropReferral, PropReferralHistory
 from .pay_service import PayoutService
 from .serializers import AccountlistSerializer, PayoutDetailSerializer
 from .utils import (
@@ -586,264 +585,42 @@ class AccountDataView(APIView):
             )
 
 
-# class AdminReceiptsView(APIView):
-#     serializer_class = AdminReceiptsViewSerializer
+def get_standard_amount(initial_balance: int) -> int:
+    """
+    Determine the standard amount based on initial balance.
 
-#     def get(self, request):
-#         email = request.GET.get("email")
-#         filter = request.GET.get("filter")
-#         receipts_data = []
+    Args:
+        initial_balance (int): The initial balance amount
 
-#         # Get all receipts IDs from PropReceipt to filter against
-#         prop_receipt_ids = PropReceipt.objects.values_list("receipt_id", flat=True)
+    Returns:
+        int: The standard amount corresponding to the balance tier
+    """
+    if initial_balance == 10000000:
+        return 180000
+    elif initial_balance == 5000000:
+        return 99000
+    elif initial_balance == 1000000:
+        return 25000
+    return 0  # Default case, consider adding error handling if needed
 
-#         if filter == "bank_transfer":
-#             # Only include receipts in PropReceipt
-#             for receipt in Receipts.objects.filter(
-#                 user__email=email, id__in=pr
-#             ).order_by("-created"):
-#                 receipt_dict = {
-#                     "id": receipt.id,
-#                     "amount": receipt.amount,
-#                     "created": receipt.created,
-#                     "receipt_status": receipt.receipt_status,
-#                     "payment_method": receipt.payment_method,
-#                     "fullname": receipt.user.fullname,
-#                     "comment": receipt.comment,
-#                     "approved_date": receipt.approved_date,
-#                     "image_url": receipt.image.url if receipt.image else "",
-#                     "user": receipt.user.id,
-#                     "flag": receipt.flag,
-#                     "timestamp": receipt.created.timestamp(),
-#                     discount_code =
-#                 }
-#                 receipts_data.append(receipt_dict)
-#         elif filter == "paystack":
-#             # Only include PayStack receipts in PropReceipt
-#             # paystack_receipt_ids = PropReceipt.objects.filter(
-#             #     receipt__in=PayStackReceipts.objects.all()
-#             # ).values_list("receipt_id", flat=True)
-#             paystack_receipt_ids = []
 
-#             for paystack_receipt in PayStackReceipts.objects.filter(
-#                 user__email=email, id__in=paystack_receipt_ids
-#             ).order_by("-date"):
-#                 paystack_receipt_dict = {
-#                     "id": paystack_receipt.id,
-#                     "amount": paystack_receipt.amount,
-#                     "created": paystack_receipt.date,
-#                     "receipt_status": paystack_receipt.receipt_status,
-#                     "payment_method": "paystack",
-#                     "user": paystack_receipt.user.id,
-#                     "image_url": "",
-#                     "approved_date": "",
-#                     "comment": paystack_receipt.comment,
-#                     "fullname": paystack_receipt.user.fullname,
-#                     "flag": paystack_receipt.flag,
-#                     "timestamp": paystack_receipt.date.timestamp(),
-#                 }
-#                 receipts_data.append(paystack_receipt_dict)
-#         else:
-#             # For no specific filter, include both Receipts and PayStackReceipts in PropReceipt
-#             for receipt in Receipts.objects.filter(id__in=prop_receipt_ids).order_by(
-#                 "-created"
-#             ):
-#                 receipt_dict = {
-#                     "id": receipt.id,
-#                     "amount": receipt.amount,
-#                     "created": receipt.created,
-#                     "receipt_status": receipt.receipt_status,
-#                     "payment_method": receipt.payment_method,
-#                     "fullname": receipt.user.fullname,
-#                     "comment": receipt.comment,
-#                     "approved_date": receipt.approved_date,
-#                     "image_url": receipt.image.url if receipt.image else "",
-#                     "user": receipt.user.id,
-#                     "flag": receipt.flag,
-#                     "timestamp": receipt.created.timestamp(),
-#                 }
-#                 receipts_data.append(receipt_dict)
+def apply_discount(amount: int, discount=None) -> int:
+    """
+    Apply discount to the amount based on discount code.
 
-#             # for paystack_receipt in PayStackReceipts.objects.filter(
-#             #     id__in=paystack_receipt_ids
-#             # ).order_by("-date"):
-#             #     paystack_receipt_dict = {
-#             #         "id": paystack_receipt.id,
-#             #         "amount": paystack_receipt.amount,
-#             #         "created": paystack_receipt.date,
-#             #         "receipt_status": paystack_receipt.receipt_status,
-#             #         "payment_method": "paystack",
-#             #         "user": paystack_receipt.user.id,
-#             #         "image_url": "",
-#             #         "approved_date": "",
-#             #         "comment": paystack_receipt.comment,
-#             #         "fullname": paystack_receipt.user.fullname,
-#             #         "flag": paystack_receipt.flag,
-#             #         "timestamp": paystack_receipt.date.timestamp(),
-#             #     }
-#             #     receipts_data.append(paystack_receipt_dict)
+    Args:
+        amount (int): Original amount
+        discount_code (str): The discount code to apply
 
-#         receipts_data2 = sorted(
-#             receipts_data, key=lambda x: x["timestamp"], reverse=True
-#         )
-#         return Response(receipts_data2)
+    Returns:
+        int: Amount after applying discount
+    """
 
-#     def post(self, request):
-
-#         statuses = ["approved", "rejected"]
-
-#         # id = request.data["id"]
-#         # amount = request.data["amount"]
-#         receipt_status = request.data["receipt_status"]
-#         comment = request.data.get("comment", None)
-
-#         receipt_ids = request.data.get("receipt_ids", [])
-#         print("recipt ids", receipt_ids)
-
-#         if receipt_status not in statuses:
-#             return Response("receipt_status must either be approved or rejected ")
-
-#         receipt_data = []
-
-#         for id in receipt_ids:
-
-#             receipt = Receipts.objects.get(id=id)
-#             receipt.receipt_status = receipt_status
-#             receipt.save()
-
-#             if receipt_status == "approved":
-
-#                 receipt.amount = 180000
-#                 receipt.save()
-#                 AdminUserActivityLog.objects.create(
-#                     admin=request.user,
-#                     user=receipt.user,
-#                     action_type="approved_reciept",
-#                     description=f"Admin user approved reciept.",
-#                 )
-#                 prop_receipt = PropReceipt.objects.filter(receipt=receipt).first()
-
-#                 prop_account = prop_receipt.account
-#                 prop_account.receipt_approved = True
-#                 # prop_account.activated = True
-#                 prop_account.is_active = True
-#                 prop_account.save()
-
-#                 account_info = {
-#                     "login": prop_account.account_id,
-#                     "password": prop_account.code,
-#                     "server": "HammaServer",
-#                     "acc_size": (
-#                         "Model 1" if prop_account.model_type == "model_1" else "Model 2"
-#                     ),
-#                     "payout": prop_account.payout.title(),
-#                     "broker": prop_account.broker.title(),
-#                     "first_name": receipt.user.firstname.title(),
-#                 }
-
-#                 # send the user the account details
-#                 sendMail(
-#                     "prop/AccountInfo.html",
-#                     "Prop Account Details",
-#                     [receipt.user.email],
-#                     account_info,
-#                 )
-
-#                 try:
-#                     # Check if this user was referred by someone
-#                     referral = Referral.objects.get(person_referred=receipt.user)
-
-#                     # Check if rewards have already been given for this user
-#                     existing_reward = RewardActivities.objects.filter(
-#                         trader=receipt.user, reward_type="prop_referral"
-#                     ).exists()
-
-#                     if not existing_reward:
-#                         # Credit referrer
-#                         referrer_wallet, _ = ReferralWallet.objects.get_or_create(
-#                             user=referral.user
-#                         )
-#                         referrer_wallet.balance += Decimal("18000")
-#                         referrer_wallet.save()
-
-#                         # Create reward activity for referrer
-#                         RewardActivities.objects.create(
-#                             user=referral.user,
-#                             trader=receipt.user,
-#                             reward_type="prop_referral",
-#                             amount=18000,
-#                             status="processed",
-#                             comment="Referral reward for prop account purchase",
-#                         )
-
-#                         # Credit referee (the user who was referred)
-#                         referee_wallet, _ = ReferralWallet.objects.get_or_create(
-#                             user=receipt.user
-#                         )
-#                         referee_wallet.balance += Decimal("18000")
-#                         referee_wallet.save()
-
-#                         # Create reward activity for referee
-#                         RewardActivities.objects.create(
-#                             user=receipt.user,
-#                             trader=receipt.user,
-#                             reward_type="referral_reward",
-#                             amount=18000,
-#                             status="processed",
-#                             comment="Referral reward for prop account purchase",
-#                         )
-
-#                         # Update referral status
-#                         # referral.converted = True
-#                         # referral.save()
-
-#                 except Referral.DoesNotExist:
-#                     # No referral relationship exists
-#                     pass
-
-#                 data = {
-#                     "id": receipt.id,
-#                     "user": receipt.user.id,
-#                     "fullname": receipt.user.fullname,
-#                     "amount": receipt.amount,
-#                     "payment_method": receipt.payment_method,
-#                     "receipt_status": receipt.receipt_status,
-#                     "comment": receipt.comment,
-#                     "created": receipt.created,
-#                     "approved_date": receipt.approved_date,
-#                     "image_url": receipt.image.url if receipt.image else None,
-#                 }
-#                 receipt_data.append(data)
-
-#             elif receipt_status == "rejected":
-#                 receipt.comment = comment
-#                 receipt.save()
-
-#                 AdminUserActivityLog.objects.create(
-#                     admin=request.user,
-#                     user=receipt.user,
-#                     action_type="rejected_reciept",
-#                     description=f"Admin user rejected reciept.",
-#                 )
-#                 data = {
-#                     "id": receipt.id,
-#                     "user": receipt.user.id,
-#                     "fullname": receipt.user.fullname,
-#                     "amount": receipt.amount,
-#                     "payment_method": receipt.payment_method,
-#                     "receipt_status": receipt.receipt_status,
-#                     "comment": receipt.comment,
-#                     "created": receipt.created,
-#                     "approved_date": receipt.approved_date,
-#                     "image_url": receipt.image.url if receipt.image else None,
-#                 }
-#                 save_and_send_notification(
-#                     receipt.user.id,
-#                     f"Your payment receipt has been rejected. Reason: {receipt.comment}.",
-#                 )
-#                 receipt_data.append(data)
-
-#         return Response(receipt_data)
+    if discount:
+        discount_percentage = discount.discount_percentage
+        discount_amount = (amount * discount_percentage) // 100
+        return amount - discount_amount
+    return amount
 
 
 class AdminReceiptsView(APIView):
@@ -1019,12 +796,17 @@ class AdminReceiptsView(APIView):
 
                 prop_receipt = PropReceipt.objects.filter(receipt=receipt).first()
 
-                if int(prop_receipt.account.initial_balance) == 10000000:
-                    receipt.amount = 180000
-                elif int(prop_receipt.account.initial_balance) == 5000000:
-                    receipt.amount = 99000
-                elif int(prop_receipt.account.initial_balance) == 1000000:
-                    receipt.amount = 25000
+                # Get standard amount based on initial balance
+                initial_balance = int(prop_receipt.account.initial_balance)
+                standard_amount = get_standard_amount(initial_balance)
+
+                # Apply discount if discount code exists
+                final_amount = apply_discount(
+                    standard_amount, prop_receipt.discount_code
+                )
+
+                # Set and save the final amount
+                receipt.amount = final_amount
                 receipt.save()
 
                 AdminUserActivityLog.objects.create(
@@ -1062,70 +844,46 @@ class AdminReceiptsView(APIView):
                     account_info,
                 )
 
-                # record the datetime the account was issued to the user to track 3days activation
-                # print("Helooo")
-                # demo_acc = DemoPortfolio.objects.get(id=id)
-                # demo_acc.issued_at = now()
-                # demo_acc.save()
+                referral = PropReferral.objects.filter(referee=receipt.user).first()
+                if referral:
+                    referral.status = "trader"
+                    referral.save()
 
-                try:
-                    # Check if this user was referred by someone
-                    referral = Referral.objects.get(person_referred=receipt.user)
+                    commission_amount = Decimal(receipt.amount) * Decimal(
+                        "0.10"
+                    )  # 10% commission
 
-                    # Check if rewards have already been given for this user
-                    existing_reward = RewardActivities.objects.filter(
-                        trader=receipt.user, reward_type="prop_referral"
-                    ).exists()
+                    # Add commission to referrer's wallet
+                    referrer_wallet, _ = PropReferralWallet.objects.get_or_create(
+                        user=referral.referrer
+                    )
+                    referrer_wallet.balance += round(commission_amount, 2)
+                    referrer_wallet.total_earned += round(commission_amount)
+                    referrer_wallet.save()
 
-                    if not existing_reward:
-                        # Credit referrer
-                        referrer_wallet, _ = ReferralWallet.objects.get_or_create(
-                            user=referral.user
-                        )
-                        if str(prop_account.initial_balance) == "10000000":
-                            ref_amount = Decimal("18000")
-                        elif str(prop_account.initial_balance) == "5000000":
-                            ref_amount = Decimal("9900")
-                        elif str(prop_account.initial_balance) == "1000000":
-                            ref_amount = Decimal("2500")
+                    # Create history record for referrer
+                    PropReferralHistory.objects.create(
+                        user=referral.referrer,
+                        amount=commission_amount,
+                        transaction_type="earning",
+                        status="approved",
+                    )
 
-                        referrer_wallet.balance += ref_amount
-                        referrer_wallet.save()
+                    # Add commission to referee's wallet
+                    referee_wallet, _ = PropReferralWallet.objects.get_or_create(
+                        user=receipt.user
+                    )
+                    referee_wallet.balance += commission_amount
+                    referee_wallet.total_earned += commission_amount
+                    referee_wallet.save()
 
-                        # Create reward activity for referrer
-                        RewardActivities.objects.create(
-                            user=referral.user,
-                            trader=receipt.user,
-                            reward_type="prop_referral",
-                            amount=ref_amount,
-                            status="processed",
-                            comment="Referral reward for prop account purchase",
-                        )
-
-                        # Credit referee (the user who was referred)
-                        referee_wallet, _ = ReferralWallet.objects.get_or_create(
-                            user=receipt.user
-                        )
-                        referee_wallet.balance += ref_amount
-                        referee_wallet.save()
-
-                        # Create reward activity for referee
-                        RewardActivities.objects.create(
-                            user=receipt.user,
-                            trader=receipt.user,
-                            reward_type="referral_reward",
-                            amount=ref_amount,
-                            status="processed",
-                            comment="Referral reward for prop account purchase",
-                        )
-
-                        # Update referral status
-                        # referral.converted = True
-                        # referral.save()
-
-                except Referral.DoesNotExist:
-                    # No referral relationship exists
-                    pass
+                    # Create history record for referee
+                    PropReferralHistory.objects.create(
+                        user=receipt.user,
+                        amount=commission_amount,
+                        transaction_type="earning",
+                        status="approved",
+                    )
 
                 data = {
                     "id": receipt.id,
@@ -2287,3 +2045,76 @@ class HammaAccountRequestView(APIView):
             return Response(
                 {"error": "Account not found"}, status=status.HTTP_400_BAD_REQUEST
             )
+
+
+class ReferralCodeView(APIView):
+    def get(self, request):
+        user = request.user
+        return Response({"referral_code": user.profile.first().referral_code.upper()})
+
+
+class ReferralBalanceView(APIView):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({"error": "Authentication required"}, status=401)
+        wallet, _ = PropReferralWallet.objects.get_or_create(user=request.user)
+        return Response(
+            {"balance": wallet.balance, "total_earned": wallet.total_earned}
+        )
+
+
+class ReferredUsersView(APIView):
+    def get(self, request):
+        referrals = PropReferral.objects.filter(referrer=request.user)
+        data = []
+        for referral in referrals:
+            data.append(
+                {
+                    "user_id": referral.referee.id,
+                    "email": referral.referee.email,
+                    "fullname": referral.referee.fullname,
+                    "status": referral.status,
+                    "date_joined": referral.created_at,
+                }
+            )
+        return Response(data)
+
+
+class WithdrawalRequestView(APIView):
+    def post(self, request):
+        amount = request.data.get("amount")
+        wallet = PropReferralWallet.objects.get(user=request.user)
+
+        if not amount:
+            return Response({"error": "Amount is required"}, status=400)
+
+        if float(amount) > wallet.balance:
+            return Response({"error": "Insufficient balance"}, status=400)
+
+        PropReferralHistory.objects.create(
+            user=request.user,
+            amount=amount,
+            transaction_type="withdrawal",
+            status="pending",
+        )
+
+        return Response({"message": "Withdrawal request submitted successfully"})
+
+
+class ReferralHistoryView(APIView):
+    def get(self, request):
+        history = PropReferralHistory.objects.filter(user=request.user).order_by(
+            "-created_at"
+        )
+        data = []
+        for item in history:
+            data.append(
+                {
+                    "amount": item.amount,
+                    "type": item.transaction_type,
+                    "status": item.status,
+                    "date": item.created_at,
+                    "comment": item.comment,
+                }
+            )
+        return Response(data)

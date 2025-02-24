@@ -1,0 +1,19 @@
+
+<!-- templates/emails/trade_close.html -->
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>Trade Closed</h2>
+    <p>A trade has been closed with the following details:</p>
+    
+    <ul>
+        <li>User: {{user_email}}</li>
+        <li>Symbol: {{symbol}}</li>
+        <li>Quantity: {{quantity}}</li>
+        <li>Open Price: {{open_price}}</li>
+        <li>Close Price: {{close_price}}</li>
+        <li>Profit/Loss: {{profit_loss}}</li>
+        <li>Account ID: {{account_id}}</li>
+    </ul>
+</body>
+</html>

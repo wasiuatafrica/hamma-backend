@@ -126,6 +126,7 @@ class DemoPortfolio(auto_prefetch.Model):
         related_name="has_hamma2",
     )
     issued_at = models.DateTimeField(null=True, blank=True)
+    can_trade = models.BooleanField(default=True)
     history = HistoricalRecords()
 
     def save(self, *args, **kwargs):

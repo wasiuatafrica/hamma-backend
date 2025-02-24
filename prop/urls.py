@@ -102,7 +102,10 @@ urlpatterns = [
     path("barchart/", analytics_views.PortfoliosByTypeView.as_view()),
     # NEW
     path("new-support-payoutlist/", views.PayoutListAPIView2.as_view()),
+    # ref
+    path("referral/code/", views.ReferralCodeView.as_view()),
+    path("referral/balance/", views.ReferralBalanceView.as_view()),
+    path("referral/users/", views.ReferredUsersView.as_view()),
+    path("referral/withdraw/", views.WithdrawalRequestView.as_view()),
+    path("referral/history/", views.ReferralHistoryView.as_view()),
 ]
-
-# # Add router URLs to urlpatterns
-# urlpatterns += router.urls

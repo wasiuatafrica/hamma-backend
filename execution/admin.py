@@ -63,6 +63,7 @@ class DemoPortfolioAdmin(SimpleHistoryAdmin):
         "account_id",
         "balance",
         "model_type",
+        "account_type_level",
         "is_prop",
         "activated",
         "initial_balance",

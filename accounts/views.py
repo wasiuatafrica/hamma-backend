@@ -7,7 +7,7 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from prop.models import PropReferral, PropReferralWallet
 from affilate.models import ReferralWallet
 from execution.models import DailyReturns, DemoDailyReturns, DemoPortfolio, Portfolio
 from portfolio.models import Wallet
@@ -36,13 +36,17 @@ class Registration(APIView):
                 user.save()
                 # Create the referral object.
                 referred_by = models.Profile.objects.filter(
-                    referral_code=ref_code
+                    referral_code__iexact=ref_code
                 ).first()
+
                 if referred_by:
                     models.Referral.objects.create(
                         user=referred_by.user, person_referred=user
                     )
-                    # print(referral.status, referral.user, "hhhhh")
+
+                    PropReferral.objects.create(
+                        referrer=referred_by.user, referee=user, status="registered"
+                    )
                 return Response(
                     {
                         "detail": "A token has been sent to your mail",

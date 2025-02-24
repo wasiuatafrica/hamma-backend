@@ -76,6 +76,7 @@ def get_all_balance_equity_data():
                 inactive_by_inactivity=False,
                 activated=True,
                 blown=False,
+                has_hamma__isnull=True,
             )
             for account in prop_accounts:
                 account_data = get_equity_balance(account)
@@ -110,6 +111,7 @@ def get_fixed_balance_equity_data():
         inactive_by_inactivity=False,
         activated=True,
         blown=False,
+        has_hamma__isnull=True,
     )
     for account in prop_accounts:
         print(account)

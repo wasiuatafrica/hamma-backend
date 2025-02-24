@@ -204,6 +204,7 @@ class HammaRequestAdminView(APIView):
                         account_type_level="hamma",
                         receipt_approved=True,
                         time_to_payout=demo_portfolio.time_to_payout,
+                        issued_at=now(),
                         # activated=True,
                     )
 
@@ -215,6 +216,29 @@ class HammaRequestAdminView(APIView):
                         hamma_request.user.id,
                         f"Your Hamma account request has been approved. Check your email.",
                     )
+
+                    account_info = {
+                        "login": new_portfolio.account_id,
+                        "password": new_portfolio.code,
+                        "server": "Hamma",
+                        "acc_type": (
+                            "Model 1"
+                            if new_portfolio.model_type == "model_1"
+                            else "Model 2"
+                        ),
+                        "account_size": int(new_portfolio.initial_balance),
+                        "payout": new_portfolio.payout.title(),
+                        "broker": new_portfolio.broker.title(),
+                        "first_name": new_portfolio.user.firstname.title(),
+                    }
+
+                    # send the user the account details
+                    # sendMail(
+                    #     "prop/hamma_account_issue.html",
+                    #     "🚀 You’re In! Welcome to the Hamma Trading Squad 🎉",
+                    #     [new_portfolio.user.email],
+                    #     account_info,
+                    # )
             else:
                 save_and_send_notification(
                     hamma_request.user.id,

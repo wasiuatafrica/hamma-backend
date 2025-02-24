@@ -61,9 +61,13 @@ class CompetitionPortfolio(auto_prefetch.Model):
     )
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    initial_balance = models.DecimalField(
+        max_digits=10, decimal_places=2, default=1000000.0
+    )
     active = models.BooleanField(default=True)
     account_name = models.CharField(max_length=20, default="Competition Account 1")
     account_id = models.CharField(max_length=20, null=True, blank=True)
+    can_trade = models.BooleanField(default=True)
     history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
@@ -165,6 +169,7 @@ class CompetitionPosition(auto_prefetch.Model):
         max_digits=10, decimal_places=2, blank=True, null=True
     )
     comment = models.TextField(null=True, blank=True)
+    closed_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.portfolio.user} - {self.stock.symbol} - {self.action} - {self.status}| {self.updated}"

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import views2
 
 urlpatterns = [
     # path("trade/demo/", views.DemoTradeAPIView.as_view()),
@@ -16,22 +17,22 @@ urlpatterns = [
     path("live/account/<str:id>/", views.RetrieveSinglePorfoliosAccounts.as_view()),
     path(
         "demo/trade/<str:account_type>/<str:id>/",
-        views.SingleDemoTradeAPIView.as_view(),
+        views2.SingleDemoTradeAPIView.as_view(),
     ),
-    path("demo/home/trade/<str:account_type>/<str:id>/", views.NewHome.as_view()),
+    path("demo/home/trade/<str:account_type>/<str:id>/", views2.NewHome.as_view()),
     path(
         "demo/home/overview/<str:account_type>/<str:id>/<str:from_date>/<str:to_date>/",
         views.NewOverView.as_view(),
     ),
     path(
         "demo/close/trade/<str:account_type>/<str:id>/<str:position_id>/",
-        views.NewDemoCloseTrade.as_view(),
+        views2.NewDemoCloseTrade.as_view(),
     ),
     path(
         "demo/cancel/trade/<str:account_type>/<str:id>/<str:position_id>/",
         views.NewDemoClosePendingTrade.as_view(),
     ),
-    path("demo/holding/<str:account_type>/<str:id>/", views.NewDemoHolding.as_view()),
+    path("demo/holding/<str:account_type>/<str:id>/", views2.NewDemoHolding.as_view()),
     path("trailing-sl/<str:id>/", views.AddTrailingStopLoss.as_view()),
     path("create-competition-account/", views.CreatCompetitionAccount.as_view()),
     path("leave-competition/", views.LeaveCompetion.as_view()),
@@ -40,7 +41,9 @@ urlpatterns = [
     ),
     path("activate-prop-account/", views.ActivatePropAccountView.as_view()),
     path(
-        "demo/support/home/<str:account_type>/<str:id>/", views.NewSupportHome.as_view()
+        # "demo/support/home/<str:account_type>/<str:id>/", views.NewSupportHome.as_view()
+        "demo/support/home/<str:account_type>/<str:id>/",
+        views2.NewHome.as_view(),
     ),
     path(
         "demo/support/accounts/<str:email>/",
@@ -48,7 +51,8 @@ urlpatterns = [
     ),
     path(
         "demo/support/holding/<str:account_type>/<str:id>/",
-        views.NewSupportDemoHolding.as_view(),
+        # views.NewSupportDemoHolding.as_view(),
+        views2.NewDemoHolding.as_view(),
     ),
     path(
         "demo/support/trade/<str:account_type>/<str:id>/",

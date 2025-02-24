@@ -1,6 +1,14 @@
-from calendar import c
-from re import M
+import os
+from datetime import datetime, timedelta
 
+import pandas as pd
+import pytz
+from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from rest_framework import serializers
+
+from anyon.views import User
 from competition.models import (
     Competition,
     CompetitionCumulativeReturns2,
@@ -8,23 +16,18 @@ from competition.models import (
     CompetitionPortfolio,
     CompetitionPosition,
 )
+
 from .models import (
     CompetitionCumulativeMarketReturns,
     CompetitionMarketReturns,
-    DemoPosition,
-    DemoPortfolio,
+    CumulativeMarketReturns,
     DemoCumulativeReturns,
     DemoDailyReturns,
     DemoDailyReturns2,
+    DemoPortfolio,
+    DemoPosition,
     MarketReturns,
-    CumulativeMarketReturns,
 )
-from rest_framework import serializers
-import pandas as pd
-import pytz
-from datetime import datetime, timedelta
-
-from anyon.views import User
 
 
 class DemoPositionSerializer(serializers.ModelSerializer):
@@ -229,7 +232,7 @@ import numpy as np
 
 
 def mark_returns():
-    from tvDatafeed import TvDatafeed, Interval
+    from tvDatafeed import Interval, TvDatafeed
 
     tv = TvDatafeed()
     df = tv.get_hist(
@@ -284,7 +287,7 @@ def days_since_date(date_str):
 
 
 def daily_returns3():
-    from tvDatafeed import TvDatafeed, Interval
+    from tvDatafeed import Interval, TvDatafeed
 
     today = timezone.now().date()
 
@@ -410,7 +413,7 @@ def daily_returns3():
 
 
 def competition_daily_returns3():
-    from tvDatafeed import TvDatafeed, Interval
+    from tvDatafeed import Interval, TvDatafeed
 
     today = timezone.now().date()
 
@@ -499,7 +502,7 @@ def competition_daily_returns3():
 
 
 def competition_daily_returns4():
-    from tvDatafeed import TvDatafeed, Interval
+    from tvDatafeed import Interval, TvDatafeed
 
     today = timezone.now().date()
 
@@ -695,7 +698,7 @@ def competition_daily_returns4():
 
 
 def daily_returns5():
-    from tvDatafeed import TvDatafeed, Interval
+    from tvDatafeed import Interval, TvDatafeed
 
     today = timezone.now().date()
 
@@ -715,7 +718,7 @@ def daily_returns5():
             for portfolio in portfolios:
                 print(portfolio.account_name)
                 positions_today = DemoPosition.objects.filter(
-                    portfolio=portfolio, status="close", updated__date=today
+                    portfolio=portfolio, status="close", closed_at__date=today
                 )
 
                 if positions_today.exists():
@@ -736,7 +739,7 @@ def daily_returns5():
                             position.get_status_display() for position in positions
                         ],
                         "closedatetime": [
-                            timezone.localtime(position.updated).replace(tzinfo=None)
+                            timezone.localtime(position.closed_at).replace(tzinfo=None)
                             for position in positions
                         ],
                         "Amount_Invested": [
@@ -906,7 +909,7 @@ def daily_returns5():
 
 
 def competition_daily_returns7():
-    from tvDatafeed import TvDatafeed, Interval
+    from tvDatafeed import Interval, TvDatafeed
 
     today = timezone.now().date()
 
@@ -926,7 +929,7 @@ def competition_daily_returns7():
         )
         for portfolio in portfolios:
             positions_today = CompetitionPosition.objects.filter(
-                portfolio=portfolio, status="close", updated__date=today
+                portfolio=portfolio, status="close", closed_at__date=today
             )
 
             if positions_today.exists():
@@ -943,7 +946,7 @@ def competition_daily_returns7():
                     "Close_Price": [position.close_price for position in positions],
                     "Status": [position.get_status_display() for position in positions],
                     "closedatetime": [
-                        timezone.localtime(position.updated).replace(tzinfo=None)
+                        timezone.localtime(position.closed_at).replace(tzinfo=None)
                         for position in positions
                     ],
                     "Amount_Invested": [
@@ -1095,7 +1098,7 @@ def competition_daily_returns7():
 
 
 def daily_returns7():
-    from tvDatafeed import TvDatafeed, Interval
+    from tvDatafeed import Interval, TvDatafeed
 
     today = timezone.now().date()
 
@@ -1103,7 +1106,11 @@ def daily_returns7():
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
     # print(current_time_lagos)
 
-    # if current_time_lagos.time() >= datetime.strptime('8:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('11:31 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
+    # if (
+    #     current_time_lagos.time() >= datetime.strptime("8:02 AM", "%I:%M %p").time()
+    #     and current_time_lagos.time()
+    #     <= datetime.strptime("11:31 PM", "%I:%M %p").time()
+    # ):
     if (
         current_time_lagos.time() >= datetime.strptime("10:02 AM", "%I:%M %p").time()
         and current_time_lagos.time() <= datetime.strptime("2:30 PM", "%I:%M %p").time()
@@ -1132,7 +1139,7 @@ def daily_returns7():
                     "Close_Price": [position.close_price for position in positions],
                     "Status": [position.get_status_display() for position in positions],
                     "closedatetime": [
-                        timezone.localtime(position.updated).replace(tzinfo=None)
+                        timezone.localtime(position.closed_at).replace(tzinfo=None)
                         for position in positions
                     ],
                     "Amount_Invested": [
@@ -1287,3 +1294,30 @@ def daily_returns7():
                 c_returns.save()
 
         print("all demo returns calculated")
+
+
+def send_trade_notification(trade_type, action, trade_data):
+    """
+    Send trade notifications to team email
+    trade_type: 'demo' or 'competition'
+    action: 'open' or 'close'
+    trade_data: dict containing trade details
+    """
+    subject = f"Trade {action.title()}ed"
+
+    template = f"internal/trade_{action}.html"
+
+    context = {"trade_type": trade_type, "action": action, **trade_data}
+
+    html_message = render_to_string(template, context)
+    recipient_list = ["dev5.ft9ja@gmail.com"]
+    if os.environ.get("server") != "local":
+        recipient_list.append("teamgohamma@gmail.com")
+
+    send_mail(
+        subject=subject,
+        message="",
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=recipient_list,
+        html_message=html_message,
+    )
