@@ -1548,7 +1548,7 @@ class NewHome(APIView):
         )
 
         # Calculate positions history
-        # positions_history = self.calculate_positions_history(positions_closed)
+        positions_history = self.calculate_positions_history(positions_closed)
 
         data = {
             "balance": round(metrics.balance, 2),
