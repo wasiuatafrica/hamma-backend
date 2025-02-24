@@ -64,9 +64,7 @@ class AIFeatureMixin:
 
             elif not trial.trial_ended_notification_sent:
                 # Trial just expired - send notification
-                NotificationService().send_notification(
-                    user=user, notification_type="trial_ended"
-                )
+                NotificationService().send_trial_ended_notification(user=user)
                 trial.trial_ended_notification_sent = True
                 trial.save()
                 return (
