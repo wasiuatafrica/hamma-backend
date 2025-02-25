@@ -197,6 +197,33 @@ class AdminReceiptsView(APIView):
         email = request.GET.get("email")
         filter = request.GET.get("filter")
         receipts_data = []
+        receipt_type = request.GET.get("type", None)
+
+        if receipt_type:
+
+            if receipt_type == "ai_subscription":
+                for receipt in Receipts.objects.filter(type="ai_subscription").order_by(
+                    "-created"
+                ):
+                    receipt_dict = {
+                        "id": receipt.id,
+                        "amount": receipt.amount,
+                        "created": receipt.created,
+                        "receipt_status": receipt.receipt_status,
+                        "payment_method": receipt.payment_method,
+                        "fullname": receipt.user.fullname,
+                        "comment": receipt.comment,
+                        "approved_date": receipt.approved_date,
+                        "image_url": receipt.image.url if receipt.image else "",
+                        "user": receipt.user.id,
+                        "flag": receipt.flag,
+                        "timestamp": receipt.created.timestamp(),
+                        "type": receipt.type,
+                    }
+                    receipts_data.append(receipt_dict)
+
+            return Response(receipts_data)
+
         if filter == "bank_tranfer":
             for receipt in Receipts.objects.filter(user__email=email).order_by(
                 "-created"
@@ -237,7 +264,9 @@ class AdminReceiptsView(APIView):
                 }
                 receipts_data.append(paystack_receipt_dict)
         else:
-            for receipt in Receipts.objects.all().order_by("-created"):
+            for receipt in Receipts.objects.exclude(type="ai_subscription").order_by(
+                "-created"
+            ):
                 receipt_dict = {
                     "id": receipt.id,
                     "amount": receipt.amount,
