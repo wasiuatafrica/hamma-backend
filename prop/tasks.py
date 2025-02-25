@@ -1,6 +1,10 @@
 from celery.app import shared_task
 from .utils import get_all_balance_equity_data, get_fixed_balance_equity_data
-from .analyzer import analyze_portfolio_status, analyze_portfolio_status_after_close
+from .analyzer import (
+    analyze_portfolio_status,
+    analyze_portfolio_status_after_close,
+    analyze_hamma_portfolio_status,
+)
 from execution.models import DemoPortfolio, Portfolio
 from .utils import sendMail
 import requests
@@ -27,12 +31,17 @@ def analyze_portfolio_status_task():
         inactive_by_inactivity=False,
         activated=True,
         has_hamma__isnull=True,
-        # account_id="76441051",
+        # account_id="84549103",
+        # account_id="50157814",
     )
     # print(portfolios)
     for portfolio in portfolios:
         if portfolio.account_type_level == "challenge":
             data = analyze_portfolio_status(portfolio)
+            print(data)
+        elif portfolio.account_type_level == "hamma":
+            data = analyze_hamma_portfolio_status(portfolio)
+
             print(data)
 
 

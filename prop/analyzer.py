@@ -479,6 +479,7 @@ class PortfolioAnalyzer:
         Apply overnight swap fees for balance-based drawdown accounts
         """
         if not self.portfolio.balance_based_drawdown:
+            print("not balance based")
             return
 
         current_date = timezone.now().date()
@@ -494,8 +495,9 @@ class PortfolioAnalyzer:
         overnight_positions = DemoPosition.objects.filter(
             portfolio=self.portfolio,
             status=DemoPosition.OPEN,
-            created__date__lt=current_date,
+            # created__date__lt=current_date,
         )
+        print("overnight positions", len(overnight_positions))
 
         total_swap_fee = self.swap_fee * Decimal(str(len(overnight_positions)))
 
@@ -508,6 +510,8 @@ class PortfolioAnalyzer:
             for position in overnight_positions:
                 position.swap_fee += 1000
                 position.save()
+
+                print("swap fee applied")
 
             # Log the swap fee charge
             logger.info(
@@ -631,6 +635,56 @@ def analyze_portfolio_status(portfolio):
         "last_check": timezone.now(),
         "time_to_payout": portfolio.time_to_payout,
         "eligibility_details": eligibility,
+    }
+
+
+def analyze_hamma_portfolio_status(portfolio):
+    """
+    Celery task to analyze and update portfolio status
+    """
+
+    # portfolio = DemoPortfolio.objects.get(id=portfolio_id)
+
+    # Get balance and equity data from your data source
+    balance_equity_data = get_account_data(portfolio.account_id)
+
+    analyzer = PortfolioAnalyzer(balance_equity_data, portfolio)
+
+    print("applying swap")
+
+    analyzer.apply_overnight_swap_fees()
+
+    print("swap appplied")
+
+    # Check account drawdown
+    account_drawdown = analyzer.check_account_drawdown_violation(portfolio.model_type)
+
+    # Check daily drawdown
+    daily_drawdown = analyzer.check_daily_drawdown_violation(portfolio.model_type)
+
+    # Check inactivity
+    is_inactive = analyzer.check_inactivity()
+
+    if is_inactive:
+        portfolio.active = False
+        portfolio.inactive_by_inactivity = is_inactive
+
+    # Update portfolio status
+    portfolio.blown = account_drawdown["violated"] or daily_drawdown["violated"]
+
+    portfolio.save()
+
+    return {
+        "account_id": portfolio.account_id,
+        "portfolio_id": portfolio.id,
+        "status_updated": True,
+        "blown": portfolio.blown,
+        "inactive": portfolio.inactive_by_inactivity,
+        "target_met": portfolio.target_met,
+        "account_drawdown": account_drawdown["drawdown_percentage"],
+        "daily_drawdown": daily_drawdown["max_daily_drawdown"],
+        "last_check": timezone.now(),
+        "time_to_payout": portfolio.time_to_payout,
     }
 
 
