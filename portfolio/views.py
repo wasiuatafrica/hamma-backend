@@ -28,6 +28,7 @@ from rest_framework.permissions import (
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from tradingai.models import SubscriptionPlan
 from tradingai.views import AIFeatureMixin
 from accounts.models import Referral, UserActivityLog
 from affilate.models import ReferralWallet, RewardActivities
@@ -581,8 +582,8 @@ class GetSingleStock(APIView, AIFeatureMixin):
         }
 
         # Check AI feature access for signal
-        has_access, message, days_remaining, is_trial = self.check_ai_access(
-            request.user
+        has_access, message, days_remaining, is_trial, is_subscribed = (
+            self.check_ai_access(request.user)
         )
 
         if has_access:
@@ -724,6 +725,7 @@ class ReceiptsView(APIView):
         device_type = request.data.get("device_type", None)
         drawdown_type = request.data.get("drawdown_type", "balance_equity")
         discount_code = request.data.get("discount_code", None)
+        receipt_type = request.data.get("receipt_type", None)
         discount_instance = None
         if discount_code:
             discount_instance = get_object_or_404(
@@ -737,23 +739,32 @@ class ReceiptsView(APIView):
                 print(image, "sadbscv")
                 receipt = Receipts.objects.create(user=request.user, image=image)
 
-                # sendreciptsmail(request,receipt)
-                # sendreciptsmail(request,image)
-                save_and_send_notification(
-                    request.user.id, "Receipt Upload Successful."
-                )
-                activity = UserActivityLog.objects.create(
-                    user=request.user,
-                    action_type="receipt",
-                    description="User uploaded a payment receipt.",
-                    device_type=device_type,
-                )
-                mail = sendMail(
-                    "general/depositRecieptRecieved.html",
-                    "Deposit Receipt Reviewed",
-                    [request.user.email],
-                    {"first_name": request.user.firstname},
-                )
+                if not receipt_type:
+
+                    save_and_send_notification(
+                        request.user.id, "Receipt Upload Successful."
+                    )
+                    activity = UserActivityLog.objects.create(
+                        user=request.user,
+                        action_type="receipt",
+                        description="User uploaded a payment receipt.",
+                        device_type=device_type,
+                    )
+                    mail = sendMail(
+                        "general/depositRecieptRecieved.html",
+                        "Deposit Receipt Reviewed",
+                        [request.user.email],
+                        {"first_name": request.user.firstname},
+                    )
+                if receipt_type == "ai_subscription":
+                    plan = SubscriptionPlan.objects.first()
+                    receipt.type = "ai_subscription"
+                    receipt.subscription_plan = plan
+                    receipt.save()
+
+                    save_and_send_notification(
+                        receipt.user.id, "Subscrption receipt uploaded."
+                    )
                 return Response({"message": "File uploaded successfully"})
             return Response(serializers.errors)
         elif account_type == "prop_account":

@@ -843,22 +843,26 @@ class AdminReceiptsView(APIView):
                     [receipt.user.email],
                     account_info,
                 )
+                save_and_send_notification(
+                    receipt.user.id,
+                    f"Your payment receipt has been Approved. Please check your mail for account details",
+                )
 
                 referral = PropReferral.objects.filter(referee=receipt.user).first()
                 if referral:
                     referral.status = "trader"
                     referral.save()
 
-                    commission_amount = Decimal(receipt.amount) * Decimal(
-                        "0.10"
+                    commission_amount = int(
+                        Decimal(receipt.amount) * Decimal("0.10")
                     )  # 10% commission
 
                     # Add commission to referrer's wallet
                     referrer_wallet, _ = PropReferralWallet.objects.get_or_create(
                         user=referral.referrer
                     )
-                    referrer_wallet.balance += round(commission_amount, 2)
-                    referrer_wallet.total_earned += round(commission_amount)
+                    referrer_wallet.balance += commission_amount
+                    referrer_wallet.total_earned += commission_amount
                     referrer_wallet.save()
 
                     # Create history record for referrer
@@ -869,21 +873,26 @@ class AdminReceiptsView(APIView):
                         status="approved",
                     )
 
-                    # Add commission to referee's wallet
-                    referee_wallet, _ = PropReferralWallet.objects.get_or_create(
-                        user=receipt.user
+                    save_and_send_notification(
+                        referral.referrer.id,
+                        f"You have earned a referral commission of {commission_amount}.",
                     )
-                    referee_wallet.balance += commission_amount
-                    referee_wallet.total_earned += commission_amount
-                    referee_wallet.save()
 
-                    # Create history record for referee
-                    PropReferralHistory.objects.create(
-                        user=receipt.user,
-                        amount=commission_amount,
-                        transaction_type="earning",
-                        status="approved",
-                    )
+                    # Add commission to referee's wallet
+                    # referee_wallet, _ = PropReferralWallet.objects.get_or_create(
+                    #     user=receipt.user
+                    # )
+                    # referee_wallet.balance += commission_amount
+                    # referee_wallet.total_earned += commission_amount
+                    # referee_wallet.save()
+
+                    # # Create history record for referee
+                    # PropReferralHistory.objects.create(
+                    #     user=receipt.user,
+                    #     amount=commission_amount,
+                    #     transaction_type="earning",
+                    #     status="approved",
+                    # )
 
                 data = {
                     "id": receipt.id,

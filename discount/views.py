@@ -85,6 +85,78 @@ class DiscountCodeDetailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+# class DiscountCodeValidity(APIView):
+#     permission_classes = [AllowAny]
+
+#     def get(self, request, code, format=None):
+#         try:
+#             discount_code = DiscountCode.objects.get(code=code.upper().strip())
+#             code_details = {
+#                 "code": discount_code.code,
+#                 "discount_percentage": discount_code.discount_percentage,
+#                 "is_active": discount_code.is_active,
+#                 "expiry_date": discount_code.expiry_date,
+#                 "type": discount_code.type,
+#                 "num_of_accounts": discount_code.num_of_accounts,
+#                 "account_size": discount_code.acc_size,
+#                 "account_model": discount_code.acc_model,
+#             }
+
+#             # Check for expired or inactive codes
+#             if not discount_code.is_active or (
+#                 discount_code.expiry_date and discount_code.expiry_date < timezone.now()
+#             ):
+#                 return Response(
+#                     {
+#                         "valid": False,
+#                         "details": code_details,
+#                         "error": "Code is expired",
+#                     },
+#                     status=status.HTTP_200_OK,
+#                 )
+
+#             # Handle 'general' type discount codes
+#             if discount_code.type == "prop":
+#                 accounts = DemoPortfolio.objects.filter(
+#                     discount_code=discount_code
+#                 ).count()
+
+#                 if discount_code.num_of_accounts:
+#                     if accounts < discount_code.num_of_accounts:
+#                         return Response(
+#                             {"valid": True, "details": code_details, "error": None},
+#                             status=status.HTTP_200_OK,
+#                         )
+#                 else:
+#                     return Response(
+#                         {"valid": True, "details": code_details, "error": None},
+#                         status=status.HTTP_200_OK,
+#                     )
+#                 return Response(
+#                     {
+#                         "valid": False,
+#                         "details": code_details,
+#                         "error": "Account limit reached",
+#                     },
+#                     status=status.HTTP_200_OK,
+#                 )
+
+#             return Response(
+#                 {
+#                     "valid": False,
+#                     "details": code_details,
+#                     "error": "Discount code not found",
+#                 },
+#                 status=status.HTTP_404_NOT_FOUND,
+#             )
+
+#         except DiscountCode.DoesNotExist:
+#             return Response(
+#                 {"valid": False, "error": "Discount code not found"},
+#                 status=status.HTTP_404_NOT_FOUND,
+#             )
+
+
 class DiscountCodeValidity(APIView):
     permission_classes = [AllowAny]
 
@@ -115,14 +187,32 @@ class DiscountCodeValidity(APIView):
                     status=status.HTTP_200_OK,
                 )
 
-            # Handle 'general' type discount codes
-            if discount_code.type == "prop":
+            # Handle 'prop' and 'personal-prop' type discount codes
+            if discount_code.type in ["prop", "personal-prop"]:
                 accounts = DemoPortfolio.objects.filter(
                     discount_code=discount_code
                 ).count()
 
                 if discount_code.num_of_accounts:
                     if accounts < discount_code.num_of_accounts:
+                        # For personal-prop, validate that the code belongs to the authenticated user if provided
+                        if (
+                            discount_code.type == "personal-prop"
+                            and request.user.is_authenticated
+                        ):
+                            if (
+                                discount_code.user
+                                and discount_code.user != request.user
+                            ):
+                                return Response(
+                                    {
+                                        "valid": False,
+                                        "details": code_details,
+                                        "error": "Code not found!",
+                                    },
+                                    status=status.HTTP_200_OK,
+                                )
+
                         return Response(
                             {"valid": True, "details": code_details, "error": None},
                             status=status.HTTP_200_OK,
@@ -145,9 +235,9 @@ class DiscountCodeValidity(APIView):
                 {
                     "valid": False,
                     "details": code_details,
-                    "error": "Discount code not found",
+                    "error": "Invalid discount code type",
                 },
-                status=status.HTTP_404_NOT_FOUND,
+                status=status.HTTP_200_OK,
             )
 
         except DiscountCode.DoesNotExist:

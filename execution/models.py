@@ -36,6 +36,7 @@ class DiscountCode(auto_prefetch.Model):
         ("general", "General"),
         ("account-size", "Account Size"),
         ("personal", "Personal"),
+        ("personal-prop", "Personal Prop"),
     )
 
     MODEL_CHOICES = (("model_1", "Model 1"), ("model_2", "Model 2"))
@@ -478,7 +479,7 @@ class DemoDailyReturns2(auto_prefetch.Model):
         return (
             f"{self.user.email}-{self.portfolio.account_name}-{self.portfolio_returns}"
             if self.portfolio and self.portfolio.account_name
-            else self.user
+            else self.user.email
         )
 
 

@@ -47,7 +47,7 @@ class AIFeatureMixin:
         ).exists()
 
         if active_subscription:
-            return True, None, -1, False  # -1 indicates active subscription
+            return True, None, -1, False, True  # -1 indicates active subscription
 
         # Check trial status
         try:
@@ -60,7 +60,7 @@ class AIFeatureMixin:
                 if days_remaining < 0:
                     days_remaining = 0
 
-                return True, None, days_remaining, True
+                return True, None, days_remaining, True, False
 
             elif not trial.trial_ended_notification_sent:
                 # Trial just expired - send notification
@@ -72,6 +72,7 @@ class AIFeatureMixin:
                     "Your trial has ended. Subscribe to continue accessing AI features.",
                     0,
                     True,
+                    False,
                 )
 
             else:
@@ -82,13 +83,13 @@ class AIFeatureMixin:
             # Start new trial
             trial = Trial.objects.create(user=user)
             NotificationService().send_trial_started_notification(user=user)
-            return True, None, 14 < True  # New trial starts with 14 days
+            return True, None, 14, True, False  # New trial starts with 14 days
 
 
 class TradeRecommendationViewSub(APIView, AIFeatureMixin):
     def get(self, request):
-        has_access, message, days_remaining, is_trial = self.check_ai_access(
-            request.user
+        has_access, message, days_remaining, is_trial, is_subscribed = (
+            self.check_ai_access(request.user)
         )
 
         if not has_access:
@@ -111,5 +112,6 @@ class TradeRecommendationViewSub(APIView, AIFeatureMixin):
                 "recommendations": recommendations,
                 "trial_days_remaining": days_remaining if days_remaining >= 0 else None,
                 "is_trial": is_trial,
+                "is_subscribed": is_subscribed,
             }
         )

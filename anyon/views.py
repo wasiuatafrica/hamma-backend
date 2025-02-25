@@ -51,12 +51,12 @@ from execution.models import Portfolio, PropReceipt
 from notifications.utils import save_and_send_notification
 from portfolio import models
 from portfolio.models import (
+    OpenedDashboardFeed,
     PayStackReceipts,
     Receipts,
     Stock,
-    Wallet,
-    OpenedDashboardFeed,
     ViewOtherIdeasLog,
+    Wallet,
 )
 from portfolio.utils import get_price
 from supportwithemail.models import (
@@ -70,6 +70,7 @@ from supportwithemail.serializers import (
     AdminSupportThreadsSerializer,
     DetailedSupportMessageDisclaimerSerializer,
 )
+from tradingai.models import Subscription
 
 from . import permissions as acc_permissions
 from . import serializers
@@ -209,10 +210,11 @@ class AdminReceiptsView(APIView):
                     "fullname": receipt.user.fullname,
                     "comment": receipt.comment,
                     "approved_date": receipt.approved_date,
-                    "image_url": receipt.image.url,
+                    "image_url": receipt.image.url if receipt.image else "",
                     "user": receipt.user.id,
                     "flag": receipt.flag,
                     "timestamp": receipt.created.timestamp(),
+                    "type": receipt.type,
                 }
                 receipts_data.append(receipt_dict)
         elif filter == "paystack":
@@ -245,10 +247,11 @@ class AdminReceiptsView(APIView):
                     "fullname": receipt.user.fullname,
                     "comment": receipt.comment,
                     "approved_date": receipt.approved_date,
-                    "image_url": receipt.image.url,
+                    "image_url": receipt.image.url if receipt.image else "",
                     "user": receipt.user.id,
                     "flag": receipt.flag,
                     "timestamp": receipt.created.timestamp(),
+                    "type": receipt.type,
                 }
                 receipts_data.append(receipt_dict)
 
@@ -299,6 +302,82 @@ class AdminReceiptsView(APIView):
                 action_type="approved_reciept",
                 description=f"Admin user approved reciept.",
             )
+
+            if receipt.type == "ai_subscription" and receipt.subscription_plan:
+                # Create or update subscription
+                now = timezone.now()
+
+                # Check for existing active subscription
+                existing_subscription = Subscription.objects.filter(
+                    user=receipt.user, status="active", end_date__gt=now
+                ).first()
+
+                if existing_subscription:
+                    # Extend existing subscription
+                    existing_subscription.end_date = (
+                        existing_subscription.end_date
+                        + timedelta(days=receipt.subscription_plan.duration_days)
+                    )
+                    existing_subscription.save()
+                    subscription = existing_subscription
+                else:
+                    # Create new subscription
+                    subscription = Subscription.objects.create(
+                        user=receipt.user,
+                        plan=receipt.subscription_plan,
+                        status="active",
+                        start_date=now,
+                        end_date=now
+                        + timedelta(days=receipt.subscription_plan.duration_days),
+                        payment_reference=f"receipt_{receipt.id}",
+                    )
+
+                # Send notification
+                save_and_send_notification(
+                    receipt.user.id,
+                    f"Your subscription to {receipt.subscription_plan.name} has been activated until {subscription.end_date.strftime('%d %b %Y')}",
+                )
+
+                # Send email
+                # sendMail(
+                #     "general/subscriptionActivated.html",
+                #     "Subscription Activated",
+                #     [receipt.user.email],
+                #     {
+                #         "first_name": receipt.user.firstname,
+                #         "plan_name": receipt.subscription_plan.name,
+                #         "end_date": subscription.end_date.strftime("%d %b %Y"),
+                #     },
+                # )
+
+                # Create transaction record
+                models.Transaction.objects.create(
+                    user=receipt.user,
+                    transaction_type="subscription",
+                    amount=amount,
+                    status="completed",
+                    channel="Bank Transfer",
+                )
+
+                receipt_data = {
+                    "id": receipt.id,
+                    "user": receipt.user.id,
+                    "fullname": receipt.user.fullname,
+                    "amount": receipt.amount,
+                    "payment_method": receipt.payment_method,
+                    "receipt_status": receipt.receipt_status,
+                    "comment": receipt.comment,
+                    "created": receipt.created,
+                    "approved_date": receipt.approved_date,
+                    "image_url": receipt.image.url if receipt.image else None,
+                    "subscription": {
+                        "plan": subscription.plan.name,
+                        "start_date": subscription.start_date,
+                        "end_date": subscription.end_date,
+                    },
+                }
+                return Response(receipt_data)
+
             prop_receipt = PropReceipt.objects.filter(receipt=receipt).first()
             if not prop_receipt:
 

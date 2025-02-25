@@ -9,6 +9,7 @@ from django.db.models import Avg, F, Sum
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
+from tradingai.models import SubscriptionPlan
 
 User = get_user_model()
 
@@ -284,6 +285,10 @@ class Receipts(auto_prefetch.Model):
     approved_date = models.DateTimeField(auto_now=True)
     payment_method = models.CharField(max_length=20, default="Bank Transfer")
     flag = models.BooleanField(default=False, null=True, blank=True)
+    type = models.CharField(max_length=20, null=True, blank=True)
+    subscription_plan = auto_prefetch.ForeignKey(
+        SubscriptionPlan, on_delete=models.SET_NULL, null=True, blank=True
+    )
     history = HistoricalRecords()
 
     def __str__(self) -> str:

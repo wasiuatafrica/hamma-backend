@@ -73,10 +73,10 @@ class NotificationService:
         #     fail_silently=True,
         # )
 
-        try:
-            save_and_send_notification(user_id=user.id, message=message)
-        except Exception as e:
-            print(f"WebSocket notification failed: {str(e)}")
+        # try:
+        #     save_and_send_notification(user_id=user.id, message=message)
+        # except Exception as e:
+        #     print(f"WebSocket notification failed: {str(e)}")
 
         return notification
 

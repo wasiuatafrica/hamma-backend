@@ -1,4 +1,4 @@
-from math import e
+import random
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
@@ -7,15 +7,23 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from prop.models import PropReferral, PropReferralWallet
+
 from affilate.models import ReferralWallet
-from execution.models import DailyReturns, DemoDailyReturns, DemoPortfolio, Portfolio
+from execution.models import (
+    DailyReturns,
+    DemoDailyReturns,
+    DemoPortfolio,
+    DiscountCode,
+    Portfolio,
+)
+from notifications.utils import save_and_send_notification
 from portfolio.models import Wallet
+from prop.models import PropReferral, PropReferralWallet
 
 from . import models, serializers
 from .models import TradingProfile
 from .serializers import TradingProfileSerializer
-from .tasks import send_welcome_email, send_prop_welcome_email
+from .tasks import send_prop_welcome_email, send_welcome_email
 from .utils import SetTOTP, resendToken, sms_2FA, verify_token, verifyTOTP
 
 User = get_user_model()
@@ -102,6 +110,23 @@ class VerifyToken(APIView):
         DemoPortfolio.objects.create(user=user)
         if source == "prop":
             send_prop_welcome_email.delay(user.id)
+            PropReferralWallet.objects.create(user=user)
+            referral = PropReferral.objects.filter(referee=user).first()
+            if referral:
+
+                discount = DiscountCode.objects.create(
+                    code=f"{user.last_name.upper()}10REF-{random.randint(100,999)}",
+                    user=user,
+                    discount_percentage=10,
+                    type="personal-prop",
+                    expiry_date=timezone.now() + timezone.timedelta(days=14),
+                    num_of_accounts=1,
+                )
+
+                save_and_send_notification(
+                    user.id,
+                    f"Congratulations you just got a referral discount of 10%. Use {discount.code} at checkout",
+                )
         else:
             send_welcome_email.delay(user.id)
         models.UserActivityLog.objects.create(
