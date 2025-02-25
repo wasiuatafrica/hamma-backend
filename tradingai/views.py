@@ -5,6 +5,7 @@ from rest_framework.views import APIView, Response
 from .models import Subscription, Trial
 from .services import NotificationService
 from .utils import process_recommendation
+from portfolio.models import Receipts
 
 # Create your views here.
 
@@ -46,8 +47,14 @@ class AIFeatureMixin:
             user=user, status="active", end_date__gt=timezone.now()
         ).exists()
 
+        payment_pending = Receipts.objects.filter(
+        user=user, 
+        receipt_status="Unprocessed",
+        type="ai_subscription"
+    ).exists()
+
         if active_subscription:
-            return True, None, -1, False, True  # -1 indicates active subscription
+            return True, None, -1, False, True, payment_pending  # -1 indicates active subscription
 
         # Check trial status
         try:
@@ -60,7 +67,7 @@ class AIFeatureMixin:
                 if days_remaining < 0:
                     days_remaining = 0
 
-                return True, None, days_remaining, True, False
+                return True, None, days_remaining, True, False, payment_pending
 
             elif not trial.trial_ended_notification_sent:
                 # Trial just expired - send notification
@@ -72,7 +79,7 @@ class AIFeatureMixin:
                     "Your trial has ended. Subscribe to continue accessing AI features.",
                     0,
                     True,
-                    False,
+                    False, payment_pending
                 )
 
             else:
@@ -82,19 +89,19 @@ class AIFeatureMixin:
                     "Subscribe to continue accessing AI features.",
                     0,
                     True,
-                    False,
+                    False, payment_pending
                 )
 
         except Trial.DoesNotExist:
             # Start new trial
             trial = Trial.objects.create(user=user)
             NotificationService().send_trial_started_notification(user=user)
-            return True, None, 14, True, False  # New trial starts with 14 days
+            return True, None, 14, True, False, payment_pending  # New trial starts with 14 days
 
 
 class TradeRecommendationViewSub(APIView, AIFeatureMixin):
     def get(self, request):
-        has_access, message, days_remaining, is_trial, is_subscribed = (
+        has_access, message, days_remaining, is_trial, is_subscribed, payment_pending = (
             self.check_ai_access(request.user)
         )
 
@@ -119,5 +126,6 @@ class TradeRecommendationViewSub(APIView, AIFeatureMixin):
                 "trial_days_remaining": days_remaining if days_remaining >= 0 else None,
                 "is_trial": is_trial,
                 "is_subscribed": is_subscribed,
+                "payment_pending": payment_pending
             }
         )
