@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Payout
+from .models import Payout, PropWithdrawalRequest
 from execution.models import DemoPortfolio
 
 
@@ -42,3 +42,22 @@ class AccountlistSerializer(serializers.ModelSerializer):
         model = DemoPortfolio
         # fields = "__all__"
         exclude = ["code"]
+
+
+# First, let's create a serializer for the withdrawal requests
+class PropWithdrawalRequestSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="user.username", read_only=True)
+
+    class Meta:
+        model = PropWithdrawalRequest
+        fields = [
+            "id",
+            "username",
+            "user",
+            "amount",
+            "status",
+            "created_at",
+            "bank_details",
+            "admin_comment",
+        ]
+        read_only_fields = ["id", "username", "user", "amount", "created_at"]

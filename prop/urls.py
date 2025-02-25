@@ -108,4 +108,14 @@ urlpatterns = [
     path("referral/users/", views.ReferredUsersView.as_view()),
     path("referral/withdraw/", views.WithdrawalRequestView.as_view()),
     path("referral/history/", views.ReferralHistoryView.as_view()),
+    path(
+        "admin/withdrawal-requests/",
+        admin_views.AdminWithdrawalRequestListView.as_view(),
+        name="admin-withdrawal-requests",
+    ),
+    path(
+        "admin/withdrawal-requests/<int:request_id>/",
+        admin_views.AdminWithdrawalRequestUpdateView.as_view(),
+        name="admin-withdrawal-request-update",
+    ),
 ]

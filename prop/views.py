@@ -45,7 +45,13 @@ from notifications.utils import save_and_send_notification
 from portfolio.models import PayStackReceipts, Receipts
 
 from .analyzer import analyze_hamma_request_eligibility
-from .models import Payout, PropReferralWallet, PropReferral, PropReferralHistory
+from .models import (
+    Payout,
+    PropReferralWallet,
+    PropReferral,
+    PropReferralHistory,
+    PropWithdrawalRequest,
+)
 from .pay_service import PayoutService
 from .serializers import AccountlistSerializer, PayoutDetailSerializer
 from .utils import (
@@ -849,7 +855,7 @@ class AdminReceiptsView(APIView):
                 )
 
                 referral = PropReferral.objects.filter(referee=receipt.user).first()
-                if referral:
+                if referral and referral.status != "trader":
                     referral.status = "trader"
                     referral.save()
 
@@ -877,22 +883,6 @@ class AdminReceiptsView(APIView):
                         referral.referrer.id,
                         f"You have earned a referral commission of {commission_amount}.",
                     )
-
-                    # Add commission to referee's wallet
-                    # referee_wallet, _ = PropReferralWallet.objects.get_or_create(
-                    #     user=receipt.user
-                    # )
-                    # referee_wallet.balance += commission_amount
-                    # referee_wallet.total_earned += commission_amount
-                    # referee_wallet.save()
-
-                    # # Create history record for referee
-                    # PropReferralHistory.objects.create(
-                    #     user=receipt.user,
-                    #     amount=commission_amount,
-                    #     transaction_type="earning",
-                    #     status="approved",
-                    # )
 
                 data = {
                     "id": receipt.id,
@@ -2089,25 +2079,61 @@ class ReferredUsersView(APIView):
         return Response(data)
 
 
+# class WithdrawalRequestView(APIView):
+#     def post(self, request):
+#         amount = request.data.get("amount")
+#         wallet = PropReferralWallet.objects.get(user=request.user)
+
+#         if not amount:
+#             return Response({"error": "Amount is required"}, status=400)
+
+#         if float(amount) > wallet.balance:
+#             return Response({"error": "Insufficient balance"}, status=400)
+
+#         PropReferralHistory.objects.create(
+#             user=request.user,
+#             amount=amount,
+#             transaction_type="withdrawal",
+#             status="pending",
+#         )
+
+#         return Response({"message": "Withdrawal request submitted successfully"})
+
+
 class WithdrawalRequestView(APIView):
     def post(self, request):
         amount = request.data.get("amount")
-        wallet = PropReferralWallet.objects.get(user=request.user)
+        bank_details = request.data.get("bank_details", "")
 
         if not amount:
             return Response({"error": "Amount is required"}, status=400)
 
-        if float(amount) > wallet.balance:
-            return Response({"error": "Insufficient balance"}, status=400)
+        try:
+            wallet = PropReferralWallet.objects.get(user=request.user)
 
-        PropReferralHistory.objects.create(
-            user=request.user,
-            amount=amount,
-            transaction_type="withdrawal",
-            status="pending",
-        )
+            if float(amount) > wallet.balance:
+                return Response({"error": "Insufficient balance"}, status=400)
 
-        return Response({"message": "Withdrawal request submitted successfully"})
+            # Create history entry
+            history_entry = PropReferralHistory.objects.create(
+                user=request.user,
+                amount=amount,
+                transaction_type="withdrawal",
+                status="pending",
+            )
+
+            # Create withdrawal request
+            PropWithdrawalRequest.objects.create(
+                user=request.user,
+                amount=amount,
+                bank_details=bank_details,
+                history_entry=history_entry,
+            )
+
+            return Response({"message": "Withdrawal request submitted successfully"})
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
 
 
 class ReferralHistoryView(APIView):

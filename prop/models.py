@@ -78,3 +78,27 @@ class PropReferralHistory(auto_prefetch.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     comment = models.TextField(null=True, blank=True)
     updated = models.DateTimeField(auto_now=True)
+
+
+class PropWithdrawalRequest(auto_prefetch.Model):
+    user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(
+        max_length=20, default="pending"
+    )  # 'pending', 'approved', 'rejected'
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    bank_details = models.TextField(
+        null=True, blank=True
+    )  # Optional: For storing payment info
+    admin_comment = models.TextField(null=True, blank=True)  # For admin feedback
+    history_entry = models.OneToOneField(
+        PropReferralHistory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="withdrawal_request",
+    )
+
+    def __str__(self):
+        return f"{self.user.username} - ${self.amount} ({self.status})"

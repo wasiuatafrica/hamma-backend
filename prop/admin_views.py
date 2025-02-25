@@ -12,8 +12,13 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from yaml import serialize
-
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.db import transaction
+from .models import PropWithdrawalRequest, PropReferralWallet
+from .serializers import PropWithdrawalRequestSerializer  # We'll define this
+from rest_framework.permissions import IsAdminUser
 from accounts.models import AdminUserActivityLog, Referral
 from affilate.models import (
     ReferralWallet,
@@ -260,3 +265,110 @@ class HammaRequestAdminView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AdminWithdrawalRequestListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        # Optional query parameters for filtering
+        status_filter = request.query_params.get("status")
+
+        requests = PropWithdrawalRequest.objects.all().select_related("user")
+
+        if status_filter:
+            requests = requests.filter(status=status_filter)
+
+        # Order by most recent first
+        requests = requests.order_by("-created_at")
+
+        serializer = PropWithdrawalRequestSerializer(requests, many=True)
+        return Response(serializer.data)
+
+
+class AdminWithdrawalRequestUpdateView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, request_id):
+        try:
+            withdrawal_request = PropWithdrawalRequest.objects.get(id=request_id)
+            serializer = PropWithdrawalRequestSerializer(withdrawal_request)
+            return Response(serializer.data)
+        except PropWithdrawalRequest.DoesNotExist:
+            return Response(
+                {"error": "Withdrawal request not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    def post(self, request, request_id):
+        try:
+            withdrawal_request = PropWithdrawalRequest.objects.get(id=request_id)
+
+            # Only allow updating pending requests
+            if withdrawal_request.status != "pending":
+                return Response(
+                    {
+                        "error": f"Cannot update request with status '{withdrawal_request.status}'"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            new_status = request.data.get("status")
+            admin_comment = request.data.get("comment", "")
+
+            if new_status not in ["approved", "rejected"]:
+                return Response(
+                    {"error": "Status must be 'approved' or 'rejected'"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            with transaction.atomic():
+                # Update withdrawal request
+                withdrawal_request.status = new_status
+                withdrawal_request.admin_comment = admin_comment
+                withdrawal_request.save()
+
+                # Update history entry if it exists
+                if (
+                    hasattr(withdrawal_request, "history_entry")
+                    and withdrawal_request.history_entry
+                ):
+                    withdrawal_request.history_entry.status = new_status
+                    withdrawal_request.history_entry.comment = admin_comment
+                    withdrawal_request.history_entry.save()
+
+                # If approved, deduct from wallet balance
+                if new_status == "approved":
+                    wallet = PropReferralWallet.objects.get(
+                        user=withdrawal_request.user
+                    )
+                    wallet.balance -= withdrawal_request.amount
+                    wallet.save()
+
+            save_and_send_notification(
+                withdrawal_request.user.id,
+                f"Your withdrawal request has been {new_status}.",
+            )
+
+            return Response(
+                {
+                    "message": f"Withdrawal request {new_status} successfully",
+                    "withdrawal_request": PropWithdrawalRequestSerializer(
+                        withdrawal_request
+                    ).data,
+                }
+            )
+
+        except PropWithdrawalRequest.DoesNotExist:
+            return Response(
+                {"error": "Withdrawal request not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except PropReferralWallet.DoesNotExist:
+            return Response(
+                {"error": "User wallet not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
