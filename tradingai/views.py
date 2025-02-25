@@ -77,7 +77,13 @@ class AIFeatureMixin:
 
             else:
                 # Trial expired previously
-                return False, "Subscribe to continue accessing AI features.", 0, False
+                return (
+                    False,
+                    "Subscribe to continue accessing AI features.",
+                    0,
+                    True,
+                    False,
+                )
 
         except Trial.DoesNotExist:
             # Start new trial
