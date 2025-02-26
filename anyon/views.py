@@ -70,7 +70,7 @@ from supportwithemail.serializers import (
     AdminSupportThreadsSerializer,
     DetailedSupportMessageDisclaimerSerializer,
 )
-from tradingai.models import Subscription
+from tradingai.models import Subscription, Trial
 
 from . import permissions as acc_permissions
 from . import serializers
@@ -361,23 +361,29 @@ class AdminReceiptsView(APIView):
                         payment_reference=f"receipt_{receipt.id}",
                     )
 
+                trial = Trial.objects.filter(
+                    user=receipt.user, is_active=True, end_date__gt=timezone.now()
+                ).first()
+                if trial:
+                    trial.is_active = False
+                    trial.save()
+
                 # Send notification
                 save_and_send_notification(
                     receipt.user.id,
-                    f"Your subscription to {receipt.subscription_plan.name} has been activated until {subscription.end_date.strftime('%d %b %Y')}",
+                    f"Your AI subscription has been activated until {subscription.end_date.strftime('%d %b %Y')}",
                 )
 
                 # Send email
-                # sendMail(
-                #     "general/subscriptionActivated.html",
-                #     "Subscription Activated",
-                #     [receipt.user.email],
-                #     {
-                #         "first_name": receipt.user.firstname,
-                #         "plan_name": receipt.subscription_plan.name,
-                #         "end_date": subscription.end_date.strftime("%d %b %Y"),
-                #     },
-                # )
+                sendMail(
+                    "ai/ai_sub_successful.html",
+                    "You’re In! Your AI Trading Edge Is Now Active ✅",
+                    [receipt.user.email],
+                    {
+                        "firstname": receipt.user.firstname.title(),
+                    },
+                    "Hamma Team <hello@gohamma.com>",
+                )
 
                 # Create transaction record
                 models.Transaction.objects.create(

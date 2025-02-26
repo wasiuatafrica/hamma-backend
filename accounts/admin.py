@@ -10,6 +10,7 @@ from .models import (
     UserActivityLog,
     AdminUserActivityLog,
     TradingProfile,
+    TwoFactorToken,
 )
 
 
@@ -122,3 +123,13 @@ class TradingProfileAdmin(admin.ModelAdmin):
     )
     list_filter = ("trading_frequency", "trading_style", "risk_tolerance")
     search_fields = ("trader__email",)
+
+
+@admin.register(TwoFactorToken)
+class TwoFactorTokenAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "token",
+        "expiration",
+    )
+    search_fields = ("user__email", "token")

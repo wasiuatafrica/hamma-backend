@@ -161,9 +161,9 @@ class AIFeatureMixin:
 
             elif not trial.trial_ended_notification_sent:
                 # Trial just expired - send notification
-                NotificationService.send_trial_ended_notification(user)
-                trial.trial_ended_notification_sent = True
-                trial.save(update_fields=["trial_ended_notification_sent"])
+                # NotificationService.send_trial_ended_notification(user)
+                # trial.trial_ended_notification_sent = True
+                # trial.save(update_fields=["trial_ended_notification_sent"])
                 return (
                     False,
                     "Your trial has ended. Subscribe to continue accessing AI features.",
@@ -219,6 +219,7 @@ class TradeRecommendationViewSub(APIView, AIFeatureMixin):
                 },
                 status=403,
             )
+        print("has access")
 
         profile = request.user.trade_profile
         if not profile:

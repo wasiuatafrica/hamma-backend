@@ -67,15 +67,15 @@ def process_trial_notifications():
             trial.save(update_fields=["trial_ended_notification_sent", "is_active"])
 
     # Also check for trials that have expired but haven't been marked as inactive
-    expired_trials = Trial.objects.filter(
-        is_active=True, end_date__lt=now, trial_ended_notification_sent=False
-    )
+    # expired_trials = Trial.objects.filter(
+    #     is_active=True, end_date__lt=now, trial_ended_notification_sent=False
+    # )
 
-    for trial in expired_trials:
-        NotificationService.send_trial_ended_notification(trial.user)
-        trial.trial_ended_notification_sent = True
-        trial.is_active = False
-        trial.save(update_fields=["trial_ended_notification_sent", "is_active"])
+    # for trial in expired_trials:
+    #     NotificationService.send_trial_ended_notification(trial.user)
+    #     trial.trial_ended_notification_sent = True
+    #     trial.is_active = False
+    #     trial.save(update_fields=["trial_ended_notification_sent", "is_active"])
 
 
 @shared_task
