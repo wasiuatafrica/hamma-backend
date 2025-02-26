@@ -46,18 +46,18 @@ class AccountlistSerializer(serializers.ModelSerializer):
 
 # First, let's create a serializer for the withdrawal requests
 class PropWithdrawalRequestSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source="user.username", read_only=True)
+    user_email = serializers.CharField(source="user.email", read_only=True)
 
     class Meta:
         model = PropWithdrawalRequest
         fields = [
             "id",
-            "username",
             "user",
+            "user_email",
             "amount",
             "status",
             "created_at",
             "bank_details",
             "admin_comment",
         ]
-        read_only_fields = ["id", "username", "user", "amount", "created_at"]
+        read_only_fields = ["id", "user_email", "user", "amount", "created_at"]
