@@ -486,114 +486,67 @@ class MiniData(APIView):
         return Response(data)
 
 
-# class GetSingleStock(APIView):
-#     serializer_class = StockSerializer
-#     permission_classes = [
-#         AllowAny,
-#     ]
-
-#     def get(self, request, *args, **kwargs):
-#         symbol = self.kwargs.get("symbol")
-#         queryset = get_object_or_404(Stock, symbol=symbol)
-
-#         details = get_details3([queryset])
-#         overview = get_symbol_overview(symbol)
-#         fundamental = get_symbol_fundamentals(symbol)
-#         news = get_stock_news(symbol)
-#         calendar = get_calendar(symbol)
-#         signal = get_signal(symbol)
-
-#         response_data = {
-#             "stock_detail": details,
-#             "order_book": [],
-#             "overview": overview,
-#             "fundamental": fundamental,
-#             "news": news,
-#             "calendar": calendar,
-#             "signal": signal,
-#             # 'historical_data':historical_data
-#         }
-#         return Response(response_data)
-
-
-# async def fetch_stock_data(symbol, stock):
-
-#     # Define coroutines for each MongoDB query
-#     async def get_details():
-#         return await get_details3([stock])
-
-#     async def get_overview():
-#         return await get_symbol_overview(symbol)
-
-#     async def get_fundamental():
-#         return await get_symbol_fundamentals(symbol)
-
-#     async def get_news():
-#         return await get_stock_news(symbol)
-
-#     # Run all queries concurrently
-#     details, overview, fundamental, news = await asyncio.gather(
-#         get_details(), get_overview(), get_fundamental(), get_news()
-#     )
-
-#     return {
-#         "stock_detail": details,
-#         "overview": overview,
-#         "fundamental": fundamental,
-#         "news": news,
-#     }
-
-
-# class GetSingleStock(APIView):
-#     serializer_class = StockSerializer
-#     permission_classes = [AllowAny]
-
-#     def get(self, request, *args, **kwargs):
-#         symbol = self.kwargs.get("symbol")
-#         stock = get_object_or_404(Stock, symbol=symbol)
-
-#         # Call the async function synchronously
-#         stock_data = async_to_sync(fetch_stock_data)(symbol, stock)
-
-#         response_data = {
-#             **stock_data,
-#             "order_book": [],
-#         }
-
-#         return Response(response_data)
-
-
-class GetSingleStock(APIView, AIFeatureMixin):
+class GetSingleStock(APIView):
+    serializer_class = StockSerializer
     permission_classes = [
         AllowAny,
     ]
 
     def get(self, request, *args, **kwargs):
         symbol = self.kwargs.get("symbol")
-        stock = get_object_or_404(Stock, symbol=symbol)
+        queryset = get_object_or_404(Stock, symbol=symbol)
 
-        # Basic data available to all users
+        details = get_details3([queryset])
+        overview = get_symbol_overview(symbol)
+        fundamental = get_symbol_fundamentals(symbol)
+        news = get_stock_news(symbol)
+        calendar = get_calendar(symbol)
+        signal = get_signal(symbol)
+
         response_data = {
-            "stock_detail": get_details3([stock]),
-            "overview": get_symbol_overview(symbol),
-            "fundamental": get_symbol_fundamentals(symbol),
-            "news": get_stock_news(symbol),
-            "calendar": get_calendar(symbol),
+            "stock_detail": details,
+            "order_book": [],
+            "overview": overview,
+            "fundamental": fundamental,
+            "news": news,
+            "calendar": calendar,
+            "signal": signal,
+            # 'historical_data':historical_data
         }
-
-        # Check AI feature access for signal
-        has_access, message, days_remaining, is_trial, is_subscribed,payment_pending = (
-            self.check_ai_access(request.user)
-        )
-
-        if has_access:
-            response_data["signal"] = get_signal(symbol)
-            if days_remaining >= 0:  # Trial period
-                response_data["trial_days_remaining"] = days_remaining
-        else:
-            response_data["signal"] = []
-
         return Response(response_data)
+
+
+
+
+# class GetSingleStock(APIView, AIFeatureMixin):
+#     permission_classes = [
+#         AllowAny,
+#     ]
+
+#     def get(self, request, *args, **kwargs):
+#         symbol = self.kwargs.get("symbol")
+#         stock = get_object_or_404(Stock, symbol=symbol)
+
+#         # Basic data available to all users
+#         response_data = {
+#             "stock_detail": get_details3([stock]),
+#             "overview": get_symbol_overview(symbol),
+#             "fundamental": get_symbol_fundamentals(symbol),
+#             "news": get_stock_news(symbol),
+#             "calendar": get_calendar(symbol),
+#         }
+
+#         # Check AI feature access for signal
+#         has_access, message, days_remaining, is_trial, is_subscribed,payment_pending = (
+#             self.check_ai_access(request.user)
+#         )
+
+#         if has_access:
+#             response_data["signal"] = get_signal(symbol)
+#         else:
+#             response_data["signal"] = []
+
+#         return Response(response_data)
 
 
 class StockDetail(generics.RetrieveAPIView):

@@ -2,10 +2,11 @@ from django.shortcuts import render
 from django.utils import timezone
 from rest_framework.views import APIView, Response
 
+from portfolio.models import Receipts
+
 from .models import Subscription, Trial
 from .services import NotificationService
 from .utils import process_recommendation
-from portfolio.models import Receipts
 
 # Create your views here.
 
@@ -28,6 +29,77 @@ class TradeRecommendationView(APIView):
         return Response(recommendations)
 
 
+# class AIFeatureMixin:
+#     """
+#     Mixin to handle AI feature access checking and trial status
+#     """
+
+#     def check_ai_access(self, user):
+#         """
+#         Check if user has access to AI features
+#         Returns (has_access, message, days_remaining)
+#         days_remaining:
+#             - positive number for active trial
+#             - 0 for expired trial/no subscription
+#             - -1 for active subscription
+#         """
+#         # Check active subscription first
+#         active_subscription = Subscription.objects.filter(
+#             user=user, status="active", end_date__gt=timezone.now()
+#         ).exists()
+
+#         payment_pending = Receipts.objects.filter(
+#         user=user,
+#         receipt_status="Unprocessed",
+#         type="ai_subscription"
+#     ).exists()
+
+#         if active_subscription:
+#             return True, None, -1, False, True, payment_pending  # -1 indicates active subscription
+
+#         # Check trial status
+#         try:
+#             trial = Trial.objects.get(user=user)
+#             now = timezone.now()
+
+#             if trial.is_active and not trial.has_expired:
+#                 # Active trial
+#                 days_remaining = (trial.end_date - now).days
+#                 if days_remaining < 0:
+#                     days_remaining = 0
+
+#                 return True, None, days_remaining, True, False, payment_pending
+
+#             elif not trial.trial_ended_notification_sent:
+#                 # Trial just expired - send notification
+#                 NotificationService().send_trial_ended_notification(user=user)
+#                 trial.trial_ended_notification_sent = True
+#                 trial.save()
+#                 return (
+#                     False,
+#                     "Your trial has ended. Subscribe to continue accessing AI features.",
+#                     0,
+#                     True,
+#                     False, payment_pending
+#                 )
+
+#             else:
+#                 # Trial expired previously
+#                 return (
+#                     False,
+#                     "Subscribe to continue accessing AI features.",
+#                     0,
+#                     True,
+#                     False, payment_pending
+#                 )
+
+#         except Trial.DoesNotExist:
+#             # Start new trial
+#             trial = Trial.objects.create(user=user)
+#             NotificationService().send_trial_started_notification(user=user)
+#             return True, None, 14, True, False, payment_pending  # New trial starts with 14 days
+
+
 class AIFeatureMixin:
     """
     Mixin to handle AI feature access checking and trial status
@@ -48,13 +120,18 @@ class AIFeatureMixin:
         ).exists()
 
         payment_pending = Receipts.objects.filter(
-        user=user, 
-        receipt_status="Unprocessed",
-        type="ai_subscription"
-    ).exists()
+            user=user, receipt_status="Unprocessed", type="ai_subscription"
+        ).exists()
 
         if active_subscription:
-            return True, None, -1, False, True, payment_pending  # -1 indicates active subscription
+            return (
+                True,
+                None,
+                -1,
+                False,
+                True,
+                payment_pending,
+            )  # -1 indicates active subscription
 
         # Check trial status
         try:
@@ -67,19 +144,33 @@ class AIFeatureMixin:
                 if days_remaining < 0:
                     days_remaining = 0
 
+                # # Check if we need to send any notifications based on days_remaining
+                # if days_remaining == 3 and not trial.final_reminder_sent:
+                #     NotificationService.send_three_days_reminder_notification(user)
+                #     trial.final_reminder_sent = True
+                #     trial.save(update_fields=["final_reminder_sent"])
+                # elif (
+                #     trial.end_date - trial.start_date
+                # ).days // 2 == days_remaining and not trial.halfway_reminder_sent:
+                #     # This is the halfway point of the trial
+                #     NotificationService.send_one_week_reminder_notification(user)
+                #     trial.halfway_reminder_sent = True
+                #     trial.save(update_fields=["halfway_reminder_sent"])
+
                 return True, None, days_remaining, True, False, payment_pending
 
             elif not trial.trial_ended_notification_sent:
                 # Trial just expired - send notification
-                NotificationService().send_trial_ended_notification(user=user)
+                NotificationService.send_trial_ended_notification(user)
                 trial.trial_ended_notification_sent = True
-                trial.save()
+                trial.save(update_fields=["trial_ended_notification_sent"])
                 return (
                     False,
                     "Your trial has ended. Subscribe to continue accessing AI features.",
                     0,
                     True,
-                    False, payment_pending
+                    False,
+                    payment_pending,
                 )
 
             else:
@@ -89,21 +180,35 @@ class AIFeatureMixin:
                     "Subscribe to continue accessing AI features.",
                     0,
                     True,
-                    False, payment_pending
+                    False,
+                    payment_pending,
                 )
 
         except Trial.DoesNotExist:
             # Start new trial
-            trial = Trial.objects.create(user=user)
-            NotificationService().send_trial_started_notification(user=user)
-            return True, None, 14, True, False, payment_pending  # New trial starts with 14 days
+            trial = Trial.objects.create(user=user, first_reminder_sent=True)
+            NotificationService.send_trial_started_notification(user)
+
+            return (
+                True,
+                None,
+                14,
+                True,
+                False,
+                payment_pending,
+            )  # New trial starts with 14 days
 
 
 class TradeRecommendationViewSub(APIView, AIFeatureMixin):
     def get(self, request):
-        has_access, message, days_remaining, is_trial, is_subscribed, payment_pending = (
-            self.check_ai_access(request.user)
-        )
+        (
+            has_access,
+            message,
+            days_remaining,
+            is_trial,
+            is_subscribed,
+            payment_pending,
+        ) = self.check_ai_access(request.user)
 
         if not has_access:
             return Response(
@@ -126,6 +231,6 @@ class TradeRecommendationViewSub(APIView, AIFeatureMixin):
                 "trial_days_remaining": days_remaining if days_remaining >= 0 else None,
                 "is_trial": is_trial,
                 "is_subscribed": is_subscribed,
-                "payment_pending": payment_pending
+                "payment_pending": payment_pending,
             }
         )
