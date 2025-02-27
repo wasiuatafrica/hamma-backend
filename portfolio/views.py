@@ -532,22 +532,22 @@ class GetSingleStock(APIView, AIFeatureMixin):
             "fundamental": get_symbol_fundamentals(symbol),
             "news": get_stock_news(symbol),
             "calendar": get_calendar(symbol),
+            "signal": [],  # Default value
         }
 
-        # Check AI feature access for signal
-        (
-            has_access,
-            message,
-            days_remaining,
-            is_trial,
-            is_subscribed,
-            payment_pending,
-        ) = self.check_ai_access(request.user)
+        if request.user.is_authenticated:
+            # Check AI feature access for signal
+            (
+                has_access,
+                message,
+                days_remaining,
+                is_trial,
+                is_subscribed,
+                payment_pending,
+            ) = self.check_ai_access(request.user)
 
-        if has_access:
-            response_data["signal"] = get_signal(symbol)
-        else:
-            response_data["signal"] = []
+            if has_access:
+                response_data["signal"] = get_signal(symbol)
 
         return Response(response_data)
 
