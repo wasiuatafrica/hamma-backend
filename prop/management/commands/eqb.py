@@ -12,12 +12,12 @@ User = get_user_model()
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        data = analyze_portfolio_status_task()
+        # data = analyze_portfolio_status_task()
         # data = analyze_portfolio_after_close_task("84549103")
-        print(data)
+        # print(data)
         # user = User.objects.get(email="nexxyb@gmail.com")
         # send_prop_welcome_email(user.id)
-        # shot = get_screenshot(email="ideafabulous@gmail.com", account_id="33642544")
-        # print(shot)
+        shot = get_screenshot(email="nexxyb@gmail.com", account_id="67879547")
+        print(shot)
 
         # get_fixed_balance_equity_data()

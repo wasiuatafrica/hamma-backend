@@ -10,7 +10,7 @@ env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 DEBUG = os.environ.get("DEBUG") == "True"
 SECRET_KEY = os.environ.get("SECRET_KEY")
-SCREENSHOT_URL = "http://ec2-13-48-136-69.eu-north-1.compute.amazonaws.com:3100"
+SCREENSHOT_URL = "http://ec2-16-170-249-163.eu-north-1.compute.amazonaws.com:3100"
 
 
 ALLOWED_HOSTS = ["*"]
@@ -344,4 +344,3 @@ CACHES = {
 
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-# SCREENSHOT_URL = "http://localhost:3100"
