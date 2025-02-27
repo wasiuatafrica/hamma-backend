@@ -28,12 +28,13 @@ class Command(BaseCommand):
         # test_email3('ayo@gohamma.com', 'Ayo')
         # test_email3("teamgohamma@gmail.com", "Ayo")
         # test_email3('wasiu@atafrica.org', 'Ayo')
+        test_email3("akwasonhumbile@gmail.com", "Daniel")
 
         # user = User.objects.get(email="nexxyb@gmail.com")
         # task = send_reminder_email(user.id, "GOHAMMAWASIU101", "02-02-2025 10:42")
         # print(task)
 
-        users = User.objects.all()
-        for user in users:
-            print(user.mail, user.firstname)
-            test_email3(user.email, user.firstname)
+        # users = User.objects.all()
+        # for user in users:
+        #     print(user.mail, user.firstname)
+        #     test_email3(user.email, user.firstname)

@@ -2135,22 +2135,19 @@ def start_ec2_instance():
     waiter = ec2.get_waiter("instance_running")
     waiter.wait(InstanceIds=[INSTANCE_ID])
     print(f"EC2 instance {INSTANCE_ID} is running")
-    # run_scripts()
-
-
-def run_scripts():
-    commands = ["nohup python3 live_price.py &", "nohup python3 merge_price4.py &"]
-    ssm = boto3.client("ssm", region_name=AWS_REGION)
-    for command in commands:
-        response = ssm.send_command(
-            InstanceIds=[INSTANCE_ID],
-            DocumentName="AWS-RunShellScript",
-            Parameters={"commands": [command]},
-        )
-        print(f"Running command: {command}")
 
 
 @shared_task
 def stop_ec2_instance():
     ec2.stop_instances(InstanceIds=[INSTANCE_ID])
     print(f"Stopping EC2 instance {INSTANCE_ID}")
+
+
+@shared_task
+def restart_ec2_instance():
+    ec2.reboot_instances(InstanceIds=[INSTANCE_ID])
+    print(f"Restarting EC2 instance {INSTANCE_ID}")
+    # Wait for the instance to come back online
+    waiter = ec2.get_waiter("instance_status_ok")
+    waiter.wait(InstanceIds=[INSTANCE_ID])
+    print(f"EC2 instance {INSTANCE_ID} has been restarted and is ready")
