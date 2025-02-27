@@ -7,7 +7,7 @@ def sendMail(
     subject: str,
     to: list,
     context: object = None,
-    sender: str = None,
+    sender: str = "Hamma Team <teamgohamma@gmail.com>",
     **kwargs
 ) -> bool:
     """
@@ -31,7 +31,7 @@ def sendMail(
         send_mail(
             subject,
             "",
-            "Hamma Team <teamgohamma@gmail.com>",
+            sender,
             to,
             html_message=html,
             fail_silently=False,

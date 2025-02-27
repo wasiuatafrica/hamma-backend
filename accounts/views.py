@@ -1,3 +1,4 @@
+from ast import arg
 import random
 
 from django.contrib.auth import get_user_model
@@ -7,6 +8,8 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+import json
+from datetime import datetime, timedelta
 
 from affilate.models import ReferralWallet
 from execution.models import (
@@ -19,6 +22,7 @@ from execution.models import (
 from notifications.utils import save_and_send_notification
 from portfolio.models import Wallet
 from prop.models import PropReferral, PropReferralWallet
+from django_celery_beat.models import PeriodicTask, CrontabSchedule
 
 from . import models, serializers
 from .models import TradingProfile
@@ -108,25 +112,73 @@ class VerifyToken(APIView):
         Wallet.objects.create(user=user)
         ReferralWallet.objects.create(user=user)
         DemoPortfolio.objects.create(user=user)
+        PropReferralWallet.objects.create(user=user)
         if source == "prop":
+            user.signup_route = "hamma_trade"
+            user.save()
+
             send_prop_welcome_email.delay(user.id)
-            PropReferralWallet.objects.create(user=user)
+
             referral = PropReferral.objects.filter(referee=user).first()
             if referral:
 
                 discount = DiscountCode.objects.create(
-                    code=f"{user.last_name.upper()}10REF-{random.randint(100,999)}",
+                    code=f"HAMMA{user.lastname.upper()}{random.randint(100,999)}",
                     user=user,
                     discount_percentage=10,
                     type="personal-prop",
-                    expiry_date=timezone.now() + timezone.timedelta(days=14),
+                    expiry_date=timezone.now() + timezone.timedelta(days=7),
                     num_of_accounts=1,
                 )
 
-                save_and_send_notification(
-                    user.id,
-                    f"Congratulations you just got a referral discount of 10%. Use {discount.code} at checkout",
+                # save_and_send_notification(
+                #     user.id,
+                #     f"Congratulations you just got a referral discount of 10%. Use {discount.code} at checkout",
+                # )
+                reminder_time = timezone.now() + timedelta(hours=6)
+
+                # Create the schedule for 6 hours from now
+                schedule, _ = CrontabSchedule.objects.get_or_create(
+                    minute=reminder_time.minute,
+                    hour=reminder_time.hour,
+                    day_of_month=reminder_time.day,
+                    month_of_year=reminder_time.month,
                 )
+                task_name = (
+                    f"propremind_{user.email}_{timezone.now().strftime('%Y%m%d%H%M%S')}"
+                )
+                PeriodicTask.objects.create(
+                    name=task_name,
+                    task="prop.tasks.send_reminder_email",
+                    crontab=schedule,
+                    args=json.dumps(
+                        [
+                            user.id,
+                            discount.code,
+                            discount.expiry_date.strftime("%d-%m-%Y"),
+                        ]
+                    ),
+                    one_off=True,
+                    start_time=reminder_time,
+                )
+
+                ref_intro_remid_time = timezone.now() + timedelta(days=7)
+                ref_intro_remid_schedule, _ = CrontabSchedule.objects.get_or_create(
+                    minute=ref_intro_remid_time.minute,
+                    hour=ref_intro_remid_time.hour,
+                    day_of_month=ref_intro_remid_time.day,
+                    month_of_year=ref_intro_remid_time.month,
+                )
+                ref_intro_remid_task_name = f"ref_intro_remid_{user.email}_{timezone.now().strftime('%Y%m%d%H%M%S')}"
+                PeriodicTask.objects.create(
+                    name=ref_intro_remid_task_name,
+                    task="prop.tasks.referral_intro",
+                    crontab=ref_intro_remid_schedule,
+                    args=json.dumps([user.email, user.firstname.title()]),
+                    one_off=True,
+                    start_time=ref_intro_remid_time,
+                )
+
         else:
             send_welcome_email.delay(user.id)
         models.UserActivityLog.objects.create(

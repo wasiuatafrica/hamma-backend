@@ -1,16 +1,26 @@
+from datetime import timedelta
+
+import requests
+from celery import shared_task
 from celery.app import shared_task
-from .utils import get_all_balance_equity_data, get_fixed_balance_equity_data
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core.mail import EmailMultiAlternatives, send_mail
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.utils.timezone import now, timedelta
+
+from competition.managers.utils import sendMail
+from execution.models import DemoPortfolio, Portfolio
+
 from .analyzer import (
+    analyze_hamma_portfolio_status,
     analyze_portfolio_status,
     analyze_portfolio_status_after_close,
-    analyze_hamma_portfolio_status,
 )
-from execution.models import DemoPortfolio, Portfolio
-from .utils import sendMail
-import requests
-from django.utils import timezone
-from datetime import timedelta
-from django.utils.timezone import now, timedelta
+from .utils import get_all_balance_equity_data, get_fixed_balance_equity_data, sendMail
+
+User = get_user_model()
 
 
 @shared_task
@@ -116,3 +126,51 @@ def send_drawdown_volation_mail(user, email, password, key):
             print(f"Failed to get screenshot: {resp.status_code} - {resp.text}")
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
+
+
+@shared_task
+def send_reminder_email(user_id, discount_code, expiry):
+    """
+    Send reminder email to users who haven't purchased a prop account.
+    """
+    try:
+        user = User.objects.get(id=user_id)
+
+        # Check if user has purchased a prop account
+        has_prop_account = DemoPortfolio.objects.filter(
+            user=user, is_prop=True
+        ).exists()
+
+        if not has_prop_account:
+            # Prepare email content
+            context = {
+                "firstname": user.firstname,
+                "code": discount_code,
+                "expiry": expiry,
+            }
+
+            subject = "A Promise Fulfilled – Discount for You! 🎉"
+
+            sendMail("prop/ref_program_discount.html", subject, [user.email], context)
+            return f"Reminder email sent to {user.email}"
+
+        return f"User {user.email} already has a prop account, no reminder needed"
+
+    except User.DoesNotExist:
+        return f"User with ID {user_id} does not exist"
+    except Exception as e:
+        return f"Error sending reminder email: {str(e)}"
+
+
+@shared_task
+def referral_intro(email, firstname):
+
+    context = {"firstname": firstname}
+    html_message = render_to_string("prop/ref_program_intro.html", context)
+    plain_message = ""
+    subject = " Earn & Give – 10% with Our Referral Program!"
+    from_email = "Hamma Team <hello@gohamma.com>"
+    recipient_list = [email]
+    send_mail(
+        subject, plain_message, from_email, recipient_list, html_message=html_message
+    )
