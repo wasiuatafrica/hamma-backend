@@ -28,3 +28,4 @@ class Command(BaseCommand):
         for user in users:
             print(user.email, user.firstname)
             test_email3(user.email, user.firstname)
+        print(len(users))
