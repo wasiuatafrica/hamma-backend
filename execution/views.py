@@ -2197,6 +2197,7 @@ class DemoPorfoliosAccounts(APIView):
                 "user": competition_account.user.id,
                 "account_id": competition_account.account_id,
                 "active": competition_account.active,
+                "can_trade": competition_account.can_trade,
             }
         else:
             comdata = []
@@ -2219,6 +2220,7 @@ class DemoPorfoliosAccounts(APIView):
                 "is_prop": False,
                 "account_type_level": "not_applicable",
                 "model_typee": "not_applicable",
+                "can_trade": accounts.can_trade,
             }
             demo_data.append(data)
 
@@ -2242,6 +2244,7 @@ class DemoPorfoliosAccounts(APIView):
                 "is_prop": True,
                 "account_type_level": accounts.account_type_level,
                 "model_type": accounts.model_type,
+                "can_trade": accounts.can_trade,
             }
             prop_data.append(data)
 
