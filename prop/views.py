@@ -1718,6 +1718,8 @@ class PayoutsSummaryView(APIView):
                     "last_updated": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
                 }
 
+                return Response(response_data)
+
             payouts = Payout.objects.filter(portfolio=portfolio)
 
             # Calculate Available Profit

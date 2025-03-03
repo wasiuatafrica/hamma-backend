@@ -608,6 +608,7 @@ def analyze_portfolio_status(portfolio):
     if is_inactive:
         portfolio.active = False
         portfolio.inactive_by_inactivity = is_inactive
+        portfolio.can_trade = False
 
     # Check payout eligibility
     eligibility = analyzer.check_payout_eligibility()
