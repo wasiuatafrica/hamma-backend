@@ -18,7 +18,7 @@ class DataMerger:
     def get_price(self):
         """Get the last item from "stock_prices" collection."""
         try:
-            collection = self.db.db_stock_prices["price_combined"]
+            collection = self.db.db_stock_prices["price_combined_test"]
             last_item = collection.find_one(sort=[("_id", -1)])
             return last_item
         except Exception as e:
@@ -28,7 +28,7 @@ class DataMerger:
     def get_last_live(self):
         """Get the last item from "live_price_combined" collection."""
         try:
-            collection = self.db.db_live["live_price_combined"]
+            collection = self.db.db_live["live_price_combined_test"]
             last_item = collection.find_one(sort=[("_id", -1)])
             return last_item
         except Exception as e:
@@ -194,7 +194,7 @@ class DataMerger:
 
             # Write merged data to MongoDB
             if combined:
-                collection_merged = self.db.db_live["merged_live_price"]
+                collection_merged = self.db.db_live["merged_live_price_test"]
                 collection_merged.insert_one(combined)
                 logger.info(
                     f"Successfully merged and wrote data for {len(combined)} symbols"

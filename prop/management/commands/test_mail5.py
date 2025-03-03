@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from prop.tasks import send_reminder_email
+import waitlist
+from waitlist.models import Waitlist
 
 User = get_user_model()
 
@@ -28,13 +30,17 @@ class Command(BaseCommand):
         # test_email3('ayo@gohamma.com', 'Ayo')
         # test_email3("teamgohamma@gmail.com", "Ayo")
         # test_email3('wasiu@atafrica.org', 'Ayo')
-        test_email3("akwasonhumbile@gmail.com", "Daniel")
+        # test_email3("akwasonhumbile@gmail.com", "Daniel")
 
         # user = User.objects.get(email="nexxyb@gmail.com")
         # task = send_reminder_email(user.id, "GOHAMMAWASIU101", "02-02-2025 10:42")
         # print(task)
 
-        # users = User.objects.all()
-        # for user in users:
-        #     print(user.mail, user.firstname)
-        #     test_email3(user.email, user.firstname)
+        users = User.objects.all().order_by("firstname")
+        user_emails = [user.email for user in users]
+        waitlist = Waitlist.objects.all()
+        for user in waitlist:
+            if user.email in user_emails:
+                continue
+            print(user.email, user.firstname)
+            # test_email3(user.email, user.firstname)

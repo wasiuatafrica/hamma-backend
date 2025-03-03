@@ -351,7 +351,7 @@ class TradingViewDataCollector:
 
             # Write data to MongoDB
             if data1:
-                collection = self.db.db_stock_prices["price_combined"]
+                collection = self.db.db_stock_prices["price_combined_test"]
                 collection.insert_one(data1)
                 logger.info(
                     f"Successfully wrote data for {len(data1)} symbols to MongoDB"

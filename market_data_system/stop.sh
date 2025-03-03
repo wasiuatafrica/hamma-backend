@@ -2,7 +2,7 @@
 
 # Send shutdown notification
 echo "Sending shutdown notification..."
-cd /path/to/market_data_system
+cd market_data_system
 python -c "from tasks.scheduled_tasks import send_shutdown_notification; send_shutdown_notification.delay()"
 
 # Wait for notification to be sent

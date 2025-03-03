@@ -188,7 +188,7 @@ class NGXDataCollector:
         """Write data to MongoDB collections."""
         try:
             # Get collection references
-            collection = self.db.db_live["live_price_combined"]
+            collection = self.db.db_live["live_price_combined_test"]
             today_str = self.db.get_today_collection_name()
             collection_today = self.db.db_live[today_str]
 

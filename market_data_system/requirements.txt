@@ -19,7 +19,7 @@ pytz
 
 # External APIs
 requests
-tvdatafeed
+tradingview-datafeed
 
 # Environment & Auth
 python-dotenv
