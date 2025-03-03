@@ -1,0 +1,35 @@
+# Web Framework
+fastapi
+uvicorn
+jinja2
+
+# Task Queue
+celery
+redis
+
+# Database
+pymongo
+sqlalchemy
+psycopg2-binary
+
+# Data Processing
+pandas
+numpy
+pytz
+
+# External APIs
+requests
+tvdatafeed
+
+# Environment & Auth
+python-dotenv
+python-jose
+passlib
+bcrypt
+
+# Email
+sendgrid
+
+# Utilities
+pydantic
+python-multipart

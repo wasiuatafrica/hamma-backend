@@ -6,8 +6,7 @@ from execution.tasks import update_live_1m, update_live_1d
 
 
 class Command(BaseCommand):
-    help = 'get historical data'
+    help = "get historical data"
 
     def handle(self, *args, **options):
         update_live_1d()
-        

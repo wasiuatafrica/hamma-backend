@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Data System Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+        .status-running { background-color: #d4edda; }
+        .status-idle { background-color: #fff3cd; }
+        .status-success { background-color: #d4edda; }
+        .status-partial_success { background-color: #fff3cd; }
+        .status-warning { background-color: #fff3cd; }
+        .status-error { background-color: #f8d7da; }
+        .refresh-btn {
+            margin-right: 10px;
+        }
+        .status-indicator {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .status-indicator-running { background-color: #28a745; }
+        .status-indicator-idle { background-color: #ffc107; }
+        .status-indicator-success { background-color: #28a745; }
+        .status-indicator-partial_success { background-color: #ffc107; }
+        .status-indicator-warning { background-color: #ffc107; }
+        .status-indicator-error { background-color: #dc3545; }
+        .card {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>Market Data System Dashboard</h1>
+                <div>
+                    <button id="refreshBtn" class="btn btn-primary refresh-btn">Refresh</button>
+                    <span id="lastRefresh" class="text-muted">Last refresh: Never</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">System Status</div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Market Status:</span>
+                            <span id="marketStatus">Loading...</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Active Symbols:</span>
+                            <span id="activeSymbols">Loading...</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Server Time:</span>
+                            <span id="serverTime">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">Service Controls</div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2">
+                            <button onclick="runTask('ngx')" class="btn btn-sm btn-outline-primary">Run NGX Collection</button>
+                            <button onclick="runTask('tv')" class="btn btn-sm btn-outline-primary">Run TV Collection</button>
+                            <button onclick="runTask('merge')" class="btn btn-sm btn-outline-primary">Run Data Merge</button>
+                            <button onclick="runTask('classify')" class="btn btn-sm btn-outline-success">Run Asset Classification</button>
+                            <button onclick="runTask('signals')" class="btn btn-sm btn-outline-success">Run Signal Generation</button>
+                            <button onclick="runTask('daily_charts')" class="btn btn-sm btn-outline-info">Update Daily Charts</button>
+                            <button onclick="runTask('minute_charts')" class="btn btn-sm btn-outline-info">Update Minute Charts</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">Service Status</div>
+            <div class="card-body p-0">
+                <table class="table table-striped table-bordered mb-0">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Status</th>
+                            <th>Last Updated</th>
+                            <th>Message</th>
+                        </tr>
+                    </thead>
+                    <tbody id="serviceStatusTable">
+                        <tr>
+                            <td colspan="4" class="text-center">Loading service status...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Recent Errors</div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped table-bordered mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Component</th>
+                                    <th>Error</th>
+                                </tr>
+                            </thead>
+                            <tbody id="errorTable">
+                                <tr>
+                                    <td colspan="3" class="text-center">Loading recent errors...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Recent Notifications</div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped table-bordered mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Type</th>
+                                    <th>Subject</th>
+                                </tr>
+                            </thead>
+                            <tbody id="notificationTable">
+                                <tr>
+                                    <td colspan="3" class="text-center">Loading recent notifications...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Symbol Status</span>
+                    <button id="showSymbolsBtn" class="btn btn-sm btn-outline-secondary">Show All Symbols</button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-striped table-bordered mb-0">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Status</th>
+                            <th>Last Updated</th>
+                            <th>Last Seen</th>
+                            <th>Message</th>
+                        </tr>
+                    </thead>
+                    <tbody id="symbolStatusTable">
+                        <tr>
+                            <td colspan="5" class="text-center">Loading symbol status...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let showAllSymbols = false;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshData();
+            
+            document.getElementById('refreshBtn').addEventListener('click', refreshData);
+            document.getElementById('showSymbolsBtn').addEventListener('click', function() {
+                showAllSymbols = !showAllSymbols;
+                this.textContent = showAllSymbols ? "Show Inactive Only" : "Show All Symbols";
+                loadSymbolStatus();
+            });
+            
+            // Auto refresh every 60 seconds
+            setInterval(refreshData, 60000);
+        });
+        
+        function refreshData() {
+            loadSystemStatus();
+            loadSymbolStatus();
+            updateLastRefreshTime();
+        }
+        
+        function updateLastRefreshTime() {
+            const now = new Date();
+            document.getElementById('lastRefresh').textContent = `Last refresh: ${now.toLocaleTimeString()}`;
+        }
+        
+        function loadSystemStatus() {
+            fetch('/api/status')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch system status');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    updateSystemStatusDisplay(data);
+                    updateServiceStatusTable(data.services);
+                    updateErrorTable(data.recent_errors);
+                    updateNotificationTable(data.recent_notifications);
+                })
+                .catch(error => {
+                    console.error('Error loading system status:', error);
+                    alert('Failed to load system status. Check console for details.');
+                });
+        }
+        
+        function loadSymbolStatus() {
+            fetch('/api/symbols')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch symbol status');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    updateSymbolStatusTable(data);
+                })
+                .catch(error => {
+                    console.error('Error loading symbol status:', error);
+                    alert('Failed to load symbol status. Check console for details.');
+                });
+        }
+        
+        function runTask(taskName) {
+            if (!confirm(`Are you sure you want to run the ${taskName} task?`)) {
+                return;
+            }
+            
+            fetch(`/api/run/${taskName}`, {
+                method: 'POST'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Failed to run task ${taskName}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(`Task ${taskName} initiated successfully!`);
+                    setTimeout(refreshData, 5000);  // Refresh after 5 seconds
+                })
+                .catch(error => {
+                    console.error(`Error running task ${taskName}:`, error);
+                    alert(`Failed to run task ${taskName}. Check console for details.`);
+                });
+        }
+        
+        function updateSystemStatusDisplay(data) {
+            document.getElementById('marketStatus').textContent = data.market_open ? 'Open' : 'Closed';
+            document.getElementById('marketStatus').className = data.market_open ? 'text-success fw-bold' : 'text-danger fw-bold';
+            
+            document.getElementById('activeSymbols').textContent = data.active_symbols_count;
+            
+            const timestamp = new Date(data.timestamp);
+            document.getElementById('serverTime').textContent = timestamp.toLocaleString();
+        }
+        
+        function updateServiceStatusTable(services) {
+            const tableBody = document.getElementById('serviceStatusTable');
+            tableBody.innerHTML = '';
+            
+            if (services && services.length > 0) {
+                services.forEach(service => {
+                    const row = document.createElement('tr');
+                    row.className = `status-${service.status}`;
+                    
+                    const statusIndicator = document.createElement('span');
+                    statusIndicator.className = `status-indicator status-indicator-${service.status}`;
+                    
+                    const serviceCell = document.createElement('td');
+                    serviceCell.appendChild(statusIndicator);
+                    serviceCell.appendChild(document.createTextNode(service.service));
+                    
+                    row.appendChild(serviceCell);
+                    row.appendChild(createCell(service.status));
+                    
+                    const lastUpdated = new Date(service.last_updated);
+                    row.appendChild(createCell(lastUpdated.toLocaleString()));
+                    
+                    row.appendChild(createCell(service.message || ''));
+                    
+                    tableBody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = 4;
+                cell.className = 'text-center';
+                cell.textContent = 'No service status data available';
+                row.appendChild(cell);
+                tableBody.appendChild(row);
+            }
+        }
+        
+        function updateErrorTable(errors) {
+            const tableBody = document.getElementById('errorTable');
+            tableBody.innerHTML = '';
+            
+            if (errors && errors.length > 0) {
+                errors.forEach(error => {
+                    const row = document.createElement('tr');
+                    
+                    const timestamp = new Date(error.timestamp);
+                    row.appendChild(createCell(timestamp.toLocaleString()));
+                    
+                    row.appendChild(createCell(error.component));
+                    row.appendChild(createCell(error.error_message));
+                    
+                    tableBody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = 3;
+                cell.className = 'text-center';
+                cell.textContent = 'No recent errors';
+                row.appendChild(cell);
+                tableBody.appendChild(row);
+            }
+        }
+        
+        function updateNotificationTable(notifications) {
+            const tableBody = document.getElementById('notificationTable');
+            tableBody.innerHTML = '';
+            
+            if (notifications && notifications.length > 0) {
+                notifications.forEach(notification => {
+                    const row = document.createElement('tr');
+                    
+                    const timestamp = new Date(notification.timestamp);
+                    row.appendChild(createCell(timestamp.toLocaleString()));
+                    
+                    row.appendChild(createCell(notification.type));
+                    row.appendChild(createCell(notification.subject));
+                    
+                    tableBody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = 3;
+                cell.className = 'text-center';
+                cell.textContent = 'No recent notifications';
+                row.appendChild(cell);
+                tableBody.appendChild(row);
+            }
+        }
+        
+        function updateSymbolStatusTable(symbols) {
+            const tableBody = document.getElementById('symbolStatusTable');
+            tableBody.innerHTML = '';
+            
+            if (symbols && symbols.length > 0) {
+                const filteredSymbols = showAllSymbols ? symbols : symbols.filter(s => !s.is_active);
+                
+                if (filteredSymbols.length === 0) {
+                    const row = document.createElement('tr');
+                    const cell = document.createElement('td');
+                    cell.colSpan = 5;
+                    cell.className = 'text-center';
+                    cell.textContent = 'No inactive symbols';
+                    row.appendChild(cell);
+                    tableBody.appendChild(row);
+                    return;
+                }
+                
+                filteredSymbols.forEach(symbol => {
+                    const row = document.createElement('tr');
+                    
+                    row.appendChild(createCell(symbol.symbol));
+                    
+                    const statusCell = document.createElement('td');
+                    statusCell.textContent = symbol.is_active ? 'Active' : 'Inactive';
+                    statusCell.className = symbol.is_active ? 'text-success' : 'text-danger';
+                    row.appendChild(statusCell);
+                    
+                    const lastUpdated = new Date(symbol.last_updated);
+                    row.appendChild(createCell(lastUpdated.toLocaleString()));
+                    
+                    if (symbol.last_seen) {
+                        const lastSeen = new Date(symbol.last_seen);
+                        row.appendChild(createCell(lastSeen.toLocaleString()));
+                    } else {
+                        row.appendChild(createCell('N/A'));
+                    }
+                    
+                    row.appendChild(createCell(symbol.message || ''));
+                    
+                    tableBody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = 5;
+                cell.className = 'text-center';
+                cell.textContent = 'No symbol status data available';
+                row.appendChild(cell);
+                tableBody.appendChild(row);
+            }
+        }
+        
+        function createCell(text) {
+            const cell = document.createElement('td');
+            cell.textContent = text;
+            return cell;
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

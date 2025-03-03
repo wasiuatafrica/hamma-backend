@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  market_data_system:
+    build: .
+    container_name: market_data_system
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+      - ./config/.env:/app/config/.env
+    networks:
+      - market_data_network
+    environment:
+      - TZ=Africa/Lagos
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+  
+  redis:
+    image: redis:7.0-alpine
+    container_name: market_data_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - market_data_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  market_data_network:
+    driver: bridge
+
+volumes:
+  redis_data:

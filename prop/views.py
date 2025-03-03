@@ -283,16 +283,16 @@ class RequestPayoutAPIView(APIView):
             serializer = PayoutDetailSerializer(payout)
 
             # send payout mail
-            sendMail(
-                "prop/Payout.html",
-                "Update on Your Payout Request",
-                [request.user.email],
-                {
-                    "first_name": request.user.firstname,
-                    "amount": payout.amount,
-                    "payment_type": request.user.payment_type,
-                },
-            )
+            # sendMail(
+            #     "prop/Payout.html",
+            #     "Update on Your Payout Request",
+            #     [request.user.email],
+            #     {
+            #         "first_name": request.user.firstname,
+            #         "amount": payout.amount,
+            #         "payment_type": request.user.payment_type,
+            #     },
+            # )
 
             return Response(
                 {
@@ -1705,6 +1705,18 @@ class PayoutsSummaryView(APIView):
                 }
 
                 return Response(response_data)
+
+            if portfolio.blown or portfolio.inactive_by_inactivity:
+                response_data = {
+                    "available_profit": {"amount": 0, "can_request": False},
+                    "pending_amount": {
+                        "amount": 0,
+                    },
+                    "total_paid": {
+                        "amount": 0,
+                    },
+                    "last_updated": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+                }
 
             payouts = Payout.objects.filter(portfolio=portfolio)
 

@@ -75,38 +75,6 @@ def get_combined():
     for symbol, data in live_data.items():
         if symbol != "_id":
             data2 = volatile_data.get(symbol, None)
-            # df = get_symbol_data(all_live_data, symbol)
-            # # print(df)
-            # df['datetime'] = pd.to_datetime(df['datetime'])
-            # df = df.set_index('datetime').sort_index()
-
-            # # Ensure 'close' column doesn't contain None or NaN
-            # df['close'] = df['close'].ffill().fillna(0)
-
-            # # Filter out rows where the close price remains unchanged
-            # df = df[df['close'].diff() != 0]
-
-            # # Calculate 'change' and 'pct_change'
-            # df['change'] = df['close'].diff().fillna(0)
-            # df['pct_change'] = (df['close'].pct_change() * 100).fillna(0)
-
-            # df['change'] = df['change'].round(2)
-            # df['pct_change'] = df['pct_change'].round(2)
-
-            # # Replace any infinite values in 'pct_change' with a safe default
-            # df['pct_change'] = df['pct_change'].apply(safe_float)
-
-            # last_non_zero_change = 0
-            # last_non_zero_pct_change = 0
-
-            # for idx in df.index[::-1]:  # Reverse iteration
-            #     change = df.loc[idx, 'change']  # Get the 'change' value at this index
-            #     if change != 0:
-            #         last_non_zero_change = safe_float(change)
-            #         last_non_zero_pct_change = safe_float(df.loc[idx, 'pct_change'])
-            #         break
-
-            # # Prepare the new data with the last change and percentage change
             if data2:
                 new_data = {
                     "datetime": data["datetime"],

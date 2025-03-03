@@ -16,9 +16,9 @@ class PayoutService:
         """Check all conditions that must be met for payout eligibility"""
         conditions = {
             "minimum_trading_days": self._check_minimum_trading_days(),
-            "profit_target_met": self._check_profit_target(),
+            # "profit_target_met": self._check_profit_target(),
             "drawdown_limits": self._check_drawdown_limits(),
-            "minimum_trades": self._check_minimum_trades(),
+            # "minimum_trades": self._check_minimum_trades(),
             "active_account": self._check_account_active(),
             "payout_timing": self._check_payout_timing(),
             "no_open_trades": self._check_no_open_trades(),
@@ -84,24 +84,24 @@ class PayoutService:
         # For Wednesday and Thursday, allow all times
         return is_valid_day
 
-    # def calculate_payout_amount(self):
-    #     """Calculate the payout amount based on profit and time period"""
-    #     current_data = get_equity_balance(self.portfolio)
-    #     profit = Decimal(str(current_data["equity"])) - self.portfolio.initial_balance
+    def calculate_payout_amount(self):
+        """Calculate the payout amount based on profit and time period"""
+        current_data = get_equity_balance(self.portfolio)
+        profit = Decimal(str(current_data["equity"])) - self.portfolio.initial_balance
 
-    #     # Calculate weeks since account creation
-    #     weeks_active = (self.current_time - self.portfolio.created).days // 7
+        # Calculate weeks since account creation
+        weeks_active = (self.current_time - self.portfolio.created).days // 7
 
-    #     # Determine profit split percentage based on weeks active
-    #     if weeks_active <= 4:
-    #         split_percentage = Decimal("0.90")  # 90%
-    #     elif weeks_active <= 12:
-    #         split_percentage = Decimal("0.60")  # 60%
-    #     else:
-    #         split_percentage = Decimal("0.40")  # 40%
+        # Determine profit split percentage based on weeks active
+        if weeks_active <= 4:
+            split_percentage = Decimal("0.90")  # 90%
+        elif weeks_active <= 12:
+            split_percentage = Decimal("0.60")  # 60%
+        else:
+            split_percentage = Decimal("0.40")  # 40%
 
-    #     payout_amount = profit * split_percentage
-    #     return payout_amount, split_percentage
+        payout_amount = profit * split_percentage
+        return payout_amount, split_percentage
 
     @transaction.atomic
     def process_payout_request(self):

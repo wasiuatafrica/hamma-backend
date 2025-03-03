@@ -20,6 +20,7 @@ from .models import (
     ViewOtherIdeasLog,
     OpenedDashboardFeed,
     BonusWallet,
+    CompanyFundamental,
 )
 
 
@@ -40,6 +41,7 @@ class BonusWalletAdmin(admin.ModelAdmin):
 
 class StockAdmin(admin.ModelAdmin):
     search_fields = ["symbol"]
+    list_display = ("company", "symbol")
 
 
 admin.site.register(Stock, StockAdmin)
@@ -47,6 +49,12 @@ admin.site.register(PayStackReceipts)
 admin.site.register(Receipts)
 admin.site.register(WithdrawalOTPRequest)
 admin.site.register(Wallet)
+
+
+@admin.register(CompanyFundamental)
+class CompanyFundamentalAdmin(admin.ModelAdmin):
+    list_display = ("stock", "market_cap")
+    search_fields = ["stock__symbol"]
 
 
 class TransactionAdmin(admin.ModelAdmin):
