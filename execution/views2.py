@@ -121,7 +121,11 @@ class SingleDemoTradeAPIView(APIView):
         if not portfolio.can_trade:
             raise ValidationError("This account is not allowed to trade")
         if hasattr(portfolio, "is_prop") and portfolio.is_prop:
-            if not portfolio.is_active or portfolio.blown:
+            if (
+                not portfolio.is_active
+                or portfolio.blown
+                or portfolio.inactive_by_inactivity
+            ):
                 raise ValidationError("You can no longer trade on this account")
         return True
 

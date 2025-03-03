@@ -5,8 +5,8 @@ import os
 # Create Celery application
 app = Celery(
     "market_data_system",
-    broker=f"redis://localhost:6379/0",
-    backend=f"redis://localhost:6379/1",
+    broker=f"redis://redis:6379/0",
+    backend=f"redis://redis:6379/1",
 )
 
 # Configure Celery

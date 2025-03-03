@@ -37,9 +37,9 @@ class AlertManager:
         logger.info(f"New symbol detected: {symbol}")
 
         # Log to MongoDB
-        mongodb.update_symbol_status(
-            symbol=symbol, is_active=True, message="Newly discovered symbol"
-        )
+        # mongodb.update_symbol_status(
+        #     symbol=symbol, is_active=True, message="Newly discovered symbol"
+        # )
 
         # Send email notification
         self.email_service.send_new_symbol_notification(symbol)
@@ -49,7 +49,7 @@ class AlertManager:
         logger.info(f"Symbol inactive: {symbol} - {reason}")
 
         # Log to MongoDB
-        mongodb.update_symbol_status(symbol=symbol, is_active=False, message=reason)
+        # mongodb.update_symbol_status(symbol=symbol, is_active=False, message=reason)
 
         # Send email notification
         self.email_service.send_inactive_symbol_notification(symbol, reason)

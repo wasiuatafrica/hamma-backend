@@ -75,9 +75,9 @@ class AssetClassifier:
                 return "neutral"
 
         def classify_market_cap(cap):
-            if cap <= 40_000_000_000:  # Below NGN 50 billion
+            if cap <= 50_000_000_000:  # Below NGN 50 billion
                 return "small-cap"
-            elif cap <= 150_000_000_000:  # Between NGN 50 billion and NGN 200 billion
+            elif cap <= 140_000_000_000:  # Between NGN 50 billion and NGN 200 billion
                 return "mid-cap"
             else:  # NGN 200 billion and above
                 return "large-cap"
