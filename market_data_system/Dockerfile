@@ -14,6 +14,7 @@ COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install  -r requirements.txt
+RUN pip install pydantic-settings
 
 # Copy application code
 COPY . .

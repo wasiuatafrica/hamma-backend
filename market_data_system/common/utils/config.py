@@ -1,12 +1,21 @@
 import os
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
-load_dotenv()
+# Get the absolute path to the project root
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../.."))
+env_path = os.path.join(project_root, "config", ".env")
 
+# Load the .env file from the explicit path
+load_dotenv(env_path)
+
+# Print for debugging
+print(f"Loading .env from: {env_path}")
+print(f"MONGO_URL: {os.getenv('MONGO_URL', 'Not found')}")
 
 class Settings(BaseSettings):
-    # MongoDB
+    
     mongo_url: str = os.getenv("MONGO_URL", "")
     mongo_timeout: int = int(os.getenv("MONGO_TIMEOUT", "5000"))
 

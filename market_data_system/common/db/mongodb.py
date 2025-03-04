@@ -21,6 +21,7 @@ class MongoDB:
     def _initialize_connection(self):
         """Initialize MongoDB connection."""
         try:
+            print("url", settings.mongo_url)
             self.client = MongoClient(
                 settings.mongo_url,
                 serverSelectionTimeoutMS=settings.mongo_timeout,
