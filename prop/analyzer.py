@@ -503,7 +503,7 @@ class PortfolioAnalyzer:
 
         if total_swap_fee > 0:
             # Update portfolio balance
-            self.portfolio.balance -= total_swap_fee
+            # self.portfolio.balance -= total_swap_fee
             self.portfolio.last_swap_charge_date = current_date
             self.portfolio.save()
 
