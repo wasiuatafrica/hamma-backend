@@ -1784,36 +1784,40 @@ def update_live_1d():
     last_item = collection_merged.find_one(sort=[("_id", -1)])
 
     for symbol in stocks:
-        df = last_data(last_item, symbol)
-        if df is None or df.empty:
-            print(f"No data available for {symbol} today")
+        try:
+            df = last_data(last_item, symbol)
+            if df is None or df.empty:
+                print(f"No data available for {symbol} today")
+                continue
+
+            t = df["timestamp"].tolist()[-1]
+            o = df["open"].tolist()[-1]
+            h = df["high"].tolist()[-1]
+            l = df["low"].tolist()[-1]
+            c = df["close"].tolist()[-1]
+            v = df["volume"].tolist()[-1]
+
+            new_data = {
+                "t": [t],
+                "o": [o],
+                "h": [h],
+                "l": [l],
+                "c": [c],
+                "v": [v],
+            }
+
+            print(new_data)
+
+            # update_document(symbol, 'chartdata_5', new_data)
+            # print('updated 5m', symbol)
+            update_document(symbol, "chartdata_1D", new_data)
+            print("updated 1D", symbol)
+            if today.weekday() == 0:  # Monday
+                update_document(symbol, "chartdata_1W", new_data)
+                print("updated 1W", symbol)
+        except Exception as e:
+            print(f"Error processing {symbol}: {e}")
             continue
-
-        t = df["timestamp"].tolist()[-1]
-        o = df["open"].tolist()[-1]
-        h = df["high"].tolist()[-1]
-        l = df["low"].tolist()[-1]
-        c = df["close"].tolist()[-1]
-        v = df["volume"].tolist()[-1]
-
-        new_data = {
-            "t": [t],
-            "o": [o],
-            "h": [h],
-            "l": [l],
-            "c": [c],
-            "v": [v],
-        }
-
-        print(new_data)
-
-        # update_document(symbol, 'chartdata_5', new_data)
-        # print('updated 5m', symbol)
-        update_document(symbol, "chartdata_1D", new_data)
-        print("updated 1D", symbol)
-        if today.weekday() == 0:  # Monday
-            update_document(symbol, "chartdata_1W", new_data)
-            print("updated 1W", symbol)
 
 
 @shared_task
