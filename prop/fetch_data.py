@@ -1,5 +1,6 @@
 import os
 import decimal
+from decimal import Decimal
 from datetime import datetime, time
 from concurrent.futures import ThreadPoolExecutor
 from pymongo import MongoClient
@@ -7,6 +8,7 @@ import psycopg2
 from psycopg2.extras import DictCursor
 from pytz import timezone
 import time as pytime
+from typing import Dict, List, Union
 
 # Configuration
 POSTGRES_SETTINGS = {
@@ -16,7 +18,6 @@ POSTGRES_SETTINGS = {
     "host": "c3opaibi71ph4s.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com",
     "port": 5432,
 }
-
 
 WAT_TIMEZONE = timezone("Africa/Lagos")
 
@@ -42,87 +43,77 @@ def get_price():
     return last_item
 
 
-def calculate_profit_loss(position, price):
-    quantity = position["quantity"]
-    amount_invested = position["amount_invested"]
+# Simple class to hold position metrics
+class PositionMetrics:
+    def __init__(
+        self,
+        profit_loss=Decimal("0"),
+        current_value=Decimal("0"),
+        commission=Decimal("0"),
+        swap_fee=Decimal("0"),
+        percent_change=0.0,
+    ):
+        self.profit_loss = profit_loss
+        self.current_value = current_value
+        self.commission = commission
+        self.swap_fee = swap_fee
+        self.percent_change = percent_change
+
+
+def calculate_position_metrics(position, last_item):
+    """Calculate core metrics for a single position"""
+    # Convert values to Decimal for precision
+    quantity = Decimal(str(position["quantity"]))
+    amount_invested = Decimal(str(position["quantity"] * position["open_price"]))
     status = position["status"]
     action = position["action"]
 
-    current_value = round(quantity * price, 2)
-    profit_loss = 0
+    # Get current price of stock
+    stock_symbol = position["stock_symbol"]
+    current_price_data = last_item.get(stock_symbol, {})
+    current_price = Decimal(
+        str(current_price_data.get("current_price", position["open_price"]))
+    )
 
     if status == "open":
+        current_value = Decimal(str(round(quantity * current_price, 2)))
+
         if action == "buy":
-            profit_loss = decimal.Decimal(current_value) - amount_invested
-        elif action == "sell":
-            profit_loss = amount_invested - decimal.Decimal(current_value)
+            profit_loss = current_value - amount_invested
+        else:  # sell
+            profit_loss = amount_invested - current_value
+
+        commission = Decimal("0")
+        swap_fee = Decimal("0")
+
     elif status == "close":
-        profit_loss = position["profit_loss"]
-        current_value = quantity * position["close_price"]
+        close_price = Decimal(str(position["close_price"] or 0))
+        current_value = quantity * close_price
 
-    return profit_loss, current_value, price
+        profit_loss = Decimal(str(position["profit_loss"]))
+        commission = round(
+            (Decimal("0.00435") * Decimal(str(position["amount_invested"])))
+            + Decimal("200"),
+            2,
+        )
+        swap_fee = Decimal(str(position.get("swap_fee", 0)))
+    else:
+        return PositionMetrics()
 
+    # Calculate percent change
+    percent_change = (
+        round(float(profit_loss) / float(amount_invested) * 100, 2)
+        if amount_invested != 0
+        else 0.0
+    )
 
-def get_equity_balance(portfolio, positions, last_item):
-    """
-    Calculate equity balance for a portfolio based on its positions.
-    Args:
-        portfolio (dict): Portfolio data with balance and account_id.
-        positions (dict): Dictionary of positions keyed by portfolio_id.
-
-    Returns:
-        dict: Data containing balance, equity, timestamp, and account_id.
-    """
-    # Get balance from portfolio
-    print(portfolio)
-    # print(positions)
-    balance = portfolio["balance"]
-    account_id = portfolio["account_id"]
-
-    # Get positions for this portfolio
-    portfolio_id = portfolio["id"]
-    portfolio_positions = positions.get(portfolio_id, [])  # Retrieve positions directly
-
-    # Initialize profit/loss and open balance
-    total_profit_loss = 0
-    open_balance = 0
-
-    # Calculate profit/loss and current value for each position
-    for position in portfolio_positions:
-        stock_symbol = position["stock_symbol"]
-        quantity = position["quantity"]
-        open_price = position["open_price"]
-        action = position["action"]
-        status = position["status"]
-
-        # Get current price of stock
-        current_price_data = last_item[stock_symbol]
-        current_price = current_price_data.get("current_price", 0)
-
-        if status == "open":
-            current_value = quantity * current_price
-            if action == "buy":
-                profit_loss = current_value - float((quantity * open_price))
-            elif action == "sell":
-                profit_loss = float((quantity * open_price)) - current_value
-            else:
-                profit_loss = 0
-
-            total_profit_loss += profit_loss
-            open_balance += quantity * open_price
-
-    # Calculate equity
-    equity = max(float(balance) + total_profit_loss, 0)
-
-    # Prepare response data
-    data = {
-        "balance": round(float(balance + open_balance), 2),
-        "equity": round(equity + float(open_balance), 2),
-        "timestamp": datetime.now(WAT_TIMEZONE).strftime("%Y-%m-%dT%H:%M"),
-        "account_id": account_id,
-    }
-
-    return data
+    return PositionMetrics(
+        profit_loss=profit_loss,
+        current_value=current_value,
+        commission=commission,
+        swap_fee=swap_fee,
+        percent_change=percent_change,
+    )
 
 
 def fetch_portfolio_data():
@@ -133,10 +124,11 @@ def fetch_portfolio_data():
     try:
         cursor.execute(
             """
-            SELECT dp.id AS portfolio_id, dp.balance, dp.account_id, 
+            SELECT dp.id AS portfolio_id, dp.balance, dp.initial_balance, dp.account_id, 
                    dpos.id AS position_id, dpos.stock_id, dpos.quantity, 
                    dpos.open_price, dpos.close_price, dpos.status, 
-                   dpos.action, stock.symbol AS stock_symbol
+                   dpos.action, dpos.amount_invested, dpos.created, dpos.closed_at, dpos.profit_loss,dpos.swap_fee,
+                   stock.symbol AS stock_symbol, stock.logo_url, dpos.order_type
             FROM execution_demoportfolio dp
             LEFT JOIN execution_demoposition dpos ON dp.id = dpos.portfolio_id
             LEFT JOIN portfolio_stock stock ON dpos.stock_id = stock.id
@@ -161,6 +153,7 @@ def fetch_portfolio_data():
                 portfolios[portfolio_id] = {
                     "id": portfolio_id,
                     "balance": row["balance"],
+                    "initial_balance": row["initial_balance"],
                     "account_id": row["account_id"],
                 }
 
@@ -168,18 +161,7 @@ def fetch_portfolio_data():
             if row["position_id"]:
                 if portfolio_id not in positions:
                     positions[portfolio_id] = []
-                positions[portfolio_id].append(
-                    {
-                        "position_id": row["position_id"],
-                        "stock_id": row["stock_id"],
-                        "quantity": row["quantity"],
-                        "open_price": row["open_price"],
-                        "close_price": row["close_price"],
-                        "status": row["status"],
-                        "action": row["action"],
-                        "stock_symbol": row["stock_symbol"],
-                    }
-                )
+                positions[portfolio_id].append(dict(row))
 
         return portfolios, positions
 
@@ -188,29 +170,67 @@ def fetch_portfolio_data():
         conn.close()
 
 
+def calculate_portfolio_metrics(portfolio, position_list, last_item):
+    """Calculate complete portfolio metrics using the enhanced calculator logic"""
+    total_floating_pl = Decimal("0")
+    total_closed_pl = Decimal("0")
+    open_balance = Decimal("0")
+
+    # Process each position
+    for position in position_list:
+        metrics = calculate_position_metrics(position, last_item)
+
+        if position["status"] == "open":
+            total_floating_pl += metrics.profit_loss
+            open_balance += Decimal(str(position["amount_invested"]))
+        else:
+            # For closed positions, use net profit (profit_loss - commission - swap_fee)
+            net_profit = metrics.profit_loss - metrics.commission - metrics.swap_fee
+            total_closed_pl += net_profit
+    # print(total_closed_pl)
+
+    # Calculate final balance and equity
+    initial_balance = Decimal(str(portfolio["initial_balance"]))
+    current_balance = initial_balance + total_closed_pl
+    equity = current_balance + total_floating_pl
+
+    return {
+        "balance": float(current_balance),
+        "floating_pl": float(total_floating_pl),
+        "closed_pl": float(total_closed_pl),
+        "equity": float(equity),
+        "open_balance": float(open_balance),
+    }
+
+
 def process_balance_equity_data():
-    """Process and store balance and equity data during trading hours."""
+    """Process and store balance and equity data during trading hours using enhanced calculator logic."""
     portfolios, positions = fetch_portfolio_data()
-    print("all fetched")
-    # print(portfolios)
-    # print(positions)
+    print("All data fetched")
 
     current_datetime = datetime.now(WAT_TIMEZONE)
     current_time = current_datetime.time()
     current_day = current_datetime.weekday()
     last_item = get_price()
 
-    # Only process during trading hours (Monday-Friday, 10:00-14:30)
-    if 0 <= current_day <= 4 and time(8, 0) <= current_time <= time(14, 42):
-        for portfolio in portfolios.values():
-            account_data = get_equity_balance(portfolio, positions, last_item)
+    # Only process during trading hours (Monday-Friday, 8:00-14:42)
+    if 0 <= current_day <= 4 and time(10, 0) <= current_time <= time(14, 42):
+        for portfolio_id, portfolio in portfolios.items():
+            # print(portfolio["account_id"])
+            # Get positions for this portfolio
+            portfolio_positions = positions.get(portfolio_id, [])
+
+            # Calculate portfolio metrics using enhanced calculator logic
+            metrics = calculate_portfolio_metrics(
+                portfolio, portfolio_positions, last_item
+            )
 
             # Format data for MongoDB
             mongo_data = {
-                "balance": float(account_data["balance"]),
-                "equity": float(account_data["equity"]),
-                "timestamp": account_data["timestamp"],
-                "account_id": account_data["account_id"],
+                "balance": metrics["balance"],
+                "equity": metrics["equity"],
+                "timestamp": current_datetime.strftime("%Y-%m-%dT%H:%M"),
+                "account_id": portfolio["account_id"],
             }
 
             print(mongo_data)
@@ -224,10 +244,8 @@ if __name__ == "__main__":
     while True:
         try:
             process_balance_equity_data()
-
-            # Sleep for 2 minutes
         except Exception as e:
             print(f"Error occurred: {e}")
-        # process_balance_equity_data()
         print("sleeping...")
+
         pytime.sleep(120)

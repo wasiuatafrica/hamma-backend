@@ -1271,7 +1271,10 @@ class EnhancedPortfolioCalculator(PortfolioCalculator):
         """Calculate core metrics for a single position"""
 
         if position.status == "open":
-            price = position.current_price
+            try:
+                price = position.current_price
+            except Exception as e:
+                price = position.open_price
             current_value = Decimal(str(round(position.quantity * price, 2)))
 
             if position.action == "buy":

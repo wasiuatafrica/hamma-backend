@@ -17,7 +17,7 @@ class Command(BaseCommand):
         # print(data)
         # user = User.objects.get(email="nexxyb@gmail.com")
         # send_prop_welcome_email(user.id)
-        shot = get_screenshot(email="nexxyb@gmail.com", account_id="84549103")
-        print(shot)
+        # shot = get_screenshot(email="nexxyb@gmail.com", account_id="84549103")
+        # print(shot)
 
-        # get_fixed_balance_equity_data()
+        get_fixed_balance_equity_data()

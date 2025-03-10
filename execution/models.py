@@ -400,10 +400,13 @@ class DemoPosition(auto_prefetch.Model):
     @property
     def current_price(self):
         print(self.stock.symbol)
-        price = get_price(self.stock.symbol)
-        if price is None:
-            return 0
-        return price["current_price"]
+        try:
+            price = get_price(self.stock.symbol)
+            if price is None:
+                return 0
+            return price["current_price"]
+        except Exception as e:
+            return self.open_price
 
     @property
     def commission(self):

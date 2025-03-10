@@ -10,6 +10,7 @@ import pytz
 from django.utils import timezone
 
 from execution.models import DemoPortfolio, DemoPosition
+from execution.views2 import EnhancedPortfolioCalculator
 
 client = MongoClient(
     os.environ.get("MONGO_STRING"), tls=True, tlsAllowInvalidCertificates=True
@@ -103,8 +104,43 @@ def get_all_balance_equity_data():
                 collection.insert_one(mongo_data)
 
 
-def get_fixed_balance_equity_data():
+# def get_fixed_balance_equity_data():
 
+#     prop_accounts = DemoPortfolio.objects.filter(
+#         is_prop=True,
+#         is_active=True,
+#         inactive_by_inactivity=False,
+#         activated=True,
+#         blown=False,
+#         has_hamma__isnull=True,
+#     )
+#     for account in prop_accounts:
+#         print(account)
+#         account_data = get_equity_balance(account)
+#         mongo_data = {
+#             "balance": (
+#                 float(account_data["balance"])
+#                 if isinstance(account_data["balance"], Decimal)
+#                 else account_data["balance"]
+#             ),
+#             "equity": (
+#                 float(account_data["equity"])
+#                 if isinstance(account_data["equity"], Decimal)
+#                 else account_data["equity"]
+#             ),
+#             "timestamp": (
+#                 account_data["timestamp"].strftime("%Y-%m-%dT%H:%M")
+#                 if isinstance(account_data["timestamp"], datetime)
+#                 else account_data["timestamp"]
+#             ),
+#             "account_id": account_data["account_id"],
+#         }
+
+#         collection = db_prop[account.account_id]
+#         collection.insert_one(mongo_data)
+
+
+def get_fixed_balance_equity_data():
     prop_accounts = DemoPortfolio.objects.filter(
         is_prop=True,
         is_active=True,
@@ -113,28 +149,28 @@ def get_fixed_balance_equity_data():
         blown=False,
         has_hamma__isnull=True,
     )
-    for account in prop_accounts:
-        print(account)
-        account_data = get_equity_balance(account)
-        mongo_data = {
-            "balance": (
-                float(account_data["balance"])
-                if isinstance(account_data["balance"], Decimal)
-                else account_data["balance"]
-            ),
-            "equity": (
-                float(account_data["equity"])
-                if isinstance(account_data["equity"], Decimal)
-                else account_data["equity"]
-            ),
-            "timestamp": (
-                account_data["timestamp"].strftime("%Y-%m-%dT%H:%M")
-                if isinstance(account_data["timestamp"], datetime)
-                else account_data["timestamp"]
-            ),
-            "account_id": account_data["account_id"],
-        }
 
+    calculator = EnhancedPortfolioCalculator()
+
+    for account in prop_accounts:
+        print(account.id)
+
+        # Fetch positions for the account
+        positions = DemoPosition.objects.filter(portfolio=account)
+
+        # Calculate metrics using EnhancedPortfolioCalculator
+        account_data = calculator.calculate_portfolio_metrics(account, positions)
+
+        # Prepare data for MongoDB insertion
+        mongo_data = {
+            "balance": float(account_data["balance"]),
+            "equity": float(account_data["equity"]),
+            "timestamp": timezone.now().strftime("%Y-%m-%dT%H:%M"),
+            "account_id": account.account_id,
+        }
+        print(mongo_data)
+
+        # Insert data into MongoDB
         collection = db_prop[account.account_id]
         collection.insert_one(mongo_data)
 
