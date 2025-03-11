@@ -143,7 +143,7 @@ class AIFeatureMixin:
                 days_remaining = (trial.end_date - now).days
                 if days_remaining <= 0:
                     days_remaining = 0
-                    return False, None, days_remaining, True, False, payment_pending
+                    return False, None, days_remaining, False, False, payment_pending
 
                 return True, None, days_remaining, True, False, payment_pending
 
@@ -156,7 +156,7 @@ class AIFeatureMixin:
                     False,
                     "Your trial has ended. Subscribe to continue accessing AI features.",
                     0,
-                    True,
+                    False,
                     False,
                     payment_pending,
                 )
@@ -167,7 +167,7 @@ class AIFeatureMixin:
                     False,
                     "Subscribe to continue accessing AI features.",
                     0,
-                    True,
+                    False,
                     False,
                     payment_pending,
                 )
