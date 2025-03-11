@@ -141,21 +141,9 @@ class AIFeatureMixin:
             if trial.is_active and not trial.has_expired:
                 # Active trial
                 days_remaining = (trial.end_date - now).days
-                if days_remaining < 0:
+                if days_remaining <= 0:
                     days_remaining = 0
-
-                # # Check if we need to send any notifications based on days_remaining
-                # if days_remaining == 3 and not trial.final_reminder_sent:
-                #     NotificationService.send_three_days_reminder_notification(user)
-                #     trial.final_reminder_sent = True
-                #     trial.save(update_fields=["final_reminder_sent"])
-                # elif (
-                #     trial.end_date - trial.start_date
-                # ).days // 2 == days_remaining and not trial.halfway_reminder_sent:
-                #     # This is the halfway point of the trial
-                #     NotificationService.send_one_week_reminder_notification(user)
-                #     trial.halfway_reminder_sent = True
-                #     trial.save(update_fields=["halfway_reminder_sent"])
+                    return False, None, days_remaining, True, False, payment_pending
 
                 return True, None, days_remaining, True, False, payment_pending
 
