@@ -631,7 +631,7 @@ class PortfolioMetrics(APIView):
                 # "floating_profit_loss": f"{floating_profit_loss:.2f}",
                 "floating_profit_loss": f"{closed_profit_loss:.2f}",
                 "closed_profit_loss": f"{closed_profit_loss:.2f}",
-                "total_profit_loss": f"{profit_loss:.2f}",
+                "total_profit_loss": f"{closed_profit_loss:.2f}",
                 "account_drawdown": account_size - portfolio.account_drawdown_limit,
                 "current_account_drawdown": f"{current_drawdown:.2f}",
                 "trading_days": trading_days,

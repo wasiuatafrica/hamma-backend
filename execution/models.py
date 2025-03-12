@@ -163,7 +163,7 @@ class DemoPortfolio(auto_prefetch.Model):
         return "demo_portfolio"
 
     def get_swap_fees(self):
-        positions = self.demopositions2.all()
+        positions = self.demopositions2.filter(status="close")
         swap_fees = positions.aggregate(models.Sum("swap_fee", default=0.0))[
             "swap_fee__sum"
         ]

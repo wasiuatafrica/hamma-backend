@@ -1216,16 +1216,19 @@ class PortfolioCalculator:
 
         def process_position(position):
             pl, cur_val, _ = position.calculate_profit_loss()
+            swap_fee = (
+                position.swap_fee if hasattr(position, "swap_fee") else Decimal("0")
+            )
             position_detail = {
                 "stock": position.stock.symbol,
                 "current_value": round(cur_val, 2),
-                "pl": pl,
+                "pl": pl - swap_fee,
                 "open_date": position.created,
             }
 
             position_summary = {"symbol": position.stock.symbol, "profit_loss": pl}
 
-            return pl, position_detail, position_summary
+            return pl, position_detail, position_summary, swap_fee
 
         with ThreadPoolExecutor() as executor:
             results = list(executor.map(process_position, positions))
@@ -1233,8 +1236,9 @@ class PortfolioCalculator:
         total_pl = sum(r[0] for r in results)
         position_details = [r[1] for r in results]
         position_summaries = [r[2] for r in results]
+        total_swap_fees_open = sum(r[3] for r in results)
 
-        return total_pl, position_details, position_summaries
+        return total_pl, position_details, position_summaries, total_swap_fees_open
 
     @staticmethod
     def calculate_closed_positions(positions: List[Any]) -> Tuple[Decimal, List[Dict]]:
@@ -1283,7 +1287,12 @@ class EnhancedPortfolioCalculator(PortfolioCalculator):
                 profit_loss = position.amount_invested - current_value
 
             commission = Decimal("0")
-            swap_fee = Decimal("0")
+            swap_fee = (
+                Decimal(str(position.swap_fee))
+                if hasattr(position, "swap_fee")
+                else Decimal("0")
+            )
+            # profit_loss -= swap_fee
 
         elif position.status == "close":
             current_value = Decimal(str(position.quantity * position.close_price))
@@ -1374,6 +1383,7 @@ class EnhancedPortfolioCalculator(PortfolioCalculator):
         total_floating_pl = Decimal("0")
         total_closed_pl = Decimal("0")
         open_balance = Decimal("0")
+        total_swap_fees_open_positions = Decimal("0")
 
         for position in positions:
             metrics = self.calculate_position_metrics(position)
@@ -1392,12 +1402,15 @@ class EnhancedPortfolioCalculator(PortfolioCalculator):
             if position.status == "open":
                 total_floating_pl += metrics.profit_loss
                 open_balance += position.amount_invested
+                total_swap_fees_open_positions += metrics.swap_fee
             else:
                 total_closed_pl += Decimal(str(position_data["net_profit_loss"]))
 
         # Calculate final balance and equity
         initial_balance = portfolio.initial_balance
-        current_balance = initial_balance + total_closed_pl
+        current_balance = (
+            initial_balance + total_closed_pl - total_swap_fees_open_positions
+        )
         equity = current_balance + total_floating_pl
 
         return {
@@ -1479,7 +1492,7 @@ class NewHome(APIView):
         """Calculate main account metrics and position data"""
 
         # Calculate metrics for open positions
-        floating_pl, position_details, open_positions = (
+        floating_pl, position_details, open_positions, total_swap_fees_open = (
             PortfolioCalculator.calculate_open_positions(positions)
         )
 
@@ -1487,16 +1500,19 @@ class NewHome(APIView):
         closed_pl, closed_positions = PortfolioCalculator.calculate_closed_positions(
             positions_closed
         )
+        print(f"Closed PL: {closed_pl}")
 
         # Adjust closed PL for swap fees if applicable
         if hasattr(portfolio, "get_swap_fees"):
             closed_pl -= portfolio.get_swap_fees()
 
+        print(f"Adjusted Closed PL: {closed_pl}")
+
         open_balance = sum(position.amount_invested for position in positions)
         initial_balance = Decimal(portfolio.initial_balance)
 
         # Calculate final metrics
-        balance = round(float(initial_balance) + closed_pl, 2)
+        balance = round(float(initial_balance) + closed_pl - total_swap_fees_open, 2)
         equity = balance + float(floating_pl)
 
         metrics = AccountMetrics(
