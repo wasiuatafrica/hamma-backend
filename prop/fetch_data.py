@@ -84,7 +84,7 @@ def calculate_position_metrics(position, last_item):
             profit_loss = amount_invested - current_value
 
         commission = Decimal("0")
-        swap_fee = Decimal("0")
+        swap_fee = Decimal(str(position.get("swap_fee", 0)))
 
     elif status == "close":
         close_price = Decimal(str(position["close_price"] or 0))
@@ -175,6 +175,7 @@ def calculate_portfolio_metrics(portfolio, position_list, last_item):
     total_floating_pl = Decimal("0")
     total_closed_pl = Decimal("0")
     open_balance = Decimal("0")
+    total_swap_fees_open_positions = Decimal("0")
 
     # Process each position
     for position in position_list:
@@ -183,6 +184,7 @@ def calculate_portfolio_metrics(portfolio, position_list, last_item):
         if position["status"] == "open":
             total_floating_pl += metrics.profit_loss
             open_balance += Decimal(str(position["amount_invested"]))
+            total_swap_fees_open_positions += metrics.swap_fee
         else:
             # For closed positions, use net profit (profit_loss - commission - swap_fee)
             net_profit = metrics.profit_loss - metrics.commission - metrics.swap_fee
@@ -191,7 +193,7 @@ def calculate_portfolio_metrics(portfolio, position_list, last_item):
 
     # Calculate final balance and equity
     initial_balance = Decimal(str(portfolio["initial_balance"]))
-    current_balance = initial_balance + total_closed_pl
+    current_balance = initial_balance + total_closed_pl - total_swap_fees_open_positions
     equity = current_balance + total_floating_pl
 
     return {

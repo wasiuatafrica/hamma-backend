@@ -323,7 +323,7 @@ class AdminReceiptsView(APIView):
 
         if receipt_status == "approved":
 
-            receipt.amount = amount
+            receipt.amount = int(amount)
             receipt.save()
             activity = AdminUserActivityLog.objects.create(
                 admin=request.user,

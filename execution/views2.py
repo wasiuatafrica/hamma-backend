@@ -1512,7 +1512,9 @@ class NewHome(APIView):
         initial_balance = Decimal(portfolio.initial_balance)
 
         # Calculate final metrics
-        balance = round(float(initial_balance) + closed_pl - total_swap_fees_open, 2)
+        balance = round(
+            float(initial_balance) + closed_pl - float(total_swap_fees_open), 2
+        )
         equity = balance + float(floating_pl)
 
         metrics = AccountMetrics(
