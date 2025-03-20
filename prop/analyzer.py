@@ -283,41 +283,41 @@ class PortfolioAnalyzer:
             "violation_date": today if violated else None,
         }
 
-    def check_inactivity(self) -> bool:
-        """
-        Check if account balance has not changed in 2 weeks
-        Returns True if account is inactive, False otherwise
-        """
-        if not self.data:
-            return False
+    # def check_inactivity(self) -> bool:
+    #     """
+    #     Check if account balance has not changed in 2 weeks
+    #     Returns True if account is inactive, False otherwise
+    #     """
+    #     if not self.data:
+    #         return False
 
-        current_time = datetime.now(timezone.utc)
-        two_weeks_ago = current_time - timedelta(days=14)
+    #     current_time = datetime.now(timezone.utc)
+    #     two_weeks_ago = current_time - timedelta(days=14)
 
-        # Filter data for last 2 weeks
-        recent_data = [
-            entry
-            for entry in self.data
-            if datetime.fromisoformat(entry["timestamp"]).replace(tzinfo=timezone.utc)
-            >= two_weeks_ago
-        ]
+    #     # Filter data for last 2 weeks
+    #     recent_data = [
+    #         entry
+    #         for entry in self.data
+    #         if datetime.fromisoformat(entry["timestamp"]).replace(tzinfo=timezone.utc)
+    #         >= two_weeks_ago
+    #     ]
 
-        # if not recent_data:
-        #     logger.info(
-        #         f"Portfolio {self.portfolio.id} has no data in the last 2 weeks"
-        #     )
-        #     return False
+    #     # if not recent_data:
+    #     #     logger.info(
+    #     #         f"Portfolio {self.portfolio.id} has no data in the last 2 weeks"
+    #     #     )
+    #     #     return False
 
-        # Check if balance has changed in the last 2 weeks
-        initial_balance = Decimal(str(recent_data[0]["balance"]))
+    #     # Check if balance has changed in the last 2 weeks
+    #     initial_balance = Decimal(str(recent_data[0]["balance"]))
 
-        for entry in recent_data[1:]:
-            current_balance = Decimal(str(entry["balance"]))
-            if current_balance != initial_balance:
-                logger.info(
-                    f"Portfolio {self.portfolio.id} is active: balance changed from {initial_balance} to {current_balance}"
-                )
-                return False
+    #     for entry in recent_data[1:]:
+    #         current_balance = Decimal(str(entry["balance"]))
+    #         if current_balance != initial_balance:
+    #             logger.info(
+    #                 f"Portfolio {self.portfolio.id} is active: balance changed from {initial_balance} to {current_balance}"
+    #             )
+    #             return False
 
     # def check_payout_eligibility(self) -> Dict:
     #     """
@@ -363,6 +363,79 @@ class PortfolioAnalyzer:
     #         "trading_days": len(trading_days),
     #         "profit_percentage": profit_percentage,
     #     }
+
+    def check_inactivity(self) -> bool:
+        """
+        Check if no trading activity (opening or closing positions) has occurred in the last 14 days.
+        Returns True if account is inactive, False otherwise.
+        """
+        # Make sure we're using timezone-aware datetime objects
+        current_time = timezone.now()
+        two_weeks_ago = current_time - timedelta(days=14)
+        print(two_weeks_ago)
+
+        # Get the most recent created position
+        latest_created = self.portfolio.demopositions2.order_by("-created").first()
+
+        # Get the most recently closed position
+        latest_closed = (
+            self.portfolio.demopositions2.exclude(closed_at=None)
+            .order_by("-closed_at")
+            .first()
+        )
+
+        # Determine the most recent activity date
+        latest_activity_date = None
+
+        if latest_created:
+            # Ensure created date is timezone aware
+            if latest_created.created.tzinfo is None:
+                latest_activity_date = timezone.make_aware(latest_created.created)
+            else:
+                latest_activity_date = latest_created.created
+
+        if latest_closed and latest_closed.closed_at:
+            # Ensure closed_at date is timezone aware
+            closed_at = latest_closed.closed_at
+            if closed_at.tzinfo is None:
+                closed_at = timezone.make_aware(closed_at)
+
+            if not latest_activity_date or closed_at > latest_activity_date:
+                latest_activity_date = closed_at
+
+        print(latest_activity_date)
+
+        # If no activity found, check portfolio creation date
+        if not latest_activity_date:
+            if self.portfolio.created:
+                # Ensure portfolio created date is timezone aware
+                portfolio_created = self.portfolio.created
+                if portfolio_created.tzinfo is None:
+                    portfolio_created = timezone.make_aware(portfolio_created)
+
+                if (current_time - portfolio_created).days >= 14:
+                    logger.info(
+                        f"Portfolio {self.portfolio.id} is inactive: no positions and created over 14 days ago"
+                    )
+                    return True
+            return False
+
+        # Check if the most recent activity is older than 14 days
+        if latest_activity_date < two_weeks_ago:
+            activity_type = "position creation"
+            if (
+                latest_closed
+                and latest_closed.closed_at
+                and latest_activity_date == latest_closed.closed_at
+            ):
+                activity_type = "position closing"
+
+            logger.info(
+                f"Portfolio {self.portfolio.id} is inactive: last activity ({activity_type}) on {latest_activity_date}"
+            )
+            return True
+
+        return False
 
     def check_payout_eligibility(self) -> Dict:
         """
@@ -552,6 +625,7 @@ def analyze_hamma_request_eligibility(portfolio):
     if is_inactive:
         portfolio.active = False
         portfolio.inactive_by_inactivity = is_inactive
+        portfolio.can_trade = False
 
     # Check payout eligibility
     print("checking payout eligibility")
@@ -668,7 +742,8 @@ def analyze_hamma_portfolio_status(portfolio):
 
     if is_inactive:
         portfolio.active = False
-        portfolio.inactive_by_inactivity = is_inactive
+        portfolio.inactive_by_inactivity = True
+        portfolio.can_trade = False
 
     # Update portfolio status
     portfolio.blown = account_drawdown["violated"] or daily_drawdown["violated"]
