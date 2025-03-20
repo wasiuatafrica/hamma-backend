@@ -29,6 +29,10 @@ urlpatterns = [
         views2.NewDemoCloseTrade.as_view(),
     ),
     path(
+        "demo/close-all/trade/<str:account_type>/<str:id>/",
+        views2.CloseAllTradesView.as_view(),
+    ),
+    path(
         "demo/cancel/trade/<str:account_type>/<str:id>/<str:position_id>/",
         views.NewDemoClosePendingTrade.as_view(),
     ),

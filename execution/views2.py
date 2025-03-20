@@ -600,166 +600,6 @@ class SingleDemoTradeAPIView(APIView):
 #             )
 
 
-class NewDemoCloseTrade(APIView):
-    """API View for handling trade closure operations in demo and competition accounts."""
-
-    permission_classes = [IsAuthenticated]
-
-    def get_account(self, id: int) -> Optional["DemoPortfolio"]:
-        """Retrieve demo portfolio account."""
-        return DemoPortfolio.objects.filter(id=id).first()
-
-    def get_competition_account(
-        self, id: int, competition: "Competition"
-    ) -> Optional["CompetitionPortfolio"]:
-        """Retrieve competition portfolio account."""
-        return CompetitionPortfolio.objects.filter(
-            competition=competition, active=True, id=id
-        ).first()
-
-    def _process_close_trade(
-        self, position: Union["DemoPosition", "CompetitionPosition"], price: Decimal
-    ) -> Dict[str, Any]:
-        """
-        Process the trade closure calculations and return trade summary.
-
-        Args:
-            position: The position to be closed
-            price: The closing price
-
-        Returns:
-            Dict containing trade closure details
-        """
-        pl, cur_val, _ = position.calculate_profit_loss()
-        trade_commission = round(
-            Decimal("0.00435") * position.amount_invested, 2
-        ) + Decimal("200")
-        final_amount = position.amount_invested + pl - trade_commission
-
-        return {
-            "id": position.id,
-            "stock": position.stock.symbol,
-            "quantity": position.quantity,
-            "open_price": position.open_price,
-            "close_price": price,
-            "open_time": position.created.isoformat(),
-            "close_time": timezone.now().isoformat(),
-            "profit_loss": pl,
-            "order_id": position.order_id,
-            "commission": trade_commission,
-            "final_amount": final_amount,
-            "current_value": cur_val,
-        }
-
-    @transaction.atomic
-    def post(self, request, *args, **kwargs):
-        """Handle POST request for closing a trade."""
-        try:
-            # Validate account type
-            account_type = kwargs.get("account_type")
-            device_type = request.data.get("device_type")
-            valid_account_types = ["demo_portfolio", "competition_account"]
-
-            if account_type not in valid_account_types:
-                return Response(
-                    f"Account type should be {valid_account_types}.",
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # Get portfolio and models based on account type
-            id = kwargs.get("id")
-            position_id = kwargs.get("position_id")
-
-            if account_type == "competition_account":
-                competition = Competition.objects.filter(status="current").first()
-                portfolio = self.get_competition_account(id, competition)
-                position_model = CompetitionPosition
-                transaction_model = CompetitionTransaction
-            else:
-                portfolio = self.get_account(id)
-                position_model = DemoPosition
-                transaction_model = DemoTransaction
-
-            # Validate portfolio
-            if not portfolio:
-                return Response("Account not found", status.HTTP_404_NOT_FOUND)
-            if portfolio.user != request.user:
-                return Response("Permission denied", status.HTTP_403_FORBIDDEN)
-
-            # Get and validate position with lock
-            position = (
-                position_model.objects.select_for_update()
-                .filter(portfolio=portfolio, id=position_id)
-                .first()
-            )
-
-            if not position:
-                return Response("Position not found", status.HTTP_404_NOT_FOUND)
-            if not position.stock.active:
-                return Response("Stock is not active", status.HTTP_400_BAD_REQUEST)
-            if position.status != "open":
-                return Response("Position is not open", status.HTTP_400_BAD_REQUEST)
-
-            # Process trade closure
-            pl, cur_val, price = position.calculate_profit_loss()
-            trade_data = self._process_close_trade(position, price)
-
-            # Update position
-            position.status = "close"
-            position.close_price = Decimal(price)
-            position.profit_loss = pl
-            position.comment = "closed by trader"
-            position.closed_at = timezone.now()
-            position.save()
-
-            # Update portfolio balance
-            portfolio.balance += trade_data["final_amount"]
-            portfolio.save()
-
-            # Create transaction records
-            transaction_model.objects.create(
-                user=request.user,
-                transaction_type="close trade",
-                amount=cur_val,
-                status="completed",
-            )
-
-            transaction_model.objects.create(
-                user=request.user,
-                transaction_type="trade commission",
-                amount=trade_data["commission"],
-                status="completed",
-            )
-
-            # Send notification
-            trade_notification_data = {
-                "user_email": request.user.email,
-                "symbol": position.stock.symbol,
-                "quantity": position.quantity,
-                "open_price": position.open_price,
-                "close_price": price,
-                "profit_loss": pl,
-                "account_id": portfolio.account_id,
-            }
-
-            trade_type = (
-                "competition" if isinstance(portfolio, CompetitionPortfolio) else "demo"
-            )
-            send_trade_notification(trade_type, "close", trade_notification_data)
-
-            return Response(trade_data)
-
-        except ValidationError as e:
-            logger.error(f"Validation error in trade closure: {str(e)}")
-            return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            logger.exception("Unexpected error in trade closure")
-            return Response(
-                {"error": "An unexpected error occurred"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-
 # def calculate_cumulative_returns(data: Union[QuerySet, List[Dict]]) -> List[Dict]:
 #     """
 #     Calculate cumulative returns as the SUM of daily returns (non-standard).
@@ -1059,6 +899,340 @@ class NewDemoCloseTrade(APIView):
 #         )
 
 #     return result
+
+
+class NewDemoCloseTrade(APIView):
+    """API View for handling trade closure operations in demo and competition accounts."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get_account(self, id: int) -> Optional["DemoPortfolio"]:
+        """Retrieve demo portfolio account."""
+        return DemoPortfolio.objects.filter(id=id).first()
+
+    def get_competition_account(
+        self, id: int, competition: "Competition"
+    ) -> Optional["CompetitionPortfolio"]:
+        """Retrieve competition portfolio account."""
+        return CompetitionPortfolio.objects.filter(
+            competition=competition, active=True, id=id
+        ).first()
+
+    def _process_close_trade(
+        self, position: Union["DemoPosition", "CompetitionPosition"], price: Decimal
+    ) -> Dict[str, Any]:
+        """
+        Process the trade closure calculations and return trade summary.
+
+        Args:
+            position: The position to be closed
+            price: The closing price
+
+        Returns:
+            Dict containing trade closure details
+        """
+        pl, cur_val, _ = position.calculate_profit_loss()
+        trade_commission = round(
+            Decimal("0.00435") * position.amount_invested, 2
+        ) + Decimal("200")
+        final_amount = position.amount_invested + pl - trade_commission
+
+        return {
+            "id": position.id,
+            "stock": position.stock.symbol,
+            "quantity": position.quantity,
+            "open_price": position.open_price,
+            "close_price": price,
+            "open_time": position.created.isoformat(),
+            "close_time": timezone.now().isoformat(),
+            "profit_loss": pl,
+            "order_id": position.order_id,
+            "commission": trade_commission,
+            "final_amount": final_amount,
+            "current_value": cur_val,
+        }
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        """Handle POST request for closing a trade."""
+        try:
+            # Validate account type
+            account_type = kwargs.get("account_type")
+            device_type = request.data.get("device_type")
+            valid_account_types = ["demo_portfolio", "competition_account"]
+
+            if account_type not in valid_account_types:
+                return Response(
+                    f"Account type should be {valid_account_types}.",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Get portfolio and models based on account type
+            id = kwargs.get("id")
+            position_id = kwargs.get("position_id")
+
+            if account_type == "competition_account":
+                competition = Competition.objects.filter(status="current").first()
+                portfolio = self.get_competition_account(id, competition)
+                position_model = CompetitionPosition
+                transaction_model = CompetitionTransaction
+            else:
+                portfolio = self.get_account(id)
+                position_model = DemoPosition
+                transaction_model = DemoTransaction
+
+            # Validate portfolio
+            if not portfolio:
+                return Response("Account not found", status.HTTP_404_NOT_FOUND)
+            if portfolio.user != request.user:
+                return Response("Permission denied", status.HTTP_403_FORBIDDEN)
+
+            # Get and validate position with lock
+            position = (
+                position_model.objects.select_for_update()
+                .filter(portfolio=portfolio, id=position_id)
+                .first()
+            )
+
+            if not position:
+                return Response("Position not found", status.HTTP_404_NOT_FOUND)
+            if not position.stock.active:
+                return Response("Stock is not active", status.HTTP_400_BAD_REQUEST)
+            if position.status != "open":
+                return Response("Position is not open", status.HTTP_400_BAD_REQUEST)
+
+            # Process trade closure
+            pl, cur_val, price = position.calculate_profit_loss()
+            trade_data = self._process_close_trade(position, price)
+
+            # Update position
+            position.status = "close"
+            position.close_price = Decimal(price)
+            position.profit_loss = pl
+            position.comment = "closed by trader"
+            position.closed_at = timezone.now()
+            position.save()
+
+            # Update portfolio balance
+            portfolio.balance += trade_data["final_amount"]
+            portfolio.save()
+
+            # Create transaction records
+            transaction_model.objects.create(
+                user=request.user,
+                transaction_type="close trade",
+                amount=cur_val,
+                status="completed",
+            )
+
+            transaction_model.objects.create(
+                user=request.user,
+                transaction_type="trade commission",
+                amount=trade_data["commission"],
+                status="completed",
+            )
+
+            # Send notification
+            trade_notification_data = {
+                "user_email": request.user.email,
+                "symbol": position.stock.symbol,
+                "quantity": position.quantity,
+                "open_price": position.open_price,
+                "close_price": price,
+                "profit_loss": pl,
+                "account_id": portfolio.account_id,
+            }
+
+            trade_type = (
+                "competition" if isinstance(portfolio, CompetitionPortfolio) else "demo"
+            )
+            send_trade_notification(trade_type, "close", trade_notification_data)
+
+            return Response(trade_data)
+
+        except ValidationError as e:
+            logger.error(f"Validation error in trade closure: {str(e)}")
+            return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.exception("Unexpected error in trade closure")
+            return Response(
+                {"error": "An unexpected error occurred"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class CloseAllTradesView(APIView):
+    """API View for closing all open trades in an account."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get_account(self, id: int) -> Optional["DemoPortfolio"]:
+        """Retrieve demo portfolio account."""
+        return DemoPortfolio.objects.filter(id=id).first()
+
+    def get_competition_account(
+        self, id: int, competition: "Competition"
+    ) -> Optional["CompetitionPortfolio"]:
+        """Retrieve competition portfolio account."""
+        return CompetitionPortfolio.objects.filter(
+            competition=competition, active=True, id=id
+        ).first()
+
+    def _process_close_trade(
+        self, position: Union["DemoPosition", "CompetitionPosition"], price: Decimal
+    ) -> Dict[str, Any]:
+        """
+        Process the trade closure calculations and return trade summary.
+
+        Args:
+            position: The position to be closed
+            price: The closing price
+
+        Returns:
+            Dict containing trade closure details
+        """
+        pl, cur_val, _ = position.calculate_profit_loss()
+        trade_commission = round(
+            Decimal("0.00435") * position.amount_invested, 2
+        ) + Decimal("200")
+        final_amount = position.amount_invested + pl - trade_commission
+
+        return {
+            "id": position.id,
+            "stock": position.stock.symbol,
+            "quantity": position.quantity,
+            "open_price": position.open_price,
+            "close_price": price,
+            "open_time": position.created.isoformat(),
+            "close_time": timezone.now().isoformat(),
+            "profit_loss": pl,
+            "order_id": position.order_id,
+            "commission": trade_commission,
+            "final_amount": final_amount,
+            "current_value": cur_val,
+        }
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        """Handle POST request for closing all trades in an account."""
+        try:
+            # Validate account type
+            account_type = kwargs.get("account_type")
+            device_type = request.data.get("device_type")
+            valid_account_types = ["demo_portfolio", "competition_account"]
+
+            if account_type not in valid_account_types:
+                return Response(
+                    f"Account type should be {valid_account_types}.",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Get portfolio and models based on account type
+            id = kwargs.get("id")
+
+            if account_type == "competition_account":
+                competition = Competition.objects.filter(status="current").first()
+                portfolio = self.get_competition_account(id, competition)
+                position_model = CompetitionPosition
+                transaction_model = CompetitionTransaction
+            else:
+                portfolio = self.get_account(id)
+                position_model = DemoPosition
+                transaction_model = DemoTransaction
+
+            # Validate portfolio
+            if not portfolio:
+                return Response("Account not found", status.HTTP_404_NOT_FOUND)
+            # if portfolio.user != request.user:
+            #     return Response("Permission denied", status.HTTP_403_FORBIDDEN)
+
+            # Get all open positions with lock
+            open_positions = position_model.objects.select_for_update().filter(
+                portfolio=portfolio, status="open"
+            )
+
+            if not open_positions.exists():
+                return Response("No open positions found", status.HTTP_404_NOT_FOUND)
+
+            closed_positions_data = []
+            total_final_amount = Decimal("0")
+
+            # Process each position
+            for position in open_positions:
+                if not position.stock.active:
+                    # Skip inactive stocks
+                    continue
+
+                # Process trade closure
+                pl, cur_val, price = position.calculate_profit_loss()
+                trade_data = self._process_close_trade(position, price)
+                total_final_amount += trade_data["final_amount"]
+
+                # Update position
+                position.status = "close"
+                position.close_price = Decimal(price)
+                position.profit_loss = pl
+                position.comment = "closed by trader (bulk closure)"
+                position.closed_at = timezone.now()
+                position.save()
+
+                # Create transaction records
+                transaction_model.objects.create(
+                    user=request.user,
+                    transaction_type="close trade",
+                    amount=cur_val,
+                    status="completed",
+                )
+
+                transaction_model.objects.create(
+                    user=request.user,
+                    transaction_type="trade commission",
+                    amount=trade_data["commission"],
+                    status="completed",
+                )
+
+                # Send notification
+                trade_notification_data = {
+                    "user_email": request.user.email,
+                    "symbol": position.stock.symbol,
+                    "quantity": position.quantity,
+                    "open_price": position.open_price,
+                    "close_price": price,
+                    "profit_loss": pl,
+                    "account_id": portfolio.account_id,
+                }
+
+                trade_type = (
+                    "competition"
+                    if isinstance(portfolio, CompetitionPortfolio)
+                    else "demo"
+                )
+                send_trade_notification(trade_type, "close", trade_notification_data)
+
+                closed_positions_data.append(trade_data)
+
+            # Update portfolio balance
+            if closed_positions_data:
+                portfolio.balance += total_final_amount
+                portfolio.save()
+
+            return Response(
+                {
+                    "closed_positions": closed_positions_data,
+                    "total_positions_closed": len(closed_positions_data),
+                    "total_final_amount": total_final_amount,
+                }
+            )
+
+        except ValidationError as e:
+            logger.error(f"Validation error in bulk trade closure: {str(e)}")
+            return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.exception("Unexpected error in bulk trade closure")
+            return Response(
+                {"error": "An unexpected error occurred"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 def calculate_cumulative_returns(
