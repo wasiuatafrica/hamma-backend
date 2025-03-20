@@ -1143,8 +1143,8 @@ class CloseAllTradesView(APIView):
             # Validate portfolio
             if not portfolio:
                 return Response("Account not found", status.HTTP_404_NOT_FOUND)
-            # if portfolio.user != request.user:
-            #     return Response("Permission denied", status.HTTP_403_FORBIDDEN)
+            if portfolio.user != request.user:
+                return Response("Permission denied", status.HTTP_403_FORBIDDEN)
 
             # Get all open positions with lock
             open_positions = position_model.objects.select_for_update().filter(
