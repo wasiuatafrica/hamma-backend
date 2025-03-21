@@ -987,6 +987,12 @@ class NewDemoCloseTrade(APIView):
             if portfolio.user != request.user:
                 return Response("Permission denied", status.HTTP_403_FORBIDDEN)
 
+            if not portfolio.can_trade:
+                return Response(
+                    "Trading is no longer  allowed on this account.",
+                    status.HTTP_400_BAD_REQUEST,
+                )
+
             # Get and validate position with lock
             position = (
                 position_model.objects.select_for_update()
@@ -1145,6 +1151,12 @@ class CloseAllTradesView(APIView):
                 return Response("Account not found", status.HTTP_404_NOT_FOUND)
             if portfolio.user != request.user:
                 return Response("Permission denied", status.HTTP_403_FORBIDDEN)
+
+            if not portfolio.can_trade:
+                return Response(
+                    "Trading is no longer  allowed on this account.",
+                    status.HTTP_400_BAD_REQUEST,
+                )
 
             # Get all open positions with lock
             open_positions = position_model.objects.select_for_update().filter(
