@@ -82,4 +82,9 @@ urlpatterns = [
         views.track_daily_mail,
         name="track_daily_mail",
     ),
+    path(
+        "popular-stocks/",
+        views.PopularStocks.as_view(),
+        name="popular-stocks",
+    ),
 ]

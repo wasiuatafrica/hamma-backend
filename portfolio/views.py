@@ -1859,3 +1859,39 @@ class VIewotherIdeasLogView(APIView):
         idea = DashboardFeed.objects.get(id=id)
         ViewOtherIdeasLog.objects.create(email=email, idea=idea)
         return Response(status=status.HTTP_201_CREATED)
+
+
+class PopularStocks(generics.ListAPIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        symbols = [
+            "BUACEMENT",
+            "NESTLE",
+            "GTCO",
+            "ZENITHBANK",
+            "ACCESSCORP",
+            "UBA",
+            "FBNH",
+            "STANBIC",
+            "NB",
+            "WAPCO",
+            "FLOURMILL",
+            "UNILEVER",
+            "SEPLAT",
+            "CADBURY",
+            "GUINNESS",
+            "PRESCO",
+            "OKOMUOIL",
+            "MTNN",
+            "DANGCEM",
+            "AIRTELAFRI",
+        ]
+        queryset = Stock.objects.filter(symbol__in=symbols, active=True).order_by(
+            "symbol"
+        )
+        details = get_details3(queryset)
+        response_data = {
+            "popular_stocks": details,
+        }
+        return Response(response_data)
