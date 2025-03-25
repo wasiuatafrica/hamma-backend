@@ -1887,10 +1887,22 @@ class PopularStocks(generics.ListAPIView):
             "DANGCEM",
             "AIRTELAFRI",
         ]
+        watchlist = []
         queryset = Stock.objects.filter(symbol__in=symbols, active=True).order_by(
             "symbol"
         )
         details = get_details3(queryset)
+        if request.user.is_authenticated:
+            # Get the watchlist for the logged-in user
+            watchlist = [
+                watch.stock.symbol
+                for watch in StockWatchlist.objects.filter(user=request.user)
+            ]
+
+        # Add 'in_watchlist' flag to stock details
+        for detail in details:
+            detail["in_watchlist"] = detail["symbol"] in watchlist
+
         response_data = {
             "popular_stocks": details,
         }
