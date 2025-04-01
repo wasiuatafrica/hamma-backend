@@ -67,6 +67,10 @@ BANK_HOLIDAYS = [
     datetime(2024, 12, 25),  # Christmas Day
     datetime(2024, 12, 26),  # Christmas Day
     datetime(2025, 1, 1),  # Christmas Day
+    datetime(2025, 3, 31),  # fitr Day
+    datetime(2025, 4, 1),  # fitr Day
+    datetime(2025, 4, 18),  # good friday Day
+    datetime(2025, 4, 21),  # easter monDay
 ]
 
 lagos_tz = pytz.timezone("Africa/Lagos")
