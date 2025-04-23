@@ -1,6 +1,34 @@
 from . import models
 from rest_framework import serializers
 
+# contact/serializers.py
+from rest_framework import serializers
+from .models import ContactMessage
+
+
+class ContactMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactMessage
+        fields = [
+            "id",  # Include the ID
+            "full_name",
+            "email",
+            "subject",
+            "message",
+            "created_at",
+            "responded",  # Allow viewing/updating the responded status
+        ]
+        read_only_fields = [
+            "id",  # ID is generated automatically
+            "created_at",  # Timestamp is set automatically
+        ]
+
+    # Optional: Add specific validation if needed
+    # def validate_subject(self, value):
+    #     if "spam" in value.lower():
+    #         raise serializers.ValidationError("Subject cannot contain 'spam'.")
+    #     return value
+
 
 class SupportMessageSerializer(serializers.ModelSerializer):
     class Meta:

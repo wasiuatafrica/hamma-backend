@@ -1,7 +1,9 @@
 import auto_prefetch
-from accounts.models import CustomUser, Profile
-from django.db import models
 from django.conf import settings
+from django.db import models
+from django.utils import timezone
+
+from accounts.models import CustomUser, Profile
 
 AWS_REGION = settings.AWS_S3_REGION_NAME
 AWS_BUCKET = settings.AWS_STORAGE_BUCKET_NAME
@@ -116,3 +118,23 @@ class SupportMessageDisclaimer(auto_prefetch.Model):
     )
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+
+class ContactMessage(models.Model):
+    full_name = models.CharField(max_length=150, verbose_name="Full Name")
+    email = models.EmailField(verbose_name="Email Address")
+    subject = models.CharField(max_length=255, verbose_name="Subject")
+    message = models.TextField(verbose_name="Message")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    responded = models.BooleanField(
+        default=False, verbose_name="Responded?"
+    )  # Optional: Track if someone replied
+
+    class Meta:
+        verbose_name = "Contact Message"
+        verbose_name_plural = "Contact Messages"
+        ordering = ["-created_at"]  # Show newest messages first by default
+
+    def __str__(self):
+        return f"Message from {self.full_name} - Subject: {self.subject}"
