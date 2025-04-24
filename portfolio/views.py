@@ -682,6 +682,7 @@ class ReceiptsView(APIView):
         drawdown_type = request.data.get("drawdown_type", "balance_equity")
         discount_code = request.data.get("discount_code", None)
         receipt_type = request.data.get("receipt_type", None)
+        print(request.data)
         discount_instance = None
         if discount_code:
             discount_instance = get_object_or_404(

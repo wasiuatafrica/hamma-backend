@@ -1799,7 +1799,7 @@ class UserReceiptsView(APIView):
                 "payment_method": receipt.payment_method,
                 "comment": receipt.comment,
                 "approved_date": receipt.approved_date,
-                "image_url": receipt.image.url,
+                "image_url": receipt.image.url if receipt.image else "",
             }
 
             receipts_data.append(receipt_dict)
@@ -1822,7 +1822,7 @@ class SupportSingleUserReceiptsView(APIView):
                 "payment_method": receipt.payment_method,
                 "comment": receipt.comment,
                 "approved_date": receipt.approved_date,
-                "image_url": receipt.image.url,
+                "image_url": receipt.image.url if receipt.image else "",
             }
 
             receipts_data.append(receipt_dict)
