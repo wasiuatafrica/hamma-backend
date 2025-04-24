@@ -43,6 +43,7 @@ class CustomUserAdmin(UserAdmin):
         "is_staff",
         "is_active",
         "twofa_type",
+        "date_joined",
         "signup_route",
     )
 
