@@ -11,4 +11,5 @@ urlpatterns = [
     path(
         "messages/<int:pk>/", views.MessageDetailView.as_view(), name="message-detail"
     ),
+    path("summary/", views.MarketSummaryView.as_view(), name="market-summary"),
 ]

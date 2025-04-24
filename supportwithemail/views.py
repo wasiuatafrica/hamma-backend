@@ -1,5 +1,7 @@
 import json
+import logging
 
+import pandas as pd
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.core.serializers.json import DjangoJSONEncoder
@@ -8,6 +10,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from tvDatafeed import Interval, TvDatafeed
 
 from . import serializers
 from .models import (
@@ -19,6 +22,9 @@ from .models import (
 from .serializers import ContactMessageSerializer
 
 # Create your views here.
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class RateBotResponse(APIView):
@@ -136,3 +142,108 @@ class MessageDetailView(generics.RetrieveUpdateAPIView):
         permissions.AllowAny
     ]  # Allow anyone to retrieve/update messages (as requested)
     lookup_field = "pk"  # Use the primary key (id) from the URL to find the message
+
+
+class MarketSummaryView(APIView):
+    permission_classes = [permissions.AllowAny]
+    """
+    API view to fetch basic market data for the NSE All-Share Index using tvdatafeed
+    and additional market statistics from NGX API.
+    """
+
+    def get(self, request, format=None):
+        index_symbol = "ASI"
+        exchange = "NSENG"  # Nigerian Exchange Group
+
+        try:
+            tv = TvDatafeed()
+
+            logger.info(f"Fetching latest data for {index_symbol} on {exchange}...")
+            # Get 2 days of data in a single call
+            index_data = tv.get_hist(
+                symbol=index_symbol,
+                exchange=exchange,
+                interval=Interval.in_daily,
+                n_bars=2,
+            )
+
+            if index_data is None or index_data.empty:
+                logger.warning(f"No data returned for {index_symbol} on {exchange}.")
+                return Response(
+                    {
+                        "error": f"Could not fetch data for {index_symbol} on {exchange}."
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            # Process the data
+            if len(index_data) > 1:
+                latest = index_data.iloc[-1]  # Get the last row
+                previous = index_data.iloc[-2]  # Get the previous row
+                previous_close = previous["close"]
+                change = latest["close"] - previous_close
+                percent_change = (
+                    (change / previous_close) * 100 if previous_close else 0
+                )
+            else:
+                # Only one data point available
+                latest = index_data.iloc[-1]
+                change = (
+                    latest["close"] - latest["open"]
+                )  # Change from open if no previous close
+                percent_change = (
+                    (change / latest["open"]) * 100 if latest["open"] else 0
+                )
+
+            # Fetch additional market data from NGX API
+            ngx_api_url = "https://doclib.ngxgroup.com/REST/api/mrkstat/mrksnapshot"
+            try:
+                logger.info(f"Fetching market snapshot from NGX API: {ngx_api_url}")
+                import requests
+
+                ngx_response = requests.get(ngx_api_url, timeout=10)
+                ngx_response.raise_for_status()  # Raise exception for 4XX/5XX responses
+                ngx_data = ngx_response.json()
+
+                # Extract volume and capitalization from NGX data with default values of 0
+                volume = ngx_data.get("VOLUME", 0)
+                market_cap = ngx_data.get("CAP", 0)
+
+                logger.info(
+                    f"Successfully fetched NGX market data: volume={volume}, market_cap={market_cap}"
+                )
+            except Exception as ngx_error:
+                logger.error(
+                    f"Error fetching data from NGX API: {ngx_error}", exc_info=True
+                )
+                # Set default values of 0 if NGX API call fails
+                volume = 0
+                market_cap = 0
+
+            response_data = {
+                "symbol": index_symbol,
+                "exchange": exchange,
+                "last_update_time": (
+                    latest.name.isoformat()
+                    if isinstance(latest.name, pd.Timestamp)
+                    else str(latest.name)
+                ),
+                "point_change": round(change, 2),
+                "percent_change": round(percent_change, 2),
+                "last_price": latest["close"],
+                "volume": volume,  # Add volume from NGX API (will be 0 if not available)
+                "market_capitalization": market_cap,  # Add market cap from NGX API (will be 0 if not available)
+                "market_breadth": [],
+                "top_gainers": [],
+                "top_losers": [],
+            }
+
+            logger.info(f"Successfully fetched combined data: {response_data}")
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"Error fetching data: {e}", exc_info=True)
+            return Response(
+                {"error": f"An error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
