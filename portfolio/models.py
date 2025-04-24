@@ -276,7 +276,9 @@ class CompanyFundamental(models.Model):
 
 class Receipts(auto_prefetch.Model):
     user = auto_prefetch.ForeignKey(User, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="Reciepts/", max_length=355, blank=True)
+    image = models.ImageField(
+        upload_to="Reciepts/", max_length=355, blank=True, null=True
+    )
     amount = models.IntegerField(blank=True, null=True)
     date = models.DateField(auto_now_add=True)
     receipt_status = models.CharField(max_length=20, default="Unprocessed")
