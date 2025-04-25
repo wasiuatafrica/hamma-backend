@@ -11,7 +11,44 @@ from execution.models import DemoPortfolio, DiscountCode
 User = get_user_model()
 
 
+# class DiscountCodeSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = DiscountCode
+#         fields = [
+#             "id",
+#             "code",
+#             "discount_percentage",
+#             "is_active",
+#             "expiry_date",
+#             "type",
+#             "num_of_accounts",
+#             "created",
+#             "total_used",
+#         ]
+
+
+# Now, create the CRUD endpoints using APIView
+# class DiscountCodeListCreateView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         """List all discount codes"""
+#         discount_codes = DiscountCode.objects.all().order_by("-created")
+#         serializer = DiscountCodeSerializer(discount_codes, many=True)
+#         return Response(serializer.data)
+
+#     def post(self, request):
+#         """Create a new discount code"""
+#         serializer = DiscountCodeSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class DiscountCodeSerializer(serializers.ModelSerializer):
+    user_email = serializers.SerializerMethodField()
+
     class Meta:
         model = DiscountCode
         fields = [
@@ -24,10 +61,17 @@ class DiscountCodeSerializer(serializers.ModelSerializer):
             "num_of_accounts",
             "created",
             "total_used",
+            "user",  # Include the user field
+            "acc_size",
+            "acc_model",
+            "user_email",
         ]
 
+    def get_user_email(self, obj):
+        """Return the email of the associated user"""
+        return obj.user.email if obj.user else None
 
-# Now, create the CRUD endpoints using APIView
+
 class DiscountCodeListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -38,11 +82,37 @@ class DiscountCodeListCreateView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        """Create a new discount code"""
-        serializer = DiscountCodeSerializer(data=request.data)
+        """Create a new discount code, associating it with a user by email"""
+        # Extract email from request data
+        email = request.data.get("user_email")
+        # if not email:
+        #     return Response(
+        #         {"user_email": ["This field is required."]},
+        #         status=status.HTTP_400_BAD_REQUEST,
+        #     )
+
+        # Verify that the user exists
+        if email:
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                return Response(
+                    {"email": ["User with this email does not exist."]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            user = None
+
+        # Prepare data for serializer (exclude email)
+        data = request.data.copy()
+        data.pop("email", None)
+
+        # Validate and create the discount code
+        serializer = DiscountCodeSerializer(data=data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(user=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
