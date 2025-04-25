@@ -1,10 +1,10 @@
-import json
 import logging
 
 import pandas as pd
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from django.core.serializers.json import DjangoJSONEncoder
+from django.conf import settings
+from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404, render
 from rest_framework import generics, permissions, status
 from rest_framework.permissions import AllowAny
@@ -13,12 +13,7 @@ from rest_framework.views import APIView
 from tvDatafeed import Interval, TvDatafeed
 
 from . import serializers
-from .models import (
-    ContactMessage,
-    SupportMessage,
-    SupportMessageDisclaimer,
-    SupportThread,
-)
+from .models import ContactMessage, SupportMessage, SupportThread
 from .serializers import ContactMessageSerializer
 
 # Create your views here.
@@ -94,7 +89,6 @@ class SwitchBackToAIBot(APIView):
         )
 
 
-# --- View for Creating a Message ---
 class MessageCreateView(generics.CreateAPIView):
     """
     API endpoint that allows users to submit a new contact message.
@@ -102,11 +96,39 @@ class MessageCreateView(generics.CreateAPIView):
     Handles POST requests.
     """
 
-    queryset = (
-        ContactMessage.objects.all()
-    )  # Required for CreateAPIView, even if not directly used for listing
+    queryset = ContactMessage.objects.all()  # Required for CreateAPIView
     serializer_class = ContactMessageSerializer
     permission_classes = [permissions.AllowAny]  # Allow anyone to submit a message
+
+    def perform_create(self, serializer):
+        # Save the contact message instance
+        contact_message = serializer.save()
+
+        # Send email to admin
+        subject = f"New contact message from {contact_message.full_name}"
+        message = f"""
+        You have received a new contact message.
+
+        Name: {contact_message.full_name}
+        Email: {contact_message.email}
+        Subject: {contact_message.subject}
+        Message: {contact_message.message}
+        """
+
+        # You can set the 'from_email' as the sender's email, or use a default one like support@domain.com
+        from_email = "Hamma Contact Message <hello@gohamma.com>"
+
+        # Send email to admin
+        send_mail(
+            subject,
+            message,
+            from_email,
+            [
+                "traders@gohamma.com",
+                "nexxyb@gmail.com",
+            ],  # Add admin email(s) here or use a default from settings
+            fail_silently=False,
+        )
 
 
 # --- View for Listing ALL Messages ---
