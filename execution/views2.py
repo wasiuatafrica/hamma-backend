@@ -293,6 +293,7 @@ class SingleDemoTradeAPIView(APIView):
                 stop_loss=stop_loss,
                 action=action,
             )
+            print("created")
 
             # Send email notification
             trade_data = {
@@ -308,7 +309,7 @@ class SingleDemoTradeAPIView(APIView):
             trade_type = (
                 "competition" if isinstance(portfolio, CompetitionPortfolio) else "demo"
             )
-            send_trade_notification(trade_type, "open_limit", trade_data)
+            # send_trade_notification(trade_type, "open_limit", trade_data)
 
             return position
 
@@ -387,6 +388,7 @@ class SingleDemoTradeAPIView(APIView):
                     device_type,
                 )
             elif order_type == "limit":
+                print("limit")
                 price = float(request.data.get("price"))
                 self.validate_tp_sl_limit(action, price, take_profit, stop_loss)
                 position = self.process_limit_order(
