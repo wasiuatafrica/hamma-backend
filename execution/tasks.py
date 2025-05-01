@@ -71,6 +71,13 @@ BANK_HOLIDAYS = [
     datetime(2025, 4, 1),  # fitr Day
     datetime(2025, 4, 18),  # good friday Day
     datetime(2025, 4, 21),  # easter monDay
+    datetime(2025, 5, 1),
+    datetime(2025, 6, 9),
+    datetime(2025, 6, 10),
+    datetime(2025, 6, 12),
+    datetime(2025, 10, 1),
+    datetime(2025, 12, 25),
+    datetime(2025, 12, 26),
 ]
 
 lagos_tz = pytz.timezone("Africa/Lagos")
@@ -2136,6 +2143,12 @@ ec2 = boto3.client("ec2", region_name=AWS_REGION)
 
 @shared_task
 def start_ec2_instance():
+    lagos_tz = pytz.timezone("Africa/Lagos")
+    today = datetime.now(lagos_tz).date()
+
+    if today in [holiday.date() for holiday in BANK_HOLIDAYS]:
+        print(f"Today {today} is a bank holiday. Skipping start_ec2_instance task.")
+        return
 
     ec2.start_instances(InstanceIds=[INSTANCE_ID])
     print(f"Starting EC2 instance {INSTANCE_ID}")
