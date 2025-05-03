@@ -87,8 +87,8 @@ class NoAuthSupportConsumer(AsyncWebsocketConsumer):
             assistant_id = (
                 "asst_cNYBMhon9Y4opWwtdK2xR345"
                 if self.is_prop
-                # else "asst_MJ9ZqMIyzQqgjvm5sUwGZI7E"
-                else "asst_3UNWJs0OcbkltT3dYr4vdrNe"
+                else "asst_MJ9ZqMIyzQqgjvm5sUwGZI7E"
+                # else "asst_3UNWJs0OcbkltT3dYr4vdrNe"
             )
             await database_sync_to_async(utils.send_assistant_message)(
                 message,

@@ -27,8 +27,8 @@ def start_conversation(
     thread_id: Optional[str] = None,
     user: Any = None,
     new_message: str = "Hello",
-    # assistant_id="asst_MJ9ZqMIyzQqgjvm5sUwGZI7E",
-    assistant_id="asst_3UNWJs0OcbkltT3dYr4vdrNe",
+    assistant_id="asst_MJ9ZqMIyzQqgjvm5sUwGZI7E",
+    # assistant_id="asst_3UNWJs0OcbkltT3dYr4vdrNe",
 ) -> Optional[dict]:
 
     if thread_id is None:
