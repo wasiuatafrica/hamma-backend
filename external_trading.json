@@ -1,0 +1,445 @@
+{
+  "info": {
+    "_postman_id": "4d853c2e-5a97-4f16-9a12-0b9e6e8ce723",
+    "name": "RSI30 Platform Integration",
+    "description": "A collection demonstrating the integration between your trading platform and RSI30.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authenticate and Create Connection",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Parse response data",
+              "const responseData = pm.response.json();",
+              "",
+              "// Store API credentials in environment variables for future requests",
+              "pm.environment.set('api_key', responseData.api_credentials.api_key);",
+              "pm.environment.set('secret_key', responseData.api_credentials.secret_key);",
+              "",
+              "// Store user info",
+              "pm.environment.set('user_id', responseData.user.id);",
+              "pm.environment.set('connection_id', responseData.connection.id);",
+              "",
+              "// Log success message",
+              "console.log('Authentication successful. API credentials stored in environment variables.');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"secure_password\",\n    \"platform_type\": \"rsi30\",\n    \"name\": \"RSI30 Trading Bot\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/external-trading/auth/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "external-trading",
+            "auth",
+            ""
+          ]
+        },
+        "description": "Authenticate with user credentials and create an RSI30 connection in one step."
+      },
+      "response": []
+    },
+    {
+      "name": "2. List Available Accounts",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Parse response data",
+              "const responseData = pm.response.json();",
+              "",
+              "// Store the first demo portfolio ID for future requests",
+              "if (responseData.demo_portfolios && responseData.demo_portfolios.length > 0) {",
+              "    pm.environment.set('demo_account_id', responseData.demo_portfolios[0].id);",
+              "    pm.environment.set('demo_account_name', responseData.demo_portfolios[0].account_name);",
+              "    console.log('Demo account found: ' + responseData.demo_portfolios[0].account_name);",
+              "}",
+              "",
+              "// Store the first competition portfolio ID (if available)",
+              "if (responseData.competition_portfolios && responseData.competition_portfolios.length > 0) {",
+              "    pm.environment.set('competition_account_id', responseData.competition_portfolios[0].id);",
+              "    console.log('Competition account found: ' + responseData.competition_portfolios[0].account_name);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Get current timestamp (in seconds)",
+              "const timestamp = Math.floor(Date.now() / 1000).toString();",
+              "pm.environment.set('timestamp', timestamp);",
+              "",
+              "// Create signature: timestamp + endpoint + payload",
+              "const endpoint = \"/external-trading/accounts/\";",
+              "const payload = \"\";",
+              "const message = timestamp + endpoint + payload;",
+              "",
+              "// Generate HMAC signature using secret key",
+              "const secret = pm.environment.get('secret_key');",
+              "const signature = CryptoJS.HmacSHA256(message, secret).toString();",
+              "pm.environment.set('signature', signature);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          },
+          {
+            "key": "X-Signature",
+            "value": "{{signature}}"
+          },
+          {
+            "key": "X-Timestamp",
+            "value": "{{timestamp}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/external-trading/accounts/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "external-trading",
+            "accounts",
+            ""
+          ]
+        },
+        "description": "List all available trading accounts for the user."
+      },
+      "response": []
+    },
+    {
+      "name": "3. Open a Trade",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Get current timestamp (in seconds)",
+              "const timestamp = Math.floor(Date.now() / 1000).toString();",
+              "pm.environment.set('timestamp', timestamp);",
+              "",
+              "// Create payload for the request",
+              "const payload = {",
+              "    \"symbol\": \"AAPL\",",
+              "    \"quantity\": 10,",
+              "    \"action\": \"buy\",",
+              "    \"order_type\": \"market\",",
+              "    \"take_profit\": 180.00,",
+              "    \"stop_loss\": 160.00",
+              "};",
+              "const payloadString = JSON.stringify(payload);",
+              "pm.environment.set('payload', payloadString);",
+              "",
+              "// Create signature: timestamp + endpoint + payload",
+              "const accountId = pm.environment.get('demo_account_id');",
+              "const endpoint = `/external-trading/api/demo_portfolio/${accountId}/trade/`;",
+              "const message = timestamp + endpoint + payloadString;",
+              "",
+              "// Generate HMAC signature using secret key",
+              "const secret = pm.environment.get('secret_key');",
+              "const signature = CryptoJS.HmacSHA256(message, secret).toString();",
+              "pm.environment.set('signature', signature);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Parse response data",
+              "const responseData = pm.response.json();",
+              "",
+              "// Store the position ID for future requests",
+              "if (responseData.position_id) {",
+              "    pm.environment.set('position_id', responseData.position_id);",
+              "    console.log('New position created with ID: ' + responseData.position_id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          },
+          {
+            "key": "X-Signature",
+            "value": "{{signature}}"
+          },
+          {
+            "key": "X-Timestamp",
+            "value": "{{timestamp}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{{payload}}"
+        },
+        "url": {
+          "raw": "{{base_url}}/external-trading/api/demo_portfolio/{{demo_account_id}}/trade/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "external-trading",
+            "api",
+            "demo_portfolio",
+            "{{demo_account_id}}",
+            "trade",
+            ""
+          ]
+        },
+        "description": "Open a new buy position for Apple stock."
+      },
+      "response": []
+    },
+    {
+      "name": "4. List Open Positions",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Get current timestamp (in seconds)",
+              "const timestamp = Math.floor(Date.now() / 1000).toString();",
+              "pm.environment.set('timestamp', timestamp);",
+              "",
+              "// Create signature: timestamp + endpoint + payload",
+              "const accountId = pm.environment.get('demo_account_id');",
+              "const endpoint = `/external-trading/api/demo_portfolio/${accountId}/positions/`;",
+              "const payload = \"\";",
+              "const message = timestamp + endpoint + payload;",
+              "",
+              "// Generate HMAC signature using secret key",
+              "const secret = pm.environment.get('secret_key');",
+              "const signature = CryptoJS.HmacSHA256(message, secret).toString();",
+              "pm.environment.set('signature', signature);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          },
+          {
+            "key": "X-Signature",
+            "value": "{{signature}}"
+          },
+          {
+            "key": "X-Timestamp",
+            "value": "{{timestamp}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/external-trading/api/demo_portfolio/{{demo_account_id}}/positions/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "external-trading",
+            "api",
+            "demo_portfolio",
+            "{{demo_account_id}}",
+            "positions",
+            ""
+          ]
+        },
+        "description": "List all open positions for the selected account."
+      },
+      "response": []
+    },
+    {
+      "name": "5. Close a Position",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Get current timestamp (in seconds)",
+              "const timestamp = Math.floor(Date.now() / 1000).toString();",
+              "pm.environment.set('timestamp', timestamp);",
+              "",
+              "// Create signature: timestamp + endpoint + payload",
+              "const accountId = pm.environment.get('demo_account_id');",
+              "const positionId = pm.environment.get('position_id');",
+              "const endpoint = `/external-trading/api/demo_portfolio/${accountId}/trade/${positionId}/`;",
+              "const payload = \"\";",
+              "const message = timestamp + endpoint + payload;",
+              "",
+              "// Generate HMAC signature using secret key",
+              "const secret = pm.environment.get('secret_key');",
+              "const signature = CryptoJS.HmacSHA256(message, secret).toString();",
+              "pm.environment.set('signature', signature);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          },
+          {
+            "key": "X-Signature",
+            "value": "{{signature}}"
+          },
+          {
+            "key": "X-Timestamp",
+            "value": "{{timestamp}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/external-trading/api/demo_portfolio/{{demo_account_id}}/trade/{{position_id}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "external-trading",
+            "api",
+            "demo_portfolio",
+            "{{demo_account_id}}",
+            "trade",
+            "{{position_id}}",
+            ""
+          ]
+        },
+        "description": "Close a specific position by ID."
+      },
+      "response": []
+    },
+    {
+      "name": "6. Close All Positions",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Get current timestamp (in seconds)",
+              "const timestamp = Math.floor(Date.now() / 1000).toString();",
+              "pm.environment.set('timestamp', timestamp);",
+              "",
+              "// Create signature: timestamp + endpoint + payload",
+              "const accountId = pm.environment.get('demo_account_id');",
+              "const endpoint = `/external-trading/api/demo_portfolio/${accountId}/trade/`;",
+              "const payload = \"\";",
+              "const message = timestamp + endpoint + payload;",
+              "",
+              "// Generate HMAC signature using secret key",
+              "const secret = pm.environment.get('secret_key');",
+              "const signature = CryptoJS.HmacSHA256(message, secret).toString();",
+              "pm.environment.set('signature', signature);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          },
+          {
+            "key": "X-Signature",
+            "value": "{{signature}}"
+          },
+          {
+            "key": "X-Timestamp",
+            "value": "{{timestamp}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/external-trading/api/demo_portfolio/{{demo_account_id}}/trade/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "external-trading",
+            "api",
+            "demo_portfolio",
+            "{{demo_account_id}}",
+            "trade",
+            ""
+          ]
+        },
+        "description": "Close all open positions for the account."
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://your-trading-platform.com",
+      "type": "string"
+    }
+  ]
+}
