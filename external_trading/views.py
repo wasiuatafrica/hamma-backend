@@ -203,7 +203,7 @@ class ConnectionAccountsView(APIView):
         try:
             # Get user's demo portfolios
             demo_portfolios = DemoPortfolio.objects.filter(
-                user=connection.user, can_trade=True
+                user=connection.user, can_trade=True, is_prop=False
             ).values("id", "account_name", "account_id", "balance")
 
             # Get user's competition portfolios
@@ -349,6 +349,7 @@ class ExternalTradeAPI(APIView):
         is_valid, connection, message = self._authenticate(request)
         if not is_valid:
             return Response({"error": message}, status=status.HTTP_401_UNAUTHORIZED)
+        print(request.data)
 
         # Check permissions
         if not connection.permissions.can_open_trades:
@@ -370,11 +371,32 @@ class ExternalTradeAPI(APIView):
             quantity = int(request.data.get("quantity", 0))
             action = request.data.get("action")
             order_type = request.data.get("order_type", "market")
+
             take_profit = request.data.get("take_profit")
+            if take_profit in ("", None):
+                take_profit = None
             stop_loss = request.data.get("stop_loss")
+            if stop_loss in ("", None):
+                stop_loss = None
+
             price = request.data.get("price") if order_type == "limit" else None
             order_id = request.data.get("order_id", f"ext-{int(time.time())}")
             time_in_force = request.data.get("time_in_force", "day")
+
+            # Restrict market orders to 10am-2:30pm Mon-Fri only (Lagos time)
+            if order_type == "market":
+                import pytz
+
+                lagos_tz = pytz.timezone("Africa/Lagos")
+                now = timezone.now().astimezone(lagos_tz)
+                # 0=Monday, 4=Friday
+                if now.weekday() > 4 or not (
+                    now.hour > 9
+                    and (now.hour < 14 or (now.hour == 14 and now.minute <= 30))
+                ):
+                    raise ValidationError(
+                        "Market orders are only allowed between 10:00am and 2:30pm, Monday to Friday (Lagos time)."
+                    )
 
             # Check allowed symbols if configured
             if (
@@ -382,7 +404,7 @@ class ExternalTradeAPI(APIView):
                 and symbol not in connection.permissions.allowed_symbols
             ):
                 raise ValidationError(
-                    f"Trading {symbol} is not allowed for this connection"
+                    "Trading %s is not allowed for this connection" % symbol
                 )
 
             # Check max trade size if configured
@@ -390,7 +412,7 @@ class ExternalTradeAPI(APIView):
                 current_price = float(get_price(symbol)["current_price"])
                 trade_value = quantity * current_price
                 if trade_value > float(connection.permissions.max_trade_size):
-                    raise ValidationError(f"Trade size exceeds maximum allowed value")
+                    raise ValidationError("Trade size exceeds maximum allowed value")
 
             # Check max daily trades if configured
             if connection.permissions.max_daily_trades:
@@ -405,7 +427,7 @@ class ExternalTradeAPI(APIView):
                 ).count()
 
                 if today_trades >= connection.permissions.max_daily_trades:
-                    raise ValidationError(f"Daily trade limit reached")
+                    raise ValidationError("Daily trade limit reached")
 
             # Get the portfolio using the trading service
             portfolio, _ = TradingService.get_account(
@@ -433,6 +455,7 @@ class ExternalTradeAPI(APIView):
                     "quantity": quantity,
                     "stock": symbol,
                 }
+                print(response_data)
 
             elif order_type == "limit":
                 position = TradingService.process_limit_order(

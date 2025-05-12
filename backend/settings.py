@@ -171,6 +171,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://localhost:5000",
     "http://localhost:3011",
     "http://localhost:5173",
     "https://anyon-affiliate-program.netlify.app",
@@ -182,6 +183,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://gohamma.com",
     "https://hamma.trade",
     "https://hqr.hamma.trade",
+    "https://landingpage-june-506e24574c39.herokuapp.com",
 ]
 
 DATE_INPUT_FORMATS = ["%d-%m-%Y"]

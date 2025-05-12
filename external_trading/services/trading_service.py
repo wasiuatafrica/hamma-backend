@@ -39,7 +39,7 @@ class TradingService:
     def get_account(account_type, account_id, user):
         """Get portfolio account based on type and id"""
         if account_type == "demo_portfolio":
-            portfolio = DemoPortfolio.objects.filter(id=account_id).first()
+            portfolio = DemoPortfolio.objects.filter(account_id=account_id).first()
             if not portfolio or portfolio.user != user:
                 raise ValidationError("Account not found or access denied")
             return portfolio, DemoPosition
