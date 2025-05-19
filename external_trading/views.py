@@ -87,6 +87,67 @@ class ExternalConnectionViewSet(viewsets.ModelViewSet):
                 {"error": "API key not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
+    @action(detail=True, methods=["delete"])
+    def delete_connection(self, request, pk=None):
+        """Delete an external connection"""
+        try:
+            connection = self.get_object()
+            connection.delete()
+            return Response(
+                {"message": "Connection deleted successfully."},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DeleteConnectionView(APIView):
+    permission_classes = []  # No DRF permissions as we use custom auth
+
+    def _authenticate(self, request):
+        """Authenticate the API request"""
+        api_key = request.headers.get("X-API-Key")
+        signature = request.headers.get("X-Signature")
+        timestamp = request.headers.get("X-Timestamp")
+
+        if not all([api_key, signature, timestamp]):
+            return False, None, "Missing authentication headers"
+
+        # Get request body as string
+        body = ""
+
+        # Validate the request
+        is_valid, connection, message = ApiKeyService.validate_request(
+            api_key=api_key,
+            signature=signature,
+            timestamp=timestamp,
+            payload=body,
+            request_path=request.path,
+        )
+
+        return is_valid, connection, message
+
+    def delete(self, request):
+        """Get all available accounts for the authenticated connection"""
+        # Authenticate request
+        print(request.body)
+        is_valid, connection, message = self._authenticate(request)
+        print(message)
+        if not is_valid:
+            return Response({"error": message}, status=status.HTTP_401_UNAUTHORIZED)
+
+        connection = ExternalConnection.objects.filter(user=connection.user).first()
+        if not connection:
+            return Response(
+                {"error": "No connection found for this user."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        connection.delete()
+        return Response(
+            {"message": "Connection deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
 
 class AuthenticateAndConnect(APIView):
     """
@@ -383,20 +444,20 @@ class ExternalTradeAPI(APIView):
             order_id = request.data.get("order_id", f"ext-{int(time.time())}")
             time_in_force = request.data.get("time_in_force", "day")
 
-            # Restrict market orders to 10am-2:30pm Mon-Fri only (Lagos time)
-            if order_type == "market":
-                import pytz
+            # # Restrict market orders to 10am-2:30pm Mon-Fri only (Lagos time)
+            # if order_type == "market":
+            #     import pytz
 
-                lagos_tz = pytz.timezone("Africa/Lagos")
-                now = timezone.now().astimezone(lagos_tz)
-                # 0=Monday, 4=Friday
-                if now.weekday() > 4 or not (
-                    now.hour > 9
-                    and (now.hour < 14 or (now.hour == 14 and now.minute <= 30))
-                ):
-                    raise ValidationError(
-                        "Market orders are only allowed between 10:00am and 2:30pm, Monday to Friday (Lagos time)."
-                    )
+            #     lagos_tz = pytz.timezone("Africa/Lagos")
+            #     now = timezone.now().astimezone(lagos_tz)
+            #     # 0=Monday, 4=Friday
+            #     if now.weekday() > 4 or not (
+            #         now.hour > 9
+            #         and (now.hour < 14 or (now.hour == 14 and now.minute <= 30))
+            #     ):
+            #         raise ValidationError(
+            #             "Market orders are only allowed between 10:00am and 2:30pm, Monday to Friday (Lagos time)."
+            #         )
 
             # Check allowed symbols if configured
             if (

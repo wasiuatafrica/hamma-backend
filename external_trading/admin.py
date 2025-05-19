@@ -50,6 +50,7 @@ class ApiKeyAdmin(admin.ModelAdmin):
     list_display = (
         "connection",
         "key_id",
+        "api_key",
         "is_active",
         "created_at",
         "expires_at",

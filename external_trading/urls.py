@@ -34,4 +34,9 @@ urlpatterns = [
     #     views.ExternalTradeAPI.as_view(),
     #     name="external-close-trade",
     # ),
+    path(
+        "api/delete-connection/",
+        views.DeleteConnectionView.as_view(),
+        name="delete-connection",
+    ),
 ]
