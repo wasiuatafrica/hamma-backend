@@ -684,3 +684,129 @@ class ExternalTradeAPI(APIView):
                 {"error": "An unexpected error occurred"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class DeleteActionView(APIView):
+    permission_classes = []  # Custom authentication
+
+    def _authenticate(self, request):
+        """Authenticate the API request (copied from ExternalTradeAPI)"""
+        api_key = request.headers.get("X-API-Key")
+        signature = request.headers.get("X-Signature")
+        timestamp = request.headers.get("X-Timestamp")
+
+        if not all([api_key, signature, timestamp]):
+            return False, None, "Missing authentication headers"
+
+        body = request.body.decode("utf-8") if request.body else ""
+        # Ensure request.path is what you expect for signature.
+        # For "/api/connection/action/", request.path should be exactly that.
+        is_valid, connection, message = ApiKeyService.validate_request(
+            api_key=api_key,
+            signature=signature,
+            timestamp=timestamp,
+            payload=body,  # This will be the JSON string of {"action": "delete"}
+            request_path=request.path,
+        )
+        return is_valid, connection, message
+
+    def _log_request(
+        self,
+        connection,
+        action_log_name,
+        request,
+        response_data=None,
+        status_log="success",
+        error_message=None,
+    ):
+        """Log the API request (similar to ExternalTradeAPI)"""
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+        ip = (
+            x_forwarded_for.split(",")[0]
+            if x_forwarded_for
+            else request.META.get("REMOTE_ADDR")
+        )
+
+        ExternalTradingLog.objects.create(
+            connection=connection,
+            action=action_log_name,
+            ip_address=ip,
+            request_data=request.data,  # This is the parsed JSON
+            response_data=response_data,
+            status=status_log,
+            error_message=error_message,
+        )
+
+    def post(self, request, format=None):
+        is_valid, connection_obj, message = self._authenticate(request)
+        if not is_valid:
+            # Optionally log auth failure here if connection_obj is None
+            return Response(
+                {"error": message, "message": message},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )  # Added "message" for consistency
+
+        if (
+            not connection_obj
+        ):  # Should be caught by is_valid=False, but good for defense
+            return Response(
+                {"error": "Authentication failed: Connection not found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        action_to_perform = request.data.get("action")
+
+        if action_to_perform == "delete_connection":
+            try:
+                # The 'connection_obj' from _authenticate is the ExternalConnection instance
+                # to be deleted.
+                connection_id_for_log = (
+                    connection_obj.id
+                )  # Get id before deleting for logging
+                user_for_log = connection_obj.user.username  # Get user before deleting
+
+                connection_obj.delete()  # Delete the Hamma ExternalConnection
+
+                self._log_request(
+                    None,  # Connection is now deleted
+                    "hamma_connection_deleted",
+                    request,
+                    response_data={
+                        "message": f"Connection ID {connection_id_for_log} for user {user_for_log} deleted from Hamma."
+                    },
+                )
+                return Response(
+                    {"message": "Hamma connection deleted successfully"},
+                    status=status.HTTP_200_OK,
+                )
+            except Exception as e:
+                print(str(e))
+                self._log_request(
+                    connection_obj,  # Connection still exists if delete failed
+                    "hamma_connection_delete_error",
+                    request,
+                    status_log="failed",
+                    error_message=str(e),
+                )
+                return Response(
+                    {
+                        "error": f"Failed to delete Hamma connection: {str(e)}",
+                        "message": f"Failed to delete Hamma connection: {str(e)}",
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+        else:
+            self._log_request(
+                connection_obj,
+                "invalid_connection_action",
+                request,
+                status_log="failed",
+                error_message=f"Invalid action: {action_to_perform}",
+            )
+            return Response(
+                {
+                    "error": f"Invalid action: {action_to_perform}",
+                    "message": f"Invalid action: {action_to_perform}",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )

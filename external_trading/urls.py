@@ -34,9 +34,14 @@ urlpatterns = [
     #     views.ExternalTradeAPI.as_view(),
     #     name="external-close-trade",
     # ),
+    # path(
+    #     "api/delete-connection/",
+    #     views.DeleteConnectionView.as_view(),
+    #     name="delete-connection",
+    # ),
     path(
-        "api/delete-connection/",
-        views.DeleteConnectionView.as_view(),
-        name="delete-connection",
+        "api/connection/delete/",  # New, more generic endpoint for actions
+        views.DeleteActionView.as_view(),
+        name="connection-action",
     ),
 ]
