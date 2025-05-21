@@ -710,33 +710,6 @@ class DeleteActionView(APIView):
         )
         return is_valid, connection, message
 
-    def _log_request(
-        self,
-        connection,
-        action_log_name,
-        request,
-        response_data=None,
-        status_log="success",
-        error_message=None,
-    ):
-        """Log the API request (similar to ExternalTradeAPI)"""
-        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-        ip = (
-            x_forwarded_for.split(",")[0]
-            if x_forwarded_for
-            else request.META.get("REMOTE_ADDR")
-        )
-
-        ExternalTradingLog.objects.create(
-            connection=connection,
-            action=action_log_name,
-            ip_address=ip,
-            request_data=request.data,  # This is the parsed JSON
-            response_data=response_data,
-            status=status_log,
-            error_message=error_message,
-        )
-
     def post(self, request, format=None):
         is_valid, connection_obj, message = self._authenticate(request)
         if not is_valid:
@@ -758,36 +731,16 @@ class DeleteActionView(APIView):
 
         if action_to_perform == "delete_connection":
             try:
-                # The 'connection_obj' from _authenticate is the ExternalConnection instance
-                # to be deleted.
-                connection_id_for_log = (
-                    connection_obj.id
-                )  # Get id before deleting for logging
-                user_for_log = connection_obj.user.email  # Get user before deleting
 
                 connection_obj.delete()  # Delete the Hamma ExternalConnection
 
-                self._log_request(
-                    None,  # Connection is now deleted
-                    "hamma_connection_deleted",
-                    request,
-                    response_data={
-                        "message": f"Connection ID {connection_id_for_log} for user {user_for_log} deleted from Hamma."
-                    },
-                )
                 return Response(
                     {"message": "Hamma connection deleted successfully"},
                     status=status.HTTP_200_OK,
                 )
             except Exception as e:
                 print(str(e))
-                self._log_request(
-                    connection_obj,  # Connection still exists if delete failed
-                    "hamma_connection_delete_error",
-                    request,
-                    status_log="failed",
-                    error_message=str(e),
-                )
+
                 return Response(
                     {
                         "error": f"Failed to delete Hamma connection: {str(e)}",
@@ -796,13 +749,7 @@ class DeleteActionView(APIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
         else:
-            self._log_request(
-                connection_obj,
-                "invalid_connection_action",
-                request,
-                status_log="failed",
-                error_message=f"Invalid action: {action_to_perform}",
-            )
+
             return Response(
                 {
                     "error": f"Invalid action: {action_to_perform}",
