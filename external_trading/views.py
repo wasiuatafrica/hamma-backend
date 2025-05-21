@@ -613,15 +613,16 @@ class ExternalTradeAPI(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             # Log failed request
+            print(str(e))
             self._log_request(
                 connection,
-                "close_trade",
+                "delete_connection",
                 request,
                 status="failed",
                 error_message=str(e),
             )
             return Response(
-                {"error": "An unexpected error occurred"},
+                {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 

@@ -422,7 +422,9 @@ class TradingService:
         """Get all open positions for a portfolio"""
         position_model = DemoPosition
 
-        positions = position_model.objects.filter(portfolio=portfolio, status="open")
+        positions = position_model.objects.filter(
+            portfolio=portfolio, status="open", order_id__startswith="ext"
+        )
 
         all_prices = get_stockdata2()
         position_data = get_position(all_prices, positions)
