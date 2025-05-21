@@ -763,7 +763,7 @@ class DeleteActionView(APIView):
                 connection_id_for_log = (
                     connection_obj.id
                 )  # Get id before deleting for logging
-                user_for_log = connection_obj.user.username  # Get user before deleting
+                user_for_log = connection_obj.user.email  # Get user before deleting
 
                 connection_obj.delete()  # Delete the Hamma ExternalConnection
 
