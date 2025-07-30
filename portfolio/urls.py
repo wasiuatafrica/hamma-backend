@@ -21,6 +21,16 @@ urlpatterns = [
     path("paystack-receipt/", views.PayStackReceiptsView),
     path("transactions/", views.TransactionList.as_view(), name="transaction-list"),
     path("alert/", views.AlertView.as_view()),
+    path(
+        "admin/toggle-data-source/",
+        views.ToggleDataSourceView.as_view(),
+        name="toggle-data-source",
+    ),
+    path(
+        "data-source-status/",
+        views.DataSourceStatusView.as_view(),
+        name="data-source-status",
+    ),
     path("alert/<int:id>/", views.AlertUpdateView.as_view()),
     path("fund-live/", views.FundLiveAccount.as_view()),
     path("withdraw-live/", views.WithdrawLiveAccount.as_view()),

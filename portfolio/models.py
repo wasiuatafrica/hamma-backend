@@ -565,3 +565,15 @@ class ViewOtherIdeasLog(auto_prefetch.Model):
 
     def __str__(self):
         return f"{self.email} - {self.created}"
+
+
+class DataSourceSetting(models.Model):
+    DATA_SOURCE_CHOICES = [
+        ("NGX", "NGX"),
+        ("Tradingview", "Tradingview"),
+    ]
+    source = models.CharField(max_length=20, choices=DATA_SOURCE_CHOICES, default="NGX")
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Current Data Source: {self.source}"

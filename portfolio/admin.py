@@ -22,6 +22,7 @@ from .models import (
     BonusWallet,
     CompanyFundamental,
 )
+from .models import DataSourceSetting
 
 
 @admin.register(DemoTransaction)
@@ -55,6 +56,12 @@ admin.site.register(Wallet)
 class CompanyFundamentalAdmin(admin.ModelAdmin):
     list_display = ("stock", "market_cap")
     search_fields = ["stock__symbol"]
+
+
+@admin.register(DataSourceSetting)
+class DataSourceSettingAdmin(admin.ModelAdmin):
+    list_display = ("source", "updated")
+    actions = None
 
 
 class TransactionAdmin(admin.ModelAdmin):

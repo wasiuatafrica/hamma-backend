@@ -25,6 +25,7 @@ from rest_framework.permissions import (
     BasePermission,
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
+    IsAdminUser,
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -59,6 +60,7 @@ from .models import (
     Wallet,
     BonusWallet,
     WithdrawalOTPRequest,
+    DataSourceSetting,
 )
 from .serializers import (
     AlertSerializer,
@@ -1908,3 +1910,30 @@ class PopularStocks(generics.ListAPIView):
             "popular_stocks": details,
         }
         return Response(response_data)
+
+
+class ToggleDataSourceView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        new_source = request.data.get("source")
+        if new_source not in ["NGX", "Tradingview"]:
+            return Response({"error": "Invalid source."}, status=400)
+        setting, _ = DataSourceSetting.objects.get_or_create(id=1)
+        setting.source = new_source
+        setting.save()
+        return Response({"success": True, "source": setting.source})
+
+    def get(self, request):
+        setting = DataSourceSetting.objects.first()
+        source = setting.source if setting else "NGX"
+        return Response({"source": source})
+
+
+class DataSourceStatusView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        setting = DataSourceSetting.objects.first()
+        source = setting.source if setting else "NGX"
+        return Response({"source": source})
