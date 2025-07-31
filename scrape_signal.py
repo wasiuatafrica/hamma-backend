@@ -11,7 +11,8 @@ client = MongoClient(
 )
 
 db_merged = client["livelake3"]
-collection = db_merged["merged_live_price"]
+# collection = db_merged["merged_live_price"]
+collection = db_merged["merged_live_price_trdv"]
 last_item = collection.find_one(sort=[("_id", -1)])
 last_item.pop("_id")
 

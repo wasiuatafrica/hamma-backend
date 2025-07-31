@@ -24,7 +24,8 @@ def generate_account_id():
 
 
 def get_price(symbol):
-    collection = db_merged["merged_live_price"]
+    # collection = db_merged["merged_live_price"]
+    collection = db_merged["merged_live_price_trdv"]
     last_item = collection.find_one(sort=[("_id", -1)])
 
     return last_item[symbol]

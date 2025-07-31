@@ -6,7 +6,8 @@ riskdb = client["stock_classification"]
 risk_collection = riskdb["risk_classification"]
 
 db_merged = client["livelake3"]
-collection = db_merged["merged_live_price"]
+# collection = db_merged["merged_live_price"]
+collection = db_merged["merged_live_price_trdv"]
 
 
 def classify_asset(asset_data):

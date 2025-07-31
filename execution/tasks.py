@@ -53,7 +53,8 @@ channel_layer = get_channel_layer()
 MONGO_URL = os.environ.get("MONGO_STRING")
 mongo_client = MongoClient(MONGO_URL, tls=True, tlsAllowInvalidCertificates=True)
 db_merged = mongo_client["livelake3"]
-collection_merged = db_merged["merged_live_price"]
+# collection_merged = db_merged["merged_live_price"]
+collection_merged = db_merged["merged_live_price_trdv"]
 
 BANK_HOLIDAYS = [
     datetime(2024, 1, 1),  # New Year's Day

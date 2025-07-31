@@ -96,7 +96,8 @@ def get_mini_data():
 
 def get_price(symbol):
 
-    collection = db_merged["merged_live_price"]
+    # collection = db_merged["merged_live_price"]
+    collection = db_merged["merged_live_price_trdv"]
     last_item = collection.find_one(sort=[("_id", -1)])
     # print(symbol)
     return last_item[symbol]
@@ -117,7 +118,8 @@ def get_details(stock):
 
 
 def get_stockdata2():
-    collection = db_merged["merged_live_price"]
+    # collection = db_merged["merged_live_price"]
+    collection = db_merged["merged_live_price_trdv"]
     last_item = collection.find_one(sort=[("_id", -1)])
 
     return last_item
