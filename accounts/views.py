@@ -41,11 +41,19 @@ class Registration(APIView):
         try:
             serializer = self.serializer_class(data=request.data)
             ref_code = request.data.get("ref_code")
+            phone = request.data.get("phone", "")
             if serializer.is_valid():
                 user = serializer.save()
                 user.set_password(request.data.get("password"))
                 # user.signup_type="email"
                 user.save()
+
+                # Update Profile with phone number if provided
+                if phone:
+                    profile = models.Profile.objects.get(user=user)
+                    profile.phone = phone
+                    profile.save()
+
                 # Create the referral object.
                 referred_by = models.Profile.objects.filter(
                     referral_code__iexact=ref_code
