@@ -171,6 +171,7 @@ def get_details2(stock, stock_data):
         return {
             "company": stock.company,
             "symbol": stock.symbol,
+            "logo_url": stock.logo_url,
             "sector": stock.sector,
             "current_price": 0,
             "percent_change": 0,

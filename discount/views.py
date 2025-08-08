@@ -2,48 +2,13 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers, status
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from execution.models import DemoPortfolio, DiscountCode
 
 User = get_user_model()
-
-
-# class DiscountCodeSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = DiscountCode
-#         fields = [
-#             "id",
-#             "code",
-#             "discount_percentage",
-#             "is_active",
-#             "expiry_date",
-#             "type",
-#             "num_of_accounts",
-#             "created",
-#             "total_used",
-#         ]
-
-
-# Now, create the CRUD endpoints using APIView
-# class DiscountCodeListCreateView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         """List all discount codes"""
-#         discount_codes = DiscountCode.objects.all().order_by("-created")
-#         serializer = DiscountCodeSerializer(discount_codes, many=True)
-#         return Response(serializer.data)
-
-#     def post(self, request):
-#         """Create a new discount code"""
-#         serializer = DiscountCodeSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DiscountCodeSerializer(serializers.ModelSerializer):
@@ -73,7 +38,7 @@ class DiscountCodeSerializer(serializers.ModelSerializer):
 
 
 class DiscountCodeListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         """List all discount codes"""
