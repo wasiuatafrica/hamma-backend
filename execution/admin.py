@@ -1,23 +1,24 @@
 from django.contrib import admin
+from simple_history.admin import SimpleHistoryAdmin
+
 from .models import (
-    DemoPortfolio,
-    DemoPosition,
-    DemoTrade,
-    DemoProfitLoss,
-    Portfolio,
-    WithdrawalRequest,
-    Position,
-    DemoDailyReturns,
+    CumulativeMarketReturns,
+    CumulativeReturns,
     DailyReturns,
     DemoCumulativeReturns,
-    CumulativeReturns,
+    DemoDailyReturns,
     DemoDailyReturns2,
-    CumulativeMarketReturns,
-    MarketReturns,
-    PropReceipt,
+    DemoPortfolio,
+    DemoPosition,
+    DemoProfitLoss,
+    DemoTrade,
     HammaAccountRequest,
+    MarketReturns,
+    Portfolio,
+    Position,
+    PropReceipt,
+    WithdrawalRequest,
 )
-from simple_history.admin import SimpleHistoryAdmin
 
 
 @admin.register(HammaAccountRequest)
@@ -71,10 +72,11 @@ class DemoPortfolioAdmin(SimpleHistoryAdmin):
         "target_met",
         "blown",
         "inactive_by_inactivity",
+        "can_trade",
         "has_hamma",
         "created",
     )
-    list_filter = ["is_prop", "created"]
+    list_filter = ["is_prop", "created", "can_trade"]
 
 
 admin.site.register(DemoPortfolio, DemoPortfolioAdmin)
