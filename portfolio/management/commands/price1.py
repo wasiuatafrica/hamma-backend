@@ -54,5 +54,5 @@ class Command(BaseCommand):
         # print("Last item:", last_item)
 
         # # Delete last 4 items
-        deleted = delete_last_n_prices(4)
+        deleted = delete_last_n_prices(5)
         print(f"Deleted {deleted} items from the collection.")

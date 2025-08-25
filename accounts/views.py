@@ -45,7 +45,8 @@ class Registration(APIView):
             if serializer.is_valid():
                 user = serializer.save()
                 user.set_password(request.data.get("password"))
-                # user.signup_type="email"
+                user.is_active = True  # Activate user immediately
+                user.email_verified = False  # Email not verified yet
                 user.save()
 
                 # Update Profile with phone number if provided
@@ -53,6 +54,12 @@ class Registration(APIView):
                     profile = models.Profile.objects.get(user=user)
                     profile.phone = phone
                     profile.save()
+
+                # Create wallets and portfolios immediately (moved from VerifyToken)
+                Wallet.objects.create(user=user)
+                ReferralWallet.objects.create(user=user)
+                DemoPortfolio.objects.create(user=user)
+                PropReferralWallet.objects.create(user=user)
 
                 # Create the referral object.
                 referred_by = models.Profile.objects.filter(
@@ -67,13 +74,28 @@ class Registration(APIView):
                     PropReferral.objects.create(
                         referrer=referred_by.user, referee=user, status="registered"
                     )
-                return Response(
-                    {
-                        "detail": "A token has been sent to your mail",
-                        "user": serializer.data,
-                    },
-                    status=status.HTTP_201_CREATED,
+
+                # Generate JWT tokens for immediate login
+                refresh = RefreshToken.for_user(user)
+                user_data = serializers.CustomUserSerializer(user, many=False).data
+                user.last_login = timezone.now()
+                user.save()
+
+                token_data = {
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                    "user": user_data,
+                    "detail": "Registration successful. A verification token has been sent to your email.",
+                }
+
+                models.UserActivityLog.objects.create(
+                    user=user,
+                    action_type="registration",
+                    description="User registered and logged in immediately",
+                    device_type=request.data.get("device_type", None),
                 )
+
+                return Response(token_data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -116,11 +138,18 @@ class VerifyToken(APIView):
             )
 
         user = User.objects.get(email=user_email)
+        user.email_verified = True  # Mark email as verified
+        user.save()
 
-        Wallet.objects.create(user=user)
-        ReferralWallet.objects.create(user=user)
-        DemoPortfolio.objects.create(user=user)
-        PropReferralWallet.objects.create(user=user)
+        # Create wallets only if they don't exist (for backward compatibility)
+        if not hasattr(user, "wallet") or not Wallet.objects.filter(user=user).exists():
+            Wallet.objects.create(user=user)
+        if not ReferralWallet.objects.filter(user=user).exists():
+            ReferralWallet.objects.create(user=user)
+        if not DemoPortfolio.objects.filter(user=user).exists():
+            DemoPortfolio.objects.create(user=user)
+        if not PropReferralWallet.objects.filter(user=user).exists():
+            PropReferralWallet.objects.create(user=user)
         if source == "prop":
             user.signup_route = "hamma_trade"
             user.save()
@@ -191,8 +220,8 @@ class VerifyToken(APIView):
             send_welcome_email.delay(user.id)
         models.UserActivityLog.objects.create(
             user=user,
-            action_type="verified_account",
-            description="User verified their account.",
+            action_type="verified_email",
+            description="User verified their email address.",
             device_type=device_type,
         )
 
@@ -204,6 +233,7 @@ class VerifyToken(APIView):
             "refresh": str(refresh),
             "access": str(refresh.access_token),
             "user": user_data,
+            "detail": "Email verified successfully.",
         }
         models.UserActivityLog.objects.create(
             user=user,
