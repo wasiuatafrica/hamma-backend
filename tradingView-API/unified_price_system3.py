@@ -398,8 +398,8 @@ def is_market_open():
         current_time_lagos = datetime.now(lagos_timezone).time()
 
         if datetime.today().weekday() < 5:  # Monday to Friday
-            market_open_time = time(10, 15)  # 10:00 AM
-            market_close_time = time(14, 30)  # 2:30 PM
+            market_open_time = time(10, 0)  # 10:00 AM
+            market_close_time = time(14, 36)  # 2:30 PM
 
             if market_open_time <= current_time_lagos <= market_close_time:
                 return True
@@ -1652,7 +1652,7 @@ def run_unified_system():
     )
 
     # Update interval: 15 minutes
-    update_interval = 900  # 15 minutes in seconds
+    update_interval = 1200  # 20 minutes in seconds
 
     while True:
         try:

@@ -118,4 +118,5 @@ urlpatterns = [
         admin_views.AdminWithdrawalRequestUpdateView.as_view(),
         name="admin-withdrawal-request-update",
     ),
+    path("account-data/", views.PropAccountDataView.as_view()),
 ]

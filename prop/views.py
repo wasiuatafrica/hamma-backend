@@ -24,6 +24,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+import hashlib
+import os
 
 from accounts.models import AdminUserActivityLog, Referral
 from accounts.serializers import AdminCustomUserSerializer
@@ -991,7 +993,7 @@ class AdminReceiptsView(APIView):
                 # send the user the account details
                 sendMail(
                     "prop/Account_Purchase.html",
-                    "🚀 You’re In! Welcome to the Hamma Trading Squad 🎉",
+                    "🚀 You're In! Welcome to the Hamma Trading Squad 🎉",
                     [receipt.user.email],
                     account_info,
                 )
@@ -2313,3 +2315,125 @@ class ReferralHistoryView(APIView):
                 }
             )
         return Response(data)
+
+
+class PropAccountDataView(APIView):
+    permission_classes = [AllowAny]
+
+    def verify_signature(self, request):
+        """Verify the request signature for authentication"""
+        signature = request.headers.get("X-Signature")
+        email = request.data.get("email")
+
+        if not all([signature, email]):
+            return False
+
+        # Generate expected signature
+        secret_key = os.environ.get("GUILD_API_SECRET_KEY", "default_secret_key")
+        message = f"{email}"
+        expected_signature = hashlib.sha256(
+            f"{message}:{secret_key}".encode()
+        ).hexdigest()
+
+        return signature == expected_signature
+
+    def post(self, request):
+        """Get prop account data for a user by email"""
+        # Verify signature
+        if not self.verify_signature(request):
+            return Response(
+                {"error": "Invalid signature or expired request"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        email = request.data.get("email")
+        if not email:
+            return Response(
+                {"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Get user by email
+            user = User.objects.get(email=email)
+
+            # Get prop accounts created after August 25, 2025
+            cutoff_date = datetime(2025, 8, 25, tzinfo=timezone.utc)
+            prop_accounts = DemoPortfolio.objects.filter(
+                user=user, is_prop=True, issued_at__gte=cutoff_date
+            ).order_by("-created")
+
+            accounts_data = []
+            calculator = EnhancedPortfolioCalculator()
+
+            for account in prop_accounts:
+                # Get current balance and equity
+                current_data = get_equity_balance(account)
+                current_balance = Decimal(str(current_data["balance"]))
+                current_equity = Decimal(str(current_data["equity"]))
+
+                # Calculate current percentage profit
+                initial_balance = account.initial_balance
+                profit_amount = current_balance - initial_balance
+                profit_percentage = (
+                    (profit_amount / initial_balance * 100)
+                    if initial_balance > 0
+                    else 0
+                )
+
+                # Get trading days
+                historical_data = get_account_data(account.account_id)
+                trading_days = calculate_trading_days(historical_data)
+
+                # Get daily drawdown limit
+                dd_allowed, dd_achieved = calculate_daily_drawdown(
+                    historical_data, account.model_type
+                )
+
+                # Calculate max account loss limit
+                max_account_loss_limit = account.account_drawdown_limit
+
+                account_data = {
+                    "account_id": account.account_id,
+                    "account_name": account.account_name or "",
+                    "model_type": account.model_type,
+                    "account_type_level": account.account_type_level,
+                    "current_percentage_profit": round(float(profit_percentage), 2),
+                    "current_balance": float(current_balance),
+                    "current_equity": float(current_equity),
+                    "initial_balance": float(initial_balance),
+                    "blown": account.blown,
+                    "inactive_by_inactivity": account.inactive_by_inactivity,
+                    "profit_target": (
+                        float(account.profit_target) if account.profit_target else 0
+                    ),
+                    "daily_loss_limit": float(dd_allowed),
+                    "max_account_loss_limit": float(max_account_loss_limit),
+                    "trading_days": trading_days,
+                    "created_date": account.created.strftime("%Y-%m-%d"),
+                    "is_active": account.is_active,
+                    "activated": account.activated,
+                    "receipt_approved": account.receipt_approved,
+                }
+
+                accounts_data.append(account_data)
+
+            response_data = {
+                "user_email": email,
+                "user_fullname": user.fullname,
+                "total_accounts": len(accounts_data),
+                "accounts": accounts_data,
+                "last_updated": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+
+            return Response(response_data)
+
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(f"Error in PropAccountDataView: {str(e)}")
+            return Response(
+                {"error": "An unexpected error occurred"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

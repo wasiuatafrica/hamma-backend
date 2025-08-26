@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 from django.core.mail import send_mail
 import pytz
 from django.utils import timezone
+import hashlib
 
 from execution.models import DemoPortfolio, DemoPosition
 from execution.views2 import EnhancedPortfolioCalculator
@@ -278,3 +279,22 @@ def sendMail(
     except Exception as e:
         print(str(e))
         return False
+
+
+def generate_api_signature(email, secret_key=None):
+    """
+    Generate signature for API authentication
+
+    Args:
+        email (str): User email
+        secret_key (str): Secret key for signing (defaults to env var)
+
+    Returns:
+        str: Generated signature
+    """
+    if secret_key is None:
+        secret_key = os.environ.get("PROP_API_SECRET_KEY", "default_secret_key")
+
+    message = f"{email}"
+    signature = hashlib.sha256(f"{message}:{secret_key}".encode()).hexdigest()
+    return signature
