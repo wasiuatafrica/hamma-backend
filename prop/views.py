@@ -2359,7 +2359,10 @@ class PropAccountDataView(APIView):
             # Get prop accounts created after August 25, 2025
             cutoff_date = datetime(2025, 8, 25, tzinfo=timezone.utc)
             prop_accounts = DemoPortfolio.objects.filter(
-                user=user, is_prop=True, issued_at__gte=cutoff_date
+                user=user,
+                is_prop=True,
+                issued_at__gte=cutoff_date,
+                receipt_approved=True,
             ).order_by("-created")
 
             accounts_data = []
