@@ -2416,6 +2416,7 @@ class PropAccountDataView(APIView):
                     "is_active": account.is_active,
                     "activated": account.activated,
                     "receipt_approved": account.receipt_approved,
+                    "has_hamma": account.has_hamma,
                 }
 
                 accounts_data.append(account_data)
