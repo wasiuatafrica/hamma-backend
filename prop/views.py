@@ -2412,11 +2412,11 @@ class PropAccountDataView(APIView):
                     "daily_loss_limit": float(dd_allowed),
                     "max_account_loss_limit": float(max_account_loss_limit),
                     "trading_days": trading_days,
-                    "created_date": account.created.strftime("%Y-%m-%d"),
+                    "created_date": account.issued_at.strftime("%Y-%m-%d"),
                     "is_active": account.is_active,
                     "activated": account.activated,
                     "receipt_approved": account.receipt_approved,
-                    "has_hamma": account.has_hamma,
+                    "target_met": account.target_met,
                 }
 
                 accounts_data.append(account_data)
