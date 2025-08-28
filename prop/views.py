@@ -2416,7 +2416,13 @@ class PropAccountDataView(APIView):
                     "is_active": account.is_active,
                     "activated": account.activated,
                     "receipt_approved": account.receipt_approved,
-                    "target_met": account.target_met,
+                    "target_met": (
+                        True
+                        if account.target_met
+                        and not account.blown
+                        and not account.inactive_by_inactivity
+                        else False
+                    ),
                 }
 
                 accounts_data.append(account_data)
