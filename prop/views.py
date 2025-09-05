@@ -99,8 +99,12 @@ def calculate_daily_drawdown(data, model_type):
     if not today_data:
         return 0, 0  # No data available
 
-    # Extract the list of balance values for today's data
-    balances = [record["balance"] for record in today_data]
+    # Extract the list of balance values for today's data, converting to float
+    try:
+        balances = [float(record["balance"]) for record in today_data]
+    except (KeyError, ValueError, TypeError):
+        return 0, 0  # No balance data available or conversion error
+
     if not balances:
         return 0, 0  # No balance data available
 
