@@ -1,0 +1,7 @@
+requests
+websocket-client
+pymongo
+pandas
+python-dotenv
+tradingview-datafeed
+pytz

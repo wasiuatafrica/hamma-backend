@@ -1,0 +1,34 @@
+[Unit]
+Description=Unified Price System - Nigerian Stock Exchange Data Collector
+Documentation=https://github.com/Project-Anyon/Anyon-Admin
+After=network.target mongod.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=devnexx
+Group=devnexx
+WorkingDirectory=/home/devnexx/ATafrica/Anyon-Admin/tradingView-API
+Environment=MONGO_URL=your_mongodb_connection_string_here
+ExecStart=/home/devnexx/ATafrica/Anyon-Admin/tradingView-API/unified_price_system
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=always
+RestartSec=10
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/devnexx/ATafrica/Anyon-Admin/tradingView-API
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=unified-price-system
+
+[Install]
+WantedBy=multi-user.target

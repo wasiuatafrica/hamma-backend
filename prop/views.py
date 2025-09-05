@@ -1,7 +1,10 @@
+import hashlib
 import logging
+import os
+from collections import defaultdict
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from collections import defaultdict
+
 import pytz
 from django.contrib.auth import get_user_model
 from django.db.models import (
@@ -15,7 +18,7 @@ from django.db.models import (
     Value,
     When,
 )
-from django.db.models.functions import TruncDate, Round
+from django.db.models.functions import Round, TruncDate
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.timezone import now
@@ -24,8 +27,6 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-import hashlib
-import os
 
 from accounts.models import AdminUserActivityLog, Referral
 from accounts.serializers import AdminCustomUserSerializer
@@ -43,15 +44,16 @@ from execution.models import (
     HammaAccountRequest,
     PropReceipt,
 )
+from execution.views2 import EnhancedPortfolioCalculator, PositionMetrics
 from notifications.utils import save_and_send_notification
 from portfolio.models import PayStackReceipts, Receipts
 
 from .analyzer import analyze_hamma_request_eligibility
 from .models import (
     Payout,
-    PropReferralWallet,
     PropReferral,
     PropReferralHistory,
+    PropReferralWallet,
     PropWithdrawalRequest,
 )
 from .pay_service import PayoutService
@@ -63,10 +65,6 @@ from .utils import (
     initiate_first_data,
     sendMail,
 )
-from decimal import Decimal
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from execution.views2 import EnhancedPortfolioCalculator, PositionMetrics
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -392,141 +390,6 @@ class ProcessPayoutAPIView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# class PortfolioMetrics(APIView):
-
-#     def get(self, request, portfolio_id):
-#         # try:
-#         portfolio = DemoPortfolio.objects.get(account_id=portfolio_id)
-#         account_size = int(portfolio.initial_balance)
-
-#         # Get timezone
-#         wat = pytz.timezone("Africa/Lagos")
-#         current_time = timezone.now().astimezone(wat)
-
-#         # Get historical data for the last 14 days
-#         historical_data = get_account_data(portfolio_id)
-
-#         # Get current balance, equity and positions data
-#         current_data = get_equity_balance(portfolio)
-#         current_balance = Decimal(str(current_data["balance"]))
-#         current_equity = Decimal(str(current_data["equity"]))
-
-#         # Calculate profit/loss
-#         initial_balance = portfolio.initial_balance
-#         profit_loss = current_balance - initial_balance
-
-#         # Get positions for the last 14 days
-#         # two_weeks_ago = current_time - timedelta(days=14)
-#         positions = DemoPosition.objects.filter(
-#             portfolio=portfolio  # , created__gte=two_weeks_ago
-#         )
-
-#         # Calculate trades count and win rate
-#         closed_positions = positions.filter(status="close")
-#         total_trades = closed_positions.count()
-#         winning_trades = closed_positions.filter(profit_loss__gt=0).count()
-#         win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
-
-#         # Calculate drawdown
-#         if not portfolio.balance_based_drawdown:
-#             if historical_data:
-#                 # Get the least equity below the threshold, or use a default value if no data is found
-#                 least_equity_candidates = [
-#                     data["equity"]
-#                     for data in historical_data
-#                     if data["equity"] < account_size
-#                 ]
-#                 least_equity = (
-#                     min(least_equity_candidates)
-#                     if least_equity_candidates
-#                     else float(initial_balance)
-#                 )
-
-#                 # Get the least balance below the threshold, or use a default value if no data is found
-#                 least_balance_candidates = [
-#                     data["balance"]
-#                     for data in historical_data
-#                     if data["balance"] < account_size
-#                 ]
-#                 least_balance = (
-#                     min(least_balance_candidates)
-#                     if least_balance_candidates
-#                     else float(initial_balance)
-#                 )
-
-#                 # Calculate the current drawdown
-#                 current_drawdown = float(initial_balance) - min(
-#                     least_equity, least_balance
-#                 )
-#             else:
-#                 # No historical data, set drawdown to 0
-#                 current_drawdown = 0
-#         elif portfolio.balance_based_drawdown:
-#             if historical_data:
-#                 # Get the least balance below the threshold, or use a default value if no data is found
-#                 least_balance_candidates = [
-#                     data["balance"]
-#                     for data in historical_data
-#                     if data["balance"] < account_size
-#                 ]
-#                 least_balance = (
-#                     min(least_balance_candidates)
-#                     if least_balance_candidates
-#                     else float(initial_balance)
-#                 )
-
-#                 # Calculate the current drawdown
-#                 current_drawdown = float(initial_balance) - least_balance
-#             else:
-#                 # No historical data, set drawdown to 0
-#                 current_drawdown = 0
-
-#         trading_days = calculate_trading_days(historical_data)
-
-#         # Get daily drawdown limit
-#         dd_allowed, dd_achieved = calculate_daily_drawdown(
-#             historical_data, portfolio.model_type
-#         )
-
-#         response_data = {
-#             "metrics": {
-#                 "balance": f"{current_balance:.2f}",
-#                 "equity": f"{current_equity:.2f}",
-#                 "floating_profit_loss": f"{profit_loss:.2f}",
-#                 "account_drawdown": account_size - portfolio.account_drawdown_limit,
-#                 "current_account_drawdown": f"{current_drawdown:.2f}",
-#                 "trading_days": trading_days,
-#                 "closed_trades": total_trades,
-#                 "win_rate": f"{win_rate:.2f}%",
-#             },
-#             "trading_objectives": {
-#                 "daily_drawdown": {
-#                     "max_dd_limit": f"{dd_allowed:.2f}",
-#                     "today_dd_limit": f"{dd_achieved:.2f}",
-#                 },
-#                 "trading_days": {
-#                     "minimum": 6,
-#                     "current": trading_days,
-#                     "status": "Passed" if trading_days > 5 else "Not Passed",
-#                 },
-#                 "profit_target": {
-#                     "minimum": portfolio.profit_target,
-#                     "current": f"{profit_loss:.2f}",
-#                     "status": (
-#                         "Passed"
-#                         if profit_loss >= portfolio.profit_target
-#                         else "Not Passed"
-#                     ),
-#                 },
-#             },
-#             "last_updated": current_time.strftime("%Y-%m-%d %H:%M"),
-#         }
-
-#         response_data["balanced_based"] = portfolio.balance_based_drawdown
-
-#         return Response(response_data)
-
-
 class PortfolioMetrics(APIView):
     calculator = EnhancedPortfolioCalculator()
 
@@ -572,7 +435,7 @@ class PortfolioMetrics(APIView):
                 least_equity_candidates = [
                     data["equity"]
                     for data in historical_data
-                    if data["equity"] < account_size
+                    if float(data["equity"]) < float(account_size)
                 ]
                 least_equity = (
                     min(least_equity_candidates)
@@ -584,7 +447,7 @@ class PortfolioMetrics(APIView):
                 least_balance_candidates = [
                     data["balance"]
                     for data in historical_data
-                    if data["balance"] < account_size
+                    if float(data["balance"]) < float(account_size)
                 ]
                 least_balance = (
                     min(least_balance_candidates)
@@ -605,7 +468,7 @@ class PortfolioMetrics(APIView):
                 least_balance_candidates = [
                     data["balance"]
                     for data in historical_data
-                    if data["balance"] < account_size
+                    if float(data["balance"]) < float(account_size)
                 ]
                 least_balance = (
                     min(least_balance_candidates)

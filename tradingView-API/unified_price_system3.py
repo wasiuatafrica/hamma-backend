@@ -37,8 +37,8 @@ tv = TvDatafeed()
 lagos_tz = pytz.timezone("Africa/Lagos")
 
 
-# 1-hour cache for volatility data
-VOLATILITY_CACHE_DURATION = 3600  # 1 hour in seconds
+# 90-minute cache for volatility data
+VOLATILITY_CACHE_DURATION = 5400  # 90 minutes in seconds
 
 
 class VolatilityCache:
@@ -70,13 +70,14 @@ class VolatilityCache:
             print(f"Error saving cache: {e}")
 
     def is_cache_valid(self, symbol):
-        """Check if cached data is still valid (less than 1 hour old)"""
+        """
+        Check if cached data is still valid (less than 90 minutes old).
+        Validity is based on the time the data was last saved (timestamp in cache).
+        """
         if symbol not in self.cache:
             return False
-
         cached_time = self.cache[symbol].get("timestamp", 0)
         current_time = module_time.time()
-
         return (current_time - cached_time) < VOLATILITY_CACHE_DURATION
 
     def get_cached_data(self, symbol):
@@ -95,18 +96,15 @@ class VolatilityCache:
             self.save_cache()
 
     def clear_expired_cache(self):
-        """Remove expired cache entries"""
+        """Remove expired cache entries (older than 90 minutes)"""
         current_time = module_time.time()
         expired_symbols = []
-
         for symbol, cache_entry in self.cache.items():
             if (current_time - cache_entry["timestamp"]) >= VOLATILITY_CACHE_DURATION:
                 expired_symbols.append(symbol)
-
         for symbol in expired_symbols:
             del self.cache[symbol]
             print(f"Removed expired cache for {symbol}")
-
         if expired_symbols:
             self.save_cache()
 
@@ -1704,7 +1702,9 @@ def get_cache_info():
     print(f"  Total entries: {stats['total_entries']}")
     print(f"  Valid entries: {stats['valid_entries']}")
     print(f"  Expired entries: {stats['expired_entries']}")
-    print(f"  Cache duration: {VOLATILITY_CACHE_DURATION/3600} hours")
+    print(
+        f"  Cache duration: {VOLATILITY_CACHE_DURATION/60} minutes ({VOLATILITY_CACHE_DURATION/3600:.2f} hours)"
+    )
 
     if stats["total_entries"] > 0:
         print(

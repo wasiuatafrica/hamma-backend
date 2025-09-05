@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  unified-price-system:
+    build: .
+    container_name: unified-price-system
+    restart: unless-stopped
+    environment:
+      - MONGO_URL=${MONGO_URL}
+    volumes:
+      - ./logs:/app/logs
+      - ./cache:/app/cache
+    networks:
+      - price-system-network
+    depends_on:
+      - mongodb
+    healthcheck:
+      test: ["CMD", "pgrep", "unified_price_system"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    ports:
+      - "27017:27017"
+    networks:
+      - price-system-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  price-system-network:
+    driver: bridge

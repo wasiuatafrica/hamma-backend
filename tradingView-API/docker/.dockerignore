@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.log
+*.env
+.env.*
+volatility_cache.pkl
+# Ignore test and temp files
+*.xlsx
+*.csv
+*.json
+*.sh
+# Ignore Docker artifacts
+dist/
+build/
+.eggs/
+*.egg-info/
+# Ignore VSCode settings
+.vscode/

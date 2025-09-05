@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  unified_price_system:
+    build: .
+    command: python tradingView-API/unified_price_system3.py
+    environment:
+      - MONGO_URL=YOUR_EXTERNAL_MONGO_URL_HERE
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+  dozzle:
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8080:8080
