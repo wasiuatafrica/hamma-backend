@@ -1,14 +1,14 @@
+import hashlib
+import os
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, time
 from decimal import Decimal
-from pymongo import MongoClient
-import os
 
-from django.template.loader import render_to_string
-from django.core.mail import send_mail
 import pytz
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from django.utils import timezone
-import hashlib
+from pymongo import MongoClient
 
 from execution.models import DemoPortfolio, DemoPosition
 from execution.views2 import EnhancedPortfolioCalculator
