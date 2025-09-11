@@ -217,30 +217,64 @@ class MarketSummaryView(APIView):
                     (change / latest["open"]) * 100 if latest["open"] else 0
                 )
 
+
+            import requests
             # Fetch additional market data from NGX API
             ngx_api_url = "https://doclib.ngxgroup.com/REST/api/mrkstat/mrksnapshot"
             try:
                 logger.info(f"Fetching market snapshot from NGX API: {ngx_api_url}")
-                import requests
-
                 ngx_response = requests.get(ngx_api_url, timeout=10)
-                ngx_response.raise_for_status()  # Raise exception for 4XX/5XX responses
+                ngx_response.raise_for_status()
                 ngx_data = ngx_response.json()
-
-                # Extract volume and capitalization from NGX data with default values of 0
                 volume = ngx_data.get("VOLUME", 0)
                 market_cap = ngx_data.get("CAP", 0)
-
-                logger.info(
-                    f"Successfully fetched NGX market data: volume={volume}, market_cap={market_cap}"
-                )
+                logger.info(f"Successfully fetched NGX market data: volume={volume}, market_cap={market_cap}")
             except Exception as ngx_error:
-                logger.error(
-                    f"Error fetching data from NGX API: {ngx_error}", exc_info=True
-                )
-                # Set default values of 0 if NGX API call fails
+                logger.error(f"Error fetching data from NGX API: {ngx_error}", exc_info=True)
                 volume = 0
                 market_cap = 0
+
+            # Fetch top gainers
+            top_gainers_url = "https://doclib.ngxgroup.com/REST/api/mrkstat/topsymbols"
+            try:
+                logger.info(f"Fetching top gainers from NGX API: {top_gainers_url}")
+                gainers_response = requests.get(top_gainers_url, timeout=10)
+                gainers_response.raise_for_status()
+                gainers_data = gainers_response.json()
+                top_gainers = [
+                    {
+                        "symbol": item.get("SYMBOL"),
+                        "last_close": item.get("LAST_CLOSE"),
+                        "todays_close": item.get("TODAYS_CLOSE"),
+                        "percentage_change": item.get("PERCENTAGE_CHANGE"),
+                    }
+                    for item in gainers_data
+                ]
+                logger.info(f"Fetched {len(top_gainers)} top gainers.")
+            except Exception as gainers_error:
+                logger.error(f"Error fetching top gainers: {gainers_error}", exc_info=True)
+                top_gainers = []
+
+            # Fetch top losers
+            top_losers_url = "https://doclib.ngxgroup.com/REST/api/mrkstat/bottomsymbols"
+            try:
+                logger.info(f"Fetching top losers from NGX API: {top_losers_url}")
+                losers_response = requests.get(top_losers_url, timeout=10)
+                losers_response.raise_for_status()
+                losers_data = losers_response.json()
+                top_losers = [
+                    {
+                        "symbol": item.get("SYMBOL"),
+                        "last_close": item.get("LAST_CLOSE"),
+                        "todays_close": item.get("TODAYS_CLOSE"),
+                        "percentage_change": item.get("PERCENTAGE_CHANGE"),
+                    }
+                    for item in losers_data
+                ]
+                logger.info(f"Fetched {len(top_losers)} top losers.")
+            except Exception as losers_error:
+                logger.error(f"Error fetching top losers: {losers_error}", exc_info=True)
+                top_losers = []
 
             response_data = {
                 "symbol": index_symbol,
@@ -253,11 +287,11 @@ class MarketSummaryView(APIView):
                 "point_change": round(change, 2),
                 "percent_change": round(percent_change, 2),
                 "last_price": latest["close"],
-                "volume": volume,  # Add volume from NGX API (will be 0 if not available)
-                "market_capitalization": market_cap,  # Add market cap from NGX API (will be 0 if not available)
+                "volume": volume,
+                "market_capitalization": market_cap,
                 "market_breadth": [],
-                "top_gainers": [],
-                "top_losers": [],
+                "top_gainers": top_gainers,
+                "top_losers": top_losers,
             }
 
             logger.info(f"Successfully fetched combined data: {response_data}")
