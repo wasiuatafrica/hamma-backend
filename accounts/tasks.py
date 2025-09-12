@@ -1,21 +1,23 @@
-from datetime import timedelta
 import json
 import time
+from datetime import timedelta
+
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from django.utils import timezone
-from execution.trades import simulate_trades
+from django_celery_beat.models import CrontabSchedule, PeriodicTask
+
 from execution.models import (
-    DemoDailyReturns,
     DailyReturns,
+    DemoCumulativeReturns,
+    DemoDailyReturns,
     DemoDailyReturns2,
     get_price,
-    DemoCumulativeReturns,
 )
-from django.template.loader import render_to_string
-from django.core.mail import send_mail
-from django_celery_beat.models import PeriodicTask, CrontabSchedule
+from execution.trades import simulate_trades
 
 logger = get_task_logger(__name__)
 
@@ -107,33 +109,33 @@ def send_welcome_email(id):
         subject, plain_message, from_email, recipient_list, html_message=html_message
     )
 
-    schedule1 = create_crontab(timezone.now() + timedelta(hours=12))
-    schedule2 = create_crontab(timezone.now() + timedelta(hours=24))
-    schedule3 = create_crontab(timezone.now() + timedelta(hours=48))
+    # schedule1 = create_crontab(timezone.now() + timedelta(hours=12))
+    # schedule2 = create_crontab(timezone.now() + timedelta(hours=24))
+    # schedule3 = create_crontab(timezone.now() + timedelta(hours=48))
 
-    PeriodicTask.objects.create(
-        name=f"join clan {user.email} email",
-        task="accounts.tasks.welcome_1b",
-        one_off=True,
-        crontab=schedule1,
-        args=json.dumps([user.id]),
-    )
+    # PeriodicTask.objects.create(
+    #     name=f"join clan {user.email} email",
+    #     task="accounts.tasks.welcome_1b",
+    #     one_off=True,
+    #     crontab=schedule1,
+    #     args=json.dumps([user.id]),
+    # )
 
-    PeriodicTask.objects.create(
-        name=f"create clan {user.email} email",
-        task="accounts.tasks.welcome_1c",
-        one_off=True,
-        crontab=schedule2,
-        args=json.dumps([user.id]),
-    )
+    # PeriodicTask.objects.create(
+    #     name=f"create clan {user.email} email",
+    #     task="accounts.tasks.welcome_1c",
+    #     one_off=True,
+    #     crontab=schedule2,
+    #     args=json.dumps([user.id]),
+    # )
 
-    PeriodicTask.objects.create(
-        name=f"SM invite {user.email} email",
-        task="accounts.tasks.after_signup_36h",
-        one_off=True,
-        crontab=schedule3,
-        args=json.dumps([user.id]),
-    )
+    # PeriodicTask.objects.create(
+    #     name=f"SM invite {user.email} email",
+    #     task="accounts.tasks.after_signup_36h",
+    #     one_off=True,
+    #     crontab=schedule3,
+    #     args=json.dumps([user.id]),
+    # )
 
 
 @shared_task
