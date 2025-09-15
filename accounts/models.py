@@ -1,11 +1,13 @@
+import random
+
+import auto_prefetch
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from accounts.managers import CustomUserManager
-import auto_prefetch
-import random
+from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
+
+from accounts.managers import CustomUserManager
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
@@ -34,7 +36,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     last_ip = models.GenericIPAddressField(blank=True, null=True)
     last_location = models.CharField(max_length=100, blank=True, null=True)
     last_device = models.TextField(blank=True, null=True)
-    signup_route = models.CharField(max_length=100, default="competition")
+    signup_route = models.CharField(max_length=100, blank=True, null=True)
     history = HistoricalRecords()
 
     USERNAME_FIELD = "email"
