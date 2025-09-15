@@ -1,15 +1,16 @@
-from ast import arg
+import json
 import random
+from ast import arg
+from datetime import datetime, timedelta
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django_celery_beat.models import CrontabSchedule, PeriodicTask
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-import json
-from datetime import datetime, timedelta
 
 from affilate.models import ReferralWallet
 from execution.models import (
@@ -22,7 +23,6 @@ from execution.models import (
 from notifications.utils import save_and_send_notification
 from portfolio.models import Wallet
 from prop.models import PropReferral, PropReferralWallet
-from django_celery_beat.models import PeriodicTask, CrontabSchedule
 
 from . import models, serializers
 from .models import TradingProfile
@@ -42,11 +42,13 @@ class Registration(APIView):
             serializer = self.serializer_class(data=request.data)
             ref_code = request.data.get("ref_code")
             phone = request.data.get("phone", "")
+            source = request.data.get("source", None)
             if serializer.is_valid():
                 user = serializer.save()
                 user.set_password(request.data.get("password"))
                 user.is_active = True  # Activate user immediately
                 user.email_verified = False  # Email not verified yet
+                user.signup_route = source
                 user.save()
 
                 # Update Profile with phone number if provided
