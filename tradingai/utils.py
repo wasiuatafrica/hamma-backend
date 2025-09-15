@@ -1,12 +1,13 @@
-import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder
-from portfolio.models import Stock
 import os
-from pymongo import MongoClient
-
 import time
 from functools import wraps
+
+import pandas as pd
+from pymongo import MongoClient
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
+
+from portfolio.models import Stock
 
 client = MongoClient(
     os.environ.get("MONGO_STRING"), tls=True, tlsAllowInvalidCertificates=True
@@ -134,6 +135,7 @@ def get_relevant_timeframe(trading_frequency):
 
 
 def rule_based_recommendation(trader, stocks):
+    print("stocks to check", len(stocks))
     # Get profile configurations
     risk_profile = RISK_PROFILES[trader.risk_tolerance]
     momentum_profile = MOMENTUM_PROFILES[trader.trading_style]
@@ -145,6 +147,18 @@ def rule_based_recommendation(trader, stocks):
     preferred_asset_type = trader.preferred_asset_type
     timeframe = get_relevant_timeframe(trader.trading_frequency)
     trader_sentiment = trader.market_sentiment1
+
+    print("Trader Preferences:")
+    print(f"Risk Tolerance: {trader.risk_tolerance}")
+    print(f"Trading Style: {trader.trading_style}")
+    print(f"Preferred Asset Type: {preferred_asset_type}")
+    print(
+        f"Trading Frequency: {trader.trading_frequency} -> Timeframe: {   
+    timeframe}"
+    )
+    print(f"Market Sentiment: {trader_sentiment}")
+    print(f"Number of Preferred Stocks: {len(trader.preferred_stocks)}")
+    print(f"Number of Stocks to Evaluate: {len(stocks)}")
 
     recommendations = []
 
@@ -291,84 +305,6 @@ def ml_based_recommendation(trader, stocks, model, le):
     return recommendations
 
 
-# def train_ml_model(historical_data):
-#     X, y = prepare_historical_data(historical_data)
-
-#     # Use a more sophisticated model configuration
-#     model = RandomForestClassifier(
-#         n_estimators=200,
-#         max_depth=10,
-#         min_samples_split=10,
-#         min_samples_leaf=5,
-#         class_weight='balanced',
-#         random_state=42
-#     )
-
-#     model.fit(X, y)
-#     return model, None  # We don't need the general LabelEncoder anymore
-
-# def prepare_historical_data(historical_data):
-#     X = []
-#     y = []
-
-#     # Create and fit separate encoders for each feature
-#     risk_le = LabelEncoder()
-#     style_le = LabelEncoder()
-#     stock_risk_le = LabelEncoder()
-#     momentum_le = LabelEncoder()
-#     volume_le = LabelEncoder()
-
-#     # Fit encoders with all possible values
-#     risk_le.fit(['low', 'medium', 'high'])
-#     style_le.fit(['conservative', 'moderate', 'aggressive'])
-#     stock_risk_le.fit(['Very Low Risk', 'Low Risk', 'Moderate Risk', 'High Risk', 'Very High Risk'])
-#     momentum_le.fit(['Strong Negative', 'Negative', 'Neutral', 'Positive', 'Strong Positive'])
-#     volume_le.fit(['Low Volume', 'Medium Volume', 'High Volume'])
-
-#     for data in historical_data:
-#         trader = data['trader_profile']
-#         stock = data['stock']
-#         timeframe = get_relevant_timeframe(trader['trading_frequency'])
-
-#         features = [
-#             risk_le.transform([trader['risk_tolerance']])[0],
-#             style_le.transform([trader['trading_style']])[0],
-#             stock_risk_le.transform([stock.get(f'{timeframe}_risk', 'Moderate Risk')])[0],
-#             momentum_le.transform([stock.get(f'{timeframe}_momentum', 'Neutral')])[0],
-#             volume_le.transform([stock.get('volume_category', 'Low Volume')])[0],
-#         ]
-
-#         # Add additional features
-#         features.extend([
-#             1 if stock.get('symbol') in trader.get('preferred_stocks', []) else 0,
-#             len(momentum_le.classes_) - 1 if stock.get(f'{timeframe}_momentum') in ['Strong Positive', 'Positive'] else 0,
-#             len(stock_risk_le.classes_) - 1 if stock.get(f'{timeframe}_risk') in ['High Risk', 'Very High Risk'] else 0
-#         ])
-
-#         X.append(features)
-#         y.append(data['successful'])
-
-#     return np.array(X), np.array(y)
-
-
-# @timing_decorator
-# def get_stock_recommendations(trader, stocks, ml_model=None, le=None):
-#     rule_based_recs = rule_based_recommendation(trader, stocks)
-#     if ml_model and le:
-#         ml_based_recs = ml_based_recommendation(trader, stocks, ml_model, le)
-
-#         all_recs = list(set(rule_based_recs + ml_based_recs))
-#     else:
-#         all_recs = set(rule_based_recs)
-
-#     return {
-#         "trader_id": trader.trader_id,
-#         "recommended_stocks": [
-#             {"symbol": symbol, "reason": reason} for symbol, reason in all_recs
-#         ],
-#     }
-
-
 def get_stock_recommendations(trader, stocks):
     rule_based_recs = rule_based_recommendation(trader, stocks)
 
@@ -408,6 +344,7 @@ def process_recommendation(
     # print(watchlisted_stocks_symbols)
     preferred_stocks = trader_profile.preferred_stocks + watchlisted_stocks_symbols
     stocks = [StockData(data) for symbol, data in last_item.items()]
+    print(f"Total stocks fetched: {len(stocks)}")
     profile = (
         trader_profile.trader.id,
         trader_profile.risk_tolerance.lower(),
@@ -430,11 +367,11 @@ def process_recommendation(
         trader_profile.preferred_asset_type.split(" ")[0].lower(),
     )
     recommendations = get_stock_recommendations(trader, stocks)
-    # print(recommendations)
+    print(recommendations)
     recommended_symbols = [
         rec["symbol"] for rec in recommendations["recommended_stocks"]
     ]
-    # print(recommended_symbols, len(recommended_symbols))
+    print(recommended_symbols, len(recommended_symbols))
     # generated_signals = [
     #     {symbol: signals_data[symbol]} for symbol in set(recommended_symbols)
     # ]
