@@ -190,7 +190,7 @@ class AdminCustomUserSerializer(serializers.ModelSerializer):
             "twofa_type",
             "is_active",
             "email_verified",
-            # "signup_type",
+            "signup_route",
             "totp_url",
             "date_joined",
             "last_login",
@@ -207,7 +207,7 @@ class AdminCustomUserSerializer(serializers.ModelSerializer):
             "has_2fa": {"read_only": True},
             "twofa_type": {"read_only": True},
             "totp_url": {"read_only": True},
-            # 'signup_type': {'read_only': True},
+            "signup_route": {"read_only": True},
         }
 
 
