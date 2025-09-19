@@ -1,4 +1,5 @@
 import json
+import logging
 import random
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -56,10 +57,7 @@ from .models import (
     Portfolio,
     Position,
 )
-
-from django.db import transaction
 from .utils import send_trade_notification
-import logging
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -118,15 +116,18 @@ class SingleDemoTradeAPIView(APIView):
 
     def validate_portfolio(self, portfolio):
         """Validate if portfolio can trade"""
+
+        if getattr(portfolio, "is_prop", False):
+            if not portfolio.is_active:
+                raise ValidationError("Account is inactive")
+            if portfolio.blown:
+                raise ValidationError("Account is blown")
+            if portfolio.inactive_by_inactivity:
+                raise ValidationError("Account is inactive")
+
         if not portfolio.can_trade:
-            raise ValidationError("This account is not allowed to trade")
-        if hasattr(portfolio, "is_prop") and portfolio.is_prop:
-            if (
-                not portfolio.is_active
-                or portfolio.blown
-                or portfolio.inactive_by_inactivity
-            ):
-                raise ValidationError("You can no longer trade on this account")
+            raise ValidationError("Account is inactive")
+
         return True
 
     def get_account(self, id):
@@ -1458,7 +1459,7 @@ class EnhancedPortfolioCalculator(PortfolioCalculator):
 
     @staticmethod
     def calculate_position_metrics(
-        position: Union[DemoPosition, CompetitionPosition]
+        position: Union[DemoPosition, CompetitionPosition],
     ) -> PositionMetrics:
         """Calculate core metrics for a single position"""
 
