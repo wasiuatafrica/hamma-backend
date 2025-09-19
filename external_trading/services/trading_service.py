@@ -1,21 +1,17 @@
 # external_trading/services/trading_service.py
 from decimal import Decimal
+
+import shortuuid
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
-from django.shortcuts import get_object_or_404
-import shortuuid
-from execution.models import (
-    DemoPortfolio,
-    DemoPosition,
-    CompetitionPortfolio,
-    Stock,
-)
-from portfolio.models import DemoTransaction
-from execution.utils import send_trade_notification
 
-from portfolio.utils import get_price, get_stockdata2
+from execution.models import CompetitionPortfolio, DemoPortfolio, DemoPosition, Stock
+from execution.utils import send_trade_notification
 from execution.views2 import get_position
+from portfolio.models import DemoTransaction
+from portfolio.utils import get_price, get_stockdata2
 
 
 class TradingService:
@@ -24,15 +20,17 @@ class TradingService:
     @staticmethod
     def validate_portfolio(portfolio):
         """Validate if portfolio can trade"""
+        if getattr(portfolio, "is_prop", False):
+            if not portfolio.is_active:
+                raise ValidationError("Account is inactive")
+            if portfolio.blown:
+                raise ValidationError("Account is blown")
+            if portfolio.inactive_by_inactivity:
+                raise ValidationError("Account is inactive")
+
         if not portfolio.can_trade:
-            raise ValidationError("This account is not allowed to trade")
-        if hasattr(portfolio, "is_prop") and portfolio.is_prop:
-            if (
-                not portfolio.is_active
-                or portfolio.blown
-                or portfolio.inactive_by_inactivity
-            ):
-                raise ValidationError("You can no longer trade on this account")
+            raise ValidationError("Account is inactive")
+
         return True
 
     @staticmethod
