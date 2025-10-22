@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<!-- <title>Welcome to Hamma Swipe</title> -->
+		<style>
+			body {
+				font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+				margin: 0;
+				padding: 0;
+				color: #333;
+				background-color: #f9f9f9;
+			}
+			table {
+				border-collapse: collapse;
+				width: 100%;
+				max-width: 600px;
+				margin: 0 auto;
+				background-color: #ffffff;
+				border-radius: 8px;
+				overflow: hidden;
+				box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+			}
+			.header {
+				background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+				color: white;
+				padding: 30px 20px;
+				text-align: center;
+			}
+			.logo {
+				width: 180px;
+				margin-bottom: 15px;
+			}
+			h1 {
+				margin: 0;
+				font-size: 28px;
+				font-weight: 700;
+			}
+			.content {
+				padding: 30px 25px;
+				line-height: 1.6;
+			}
+			.welcome-message {
+				font-size: 18px;
+				margin-bottom: 25px;
+			}
+			.how-it-works {
+				background-color: #f8fafc;
+				padding: 20px;
+				border-radius: 8px;
+				margin: 25px 0;
+				border-left: 4px solid #6366f1;
+			}
+			.step {
+				margin-bottom: 5px;
+				padding-left: 20px;
+				position: relative;
+			}
+			.step::before {
+				content: '•';
+				color: #000;
+				font-weight: bold;
+				position: absolute;
+				left: 0;
+			}
+			.cta-button {
+				display: inline-block;
+				background-color: #059669;
+				color: white;
+				text-decoration: none;
+				padding: 12px 30px;
+				border-radius: 6px;
+				font-weight: 600;
+				margin: 25px 0;
+				text-align: center;
+			}
+			.cta-button:hover {
+				background-color: #059669;
+			}
+			.bonus-section {
+				background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+				color: white;
+				padding: 20px;
+				border-radius: 8px;
+				margin: 25px 0;
+				text-align: center;
+			}
+			.footer {
+				padding: 20px;
+				text-align: center;
+				color: #64748b;
+				font-size: 12px;
+				background-color: #f8fafc;
+			}
+			.social-links {
+				margin: 20px 0;
+			}
+			.social-icon {
+				display: inline-block;
+				margin: 0 10px;
+				width: 32px;
+				height: 32px;
+			}
+			.contact-info {
+				margin: 15px 0;
+				font-size: 14px;
+			}
+			.contact-info a {
+				color: #6366f1;
+				text-decoration: none;
+			}
+			.divider {
+				height: 1px;
+				background-color: #e2e8f0;
+				border: none;
+				margin: 25px 0;
+			}
+			@media only screen and (max-width: 600px) {
+				table {
+					width: 100%;
+					border-radius: 0;
+				}
+				h1 {
+					font-size: 24px;
+				}
+				.content {
+					padding: 20px 15px;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<table>
+			<tr>
+				<td class="header">
+					<img src="https://anyon3.s3.eu-north-1.amazonaws.com/hamma-logo.png" alt="Hamma Swipe Logo" class="logo" />
+					<!-- <h1>Welcome to Hamma Swipe!</h1> -->
+				</td>
+			</tr>
+
+			<tr>
+				<td class="content">
+					<p class="welcome-message">Hi {{firstname}},</p>
+
+					<p>Quick question: How much time did you spend scrolling social media today?</p>
+
+					<p>What if those 5 minutes could be spent competing for real Naira prizes?</p>
+
+                                        <p>The Nigerian stock market is moving right now, and over 100K people are sharpening their prediction skills. They're moving up the ranks and winning real Naira rewards while you're still reading this email!</p>
+
+                                        <p>Don't wait for "the right time" or until you "learn enough." The easiest way to start winning challenges and earning rewards is right now, with <b>Hamma Swipe</b>.</p>
+
+					<div>
+						<h3 style="margin-top: 0">Get Your First Win Today:</h3>
+						<div class="step">No big investment: Start predicting with just ₦0 to join challenges.</div>
+						<div class="step">No complex analysis: Just swipe based on your gut and watch your rank climb.</div>
+						<div class="step">Real Cash Prizes: Win and withdraw the prizes you earn from daily and weekly challenges!</div>
+					</div>
+
+					<p>The market won't wait for you. Don't miss this easy opportunity to challenge yourself and win.</p>
+
+					<p>Tap below to claim your spot on the winning list before tomorrow.</p>
+
+					<div style="text-align: center; margin: 30px 0">
+						<a href="https://swipe.gohamma.com/app" class="cta-button">Join Hamma Swipe</a>
+					</div>
+
+					<p>
+						Don't miss out!
+						<br />
+						The Hamma Swipe Team
+					</p>
+
+					<hr class="divider" />
+
+					<!-- <p style="font-size: 14px; color: #64748b;">
+                    Need help getting started? Contact our support team at <a href="mailto:support@trider.com" style="color: #6366f1;">support@trider.com</a>.
+                </p> -->
+				</td>
+			</tr>
+
+			<tr>
+				<td class="footer">
+					<div class="social-links">
+						<a href="https://www.linkedin.com/company/HammaHQ" class="social-icon">
+							<img src="https://img.icons8.com/color/32/linkedin.png" alt="LinkedIn" width="32" height="32" />
+						</a>
+						<a href="https://www.twitter.com/hammaHQ" class="social-icon">
+							<img src="https://img.icons8.com/color/32/twitter.png" alt="Twitter" width="32" height="32" />
+						</a>
+						<a href="https://www.youtube.com/@HammaHQ" class="social-icon">
+							<img src="https://img.icons8.com/color/32/youtube.png" alt="YouTube" width="32" height="32" />
+						</a>
+					</div>
+
+					<div class="contact-info">
+						<p><a href="mailto:hello@gohamma.com">hello@gohamma.com</a></p>
+						<p><a href="https://wa.me/2349065566388" target="_blank">WhatsApp Support</a></p>
+					</div>
+
+					<p>© 2025 Hamma Swipe. All rights reserved.</p>
+					<!-- <p><a href="{{privacy_url}}" style="color: #64748b;">Privacy Policy</a> • <a href="{{terms_url}}" style="color: #64748b;">Terms of Service</a></p> -->
+				</td>
+			</tr>
+		</table>
+	</body>
+</html>
