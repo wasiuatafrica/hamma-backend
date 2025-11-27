@@ -26,10 +26,8 @@ INVALID_EMAIL_DOMAINS = {
     "trash-mail.com",
 }
 
-# TEMPLATE_NAME = "campaign/bearish_master.html"
-TEMPLATE_NAME = "campaign/bullish_master.html"
-# SUBJECT = "Bearish Master – ₦65K Weekly Challenge"
-SUBJECT = "Earn ₦60,000 for 50 bullish calls"
+TEMPLATE_NAME = "campaign/accuracy_master.html"
+SUBJECT = "Your ₦25,000 accuracy reward is waiting"
 FROM_EMAIL = "Hamma Team <hello@gohamma.com>"
 
 
