@@ -26,8 +26,8 @@ INVALID_EMAIL_DOMAINS = {
     "trash-mail.com",
 }
 
-TEMPLATE_NAME = "campaign/accuracy_master.html"
-SUBJECT = "Your ₦25,000 accuracy reward is waiting"
+TEMPLATE_NAME = "campaign/weekly_leaderboard.html"
+SUBJECT = "You Are One Week Away From ₦250,000"
 FROM_EMAIL = "Hamma Team <hello@gohamma.com>"
 
 

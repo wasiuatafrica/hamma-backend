@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your cash out request is in!</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .logo {
+            width: 180px;
+            margin-bottom: 15px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .content {
+            padding: 30px 25px;
+            line-height: 1.6;
+        }
+        .request-section {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .amount-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .amount {
+            font-size: 32px;
+            font-weight: 800;
+            margin: 15px 0;
+        }
+        .status-section {
+            background: #f0fdf4;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+        }
+        .cta-button {
+            display: block;
+            width: fit-content;
+            margin: 25px auto 0;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            border-radius: 8px;
+        }
+        .processing-info {
+            background: #fef3c7;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #f59e0b;
+        }
+        .footer {
+            padding: 20px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            background-color: #f8fafc;
+        }
+        .social-links {
+            margin: 20px 0;
+        }
+        .social-icon {
+            display: inline-block;
+            margin: 0 10px;
+            width: 32px;
+            height: 32px;
+        }
+        .contact-info {
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        .contact-info a {
+            color: #6366f1;
+            text-decoration: none;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e2e8f0;
+            border: none;
+            margin: 25px 0;
+        }
+        @media only screen and (max-width: 600px) {
+            table {
+                width: 100%;
+                border-radius: 0;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .content {
+                padding: 20px 15px;
+            }
+            .amount {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <table>
+        <tr>
+            <td class="header">
+                <img src="https://anyon3.s3.eu-north-1.amazonaws.com/hamma-logo.png" alt="Hamma Swipe Logo" class="logo">
+                <h1>Weekly Leaderboard Cup – ₦250,000</h1>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="content">
+                <p>Hey {{name}},</p>
+                
+                <p>The weekly leaderboard just reset — and the throne is empty.</p>
+
+                <p>Finish the week as <b>#1</b> and earn <b>₦250,000 + legendary badge</b>.</p>
+
+                <p>Everyone starts at zero.</p>
+
+                <p>This is the perfect moment to jump in</p>
+                <p>Take your shot at the top.</p>
+
+                <a class="cta-button" href="https://swipe.gohamma.com/app/challenges">Join Weekly Leaderboard Cup →</a>
+                
+               
+                
+                <hr class="divider">
+                
+               
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="footer">
+                <div class="social-links">
+                    <a href="https://www.linkedin.com/company/HammaHQ" class="social-icon">
+                        <img src="https://img.icons8.com/color/32/linkedin.png" alt="LinkedIn" width="32" height="32">
+                    </a>
+                    <a href="https://www.twitter.com/hammaHQ" class="social-icon">
+                        <img src="https://img.icons8.com/color/32/twitter.png" alt="Twitter" width="32" height="32">
+                    </a>
+                    <a href="https://www.youtube.com/@HammaHQ" class="social-icon">
+                        <img src="https://img.icons8.com/color/32/youtube.png" alt="YouTube" width="32" height="32">
+                    </a>
+                </div>
+                
+                <div class="contact-info">
+                    <p><a href="mailto:hello@gohamma.com">hello@gohamma.com</a></p>
+                    <p><a href="https://wa.me/2349065566388" target="_blank">WhatsApp Support</a></p>
+                </div>
+                
+                <p>© 2025 Hamma Swipe. All rights reserved.</p>
+                <!-- <p><a href="{{privacy_url}}" style="color: #64748b;">Privacy Policy</a> • <a href="{{terms_url}}" style="color: #64748b;">Terms of Service</a></p> -->
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
