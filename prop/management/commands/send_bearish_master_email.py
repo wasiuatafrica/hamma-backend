@@ -26,8 +26,8 @@ INVALID_EMAIL_DOMAINS = {
     "trash-mail.com",
 }
 
-TEMPLATE_NAME = "campaign/weekly_leaderboard.html"
-SUBJECT = "You Are One Week Away From ₦250,000"
+TEMPLATE_NAME = "campaign/monthly_leaderboard.html"
+SUBJECT = "This Month's ₦1M Challenge is Live"
 FROM_EMAIL = "Hamma Team <hello@gohamma.com>"
 
 
@@ -54,7 +54,7 @@ def is_valid_email(email: str) -> bool:
 
 def send_bearish_master_email(user_email: str, firstname: str) -> None:
     """
-    Send the Bearish Master email to a single recipient.
+    Send the monthly leader board to a single recipient.
 
     Args:
         user_email: recipient email address
@@ -148,12 +148,12 @@ class Command(BaseCommand):
             sent += 1
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"✓ Sent Bearish Master email to {email} ({firstname.title() or 'Trader'})"
+                    f"✓ Sent monthly leader board to {email} ({firstname.title() or 'Trader'})"
                 )
             )
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Completed sending Bearish Master email to {sent} user(s)."
+                f"Completed sending monthly leader board to {sent} user(s)."
             )
         )
