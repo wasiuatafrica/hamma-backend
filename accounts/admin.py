@@ -16,7 +16,12 @@ from .models import (
 
 class ProfileAdmin(admin.ModelAdmin):
     search_fields = ["user__email", "referral_code"]
-    list_display = ["user__email", "phone"]
+    list_display = ["user_email", "phone"]
+
+    def user_email(self, obj):
+        return obj.user.email if obj.user else "-"
+
+    user_email.short_description = "User Email"
 
 
 admin.site.register(Profile, ProfileAdmin)
