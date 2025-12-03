@@ -17,6 +17,7 @@ from .models import (
 class ProfileAdmin(admin.ModelAdmin):
     search_fields = ["user__email", "referral_code"]
     list_display = ["user_email", "phone"]
+    list_filter = ["phone"]
 
     def user_email(self, obj):
         return obj.user.email if obj.user else "-"
