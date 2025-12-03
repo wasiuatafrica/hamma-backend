@@ -16,6 +16,7 @@ from .models import (
 
 class ProfileAdmin(admin.ModelAdmin):
     search_fields = ["user__email", "referral_code"]
+    list_display = ["user__email", "phone"]
 
 
 admin.site.register(Profile, ProfileAdmin)
