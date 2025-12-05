@@ -26,9 +26,9 @@ INVALID_EMAIL_DOMAINS = {
     "trash-mail.com",
 }
 
-TEMPLATE_NAME = "campaign/ultimate_streak.html"
-SUBJECT = "30 perfect days = ₦2,000,000"
-FROM_EMAIL = "Hamma Team <hello@gohamma.com>"
+TEMPLATE_NAME = "campaign/winning_secret.html"
+SUBJECT = "Want to dominate HammaSwipe? Get SwipeCoins First."
+FROM_EMAIL = "Joy from HammaSwipe <hello@gohamma.com>"
 
 
 def is_valid_email(email: str) -> bool:
@@ -54,7 +54,7 @@ def is_valid_email(email: str) -> bool:
 
 def send_bearish_master_email(user_email: str, firstname: str) -> None:
     """
-    Send the ultimate streak to a single recipient.
+    Send the winning streak to a single recipient.
 
     Args:
         user_email: recipient email address
@@ -148,10 +148,10 @@ class Command(BaseCommand):
             sent += 1
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"✓ Sent ultimate streak to {email} ({firstname.title() or 'Trader'})"
+                    f"✓ Sent winning streak to {email} ({firstname.title() or 'Trader'})"
                 )
             )
 
         self.stdout.write(
-            self.style.SUCCESS(f"Completed sending ultimate streak to {sent} user(s).")
+            self.style.SUCCESS(f"Completed sending winning streak to {sent} user(s).")
         )
