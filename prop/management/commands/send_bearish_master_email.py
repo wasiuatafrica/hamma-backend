@@ -26,8 +26,8 @@ INVALID_EMAIL_DOMAINS = {
     "trash-mail.com",
 }
 
-TEMPLATE_NAME = "campaign/winning_secret.html"
-SUBJECT = "Want to dominate HammaSwipe? Get SwipeCoins First."
+TEMPLATE_NAME = "campaign/accuracy_champion.html"
+SUBJECT = "70% accuracy = ₦40,000 this week"
 FROM_EMAIL = "Joy from HammaSwipe <hello@gohamma.com>"
 
 
