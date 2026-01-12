@@ -1,14 +1,15 @@
-from tvDatafeed import TvDatafeed, Interval
-from pymongo import MongoClient
-from datetime import datetime, timedelta, time
 import time as module_time
-import pytz
-import pandas as pd
+from datetime import datetime, time, timedelta
+
 import numpy as np
+import pandas as pd
+import pytz
 from apscheduler.schedulers.blocking import BlockingScheduler
+from pymongo import MongoClient
+from tvDatafeed import Interval, TvDatafeed
 
 client = MongoClient(
-    "mongodb+srv://trademql5:trademql5@trademql5.fmlxv.mongodb.net/",
+    "mongodb+srv://ft9jatraders_db_user:HnyOs6KBOwGKjJmy@reducebill.yxn3gnr.mongodb.net/",
     maxPoolSize=20,
     tls=True,
     tlsAllowInvalidCertificates=True,
@@ -447,4 +448,5 @@ def main():
 
 while True:
     main()
+    module_time.sleep(3600)
     module_time.sleep(3600)

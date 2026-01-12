@@ -1,11 +1,12 @@
-from tvDatafeed import TvDatafeed, Interval
-from pymongo import MongoClient
-from datetime import datetime, timedelta, time
-import pytz
-import pandas as pd
-import numpy as np
 import random
 import time as module_time
+from datetime import datetime, time, timedelta
+
+import numpy as np
+import pandas as pd
+import pytz
+from pymongo import MongoClient
+from tvDatafeed import Interval, TvDatafeed
 
 tv = TvDatafeed()
 symbols= ["ASI", "ABBEYBDS", "ACADEMY", "ACCESSCORP", "AFRIPRUD", "AFRINSURE", "AFROMEDIA", "AIICO", 
@@ -30,7 +31,7 @@ symbols= ["ASI", "ABBEYBDS", "ACADEMY", "ACCESSCORP", "AFRIPRUD", "AFRINSURE", "
 # symbols = ["WEMABANK", "ZENITHBANK"]
 
 def connect_to_mongodb():
-    client = MongoClient("mongodb+srv://trademql5:trademql5@trademql5.fmlxv.mongodb.net/",maxPoolSize=20,tls=True,
+    client = MongoClient("mongodb+srv://ft9jatraders_db_user:HnyOs6KBOwGKjJmy@reducebill.yxn3gnr.mongodb.net/",maxPoolSize=20,tls=True,
                              tlsAllowInvalidCertificates=True)
     db = client["stock_prices"]
     return db
@@ -86,7 +87,7 @@ def get_data(symbol):
             return data2
         
 def calculate_volatility_momentum_24hr(symbol):
-    client = MongoClient("mongodb+srv://trademql5:trademql5@trademql5.fmlxv.mongodb.net/",maxPoolSize=20,tls=True,
+    client = MongoClient("mongodb+srv://ft9jatraders_db_user:HnyOs6KBOwGKjJmy@reducebill.yxn3gnr.mongodb.net/",maxPoolSize=20,tls=True,
                              tlsAllowInvalidCertificates=True)
     db = client["livelake3"]
     collection = db["merged_live_price"]
@@ -178,4 +179,4 @@ while True:
         print("all data saved")
     else:
         print("Market closed")
-    module_time.sleep(900)
+    module_time.sleep(900)    module_time.sleep(900)

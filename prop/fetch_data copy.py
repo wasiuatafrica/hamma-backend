@@ -1,12 +1,13 @@
-import os
 import decimal
-from datetime import datetime, time
+import os
+import time as pytime
 from concurrent.futures import ThreadPoolExecutor
-from pymongo import MongoClient
+from datetime import datetime, time
+
 import psycopg2
 from psycopg2.extras import DictCursor
+from pymongo import MongoClient
 from pytz import timezone
-import time as pytime
 
 # Configuration
 POSTGRES_SETTINGS = {
@@ -22,7 +23,7 @@ WAT_TIMEZONE = timezone("Africa/Lagos")
 
 # MongoDB Client
 mongo_client = MongoClient(
-    "mongodb+srv://trademql5:trademql5@trademql5.fmlxv.mongodb.net/",
+    "mongodb+srv://ft9jatraders_db_user:HnyOs6KBOwGKjJmy@reducebill.yxn3gnr.mongodb.net/",
     maxPoolSize=20,
     tls=True,
     tlsAllowInvalidCertificates=True,
@@ -230,4 +231,5 @@ if __name__ == "__main__":
             print(f"Error occurred: {e}")
         # process_balance_equity_data()
         print("sleeping...")
+        pytime.sleep(120)
         pytime.sleep(120)

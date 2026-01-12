@@ -1,17 +1,18 @@
-from playwright.async_api import async_playwright
-import json
-from pymongo import MongoClient
 import asyncio
-import time
-import random
+import json
 import multiprocessing
-from datetime import datetime
 import os
+import random
+import time
+from datetime import datetime
 from functools import partial
+
+from playwright.async_api import async_playwright
+from pymongo import MongoClient
 
 # MongoDB setup
 client = MongoClient(
-    "mongodb+srv://trademql5:trademql5@trademql5.fmlxv.mongodb.net/",
+    "mongodb+srv://ft9jatraders_db_user:HnyOs6KBOwGKjJmy@reducebill.yxn3gnr.mongodb.net/",
     tls=True,
     tlsAllowInvalidCertificates=True,
 )
@@ -573,4 +574,5 @@ def main():
 
 
 if __name__ == "__main__":
+    scraped_data = main()
     scraped_data = main()

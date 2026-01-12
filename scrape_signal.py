@@ -1,11 +1,11 @@
-from playwright.sync_api import sync_playwright
 import json
-from pymongo import MongoClient
-from playwright.sync_api import sync_playwright
 import time
 
+from playwright.sync_api import sync_playwright
+from pymongo import MongoClient
+
 client = MongoClient(
-    "mongodb+srv://trademql5:trademql5@trademql5.fmlxv.mongodb.net/",
+    "mongodb+srv://ft9jatraders_db_user:HnyOs6KBOwGKjJmy@reducebill.yxn3gnr.mongodb.net/",
     tls=True,
     tlsAllowInvalidCertificates=True,
 )

@@ -21,6 +21,7 @@ MONGO_URL = os.environ.get("MONGO_URL")
 client = MongoClient(MONGO_URL, tls=True, tlsAllowInvalidCertificates=True)
 
 # Database collections - Using TradingView as primary data lake
+# Note: Collections will be created automatically on first insert if they don't exist
 db_stock_prices = client["stock_prices_trdv"]
 collection_price_combined = db_stock_prices["price_combined_trdv"]
 
@@ -29,6 +30,53 @@ collection_live = db_live["live_price_combined_trdv"]
 collection_merged = db_live["merged_live_price_trdv"]
 
 db_cap = client["ngxlistedcompanies"]
+
+
+def verify_mongodb_connection():
+    """Verify MongoDB connection and log cluster status"""
+    try:
+        # Test connection
+        client.admin.command("ping")
+        print("✓ MongoDB connection successful")
+
+        # Check if collections exist (optional - they'll be created on first insert)
+        databases = client.list_database_names()
+        print(f"✓ Connected to MongoDB cluster with {len(databases)} databases")
+
+        # Check if our databases exist
+        if "stock_prices_trdv" in databases:
+            stock_collections = db_stock_prices.list_collection_names()
+            print(
+                f"  - stock_prices_trdv database exists ({len(stock_collections)} collections)"
+            )
+        else:
+            print("  - stock_prices_trdv database will be created on first insert")
+
+        if "livelake3" in databases:
+            live_collections = db_live.list_collection_names()
+            print(
+                f"  - livelake3 database exists ({len(live_collections)} collections)"
+            )
+        else:
+            print("  - livelake3 database will be created on first insert")
+
+        if "ngxlistedcompanies" in databases:
+            cap_collections = db_cap.list_collection_names()
+            print(
+                f"  - ngxlistedcompanies database exists ({len(cap_collections)} collections)"
+            )
+        else:
+            print("  - ngxlistedcompanies database will be created when needed")
+
+        print("✓ Script is ready to work with empty or populated MongoDB cluster")
+        return True
+    except Exception as e:
+        print(f"✗ MongoDB connection failed: {e}")
+        print(
+            "  Please check your MONGO_URL environment variable and network connectivity"
+        )
+        return False
+
 
 # TradingView data feed
 tv = TvDatafeed()
@@ -525,7 +573,7 @@ def get_last_available_live_data(symbol):
             },
         )
 
-        if last_data:
+        if last_data and isinstance(last_data, dict):
             # Update timestamp to current time but mark as fallback
             lagos_now = datetime.now(lagos_tz)
             fallback_data = {
@@ -550,23 +598,24 @@ def get_last_available_live_data(symbol):
             projection={"_id": 0, symbol: 1},
         )
 
-        if last_live and symbol in last_live:
+        if last_live and isinstance(last_live, dict) and symbol in last_live:
             data = last_live[symbol]
-            lagos_now = datetime.now(lagos_tz)
-            fallback_data = {
-                "datetime": lagos_now.strftime("%Y-%m-%d %H:%M:%S"),
-                "open": data.get("open", 0),
-                "high": data.get("high", 0),
-                "low": data.get("low", 0),
-                "close": data.get("close", 0),
-                "volume": data.get("volume", 0),
-                "symbol": symbol,
-                "change": data.get("change", 0),
-                "percent": data.get("percent", 0),
-                "is_fallback": True,
-            }
+            if isinstance(data, dict):
+                lagos_now = datetime.now(lagos_tz)
+                fallback_data = {
+                    "datetime": lagos_now.strftime("%Y-%m-%d %H:%M:%S"),
+                    "open": data.get("open", 0),
+                    "high": data.get("high", 0),
+                    "low": data.get("low", 0),
+                    "close": data.get("close", 0),
+                    "volume": data.get("volume", 0),
+                    "symbol": symbol,
+                    "change": data.get("change", 0),
+                    "percent": data.get("percent", 0),
+                    "is_fallback": True,
+                }
 
-            return fallback_data
+                return fallback_data
 
         # If still no data, return default values
         print(f"No historical data found for {symbol}, using defaults")
@@ -616,7 +665,7 @@ def get_last_available_volatility_data(symbol):
             projection={"_id": 0},  # Exclude MongoDB ID but get all other fields
         )
 
-        if last_data:
+        if last_data and isinstance(last_data, dict):
             last_data.pop("_id", None)  # Remove MongoDB ID if it exists
             last_data["is_fallback"] = True
 
@@ -696,15 +745,58 @@ def get_last_available_volatility_data(symbol):
         return default_volatility_data
 
 
+def is_first_entry(symbol):
+    """Check if this is the first entry for a symbol in our database - handles empty collections"""
+    try:
+        # Check merged collection (may not exist in new cluster)
+        try:
+            has_merged = collection_merged.find_one({"symbol": symbol}) is not None
+            if has_merged:
+                return False
+        except Exception:
+            # Collection may not exist yet - this is fine, continue checking
+            pass
+
+        # Check live collection (may not exist in new cluster)
+        try:
+            has_live = collection_live.find_one({symbol: {"$exists": True}}) is not None
+            if has_live:
+                return False
+        except Exception:
+            # Collection may not exist yet - this is fine
+            pass
+
+        # If we get here, no data found in either collection - this is the first entry
+        return True
+    except Exception as e:
+        # If we can't check, assume it's a first entry (safe for new cluster)
+        print(
+            f"Could not verify if first entry for {symbol}, assuming yes (new cluster): {e}"
+        )
+        return True  # Assume first entry for new cluster
+
+
 def get_all_live_data():
     """Get live data for all symbols from TradingView with fallback to last available data"""
     combined = {}
     failed_symbols = []
+    first_time_symbols = []
 
     for i, symbol in enumerate(symbols):
         print(f"Fetching live data for {symbol}")
         data = get_live_data_from_tradingview(symbol)
         if data:
+            # Check if this is the first entry for this symbol
+            if is_first_entry(symbol):
+                first_time_symbols.append(symbol)
+                # For first entry, change/percent should be 0 since there's no previous value in our system
+                # (TradingView's change is relative to their previous bar, but for our system it's the first)
+                data["change"] = 0
+                data["percent"] = 0
+                data["is_first_entry"] = True
+                print(
+                    f"First entry detected for {symbol} - setting change/percent to 0"
+                )
             combined[symbol] = data
         else:
             print(f"Failed to get fresh data for {symbol}, using fallback")
@@ -719,19 +811,28 @@ def get_all_live_data():
     if failed_symbols:
         print(f"Used fallback data for {len(failed_symbols)} symbols: {failed_symbols}")
 
+    if first_time_symbols:
+        print(
+            f"First-time entries detected for {len(first_time_symbols)} symbols: {first_time_symbols}"
+        )
+
     return combined
 
 
 def get_symbol_cap(symbol):
-    """Get market cap data for a symbol"""
+    """Get market cap data for a symbol - handles empty collections gracefully"""
     try:
         collection = db_cap[symbol]
         data = collection.find_one({}, projection={"SharesOutstanding": 1, "_id": 0})
-        shares_outstanding = data["SharesOutstanding"] if data else 0
-
-        return shares_outstanding
+        if data and isinstance(data, dict) and "SharesOutstanding" in data:
+            shares_outstanding = data["SharesOutstanding"]
+            return float(shares_outstanding) if shares_outstanding is not None else 0
+        return 0  # Return 0 if collection doesn't exist or has no data
     except Exception as e:
-        print(f"Error getting market cap for {symbol}: {e}")
+        # Collection may not exist in new cluster - this is expected
+        print(
+            f"Market cap data not available for {symbol} (collection may be empty): {e}"
+        )
         return 0
 
 
@@ -1266,25 +1367,33 @@ def save_data(live_data, volatility_data, merged_data):
         saved_counts = {"live": 0, "volatility": 0, "merged": 0}
 
         # Save live data directly
-        if live_data:
-            # Save all data regardless of changes
-            try:
-                collection_live.insert_one(live_data)
-                saved_counts["live"] = len(live_data)
-                print(f"Saved live data for {len(live_data)} symbols")
+        if live_data and isinstance(live_data, dict) and len(live_data) > 0:
+            # Filter out _id and check if there's actual data
+            data_to_save = {k: v for k, v in live_data.items() if k != "_id"}
+            if data_to_save:
+                try:
+                    collection_live.insert_one(data_to_save)
+                    saved_counts["live"] = len(data_to_save)
+                    print(f"Saved live data for {len(data_to_save)} symbols")
 
-                # Also save to today's collection
-                today_str = datetime.now().strftime("%Y-%m-%d")
-                today_collection = db_live[today_str]
-                today_collection.insert_one(live_data)
-            except Exception as live_error:
-                print(f"Error saving live data: {live_error}")
+                    # Also save to today's collection
+                    today_str = datetime.now().strftime("%Y-%m-%d")
+                    today_collection = db_live[today_str]
+                    today_collection.insert_one(data_to_save)
+                except Exception as live_error:
+                    print(f"Error saving live data: {live_error}")
 
         # Save volatility data directly
-        if volatility_data:
+        if (
+            volatility_data
+            and isinstance(volatility_data, dict)
+            and len(volatility_data) > 0
+        ):
             volatility_documents = []
             for symbol, vol_data in volatility_data.items():
-                if not vol_data.get("is_fallback", False):  # Only save fresh data
+                if isinstance(vol_data, dict) and not vol_data.get(
+                    "is_fallback", False
+                ):  # Only save fresh data
                     # Add timestamp for tracking and remove any existing _id to avoid duplicates
                     vol_data_with_timestamp = vol_data.copy()
                     vol_data_with_timestamp.pop(
@@ -1305,22 +1414,28 @@ def save_data(live_data, volatility_data, merged_data):
                     print(f"Error saving volatility data: {vol_error}")
 
         # Save merged data directly
-        if merged_data:
+        if merged_data and isinstance(merged_data, dict) and len(merged_data) > 0:
             try:
                 # Create the combined document like in merge_price4.py
                 combined_document = {}
                 for symbol, merged_info in merged_data.items():
-                    # Remove symbol key from individual data since it becomes the key
-                    symbol_data = merged_info.copy()
-                    symbol_data.pop(
-                        "symbol", None
-                    )  # Remove symbol field as it's now the key
-                    combined_document[symbol] = symbol_data
+                    if isinstance(merged_info, dict):
+                        # Remove symbol key from individual data since it becomes the key
+                        symbol_data = merged_info.copy()
+                        symbol_data.pop(
+                            "symbol", None
+                        )  # Remove symbol field as it's now the key
+                        combined_document[symbol] = symbol_data
 
-                # Insert the single combined document
-                collection_merged.insert_one(combined_document)
-                saved_counts["merged"] = len(merged_data)
-                print(f"Saved combined merged document with {len(merged_data)} symbols")
+                # Only insert if we have actual data
+                if combined_document:
+                    collection_merged.insert_one(combined_document)
+                    saved_counts["merged"] = len(combined_document)
+                    print(
+                        f"Saved combined merged document with {len(combined_document)} symbols"
+                    )
+                else:
+                    print("No valid merged data to save")
             except Exception as merge_error:
                 print(f"Error saving combined merged data: {merge_error}")
                 saved_counts["merged"] = 0
@@ -1333,18 +1448,37 @@ def save_data(live_data, volatility_data, merged_data):
 
 
 def get_combined():
-    """Get combined data similar to merge_price4.py format"""
+    """
+    Get combined data similar to merge_price4.py format.
+
+    Behavior with missing data:
+    - If live_data is None/empty: returns empty dict {}
+    - If volatile_data is None/empty: uses default values (0) for all volatility metrics
+    - If symbol not in volatile_data: uses default values (0) for that symbol's volatility metrics
+    - All missing data scenarios are handled gracefully without errors
+    """
     try:
         # Get latest volatility data from TradingView price combined collection
         volatile_data = collection_price_combined.find_one(sort=[("_id", -1)])
-        print("volatile data gotten")
+        if volatile_data is None:
+            print("No volatility data found in database (collection may be empty)")
+        else:
+            print("volatile data gotten")
 
         # Get latest live data from TradingView live collection
         live_data = collection_live.find_one(sort=[("_id", -1)])
-        print("live data gotten")
+        if live_data is None:
+            print("No live data found in database (collection may be empty)")
+        else:
+            print("live data gotten")
 
-        if not live_data:
-            print("No live data available")
+        if not live_data or not isinstance(live_data, dict):
+            print("No live data available or invalid format")
+            return {}
+
+        # Check if live_data is empty (only has _id or is truly empty)
+        if len([k for k in live_data.keys() if k != "_id"]) == 0:
+            print("Live data is empty (no symbols found)")
             return {}
 
         # Combined data storage
@@ -1352,30 +1486,34 @@ def get_combined():
 
         # Process each symbol in live_data except '_id'
         for symbol, data in live_data.items():
-            if symbol != "_id":
+            if symbol != "_id" and isinstance(data, dict):
                 # Find volatility data for this symbol
                 data2 = None
-                if volatile_data and symbol in volatile_data:
-                    data2 = volatile_data[symbol]
-                elif volatile_data:
-                    # Look for symbol field in the volatile data structure
-                    if (
-                        isinstance(volatile_data, dict)
-                        and "symbol" in volatile_data
-                        and volatile_data["symbol"] == symbol
-                    ):
-                        data2 = volatile_data
+                if volatile_data and isinstance(volatile_data, dict):
+                    if symbol in volatile_data:
+                        potential_data = volatile_data[symbol]
+                        if isinstance(potential_data, dict):
+                            data2 = potential_data
                     else:
-                        # Try to find symbol data in a different structure
-                        for key, value in volatile_data.items():
-                            if (
-                                isinstance(value, dict)
-                                and value.get("symbol") == symbol
-                            ):
-                                data2 = value
-                                break
+                        # Look for symbol field in the volatile data structure
+                        if (
+                            "symbol" in volatile_data
+                            and volatile_data["symbol"] == symbol
+                        ):
+                            data2 = volatile_data
+                        else:
+                            # Try to find symbol data in a different structure
+                            for key, value in volatile_data.items():
+                                if key == "_id":
+                                    continue  # Skip ObjectId
+                                if (
+                                    isinstance(value, dict)
+                                    and value.get("symbol") == symbol
+                                ):
+                                    data2 = value
+                                    break
 
-                if data2:
+                if data2 and isinstance(data2, dict):
                     new_data = {
                         "datetime": data["datetime"],
                         "symbol": symbol,
@@ -1528,8 +1666,12 @@ def main_cycle():
     print("Step 1: Fetching live data from TradingView...")
     live_data = get_all_live_data()
 
-    if not live_data:
-        print("No live data retrieved")
+    if not live_data or not isinstance(live_data, dict) or len(live_data) == 0:
+        print("No live data retrieved or empty dataset")
+        print("This could indicate:")
+        print("  - TradingView API is unavailable")
+        print("  - Network connectivity issues")
+        print("  - All symbols failed to fetch")
         return
 
     # Step 2: Calculate volatility metrics - use 1-hour cache when available
@@ -1639,15 +1781,29 @@ def main_cycle():
 
 def run_unified_system():
     """Run the unified price system - fresh live data every 15 minutes, 1-hour cache for volatility data"""
+    print("=" * 80)
     print(
         "Starting Unified Price System - Live Data Fresh, Volatility Data with 1-Hour Cache"
     )
+    print("=" * 80)
+
+    # Verify MongoDB connection and cluster status
+    if not verify_mongodb_connection():
+        print("FATAL: Cannot proceed without MongoDB connection")
+        return
+
+    print("\nConfiguration:")
     print(
         "Live data: fetched every 15 minutes during market hours (10 AM - 2:30 PM weekdays)"
     )
     print(
         "Volatility data: calculated fresh on cache miss, reused for 1 hour on cache hit"
     )
+    print(
+        "\nNote: This script works with empty MongoDB clusters - collections will be created automatically"
+    )
+    print("=" * 80)
+    print()
 
     # Update interval: 15 minutes
     update_interval = 1200  # 20 minutes in seconds

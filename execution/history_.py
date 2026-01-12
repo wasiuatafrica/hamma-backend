@@ -1,6 +1,8 @@
-from tvDatafeed import TvDatafeed, Interval
-from pymongo import MongoClient
 import json
+
+from pymongo import MongoClient
+from tvDatafeed import Interval, TvDatafeed
+
 
 def load_list(filename):
     with open(filename, 'r') as file:
@@ -13,7 +15,7 @@ def get_data(symbol):
     return dataframe
 
 def connect_to_mongodb():
-    client = MongoClient("mongodb+srv://trademql5:trademql5@trademql5.fmlxv.mongodb.net/",
+    client = MongoClient("mongodb+srv://ft9jatraders_db_user:HnyOs6KBOwGKjJmy@reducebill.yxn3gnr.mongodb.net/",
                          tls=True, tlsAllowInvalidCertificates=True)
     db = client["anyon_history"]
     return db
@@ -43,4 +45,5 @@ stocks = load_list('./symbols.json')
 for symbol in stocks:
     data = get_data(symbol)
     save_to_mongo(symbol, data)
+print('All data saved')    save_to_mongo(symbol, data)
 print('All data saved')

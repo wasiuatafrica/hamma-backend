@@ -1,4 +1,5 @@
 {
     "python.analysis.autoImportCompletions": true,
-    "liveServer.settings.port": 5501
+    "liveServer.settings.port": 5501,
+    "cursorpyright.analysis.autoImportCompletions": true
 }
