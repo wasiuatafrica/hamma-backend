@@ -120,9 +120,27 @@ def get_details(stock):
 def get_stockdata2():
     # collection = db_merged["merged_live_price"]
     collection = db_merged["merged_live_price_trdv"]
-    last_item = collection.find_one(sort=[("_id", -1)])
 
-    return last_item
+    # Each document contains multiple stocks as keys, each with a datetime field
+    # Since all stocks in a document have the same datetime, we can sort by any stock's datetime
+    # We'll try common stocks first (MTNN, ACCESSCORP, etc.) and fallback to _id
+
+    # Try sorting by a common stock's datetime (MTNN is usually present)
+    common_stocks = ["MTNN", "ACCESSCORP", "GTCO", "ZENITHBANK", "UBA"]
+
+    for stock_symbol in common_stocks:
+        try:
+            last_item = collection.find_one(
+                {f"{stock_symbol}.datetime": {"$exists": True}},
+                sort=[(f"{stock_symbol}.datetime", -1)],
+            )
+            if last_item:
+                return last_item
+        except Exception:
+            continue
+
+    # Fallback: use _id (ObjectId contains timestamp)
+    return collection.find_one(sort=[("_id", -1)])
 
 
 def get_details2(stock, stock_data):
