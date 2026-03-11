@@ -21,7 +21,7 @@
     "CILEASING": "https://s3-symbol-logo.tradingview.com/c-and-i-leasing-plc.svg",
     "CADBURY": "https://s3-symbol-logo.tradingview.com/cadbury-plc-nigeria.svg",
     "CAP": "https://s3-symbol-logo.tradingview.com/chemical-and-allied-products-plc.svg",
-    "CAPOIL":"https://anyon3.s3.amazonaws.com/media/feed/CAPOIL_img.jpeg",
+    "CAPOIL":"https://anyon31.s3.amazonaws.com/media/feed/CAPOIL_img.jpeg",
     "CAVERTON": "https://s3-symbol-logo.tradingview.com/caverton-offshore-support-plc.svg",
     "CHAMPION": "https://s3-symbol-logo.tradingview.com/champion-brewery-plc.svg",
     "CHAMS": "https://s3-symbol-logo.tradingview.com/chams-plc.svg",
