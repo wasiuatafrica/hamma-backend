@@ -2,6 +2,7 @@ requests
 websocket-client
 pymongo
 pandas
+numpy
 python-dotenv
 tradingview-datafeed
 pytz

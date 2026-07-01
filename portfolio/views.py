@@ -75,8 +75,8 @@ from .serializers import (
     StockSerializer,
     TransactionSerializer,
 )
+from .company_profile import get_all_shares_outstanding, get_shares_outstanding
 from .utils import (
-    client,
     get_calendar,
     get_details3,
     get_historical_data,
@@ -90,9 +90,6 @@ from .utils import (
 )
 
 User = get_user_model()
-
-
-db_details = client["ngxlistedcompanies"]
 
 
 class CustomPagination(PageNumberPagination):
@@ -552,6 +549,22 @@ class GetSingleStock(APIView, AIFeatureMixin):
                 response_data["signal"] = get_signal(symbol)
 
         return Response(response_data)
+
+
+class SharesOutstandingView(APIView):
+    """Reference data for external price pipelines (replaces ngxlistedcompanies Mongo)."""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request, symbol=None):
+        if symbol:
+            return Response(
+                {
+                    "symbol": symbol.upper(),
+                    "shares_outstanding": get_shares_outstanding(symbol),
+                }
+            )
+        return Response(get_all_shares_outstanding())
 
 
 class StockDetail(generics.RetrieveAPIView):

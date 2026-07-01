@@ -10,6 +10,7 @@ from openai import OpenAI
 from pymongo import MongoClient
 
 from execution.symbol_pair import pairs
+from portfolio.company_profile import get_symbol_overview
 from portfolio.serializers import AlertSerializer
 from stocknews.models import StockNews
 
@@ -22,7 +23,6 @@ client = MongoClient(
 )
 
 db_merged = client["livelake3"]
-db_details = client["ngxlistedcompanies"]
 db_fundamental = client["ngxfundamentals"]
 db_calendar = client["ngxcalendar"]
 signal_db = client["trade_signals"]
@@ -290,54 +290,6 @@ def get_alerts(user):
     return alerts
 
 
-def get_symbol_overview(symbol):
-    collection = db_details[symbol]
-    company_data = collection.find_one({})
-
-    # Handle case when no data is found for the symbol
-    if company_data is None:
-        return {
-            "marketcap": 0,
-            "CompanyName": "",
-            "Sector": "",
-            "SubSector": "",
-            "dividend": 0,
-            "MarketClassification": "",
-            "DateOfIncorporation": None,
-            "Website": "",
-            "NatureofBusiness": "",
-            "CompanyAddress": "",
-            "Telephone": "",
-            "HIGH52WK_PRICE": None,
-            "LOW52WK_PRICE": None,
-            "BoardOfDirectors": "",
-            "Email": "",
-        }
-
-    overview = {}
-
-    overview["marketcap"] = float(company_data.get("PrevClose", 0)) * float(
-        company_data.get("SharesOutstanding", 0)
-    )
-    # overview['shares'] = company_data.get('SharesOutstanding')
-    overview["CompanyName"] = company_data.get("CompanyName", "")
-    overview["Sector"] = company_data.get("Sector", "")
-    overview["SubSector"] = company_data.get("SubSector", "")
-    overview["dividend"] = company_data.get("dividend", 0)
-    overview["MarketClassification"] = company_data.get("MarketClassification", "")
-    overview["DateOfIncorporation"] = company_data.get("DateOfIncorporation")
-    overview["Website"] = company_data.get("Website", "")
-    overview["NatureofBusiness"] = company_data.get("NatureofBusiness", "")
-    overview["CompanyAddress"] = company_data.get("CompanyAddress", "")
-    overview["Telephone"] = company_data.get("Telephone", "")
-    overview["HIGH52WK_PRICE"] = company_data.get("HIGH52WK_PRICE")
-    overview["LOW52WK_PRICE"] = company_data.get("LOW52WK_PRICE")
-    overview["BoardOfDirectors"] = company_data.get("BoardOfDirectors", "")
-    overview["Email"] = company_data.get("Email", "")
-
-    return overview
-
-
 def get_symbol_fundamentals(symbol):
     collection = db_fundamental[symbol]
     company_data = collection.find_one({})
@@ -353,15 +305,6 @@ def get_stock_news(symbol):
     )[:10]
     news_data = StockNewsSerializer(news, many=True).data
     return news_data
-
-
-# def get_calendar(symbol):
-#     collection = db_calendar[symbol]
-#     company_data = collection.find_one({})
-#     if company_data:
-#         company_data.pop("_id", None)
-#         return company_data
-#     return {}
 
 
 def get_calendar(symbol):

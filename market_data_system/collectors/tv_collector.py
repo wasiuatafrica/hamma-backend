@@ -179,16 +179,8 @@ class TradingViewDataCollector:
             return None
 
     def get_symbol_cap(self, symbol):
-        """Get market cap data for a symbol."""
-        try:
-            collection = self.db.db_cap[symbol]
-            data = collection.find_one()
-            if data:
-                return data.get("SharesOutstanding", 0)
-            return 0
-        except Exception as e:
-            logger.warning(f"Error getting market cap for {symbol}: {e}")
-            return 0
+        """Get shares outstanding for market-cap calculation from PostgreSQL."""
+        return postgres_db.get_shares_outstanding(symbol)
 
     def process_symbol(self, symbol):
         """Process a single symbol to calculate metrics."""

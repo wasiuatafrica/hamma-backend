@@ -21,6 +21,7 @@ from .models import (
     OpenedDashboardFeed,
     BonusWallet,
     CompanyFundamental,
+    CompanyProfile,
 )
 from .models import DataSourceSetting
 
@@ -56,6 +57,19 @@ admin.site.register(Wallet)
 class CompanyFundamentalAdmin(admin.ModelAdmin):
     list_display = ("stock", "market_cap")
     search_fields = ["stock__symbol"]
+
+
+@admin.register(CompanyProfile)
+class CompanyProfileAdmin(admin.ModelAdmin):
+    list_display = (
+        "stock",
+        "company_name",
+        "shares_outstanding",
+        "prev_close",
+        "updated",
+    )
+    search_fields = ["stock__symbol", "company_name"]
+    readonly_fields = ("created", "updated", "raw_ngx_data")
 
 
 @admin.register(DataSourceSetting)

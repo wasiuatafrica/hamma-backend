@@ -160,6 +160,47 @@ class Stock(auto_prefetch.Model):
         return round((self.change / self.ltp), 2) * 100 if self.ltp != 0 else 0
 
 
+class CompanyProfile(auto_prefetch.Model):
+    stock = models.OneToOneField(
+        Stock, on_delete=models.CASCADE, related_name="company_profile"
+    )
+    company_name = models.CharField(max_length=255, blank=True, default="")
+    sub_sector = models.CharField(max_length=100, blank=True, default="")
+    market_classification = models.CharField(max_length=100, blank=True, default="")
+    date_of_incorporation = models.DateField(null=True, blank=True)
+    website = models.URLField(max_length=500, blank=True, default="")
+    nature_of_business = models.TextField(blank=True, default="")
+    company_address = models.TextField(blank=True, default="")
+    telephone = models.TextField(blank=True, default="")
+    email = models.CharField(max_length=254, blank=True, default="")
+    board_of_directors = models.TextField(blank=True, default="")
+    shares_outstanding = models.DecimalField(
+        max_digits=20, decimal_places=2, null=True, blank=True
+    )
+    prev_close = models.DecimalField(
+        max_digits=20, decimal_places=4, null=True, blank=True
+    )
+    dividend = models.DecimalField(
+        max_digits=20, decimal_places=4, null=True, blank=True
+    )
+    high_52wk_price = models.DecimalField(
+        max_digits=20, decimal_places=4, null=True, blank=True
+    )
+    low_52wk_price = models.DecimalField(
+        max_digits=20, decimal_places=4, null=True, blank=True
+    )
+    raw_ngx_data = models.JSONField(default=dict, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta(auto_prefetch.Model.Meta):
+        verbose_name = "Company profile"
+        verbose_name_plural = "Company profiles"
+
+    def __str__(self):
+        return f"{self.stock.symbol} profile"
+
+
 class CompanyFundamental(models.Model):
     stock = models.ForeignKey(
         Stock, on_delete=models.CASCADE, related_name="fundamentals"

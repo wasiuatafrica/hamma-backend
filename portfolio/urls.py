@@ -14,6 +14,16 @@ urlpatterns = [
         views.GetSingleStock.as_view(),
         name="single-stock",
     ),
+    path(
+        "shares-outstanding/",
+        views.SharesOutstandingView.as_view(),
+        name="shares-outstanding-all",
+    ),
+    path(
+        "shares-outstanding/<str:symbol>/",
+        views.SharesOutstandingView.as_view(),
+        name="shares-outstanding-symbol",
+    ),
     path("stocks/<int:pk>/", views.StockDetail.as_view(), name="stock-detail"),
     path("symbols/", views.Symbols.as_view(), name="symbols"),
     # path('portfolio/<str:mode>/', views.PortfolioDetail.as_view(), name='portfolio-detail'),

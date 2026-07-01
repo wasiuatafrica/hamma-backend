@@ -40,7 +40,6 @@ class MongoDB:
             self.db_chart_5m = self.client["chartdata_5_test"]
             self.db_risk = self.client["stock_classification_test"]
             self.db_signals = self.client["trade_signals_test"]
-            self.db_cap = self.client["ngxlistedcompanies_test"]
 
             # Initialize collection references for system status
             self.db_system = self.client["system_status_test"]

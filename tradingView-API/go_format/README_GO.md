@@ -207,7 +207,7 @@ docker logs -f unified-price-system
 - `stock_prices_trdv.price_combined_trdv`: Volatility and momentum data
 - `livelake3.live_price_combined_trdv`: Real-time price data
 - `livelake3.merged_live_price_trdv`: Combined live and volatility data
-- `ngxlistedcompanies.<symbol>`: Market cap data per symbol
+- `portfolio_companyprofile` (PostgreSQL): Shares outstanding and company issuer data per symbol (replaces `ngxlistedcompanies` Mongo)
 
 ## Stock Symbols
 
@@ -286,7 +286,7 @@ Modify the `UpdateInterval` constant for different update frequencies.
 ## Notes
 
 - The TradingView integration is currently a placeholder - replace with actual API integration
-- Market cap calculation requires data in the `ngxlistedcompanies` database
+- Market cap calculation uses `shares_outstanding` from PostgreSQL (`portfolio_companyprofile`) or `GET /portfolio/shares-outstanding/` (see `docs/ngxlistedcompanies-postgres.md`)
 - Cache files are stored in the same directory as the executable
 - The system is designed to be fault-tolerant and can recover from temporary failures
 
