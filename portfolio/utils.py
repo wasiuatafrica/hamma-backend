@@ -135,7 +135,7 @@ def get_details2(stock, stock_data):
             "company": stock.company,
             "symbol": stock.symbol,
             "sector": stock.sector,
-            "logo_url": stock.logo_url,
+            "logo_url": stock.get_signed_logo_url(),
             "current_price": data.get("current_price"),
             "percent_change": data.get("percentage_change"),
             "change": data.get("change"),
@@ -171,7 +171,7 @@ def get_details2(stock, stock_data):
         return {
             "company": stock.company,
             "symbol": stock.symbol,
-            "logo_url": stock.logo_url,
+            "logo_url": stock.get_signed_logo_url(),
             "sector": stock.sector,
             "current_price": 0,
             "percent_change": 0,

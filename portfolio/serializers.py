@@ -122,7 +122,7 @@ class DashboardFeedSerializer(serializers.ModelSerializer):
         return instance.category.name if instance.category else None
 
     def get_logo_url(self, instance):
-        return instance.stock.logo_url if instance.stock else None
+        return instance.stock.get_signed_logo_url() if instance.stock else None
 
     def get_opened(self, instance):
         opened_emails = OpenedDashboardFeed.objects.filter(feed=instance)

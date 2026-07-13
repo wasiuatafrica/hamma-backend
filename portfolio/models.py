@@ -135,6 +135,11 @@ class Stock(auto_prefetch.Model):
     def __str__(self):
         return self.symbol
 
+    def get_signed_logo_url(self):
+        from .s3_utils import presign_s3_url
+
+        return presign_s3_url(self.logo_url)
+
     @property
     def ltp(self):
         from .utils import get_price

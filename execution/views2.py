@@ -1073,7 +1073,7 @@ class EnhancedPortfolioCalculator(PortfolioCalculator):
         base_data = {
             "id": position.id,
             "stock": position.stock.symbol,
-            "logo_url": position.stock.logo_url,
+            "logo_url": position.stock.get_signed_logo_url(),
             "shares": position.quantity,
             "avg_cost": position.open_price,
             "close_price": position.close_price,
