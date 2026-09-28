@@ -7,6 +7,32 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 
 
+class TestAdminManageUserEmailSearch(APITestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.admin = user_model.objects.create_user(
+            email="admin@example.com",
+            password="password123",
+            is_staff=True,
+        )
+        user_model.objects.create_user(
+            email="nexxyb@gmail.com",
+            firstname="Wasiu",
+            lastname="A",
+        )
+        self.client.force_authenticate(user=self.admin)
+
+    def test_name_filter_matches_email_username(self):
+        response = self.client.get(
+            "/anyon/new/manage-users/",
+            {"name": "nexxyb"},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["email"], "nexxyb@gmail.com")
+
+
 class TestManageUserEndPoint(acc_tests.AuthenticateUserForTesting):
     def setup(self):
         super.setup()

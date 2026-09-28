@@ -2798,7 +2798,9 @@ class AdminManageUser2(APIView):
             users = User.objects.all().order_by("-date_joined")
             if name:
                 users = users.filter(
-                    Q(firstname__icontains=name) | Q(lastname__icontains=name)
+                    Q(email__icontains=name)
+                    | Q(firstname__icontains=name)
+                    | Q(lastname__icontains=name)
                 )
             if is_active:
                 value = is_active.lower() == "true"

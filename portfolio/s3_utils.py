@@ -5,6 +5,7 @@ from functools import lru_cache
 from urllib.parse import unquote, urlparse
 
 import boto3
+from botocore.config import Config
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,10 @@ def _get_s3_client():
         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         region_name=settings.AWS_S3_REGION_NAME,
+        config=Config(
+            signature_version="s3v4",
+            s3={"addressing_style": "virtual"},
+        ),
     )
 
 

@@ -251,15 +251,24 @@ SIMPLE_JWT = {
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = os.environ.get("BUCKET")
-AWS_S3_CUSTOM_DOMAIN = "%s.s3.amazonaws.com" % AWS_STORAGE_BUCKET_NAME
 AWS_S3_OBJECT_PARAMETERS = {
     "CacheControl": "max-age=86400",
 }
 AWS_S3_SIGNATURE_VERSION = "s3v4"
+# Regional virtual-hosted URLs. The global s3.amazonaws.com host rejects
+# eu-north-1 signatures with AuthorizationQueryParametersError.
+AWS_S3_ADDRESSING_STYLE = "virtual"
 MEDIAFILES_LOCATION = "media"
 AWS_S3_REGION_NAME = "eu-north-1"
 AWS_S3_PRESIGNED_EXPIRY_SECONDS = 86400
-MEDIA_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
+AWS_QUERYSTRING_EXPIRE = AWS_S3_PRESIGNED_EXPIRY_SECONDS
+# Do not set AWS_S3_CUSTOM_DOMAIN. It disables S3 querystring signing, so
+# browsers request private objects anonymously and S3 returns AccessDenied.
+MEDIA_URL = "https://%s.s3.%s.amazonaws.com/%s/" % (
+    AWS_STORAGE_BUCKET_NAME,
+    AWS_S3_REGION_NAME,
+    MEDIAFILES_LOCATION,
+)
 STORAGES = {
     "default": {
         "BACKEND": "custom_storages.MediaStorage",

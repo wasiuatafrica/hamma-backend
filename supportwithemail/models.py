@@ -4,6 +4,7 @@ from django.db import models
 from django.utils import timezone
 
 from accounts.models import CustomUser, Profile
+from portfolio.s3_utils import presign_s3_url
 
 AWS_REGION = settings.AWS_S3_REGION_NAME
 AWS_BUCKET = settings.AWS_STORAGE_BUCKET_NAME
@@ -94,8 +95,20 @@ class SupportMessage(auto_prefetch.Model):
         return ""
 
     def get_aws_img_url(self, key):
-
-        return f"https://{AWS_BUCKET}.s3.amazonaws.com/media/{key}"
+        if not key:
+            return ""
+        name = getattr(key, "name", None)
+        if name:
+            return key.url
+        url = str(key)
+        if url.startswith("http://") or url.startswith("https://"):
+            return presign_s3_url(url) or ""
+        return (
+            presign_s3_url(
+                f"https://{AWS_BUCKET}.s3.{AWS_REGION}.amazonaws.com/media/{url.lstrip('/')}"
+            )
+            or ""
+        )
 
     def save(self, *args, **kwargs):
         if self.sender == "assistant":
