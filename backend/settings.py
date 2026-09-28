@@ -19,6 +19,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.sites",
@@ -31,7 +32,6 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "rest_framework_simplejwt",
     "corsheaders",
-    "daphne",
     "channels",
     "django_redis",
     "allauth",
@@ -77,11 +77,13 @@ SITE_ID = 1
 MIDDLEWARE = [
     # 'silk.middleware.SilkyMiddleware',
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "django_otp.middleware.OTPMiddleware",  # otp
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -150,24 +152,16 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.0/howto/static-files/
-
-# STATIC_URL = "/static/"
-
-# STATIC_ROOT = os.path.join(BASE_DIR, "static")
-# STATICFILES_DIRS = [os.path.join(BASE_DIR, "staticfiles")]
-# # media files settings
-
-# MEDIA_ROOT = os.path.join(BASE_DIR, "mediafiles")
-# MEDIA_URL = "/media/"
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# CORS_ALLOW_ALL_ORIGINS = True
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -214,9 +208,8 @@ REST_AUTH_SERIALIZERS = {
     "LOGIN_SERIALIZER": "accounts.serializers.CustomLoginSerializer",
     "USER_DETAILS_SERIALIZER": "accounts.serializers.CustomUserDetailsSerializer",
 }
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 
 # # ACCOUNT_ADAPTER = 'Accounts.adapters.CustomAccountAdapter'
@@ -264,14 +257,17 @@ AWS_S3_OBJECT_PARAMETERS = {
 }
 AWS_S3_SIGNATURE_VERSION = "s3v4"
 MEDIAFILES_LOCATION = "media"
-DEFAULT_FILE_STORAGE = "custom_storages.MediaStorage"
-STATICFILES_LOCATION = "static"
-STATICFILES_STORAGE = "custom_storages.StaticStorage"
 AWS_S3_REGION_NAME = "eu-north-1"
 AWS_S3_PRESIGNED_EXPIRY_SECONDS = 86400
-STATIC_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
 MEDIA_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
-STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+STORAGES = {
+    "default": {
+        "BACKEND": "custom_storages.MediaStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

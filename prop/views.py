@@ -594,7 +594,7 @@ class AccountDataView(APIView):
                 for data in account_data
                 if timezone.datetime.strptime(
                     data["timestamp"], "%Y-%m-%dT%H:%M"
-                ).replace(tzinfo=timezone.utc)
+                ).replace(tzinfo=timezone.UTC)
                 >= start_date
             ]
 
@@ -2224,7 +2224,7 @@ class PropAccountDataView(APIView):
             user = User.objects.get(email=email)
 
             # Get prop accounts created after August 25, 2025
-            cutoff_date = datetime(2025, 8, 25, tzinfo=timezone.utc)
+            cutoff_date = datetime(2025, 8, 25, tzinfo=timezone.UTC)
             prop_accounts = DemoPortfolio.objects.filter(
                 user=user,
                 is_prop=True,
