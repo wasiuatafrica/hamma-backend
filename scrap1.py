@@ -16,6 +16,7 @@ driver.get('https://www.nairaland.com/')
 nairid_xpath = "//a[contains(@href, 'nairaland.com/787')]"
 linTitle_xpath = "//div[@class='body']/h2"
 
+
 print('here1')
 # Collect the data
 results = []
