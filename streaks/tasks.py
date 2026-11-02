@@ -10,6 +10,7 @@ from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
+from portfolio.market_hours import is_trading_time
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
 from competition.models import Competition, CompetitionPortfolio, CompetitionPosition
@@ -32,11 +33,7 @@ def update_user_streaks_daily_task():
         lagos_timezone
     )  # - timedelta(days=2)
 
-    if (
-        current_time_lagos.time() >= time(10, 5)
-        and current_time_lagos.time() <= time(14, 40)
-        and current_time_lagos.weekday() < 5
-    ):
+    if is_trading_time(current_time_lagos, start_offset=5, end_offset=10):
         # logger.info("Updating user streaks during trading hours")
         update_user_streaks_daily()
 

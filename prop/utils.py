@@ -8,6 +8,7 @@ import pytz
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils import timezone
+from portfolio.market_hours import is_trading_time
 from pymongo import MongoClient
 
 from execution.models import DemoPortfolio, DemoPosition
@@ -70,7 +71,7 @@ def get_all_balance_equity_data():
     current_day = current_datetime.weekday()
 
     if 0 <= current_day <= 4:
-        if time(10, 0) <= current_time <= time(14, 30):
+        if is_trading_time(current_datetime):
 
             prop_accounts = DemoPortfolio.objects.filter(
                 is_prop=True,

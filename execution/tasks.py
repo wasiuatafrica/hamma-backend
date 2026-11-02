@@ -17,6 +17,12 @@ from celery.utils.log import get_task_logger
 from channels.layers import get_channel_layer
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from portfolio.market_hours import (
+    CLOSES_AT,
+    MARKET_CLOSE_AT,
+    is_trading_time,
+    session_end_today,
+)
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 from pymongo import MongoClient
 
@@ -172,12 +178,8 @@ def process_limit_order(id, in_competition=False):
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
     competition = Competition.objects.filter(status="current").first()
 
-    # Check if the current time is between 9:30 AM and 2:30 PM WAT and it's a weekday
-    if (
-        current_time_lagos.time() >= datetime.strptime("9:30 AM", "%I:%M %p").time()
-        and current_time_lagos.time() <= datetime.strptime("2:30 PM", "%I:%M %p").time()
-        and current_time_lagos.weekday() < 5
-    ):
+    # Only during NGX continuous trading (see portfolio.market_hours)
+    if is_trading_time(current_time_lagos):
         if in_competition and timezone.now() > competition.start_date:
             position = get_object_or_404(CompetitionPosition, id=id)
 
@@ -185,7 +187,7 @@ def process_limit_order(id, in_competition=False):
 
             expired = False
 
-            target = time(14, 30)  # 14 is the hour, 30 is the minute
+            target = CLOSES_AT  # day orders expire when continuous trading ends
             target_time = datetime.combine(
                 current_time_lagos.date(), target
             ).astimezone(lagos_timezone)
@@ -349,7 +351,7 @@ def process_limit_order(id, in_competition=False):
             lagos_timezone = pytz.timezone("Africa/Lagos")
             current_time_lagos = timezone.now().astimezone(lagos_timezone).time()
 
-            target_time = time(14, 30)  # 14 is the hour, 30 is the minute
+            target_time = CLOSES_AT  # day orders expire when continuous trading ends
             # target_time = datetime.combine(datetime.today(), datetime.strptime('14:30', '%H:%M').time())
             if position.status == "pending":
 
@@ -562,13 +564,7 @@ def send_insufficient_funds_notification(user, position):
 
 # Function to check trading hours
 def is_within_trading_hours():
-    lagos_timezone = pytz.timezone("Africa/Lagos")
-    current_time_lagos = timezone.now().astimezone(lagos_timezone)
-    return (
-        current_time_lagos.time() >= time(10, 10)
-        and current_time_lagos.time() <= time(14, 30)
-        and current_time_lagos.weekday() < 5
-    )
+    return is_trading_time(start_offset=10)
 
 
 def process_competition_limit_order(id):
@@ -583,9 +579,7 @@ def process_competition_limit_order(id):
     position = get_object_or_404(CompetitionPosition, id=id)
     user = position.portfolio.user
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
-    target_time = datetime.combine(current_time_lagos.date(), time(14, 30)).astimezone(
-        lagos_timezone
-    )
+    target_time = session_end_today(current_time_lagos)
 
     if position.status == "pending":
         # Expiry conditions for day and week positions
@@ -648,9 +642,7 @@ def process_demo_limit_order(id):
     position = get_object_or_404(DemoPosition, id=id)
     user = position.portfolio.user
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
-    target_time = datetime.combine(current_time_lagos.date(), time(14, 30)).astimezone(
-        lagos_timezone
-    )
+    target_time = session_end_today(current_time_lagos)
 
     if position.status == "pending":
         account_type = "PROP" if position.portfolio.is_prop else "DEMO"
@@ -1736,7 +1728,7 @@ def last_data(last_item, symbol):
     lagos_tz = pytz.timezone("Africa/Lagos")
     today = datetime.now(lagos_tz).date()
     # today = "2024-05-20"
-    date_string = f"{today} 14:30"
+    date_string = f"{today} {MARKET_CLOSE_AT:%H:%M}"  # the day's closing bar
     dt = datetime.strptime(date_string, "%Y-%m-%d %H:%M")
 
     symbol_data = last_item[symbol]
@@ -1816,11 +1808,7 @@ def calc_take_profit():
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
     # print(current_time_lagos)
 
-    if (
-        current_time_lagos.time() >= datetime.strptime("10:02 AM", "%I:%M %p").time()
-        and current_time_lagos.time() <= datetime.strptime("2:31 PM", "%I:%M %p").time()
-        and current_time_lagos.weekday() < 5
-    ):
+    if is_trading_time(current_time_lagos, start_offset=2, end_offset=1):
         demopositions = DemoPosition.objects.filter(status="open")
         composition = CompetitionPosition.objects.filter(status="open")
 
@@ -1865,11 +1853,7 @@ def calc_stop_loss():
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
     # print(current_time_lagos)
 
-    if (
-        current_time_lagos.time() >= datetime.strptime("10:02 AM", "%I:%M %p").time()
-        and current_time_lagos.time() <= datetime.strptime("2:31 PM", "%I:%M %p").time()
-        and current_time_lagos.weekday() < 5
-    ):
+    if is_trading_time(current_time_lagos, start_offset=2, end_offset=1):
         demopositions = DemoPosition.objects.filter(status="open")
         composition = CompetitionPosition.objects.filter(status="open")
 
@@ -1909,11 +1893,7 @@ def calc_tailing_sl():
     lagos_timezone = pytz.timezone("Africa/Lagos")
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
 
-    if (
-        current_time_lagos.time() >= datetime.strptime("10:02 AM", "%I:%M %p").time()
-        and current_time_lagos.time() <= datetime.strptime("2:31 PM", "%I:%M %p").time()
-        and current_time_lagos.weekday() < 5
-    ):
+    if is_trading_time(current_time_lagos, start_offset=2, end_offset=1):
 
         demopositions = DemoPosition.objects.filter(status="open")
         composition = CompetitionPosition.objects.filter(status="open")

@@ -216,8 +216,9 @@ def process_balance_equity_data():
     current_day = current_datetime.weekday()
     last_item = get_price()
 
-    # Only process during trading hours (Monday-Friday, 8:00-14:42)
-    if 0 <= current_day <= 4 and time(10, 0) <= current_time <= time(14, 42):
+    # Only during NGX continuous trading, 09:30-15:50, plus 12 minutes (standalone
+    # script: keep in step with portfolio/market_hours.py)
+    if 0 <= current_day <= 4 and time(9, 30) <= current_time <= time(16, 2):
         for portfolio_id, portfolio in portfolios.items():
             # print(portfolio["account_id"])
             # Get positions for this portfolio

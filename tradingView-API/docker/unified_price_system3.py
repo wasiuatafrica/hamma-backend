@@ -52,12 +52,13 @@ MAX_INTRADAY_REFRESH_PER_CYCLE = int(
     os.environ.get("MAX_INTRADAY_REFRESH_PER_CYCLE", "40")
 )
 
-# Collection schedule (Africa/Lagos): every 15 min 09:30-14:30, plus one run
-# after the 14:30 close to capture closing prices.
+# Collection schedule (Africa/Lagos), following NGX hours: continuous trading
+# 09:30-15:50, closing auction to 16:00. Every 15 min from 09:30 to 15:45, plus
+# one run after the 16:00 close to capture closing prices.
 SLOT_MINUTES = 15
 FIRST_SLOT = time(9, 30)
-LAST_SLOT = time(14, 30)
-CLOSE_RUN = time(14, 45)
+LAST_SLOT = time(15, 45)
+CLOSE_RUN = time(16, 5)
 
 
 def verify_mongodb_connection():

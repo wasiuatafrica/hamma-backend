@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
+from portfolio.market_hours import MARKET_CLOSE_AT, is_trading_time, lagos_now
 
 from competition.models import Competition, CompetitionPortfolio, CompetitionPosition
 from execution.models import DemoPortfolio, DemoPosition
@@ -38,13 +39,7 @@ HOLIDAYS = [
 
 
 def is_within_trading_hours():
-    lagos_timezone = pytz.timezone("Africa/Lagos")
-    current_time_lagos = timezone.now().astimezone(lagos_timezone)
-    return (
-        current_time_lagos.time() >= time(10, 10)
-        and current_time_lagos.time() <= time(14, 30)
-        and current_time_lagos.weekday() < 5
-    )
+    return is_trading_time(start_offset=10)
 
 
 def is_trading_day(date):
@@ -70,8 +65,8 @@ def update_user_streaks_daily():
     Daily task to update users' streaks based on trading activity.
     """
     today = timezone.now().date()
-    current_time = timezone.now().time()
-    market_close_time = time(14, 31)
+    current_time = lagos_now().time()  # was UTC, compared against a Lagos close
+    market_close_time = MARKET_CLOSE_AT
 
     # Get all active accounts
     demo_accounts = DemoPortfolio.objects.all()
@@ -257,11 +252,7 @@ def update_user_streaks_daily_task():
     lagos_timezone = pytz.timezone("Africa/Lagos")
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
 
-    if (
-        current_time_lagos.time() >= time(10, 5)
-        and current_time_lagos.time() <= time(14, 35)
-        and current_time_lagos.weekday() < 5
-    ):
+    if is_trading_time(current_time_lagos, start_offset=5, end_offset=5):
         # logger.info("Updating user streaks during trading hours")
         update_user_streaks_daily()
     else:

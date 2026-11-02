@@ -144,6 +144,7 @@ def calculate_cumulative_returns_user(user):
 
 
 from django.utils import timezone
+from portfolio.market_hours import is_trading_time
 
 
 def daily_returns2():
@@ -547,11 +548,7 @@ def competition_daily_returns4():
     lagos_timezone = pytz.timezone("Africa/Lagos")
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
     # print(current_time_lagos)
-    if (
-        current_time_lagos.time() >= datetime.strptime("10:02 AM", "%I:%M %p").time()
-        and current_time_lagos.time() <= datetime.strptime("2:31 PM", "%I:%M %p").time()
-        and current_time_lagos.weekday() < 5
-    ):
+    if is_trading_time(current_time_lagos, start_offset=2, end_offset=1):
 
         portfolios = CompetitionPortfolio.objects.filter(
             competition__status="current", active=True
@@ -741,11 +738,7 @@ def daily_returns5():
     current_time_lagos = timezone.now().astimezone(lagos_timezone)
     # print(current_time_lagos)
 
-    if (
-        current_time_lagos.time() >= datetime.strptime("10:02 AM", "%I:%M %p").time()
-        and current_time_lagos.time() <= datetime.strptime("2:31 PM", "%I:%M %p").time()
-        and current_time_lagos.weekday() < 5
-    ):
+    if is_trading_time(current_time_lagos, start_offset=2, end_offset=1):
         # if current_time_lagos.time() >= datetime.strptime('7:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('2:30 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
         users = User.objects.all()
         for user in users:
@@ -948,11 +941,7 @@ def competition_daily_returns7():
     # print(current_time_lagos)
 
     # if current_time_lagos.time() >= datetime.strptime('8:02 AM', '%I:%M %p').time() and current_time_lagos.time() <= datetime.strptime('11:31 PM', '%I:%M %p').time() and current_time_lagos.weekday() < 5:
-    if (
-        current_time_lagos.time() >= datetime.strptime("10:02 AM", "%I:%M %p").time()
-        and current_time_lagos.time() <= datetime.strptime("2:30 PM", "%I:%M %p").time()
-        and current_time_lagos.weekday() < 5
-    ):
+    if is_trading_time(current_time_lagos, start_offset=2):
 
         asi_history = None
         portfolios = CompetitionPortfolio.objects.filter(
@@ -1094,11 +1083,7 @@ def daily_returns7():
     #     and current_time_lagos.time()
     #     <= datetime.strptime("11:31 PM", "%I:%M %p").time()
     # ):
-    if (
-        current_time_lagos.time() >= datetime.strptime("10:02 AM", "%I:%M %p").time()
-        and current_time_lagos.time() <= datetime.strptime("2:30 PM", "%I:%M %p").time()
-        and current_time_lagos.weekday() < 5
-    ):
+    if is_trading_time(current_time_lagos, start_offset=2):
 
         asi_history = None
         portfolios = DemoPortfolio.objects.all()

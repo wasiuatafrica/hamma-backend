@@ -27,6 +27,7 @@ from django.db.models.functions import (
     TruncWeek,
 )
 from django.utils import timezone
+from portfolio.market_hours import MARKET_CLOSE_AT, shift
 from django.utils.timezone import make_aware, now
 from rest_framework import permissions, status
 from rest_framework.generics import get_object_or_404
@@ -2615,13 +2616,13 @@ class UserActivityChartData(APIView):
             week_end = week_start + timedelta(days=7)  # Monday of the next week
             week_friday = week_start + timedelta(days=4)  # Friday of the current week
 
-            # Skip the current week if it's not yet 3 PM on Friday Lagos time
+            # Skip the current week until 30 minutes after Friday's close
             if (
                 current_time.date() >= week_start.date()
                 and current_time.date() <= week_friday.date()
             ):
                 if current_time < make_aware(
-                    datetime.combine(week_friday, time(15, 0)), lagos_tz
+                    datetime.combine(week_friday, shift(MARKET_CLOSE_AT, 30)), lagos_tz
                 ):
                     continue
 

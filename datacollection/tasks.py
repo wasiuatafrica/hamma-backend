@@ -1,3 +1,4 @@
+from portfolio.market_hours import is_trading_time
 from celery import shared_task
 from celery.utils.log import get_task_logger
 import requests
@@ -72,20 +73,7 @@ def get_live_data():
 
 
 def is_market_open():
-    lagos_timezone = pytz.timezone("Africa/Lagos")
-    current_time_lagos = datetime.now(lagos_timezone).time()
-
-    if datetime.today().weekday() < 5:
-        market_open_time = time(10, 0)
-
-        market_close_time = time(14, 31)
-        # market_open_time = time(7, 0)
-        # market_close_time = time(22, 30)
-
-        if market_open_time <= current_time_lagos <= market_close_time:
-            return True
-
-    return False
+    return is_trading_time()
 
 
 def get_price():

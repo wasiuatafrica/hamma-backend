@@ -13,6 +13,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
+from portfolio.market_hours import is_trading_time
 from django.utils.html import strip_tags
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
@@ -88,11 +89,7 @@ def check_alert(id):
             return
 
         current_time = timezone.now().astimezone(lagos_tz)
-        if (
-            current_time.weekday() < 5
-            and current_time.time() >= datetime.strptime("9:30 AM", "%I:%M %p").time()
-            and current_time.time() <= datetime.strptime("2:30 PM", "%I:%M %p").time()
-        ):
+        if is_trading_time(current_time):
             if timezone.now().astimezone(lagos_tz) < alert.expire:
                 if not alert.trigerred:
                     try:

@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from portfolio.market_hours import MARKET_CLOSE_AT, OPENS_AT, lagos_now
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -41,22 +42,16 @@ class LeaderboardAPIView(APIView):
     def get(self, request):
         """
         Get the current week's leaderboard data.
-        Returns weekly awards on Fridays after market close (2:30 PM).
+        Returns weekly awards on Fridays after market close (16:00 Lagos).
         """
-        today = timezone.now()
+        today = lagos_now()  # was UTC, compared against Lagos market hours
         current_time = today.time()
         weekday = today.weekday()
 
         is_awards_period = (
-            (
-                weekday == 4
-                and (
-                    current_time.hour > 14
-                    or (current_time.hour == 14 and current_time.minute >= 30)
-                )
-            )
+            (weekday == 4 and current_time >= MARKET_CLOSE_AT)
             or weekday in [5, 6]
-            or (weekday == 0 and current_time.hour < 10)
+            or (weekday == 0 and current_time < OPENS_AT)
         )
 
         if is_awards_period:
