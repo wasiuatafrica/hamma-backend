@@ -65,7 +65,6 @@ def timing_decorator(func):
         start_time = time.time()
         result = func(*args, **kwargs)
         end_time = time.time()
-        print(f"{func.__name__} took {end_time - start_time:.2f} seconds to execute")
         return result
 
     return wrapper
@@ -135,7 +134,6 @@ def get_relevant_timeframe(trading_frequency):
 
 
 def rule_based_recommendation(trader, stocks):
-    print("stocks to check", len(stocks))
     # Get profile configurations
     risk_profile = RISK_PROFILES[trader.risk_tolerance]
     momentum_profile = MOMENTUM_PROFILES[trader.trading_style]
@@ -148,17 +146,6 @@ def rule_based_recommendation(trader, stocks):
     timeframe = get_relevant_timeframe(trader.trading_frequency)
     trader_sentiment = trader.market_sentiment1
 
-    print("Trader Preferences:")
-    print(f"Risk Tolerance: {trader.risk_tolerance}")
-    print(f"Trading Style: {trader.trading_style}")
-    print(f"Preferred Asset Type: {preferred_asset_type}")
-    print(
-        f"Trading Frequency: {trader.trading_frequency} -> Timeframe: {   
-    timeframe}"
-    )
-    print(f"Market Sentiment: {trader_sentiment}")
-    print(f"Number of Preferred Stocks: {len(trader.preferred_stocks)}")
-    print(f"Number of Stocks to Evaluate: {len(stocks)}")
 
     recommendations = []
 
@@ -309,7 +296,6 @@ def get_stock_recommendations(trader, stocks):
     rule_based_recs = rule_based_recommendation(trader, stocks)
 
     all_recs = rule_based_recs
-    print(len(all_recs))
 
     return {
         "trader_id": trader.trader_id,
@@ -335,7 +321,6 @@ def process_recommendation(
 
     last_item.pop("_id")
     end = time.time()
-    print(f"time taken for mongodb {end - start:.4f}s")
     watchlisted_stocks = Stock.objects.filter(
         watchlisted_by__user=trader_profile.trader
     ).values_list("symbol", flat=True)
@@ -344,7 +329,6 @@ def process_recommendation(
     # print(watchlisted_stocks_symbols)
     preferred_stocks = trader_profile.preferred_stocks + watchlisted_stocks_symbols
     stocks = [StockData(data) for symbol, data in last_item.items()]
-    print(f"Total stocks fetched: {len(stocks)}")
     profile = (
         trader_profile.trader.id,
         trader_profile.risk_tolerance.lower(),
@@ -367,11 +351,9 @@ def process_recommendation(
         trader_profile.preferred_asset_type.split(" ")[0].lower(),
     )
     recommendations = get_stock_recommendations(trader, stocks)
-    print(recommendations)
     recommended_symbols = [
         rec["symbol"] for rec in recommendations["recommended_stocks"]
     ]
-    print(recommended_symbols, len(recommended_symbols))
     # generated_signals = [
     #     {symbol: signals_data[symbol]} for symbol in set(recommended_symbols)
     # ]

@@ -1,11 +1,12 @@
+import hashlib
 import json
 import math
 import os
-from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
 from bson import json_util
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from openai import OpenAI
 from pymongo import MongoClient
 
@@ -15,12 +16,11 @@ from portfolio.serializers import AlertSerializer
 from stocknews.models import StockNews
 
 from .models import Alert, AlertAI, Conversation, Message
+from .prices import PriceUnavailable, get_price, get_prices_map  # noqa: F401 (re-exported)
 from .serializers import StockNewsSerializer
 
 User = get_user_model()
-client = MongoClient(
-    os.environ.get("MONGO_STRING"), tls=True, tlsAllowInvalidCertificates=True
-)
+client = MongoClient(os.environ.get("MONGO_STRING"), tls=True)
 
 db_merged = client["livelake3"]
 db_fundamental = client["ngxfundamentals"]
@@ -94,15 +94,6 @@ def get_mini_data():
     return result_list
 
 
-def get_price(symbol):
-
-    # collection = db_merged["merged_live_price"]
-    collection = db_merged["merged_live_price_trdv"]
-    last_item = collection.find_one(sort=[("_id", -1)])
-    # print(symbol)
-    return last_item[symbol]
-
-
 def get_details(stock):
     data = get_price(stock.symbol)
     details = {
@@ -118,27 +109,63 @@ def get_details(stock):
 
 
 def get_stockdata2():
-    # collection = db_merged["merged_live_price"]
-    collection = db_merged["merged_live_price_trdv"]
-    last_item = collection.find_one(sort=[("_id", -1)])
+    """Latest usable prices keyed by symbol; see prices.get_prices_map()."""
+    return get_prices_map()
 
-    return last_item
+
+LOGO_URL_CACHE_SECONDS = 12 * 60 * 60  # presigned URLs are valid for 24h
+
+
+def get_cached_logo_url(stock):
+    """Presigned logo URL, cached so list endpoints don't sign ~150 URLs per call."""
+    if not stock.logo_url:
+        return None
+    digest = hashlib.md5(stock.logo_url.encode()).hexdigest()
+    key = f"stock_logo_url:{stock.pk}:{digest}"
+    try:
+        url = cache.get(key)
+    except Exception:
+        url = None
+    if url is None:
+        url = stock.get_signed_logo_url()
+        try:
+            cache.set(key, url, LOGO_URL_CACHE_SECONDS)
+        except Exception:
+            pass
+    return url
+
+
+def _stock_fields(stock):
+    return {
+        "company": stock.company,
+        "symbol": stock.symbol,
+        "sector": stock.sector,
+        "logo_url": get_cached_logo_url(stock),
+        "tv_symbol": stock.tv_symbol,
+        "ngx_status": stock.ngx_status,
+        "is_active": stock.active,
+    }
+
+
+def _json_safe(details):
+    """NaN/Infinity are not valid JSON and would break the whole response."""
+    return {
+        key: None if isinstance(value, float) and not math.isfinite(value) else value
+        for key, value in details.items()
+    }
 
 
 def get_details2(stock, stock_data):
     data = stock_data.get(stock.symbol, {})
 
-    # print(data)
-
     if data:
-        return {
-            "company": stock.company,
-            "symbol": stock.symbol,
-            "sector": stock.sector,
-            "logo_url": stock.get_signed_logo_url(),
+        return _json_safe({
+            **_stock_fields(stock),
             "current_price": data.get("current_price"),
             "percent_change": data.get("percentage_change"),
             "change": data.get("change"),
+            "price_status": "stale" if data.get("is_stale") else "live",
+            "as_of": data.get("as_of") or data.get("datetime"),
             "volume": data.get("volume"),
             "momentum": data.get("momentum"),
             "momentum_change": data.get("momentum_change"),
@@ -165,17 +192,16 @@ def get_details2(stock, stock_data):
             "momentum_change_24hr": data.get("momentum_change_24hr"),
             "volume_momentum_24hr": data.get("volume_momentum_24hr"),
             "volume_momentum_change_24hr": data.get("volume_momentum_change_24hr"),
-        }
+        })
     else:
-        # Handle the case when data is not available for the symbol
+        # No usable price: return nulls, never 0, so clients can show "unavailable"
         return {
-            "company": stock.company,
-            "symbol": stock.symbol,
-            "logo_url": stock.get_signed_logo_url(),
-            "sector": stock.sector,
-            "current_price": 0,
-            "percent_change": 0,
-            "change": 0,
+            **_stock_fields(stock),
+            "current_price": None,
+            "percent_change": None,
+            "change": None,
+            "price_status": "unavailable",
+            "as_of": None,
         }
 
 
@@ -187,10 +213,17 @@ def handle_special_values(value):
 
 def get_details3(stocks):
     stockdata = get_stockdata2()
-    with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(get_details2, stock, stockdata) for stock in stocks]
-        performance_data = [future.result() for future in futures]
-    return performance_data
+    return [get_details2(stock, stockdata) for stock in stocks]
+
+
+def is_tradeable(detail):
+    """Listed and priced; stocks without a usable price can't be traded."""
+    return bool(detail.get("is_active")) and detail.get("price_status") != "unavailable"
+
+
+def get_tradeable_details(stocks):
+    """get_details3() for lists people browse: drops stocks that can't be traded."""
+    return [detail for detail in get_details3(stocks) if is_tradeable(detail)]
 
 
 def get_alert_data(prompt):
@@ -286,7 +319,6 @@ def get_alerts(user):
         created__range=(current_month_start, current_month_end), user=user
     )
     alerts = AlertSerializer(alerts_query, many=True).data
-    print("serialize", alerts)
     return alerts
 
 
@@ -335,8 +367,9 @@ def get_calendar(symbol):
 
 def get_signal(symbol):
     signal_collection = signal_db["signals"]
-    signals_data = signal_collection.find_one(sort=[("_id", -1)])
-    company_data = signals_data[symbol]
+    signals_data = signal_collection.find_one(sort=[("_id", -1)]) or {}
+    # New or renamed stocks have no signal until the next signals run
+    company_data = signals_data.get(symbol)
     if company_data:
         # print("here")
         company_data.pop("_id", None)

@@ -35,7 +35,6 @@ def verify_token(user_email, token, _type=""):
     token = models.TwoFactorToken.objects.filter(
         user__email=user_email, token=token
     ).first()
-    print(token.token)
     current_time = timezone.now()
     if token and token.expiration >= current_time:
         user = user_
@@ -123,7 +122,6 @@ import requests
 
 
 def sms_2FA(phone, token):
-    print(phone)
     resp = requests.post(
         "https://textbelt.com/text",
         {
@@ -132,7 +130,6 @@ def sms_2FA(phone, token):
             "key": "textbelt",
         },
     )
-    print(resp.json())
     return resp.json()
 
 

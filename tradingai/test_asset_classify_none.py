@@ -42,7 +42,6 @@ def test_classify_asset_with_none():
         "market_cap": 69046153847.2,
     }
     result = classify_asset(sample_data)
-    print(result)
 
 
 if __name__ == "__main__":

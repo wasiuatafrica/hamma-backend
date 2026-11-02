@@ -40,7 +40,13 @@ from competition.models import (
 )
 from notifications.utils import save_and_send_notification
 from portfolio.models import DemoTransaction, Stock, Wallet
-from portfolio.utils import get_price, get_stockdata2
+from portfolio.utils import get_cached_logo_url, get_price, get_stockdata2
+from portfolio.prices import (
+    PriceUnavailable,
+    get_price_info,
+    price_from_map,
+    price_unavailable_message,
+)
 
 from . import serializers as exec_serializer
 from .models import (
@@ -68,7 +74,7 @@ def get_position(all_prices, queryset):
     all_positions = []
     for position in queryset:
         symbol = position.stock.symbol
-        price = all_prices[symbol]["current_price"]
+        price = price_from_map(all_prices, symbol, position.open_price)
         current_value = round(position.quantity * price, 2)
 
         if position.status == "open":
@@ -294,7 +300,6 @@ class SingleDemoTradeAPIView(APIView):
                 stop_loss=stop_loss,
                 action=action,
             )
-            print("created")
 
             # Send email notification
             trade_data = {
@@ -350,7 +355,10 @@ class SingleDemoTradeAPIView(APIView):
             # Validate input parameters
             symbol = request.data.get("symbol")
             order_id = request.data.get("order_id")
-            quantity = int(request.data.get("quantity", 0))
+            try:
+                quantity = int(request.data.get("quantity", 0))
+            except (TypeError, ValueError):
+                quantity = 0
             device_type = request.data.get("device_type")
             action = request.data.get("action")
             time_in_force = request.data.get("time_in_force", "day")
@@ -369,7 +377,11 @@ class SingleDemoTradeAPIView(APIView):
             if stop_loss:
                 stop_loss = float(stop_loss)
 
-            stock = get_object_or_404(Stock, symbol=symbol)
+            stock = Stock.objects.filter(symbol=symbol).first() if symbol else None
+            if stock is None:
+                return Response(
+                    {"error": "Stock not found."}, status.HTTP_404_NOT_FOUND
+                )
             current_price = round(Decimal(get_price(symbol)["current_price"]), 2)
 
             # Validate take profit and stop loss
@@ -389,7 +401,6 @@ class SingleDemoTradeAPIView(APIView):
                     device_type,
                 )
             elif order_type == "limit":
-                print("limit")
                 price = float(request.data.get("price"))
                 self.validate_tp_sl_limit(action, price, take_profit, stop_loss)
                 position = self.process_limit_order(
@@ -417,7 +428,13 @@ class SingleDemoTradeAPIView(APIView):
 
         except ValidationError as e:
             return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
+        except PriceUnavailable as e:
+            return Response(
+                {"error": str([price_unavailable_message(e.symbol)])},
+                status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
+            logger.exception("Unexpected error placing order")
             return Response(
                 {"error": "An unexpected error occurred."},
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -558,6 +575,9 @@ class NewDemoCloseTrade(APIView):
             if position.status != "open":
                 return Response("Position is not open", status.HTTP_400_BAD_REQUEST)
 
+            # Never close at a fallback price; raises PriceUnavailable
+            get_price(position.stock.symbol)
+
             # Process trade closure
             pl, cur_val, price = position.calculate_profit_loss()
             trade_data = self._process_close_trade(position, price)
@@ -610,6 +630,11 @@ class NewDemoCloseTrade(APIView):
         except ValidationError as e:
             logger.error(f"Validation error in trade closure: {str(e)}")
             return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
+        except PriceUnavailable as e:
+            return Response(
+                {"error": str([price_unavailable_message(e.symbol)])},
+                status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
             logger.exception("Unexpected error in trade closure")
             return Response(
@@ -725,6 +750,11 @@ class CloseAllTradesView(APIView):
                 if not position.stock.active:
                     # Skip inactive stocks
                     continue
+                try:
+                    get_price(position.stock.symbol)
+                except PriceUnavailable:
+                    # No current price: leave open rather than close at a fallback price
+                    continue
 
                 # Process trade closure
                 pl, cur_val, price = position.calculate_profit_loss()
@@ -790,6 +820,11 @@ class CloseAllTradesView(APIView):
         except ValidationError as e:
             logger.error(f"Validation error in bulk trade closure: {str(e)}")
             return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
+        except PriceUnavailable as e:
+            return Response(
+                {"error": str([price_unavailable_message(e.symbol)])},
+                status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
             logger.exception("Unexpected error in bulk trade closure")
             return Response(
@@ -1073,7 +1108,13 @@ class EnhancedPortfolioCalculator(PortfolioCalculator):
         base_data = {
             "id": position.id,
             "stock": position.stock.symbol,
-            "logo_url": position.stock.get_signed_logo_url(),
+            "logo_url": get_cached_logo_url(position.stock),
+            "stock_is_active": position.stock.active,
+            "price_status": (
+                get_price_info(position.stock.symbol)["price_status"]
+                if position.status == "open"
+                else None
+            ),
             "shares": position.quantity,
             "avg_cost": position.open_price,
             "close_price": position.close_price,
@@ -1237,13 +1278,11 @@ class NewHome(APIView):
         closed_pl, closed_positions = PortfolioCalculator.calculate_closed_positions(
             positions_closed
         )
-        print(f"Closed PL: {closed_pl}")
 
         # Adjust closed PL for swap fees if applicable
         if hasattr(portfolio, "get_swap_fees"):
             closed_pl -= portfolio.get_swap_fees()
 
-        print(f"Adjusted Closed PL: {closed_pl}")
 
         open_balance = sum(position.amount_invested for position in positions)
         initial_balance = Decimal(portfolio.initial_balance)

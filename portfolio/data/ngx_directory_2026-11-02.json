@@ -1,0 +1,1462 @@
+[
+ {
+  "symbol": "ABBEYBANK",
+  "isin": "NGABBEY00001",
+  "company": "ABBEY BANK PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": null,
+  "incorporation_date": "1991-08-26",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "ABCTRANS",
+  "isin": "NGABCTRANS01",
+  "company": "ABC TRANSPORT PLC",
+  "sector": "SERVICES",
+  "listing_date": "2006-12-20",
+  "incorporation_date": "1993-04-05",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "ACADEMY",
+  "isin": "NGACADEMY008",
+  "company": "ACADEMY PRESS PLC.",
+  "sector": "SERVICES",
+  "listing_date": "1965-06-15",
+  "incorporation_date": "1964-07-28",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "ACCESSCORP",
+  "isin": "NGACCESS0005",
+  "company": "ACCESS HOLDINGS PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2022-03-28",
+  "incorporation_date": "2021-02-10",
+  "ngx_status": "MRF",
+  "tradingview": true
+ },
+ {
+  "symbol": "AFRINSURE",
+  "isin": "NGAFRINSURE4",
+  "company": "AFRICAN ALLIANCE INSURANCE PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2009-09-17",
+  "incorporation_date": "1960-05-06",
+  "ngx_status": "MRF",
+  "tradingview": true
+ },
+ {
+  "symbol": "AFRIPRUD",
+  "isin": "NGAFRIPRUD04",
+  "company": "AFRICA PRUDENTIAL PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2013-11-01",
+  "incorporation_date": "2006-03-23",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "AFROMEDIA",
+  "isin": "NGAFROMEDIA7",
+  "company": "AFROMEDIA PLC",
+  "sector": "SERVICES",
+  "listing_date": "2009-05-18",
+  "incorporation_date": "1959-10-28",
+  "ngx_status": "MRF",
+  "tradingview": true
+ },
+ {
+  "symbol": "AIICO",
+  "isin": "NGAIICO00006",
+  "company": "AIICO INSURANCE PLC.",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": null,
+  "incorporation_date": "1970-07-14",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "AIRTELAFRI",
+  "isin": "GB00BKDRYJ47",
+  "company": "AIRTEL AFRICA PLC",
+  "sector": "ICT",
+  "listing_date": "2019-07-09",
+  "incorporation_date": "2018-07-12",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "ALEX",
+  "isin": "NGALEX000003",
+  "company": "ALUMINIUM EXTRUSION INDUSTRIES PLC",
+  "sector": "NATURAL RESOURCES",
+  "listing_date": "1987-12-29",
+  "incorporation_date": "1982-10-26",
+  "ngx_status": "BMF",
+  "tradingview": false
+ },
+ {
+  "symbol": "ARADEL",
+  "isin": "NGARADEL0004",
+  "company": "ARADEL HOLDINGS PLC",
+  "sector": "OIL AND GAS",
+  "listing_date": "2024-10-14",
+  "incorporation_date": "1992-03-25",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "AUSTINLAZ",
+  "isin": "NGAUSTINLAZ9",
+  "company": "AUSTIN LAZ & COMPANY PLC",
+  "sector": "INDUSTRIAL GOODS",
+  "listing_date": null,
+  "incorporation_date": "1982-07-13",
+  "ngx_status": "RST",
+  "tradingview": true
+ },
+ {
+  "symbol": "AVACAP",
+  "isin": "NGAVACAP0009",
+  "company": "AVA CAPITAL PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2026-07-31",
+  "incorporation_date": "2014-01-24",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "AVAIF",
+  "isin": "NGAVAIF00001",
+  "company": "AVA INFRASTRUCTURE FUND",
+  "sector": "CONSTRUCTION/REAL ESTATE",
+  "listing_date": "2014-09-15",
+  "incorporation_date": "2014-08-18",
+  "ngx_status": null,
+  "tradingview": false
+ },
+ {
+  "symbol": "BAPLC",
+  "isin": "NGBAPLC00002",
+  "company": "BRICLINKS AFRICA PLC",
+  "sector": "ICT",
+  "listing_date": "2021-02-05",
+  "incorporation_date": "2015-07-30",
+  "ngx_status": null,
+  "tradingview": false
+ },
+ {
+  "symbol": "BERGER",
+  "isin": "NGBERGER0000",
+  "company": "BERGER PAINTS PLC",
+  "sector": "INDUSTRIAL GOODS",
+  "listing_date": null,
+  "incorporation_date": "1959-09-01",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "BETAGLAS",
+  "isin": "NGBETAGLAS04",
+  "company": "BETA GLASS PLC.",
+  "sector": "INDUSTRIAL GOODS",
+  "listing_date": "1986-07-02",
+  "incorporation_date": "1974-06-02",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "BUACEMENT",
+  "isin": "NGBUACEMENT3",
+  "company": "BUA CEMENT PLC",
+  "sector": "INDUSTRIAL GOODS",
+  "listing_date": "2020-01-09",
+  "incorporation_date": "2014-05-30",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "BUAFOODS",
+  "isin": "NGBUAFOODS04",
+  "company": "BUA FOODS PLC",
+  "sector": "CONSUMER GOODS",
+  "listing_date": "2022-01-05",
+  "incorporation_date": "2005-04-13",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "CADBURY",
+  "isin": "NGCADBURY001",
+  "company": "CADBURY NIGERIA PLC.",
+  "sector": "CONSUMER GOODS",
+  "listing_date": null,
+  "incorporation_date": "1965-01-09",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "CAP",
+  "isin": "NGCAP0000009",
+  "company": "CHEMICAL AND ALLIED PRODUCTS PLC",
+  "sector": "INDUSTRIAL GOODS",
+  "listing_date": "1978-05-24",
+  "incorporation_date": "1965-09-21",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "CAVERTON",
+  "isin": "NGCAVERTON07",
+  "company": "CAVERTON OFFSHORE SUPPORT GROUP PLC",
+  "sector": "SERVICES",
+  "listing_date": "2014-02-06",
+  "incorporation_date": "2008-06-02",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "CHAMPION",
+  "isin": "NGCHAMPION00",
+  "company": "CHAMPION BREWERIES PLC",
+  "sector": "CONSUMER GOODS",
+  "listing_date": "1983-09-01",
+  "incorporation_date": "1974-07-31",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "CHAMS",
+  "isin": "NGCHAMS00001",
+  "company": "CHAMS HOLDING COMPANY PLC",
+  "sector": "ICT",
+  "listing_date": null,
+  "incorporation_date": "1985-09-10",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "CHELLARAM",
+  "isin": "NGCHELLARAM5",
+  "company": "CHELLARAMS PLC.",
+  "sector": "CONGLOMERATES",
+  "listing_date": "1977-04-01",
+  "incorporation_date": "1947-08-13",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "CILEASING",
+  "isin": "NGCILEASING2",
+  "company": "C & I LEASING PLC.",
+  "sector": "SERVICES",
+  "listing_date": "1997-12-01",
+  "incorporation_date": "1990-12-28",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "CMFC",
+  "isin": "NGDEAPCAP009",
+  "company": "CRITICAL MINERALS FINANCING CORP PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2007-12-17",
+  "incorporation_date": "2002-06-05",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "CNIF",
+  "isin": "NGCNIF000007",
+  "company": "CORONATION INFRASTRUCTURE FUND",
+  "sector": "CONSTRUCTION/REAL ESTATE",
+  "listing_date": "2025-08-25",
+  "incorporation_date": "2025-04-09",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "CONHALLPLC",
+  "isin": "NGCONHALLPL3",
+  "company": "CONSOLIDATED HALLMARK HOLDINGS PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2023-11-27",
+  "incorporation_date": "1991-08-02",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "CONOIL",
+  "isin": "NGCONOIL0003",
+  "company": "CONOIL PLC",
+  "sector": "OIL AND GAS",
+  "listing_date": null,
+  "incorporation_date": "1970-06-30",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "CORNERST",
+  "isin": "NGCORNERST03",
+  "company": "CORNERSTONE INSURANCE PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": null,
+  "incorporation_date": "1991-07-26",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "CUSTODIAN",
+  "isin": "NGCUSTODYIN6",
+  "company": "CUSTODIAN INVESTMENT PLC",
+  "sector": "CONGLOMERATES",
+  "listing_date": null,
+  "incorporation_date": "1991-08-22",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "CUTIX",
+  "isin": "NGCUTIX00002",
+  "company": "CUTIX PLC.",
+  "sector": "INDUSTRIAL GOODS",
+  "listing_date": "1987-08-12",
+  "incorporation_date": "1982-11-04",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "CWG",
+  "isin": "NGCWG0000002",
+  "company": "CWG PLC",
+  "sector": "ICT",
+  "listing_date": null,
+  "incorporation_date": "1991-09-26",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "DAARCOMM",
+  "isin": "NGDAARCOMM01",
+  "company": "DAAR COMMUNICATIONS PLC",
+  "sector": "SERVICES",
+  "listing_date": null,
+  "incorporation_date": "1988-08-31",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "DANGCEM",
+  "isin": "NGDANGCEM008",
+  "company": "DANGOTE CEMENT PLC",
+  "sector": "INDUSTRIAL GOODS",
+  "listing_date": "2010-10-26",
+  "incorporation_date": "1992-11-04",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "DANGSUGAR",
+  "isin": "NGDANSUGAR02",
+  "company": "DANGOTE SUGAR REFINERY PLC",
+  "sector": "CONSUMER GOODS",
+  "listing_date": "2007-03-08",
+  "incorporation_date": "2005-01-04",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "EKOCORP",
+  "isin": "NGECOCORP009",
+  "company": "EKOCORP PLC.",
+  "sector": "HEALTHCARE",
+  "listing_date": null,
+  "incorporation_date": "1991-10-09",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "ELLAHLAKES",
+  "isin": "NGELLAHLAKE8",
+  "company": "ELLAH LAKES PLC.",
+  "sector": "AGRICULTURE",
+  "listing_date": null,
+  "incorporation_date": "1980-07-02",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "ENAMELWA",
+  "isin": "NGENAMELWA03",
+  "company": "NIGERIAN ENAMELWARE PLC.",
+  "sector": "CONSUMER GOODS",
+  "listing_date": null,
+  "incorporation_date": "1960-05-21",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "ETERNA",
+  "isin": "NGETERNAOIL1",
+  "company": "ETERNA PLC.",
+  "sector": "OIL AND GAS",
+  "listing_date": null,
+  "incorporation_date": "1989-01-13",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "ETI",
+  "isin": "TG0000000132",
+  "company": "ECOBANK TRANSNATIONAL INCORPORATED",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2006-09-11",
+  "incorporation_date": "1985-10-03",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "ETRANZACT",
+  "isin": "NGETRANZ0005",
+  "company": "E-TRANZACT INTERNATIONAL PLC",
+  "sector": "ICT",
+  "listing_date": "2009-08-07",
+  "incorporation_date": "2003-05-07",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "EUNISELL",
+  "isin": "NGINTERLINK3",
+  "company": "EUNISELL INTERLINKED PLC",
+  "sector": "SERVICES",
+  "listing_date": "1993-11-13",
+  "incorporation_date": "1981-11-17",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "FCMB",
+  "isin": "NGFCMB000005",
+  "company": "FCMB GROUP PLC.",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2013-06-21",
+  "incorporation_date": "2012-11-20",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "FIDELITYBK",
+  "isin": "NGFIDELITYB5",
+  "company": "FIDELITY BANK PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2005-05-17",
+  "incorporation_date": "1987-11-19",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "FIDSON",
+  "isin": "NGFIDSON0006",
+  "company": "FIDSON HEALTHCARE PLC",
+  "sector": "HEALTHCARE",
+  "listing_date": "2008-04-06",
+  "incorporation_date": "1995-03-13",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "FIRSTHOLDCO",
+  "isin": "NGFBNH000009",
+  "company": "FIRST HOLDCO PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2012-11-26",
+  "incorporation_date": "2012-08-13",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "FTGINSURE",
+  "isin": "NGSTDINSURE7",
+  "company": "FORTIS GLOBAL INSURANCE PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2003-12-19",
+  "incorporation_date": "1981-07-28",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "FTNCOCOA",
+  "isin": "NGFTNCOCOA02",
+  "company": "FTN COCOA PROCESSORS PLC",
+  "sector": "AGRICULTURE",
+  "listing_date": null,
+  "incorporation_date": "1991-08-26",
+  "ngx_status": "RST",
+  "tradingview": true
+ },
+ {
+  "symbol": "GEREGU",
+  "isin": "NGGEREGU0000",
+  "company": "GEREGU POWER PLC",
+  "sector": "UTILITIES",
+  "listing_date": "2022-10-05",
+  "incorporation_date": "2006-11-10",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "GOLDBREW",
+  "isin": "NGGOLDBREW01",
+  "company": "GOLDEN GUINEA BREWERIES PLC",
+  "sector": "CONSUMER GOODS",
+  "listing_date": null,
+  "incorporation_date": "1962-09-26",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "GTCO",
+  "isin": "NGGTCO000002",
+  "company": "GUARANTY TRUST HOLDING COMPANY PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2021-06-24",
+  "incorporation_date": "2020-07-24",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "GUINEAINS",
+  "isin": "NGGUINEAINS0",
+  "company": "GUINEA INSURANCE PLC.",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": null,
+  "incorporation_date": "1958-12-03",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "GUINNESS",
+  "isin": "NGGUINNESS07",
+  "company": "GUINNESS NIGERIA PLC",
+  "sector": "CONSUMER GOODS",
+  "listing_date": "1965-01-02",
+  "incorporation_date": "1950-04-29",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "HBMNG",
+  "isin": "NGWAPCO00002",
+  "company": "HBM NIGERIA PLC",
+  "sector": "INDUSTRIAL GOODS",
+  "listing_date": "1979-02-17",
+  "incorporation_date": "1959-02-24",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "HMCALL",
+  "isin": "NGHMCALL0004",
+  "company": "HALDANE MCCALL PLC",
+  "sector": "CONSTRUCTION/REAL ESTATE",
+  "listing_date": "2024-11-20",
+  "incorporation_date": "2012-03-26",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "HONYFLOUR",
+  "isin": "NGHONYFLOUR7",
+  "company": "HONEYWELL FLOUR MILL PLC",
+  "sector": "CONSUMER GOODS",
+  "listing_date": "2009-10-20",
+  "incorporation_date": "1985-07-09",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "IKEJAHOTEL",
+  "isin": "NGIKEJAHOTL7",
+  "company": "IKEJA HOTEL PLC",
+  "sector": "SERVICES",
+  "listing_date": "2007-09-06",
+  "incorporation_date": "1972-11-18",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "IMG",
+  "isin": "NGBOCGAS0008",
+  "company": "INDUSTRIAL & MEDICAL GASES NIGERIA PLC",
+  "sector": "NATURAL RESOURCES",
+  "listing_date": null,
+  "incorporation_date": "1959-12-11",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "INFINITY",
+  "isin": "NGINFINITY01",
+  "company": "INFINITY TRUST MORTGAGE BANK PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2013-12-11",
+  "incorporation_date": "2002-11-28",
+  "ngx_status": "BLS",
+  "tradingview": true
+ },
+ {
+  "symbol": "INTBREW",
+  "isin": "NGINTBREW005",
+  "company": "INTERNATIONAL BREWERIES PLC.",
+  "sector": "CONSUMER GOODS",
+  "listing_date": null,
+  "incorporation_date": "1971-12-22",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "INTENEGINS",
+  "isin": "NGINTENEGIN5",
+  "company": "INTERNATIONAL ENERGY INSURANCE PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2007-07-13",
+  "incorporation_date": "1969-03-26",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "JAIZBANK",
+  "isin": "NGJAIZBANK05",
+  "company": "JAIZ BANK PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": null,
+  "incorporation_date": "2003-04-01",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "JAPAULGOLD",
+  "isin": "NGJAPAULOIL4",
+  "company": "JAPAUL GOLD & VENTURES PLC",
+  "sector": "OIL AND GAS",
+  "listing_date": "2005-08-10",
+  "incorporation_date": "1994-06-29",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "JBERGER",
+  "isin": "NGJBERGER009",
+  "company": "JULIUS BERGER NIGERIA PLC",
+  "sector": "CONSTRUCTION/REAL ESTATE",
+  "listing_date": null,
+  "incorporation_date": "1970-02-18",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "JOHNHOLT",
+  "isin": "NGJOHNHOLT05",
+  "company": "JOHN HOLT PLC.",
+  "sector": "CONGLOMERATES",
+  "listing_date": null,
+  "incorporation_date": "1961-08-28",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "JULI",
+  "isin": "NGJULI000003",
+  "company": "JULI PLC.",
+  "sector": "SERVICES",
+  "listing_date": "1986-07-11",
+  "incorporation_date": "1972-09-14",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "LASACO",
+  "isin": "NGLASACO0002",
+  "company": "LASACO ASSURANCE PLC.",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": null,
+  "incorporation_date": "1979-12-20",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "LEARNAFRCA",
+  "isin": "NGLONGMAN007",
+  "company": "LEARN AFRICA PLC",
+  "sector": "SERVICES",
+  "listing_date": null,
+  "incorporation_date": "1961-10-08",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "LEGENDINT",
+  "isin": "NGLEGENDINT0",
+  "company": "LEGEND INTERNET PLC",
+  "sector": "ICT",
+  "listing_date": "2025-04-24",
+  "incorporation_date": "2021-08-17",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "LINKASSURE",
+  "isin": "NGLINKASSUR7",
+  "company": "LINKAGE ASSURANCE PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2003-11-18",
+  "incorporation_date": "1991-03-26",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "LIVESTOCK",
+  "isin": "NGLIVESTOCK5",
+  "company": "LIVESTOCK FEEDS PLC.",
+  "sector": "AGRICULTURE",
+  "listing_date": "1978-04-01",
+  "incorporation_date": "1963-03-20",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "LIVINGTRUST",
+  "isin": "NGOMOMORBNK6",
+  "company": "LIVINGTRUST MORTGAGE BANK PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": null,
+  "incorporation_date": "1999-03-09",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "MANSARD",
+  "isin": "NGGTASSURE05",
+  "company": "AXAMANSARD INSURANCE PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2009-11-19",
+  "incorporation_date": "1989-06-23",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "MAYBAKER",
+  "isin": "NGMAYBAKER01",
+  "company": "MAY & BAKER NIGERIA PLC.",
+  "sector": "HEALTHCARE",
+  "listing_date": "1994-11-10",
+  "incorporation_date": "1944-04-09",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "MBENEFIT",
+  "isin": "NGMBENEFT000",
+  "company": "MUTUAL BENEFITS ASSURANCE PLC.",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2002-05-28",
+  "incorporation_date": "1995-04-18",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "MCNICHOLS",
+  "isin": "NGMCNICHOLS7",
+  "company": "MCNICHOLS CONSOLIDATED PLC",
+  "sector": "CONSUMER GOODS",
+  "listing_date": "2009-12-18",
+  "incorporation_date": "2004-04-26",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "MECURE",
+  "isin": "NGMECURE0006",
+  "company": "MECURE INDUSTRIES PLC",
+  "sector": "HEALTHCARE",
+  "listing_date": "2023-11-07",
+  "incorporation_date": "2005-03-16",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "MEYER",
+  "isin": "NGMEYER00006",
+  "company": "MEYER PLC.",
+  "sector": "INDUSTRIAL GOODS",
+  "listing_date": null,
+  "incorporation_date": "1960-05-20",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "MOFIREIF",
+  "isin": "NGMOFIREIF00",
+  "company": "MOFI REAL ESTATE INVESTMENT FUND",
+  "sector": "CONSTRUCTION/REAL ESTATE",
+  "listing_date": "2025-11-11",
+  "incorporation_date": "2024-10-24",
+  "ngx_status": null,
+  "tradingview": false
+ },
+ {
+  "symbol": "MORISON",
+  "isin": "NGMORISON000",
+  "company": "MORISON INDUSTRIES PLC.",
+  "sector": "HEALTHCARE",
+  "listing_date": null,
+  "incorporation_date": "1955-06-29",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "MTNN",
+  "isin": "NGMTNN000002",
+  "company": "MTN NIGERIA COMMUNICATIONS PLC",
+  "sector": "ICT",
+  "listing_date": "2019-05-16",
+  "incorporation_date": "2000-11-08",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "MULTITREX",
+  "isin": "NGMULTITREX0",
+  "company": "MULTI-TREX INTEGRATED FOODS PLC",
+  "sector": "CONSUMER GOODS",
+  "listing_date": "2010-11-01",
+  "incorporation_date": "1999-10-30",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "MULTIVERSE",
+  "isin": "NGMULTIVERS6",
+  "company": "MULTIVERSE MINING AND EXPLORATION PLC",
+  "sector": "NATURAL RESOURCES",
+  "listing_date": "2008-04-18",
+  "incorporation_date": "2002-06-20",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "NAHCO",
+  "isin": "NGNAHCO00008",
+  "company": "NIGERIAN AVIATION HANDLING COMPANY PLC",
+  "sector": "SERVICES",
+  "listing_date": "2006-11-27",
+  "incorporation_date": "2005-04-08",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "NASCON",
+  "isin": "NGNASCON0005",
+  "company": "NASCON ALLIED INDUSTRIES PLC",
+  "sector": "CONSUMER GOODS",
+  "listing_date": "1992-10-20",
+  "incorporation_date": "1973-04-30",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "NB",
+  "isin": "NGNB00000005",
+  "company": "NIGERIAN BREWERIES PLC",
+  "sector": "CONSUMER GOODS",
+  "listing_date": "1973-09-05",
+  "incorporation_date": "1946-11-16",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "NCR",
+  "isin": "NGNCR0000008",
+  "company": "NCR (NIGERIA) PLC.",
+  "sector": "ICT",
+  "listing_date": null,
+  "incorporation_date": "1949-12-09",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "NEIMETH",
+  "isin": "NGNEIMETH001",
+  "company": "NEIMETH INTERNATIONAL PHARMACEUTICALS PLC",
+  "sector": "HEALTHCARE",
+  "listing_date": "1979-09-21",
+  "incorporation_date": "1957-08-13",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "NEM",
+  "isin": "NGNEM0000005",
+  "company": "NEM INSURANCE PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "1990-09-05",
+  "incorporation_date": "1970-04-02",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "NESTLE",
+  "isin": "NGNESTLE0006",
+  "company": "NESTLE NIGERIA PLC.",
+  "sector": "CONSUMER GOODS",
+  "listing_date": "1979-04-20",
+  "incorporation_date": "1969-09-25",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "NGXGROUP",
+  "isin": "NGNGXGROUP09",
+  "company": "NIGERIAN EXCHANGE GROUP PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2021-10-15",
+  "incorporation_date": "1960-09-15",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "NIDF",
+  "isin": "NGCHDNIDF005",
+  "company": "CHAPEL HILL DENHAM NIG. INFRAS DEBT FUND",
+  "sector": "CONSTRUCTION/REAL ESTATE",
+  "listing_date": "2023-10-05",
+  "incorporation_date": "2017-02-07",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "NNFM",
+  "isin": "NGNNFM000008",
+  "company": "NORTHERN NIGERIA FLOUR MILLS PLC",
+  "sector": "CONSUMER GOODS",
+  "listing_date": null,
+  "incorporation_date": "1971-10-29",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "NPFMCRFBK",
+  "isin": "NGNPFMCRFBK0",
+  "company": "NPF MICROFINANCE BANK PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2010-12-01",
+  "incorporation_date": "1993-05-19",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "NREIT",
+  "isin": "NGCHDNREIT00",
+  "company": "NIGERIA REAL ESTATE INV. TRUST FUND",
+  "sector": "CONSTRUCTION/REAL ESTATE",
+  "listing_date": "2025-12-31",
+  "incorporation_date": "2019-01-09",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "NSLTECH",
+  "isin": "NGNSLTECH006",
+  "company": "SECURE ELECTRONIC TECHNOLOGY PLC",
+  "sector": "SERVICES",
+  "listing_date": null,
+  "incorporation_date": "2000-01-03",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "OANDO",
+  "isin": "NGOANDO00002",
+  "company": "OANDO PLC",
+  "sector": "OIL AND GAS",
+  "listing_date": "1992-02-24",
+  "incorporation_date": "1969-08-25",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "OKOMUOIL",
+  "isin": "NGOKOMUOIL00",
+  "company": "THE OKOMU OIL PALM COMPANY PLC",
+  "sector": "AGRICULTURE",
+  "listing_date": "1997-09-09",
+  "incorporation_date": "1979-12-03",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "OMATEK",
+  "isin": "NGOMATEX0001",
+  "company": "OMATEK VENTURES PLC",
+  "sector": "ICT",
+  "listing_date": null,
+  "incorporation_date": "1998-07-06",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "PHARMDEKO",
+  "isin": "NGPHARMDEKO7",
+  "company": "PHARMA-DEKO PLC.",
+  "sector": "HEALTHCARE",
+  "listing_date": null,
+  "incorporation_date": "1969-04-18",
+  "ngx_status": null,
+  "tradingview": false
+ },
+ {
+  "symbol": "PREMPAINTS",
+  "isin": "NGPREMPAINT2",
+  "company": "PREMIER PAINTS PLC.",
+  "sector": "INDUSTRIAL GOODS",
+  "listing_date": "1995-03-07",
+  "incorporation_date": "1982-08-24",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "PRESCO",
+  "isin": "NGPRESCO0005",
+  "company": "PRESCO PLC",
+  "sector": "AGRICULTURE",
+  "listing_date": "2002-10-10",
+  "incorporation_date": "1991-09-24",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "PRESTIGE",
+  "isin": "NGPRESTIGE00",
+  "company": "PRESTIGE ASSURANCE PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "1990-12-03",
+  "incorporation_date": "1970-01-06",
+  "ngx_status": "BLS",
+  "tradingview": true
+ },
+ {
+  "symbol": "PZ",
+  "isin": "NGPZ00000005",
+  "company": "PZ CUSSONS NIGERIA PLC.",
+  "sector": "CONSUMER GOODS",
+  "listing_date": null,
+  "incorporation_date": "1948-04-12",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "REDSTAREX",
+  "isin": "NGREDSTAREX9",
+  "company": "RED STAR EXPRESS PLC",
+  "sector": "SERVICES",
+  "listing_date": "2007-11-14",
+  "incorporation_date": "1992-07-10",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "REGALINS",
+  "isin": "NGREGALINS04",
+  "company": "REGENCY ALLIANCE INSURANCE PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": null,
+  "incorporation_date": "1993-06-16",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "RONCHESS",
+  "isin": "NGRONCHESS06",
+  "company": "RONCHESS GLOBAL RESOURCES PLC",
+  "sector": "CONSTRUCTION/REAL ESTATE",
+  "listing_date": "2021-12-17",
+  "incorporation_date": "2008-09-05",
+  "ngx_status": null,
+  "tradingview": false
+ },
+ {
+  "symbol": "ROYALEX",
+  "isin": "NGROYALEX007",
+  "company": "ROYAL EXCHANGE PLC.",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "1990-12-03",
+  "incorporation_date": "1921-02-28",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "RTBRISCOE",
+  "isin": "NGRTBRISCOE9",
+  "company": "R. T. BRISCOE (NIGERIA) PLC",
+  "sector": "SERVICES",
+  "listing_date": "1974-03-15",
+  "incorporation_date": "1957-03-09",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "SCOA",
+  "isin": "NGSCOA000009",
+  "company": "SCOA NIGERIA PLC",
+  "sector": "CONGLOMERATES",
+  "listing_date": null,
+  "incorporation_date": "1969-06-24",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "SEPLAT",
+  "isin": "NGSEPLAT0008",
+  "company": "SEPLAT ENERGY PLC",
+  "sector": "OIL AND GAS",
+  "listing_date": null,
+  "incorporation_date": "2009-06-17",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "SFSREIT",
+  "isin": "NGSKYESHELT8",
+  "company": "SFS REAL ESTATE INVESTMENT TRUST",
+  "sector": "CONSTRUCTION/REAL ESTATE",
+  "listing_date": null,
+  "incorporation_date": null,
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "SKYAVN",
+  "isin": "NGSKYAVN0003",
+  "company": "SKYWAY AVIATION HANDLING COMPANY PLC",
+  "sector": "SERVICES",
+  "listing_date": "2019-04-26",
+  "incorporation_date": "2009-04-22",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "SOVRENINS",
+  "isin": "NGSOVRENINS5",
+  "company": "SOVEREIGN TRUST INSURANCE PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2006-11-29",
+  "incorporation_date": "1980-02-26",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "STANBIC",
+  "isin": "NGSTANBIC003",
+  "company": "STANBIC IBTC  HOLDINGS PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2012-11-23",
+  "incorporation_date": "2012-03-14",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "STERLINGNG",
+  "isin": "NGSTERLNHCO9",
+  "company": "STERLING FINANCIAL HOLDINGS COMPANY PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2023-04-06",
+  "incorporation_date": "2021-10-13",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "SUNUASSUR",
+  "isin": "NGSUNUASSUR6",
+  "company": "SUNU ASSURANCES NIGERIA PLC.",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": null,
+  "incorporation_date": "1984-12-13",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "TANTALIZER",
+  "isin": "NGTANTALIZE1",
+  "company": "TANTALIZERS PLC",
+  "sector": "SERVICES",
+  "listing_date": null,
+  "incorporation_date": "1997-05-04",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "THOMASWY",
+  "isin": "NGTHOMASWY07",
+  "company": "THOMAS WYATT NIGERIA PLC.",
+  "sector": "NATURAL RESOURCES",
+  "listing_date": "1978-10-26",
+  "incorporation_date": "1948-03-18",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "TIP",
+  "isin": "NGINITSPLC05",
+  "company": "THE INITIATES PLC",
+  "sector": "SERVICES",
+  "listing_date": "2016-10-25",
+  "incorporation_date": "1995-03-03",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "TOTAL",
+  "isin": "NGTOTAL00001",
+  "company": "TOTALENERGIES MARKETING NIGERIA PLC",
+  "sector": "OIL AND GAS",
+  "listing_date": null,
+  "incorporation_date": "1956-01-06",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "TRANSCOHOT",
+  "isin": "NGTRANSHOTL1",
+  "company": "TRANSCORP HOTELS PLC",
+  "sector": "SERVICES",
+  "listing_date": "2015-01-15",
+  "incorporation_date": "1994-07-12",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "TRANSCORP",
+  "isin": "NGTRANSCORP7",
+  "company": "TRANSNATIONAL CORPORATION PLC",
+  "sector": "CONGLOMERATES",
+  "listing_date": null,
+  "incorporation_date": "2004-11-16",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "TRANSEXPR",
+  "isin": "NGTRANSEXPR4",
+  "company": "TRANS-NATIONWIDE EXPRESS PLC.",
+  "sector": "SERVICES",
+  "listing_date": "1992-09-07",
+  "incorporation_date": "1984-03-28",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "TRANSPOWER",
+  "isin": "NGTRANSPOWE3",
+  "company": "TRANSCORP POWER PLC",
+  "sector": "UTILITIES",
+  "listing_date": "2024-03-04",
+  "incorporation_date": "2012-09-24",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "TRIPPLEG",
+  "isin": "NGTRIPPLEG04",
+  "company": "TRIPPLE GEE AND COMPANY PLC.",
+  "sector": "INDUSTRIAL GOODS",
+  "listing_date": null,
+  "incorporation_date": "1980-04-14",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "UACN",
+  "isin": "NGUACN000006",
+  "company": "UAC OF NIGERIA PLC",
+  "sector": "CONGLOMERATES",
+  "listing_date": null,
+  "incorporation_date": "1931-04-22",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "UBA",
+  "isin": "NGUBA0000001",
+  "company": "UNITED BANK FOR AFRICA PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "1970-03-31",
+  "incorporation_date": "1961-02-23",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "UCAP",
+  "isin": "NGUCAP000004",
+  "company": "UNITED CAPITAL PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2013-01-13",
+  "incorporation_date": "2002-03-14",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "UHREIT",
+  "isin": "NGUHOMREIT06",
+  "company": "UH REAL ESTATE INVESTMENT TRUST",
+  "sector": "CONSTRUCTION/REAL ESTATE",
+  "listing_date": "2008-02-05",
+  "incorporation_date": "2009-02-03",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "UNILEVER",
+  "isin": "NGUNILEVER07",
+  "company": "UNILEVER NIGERIA PLC.",
+  "sector": "CONSUMER GOODS",
+  "listing_date": "1973-04-01",
+  "incorporation_date": "1923-11-04",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "UNIONDICON",
+  "isin": "NGUNIONDICO1",
+  "company": "UNION DICON SALT PLC.",
+  "sector": "CONSUMER GOODS",
+  "listing_date": "1993-09-23",
+  "incorporation_date": "1991-11-12",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "UNITYBNK",
+  "isin": "NGUNITYBANK3",
+  "company": "UNITY BANK PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": null,
+  "incorporation_date": "1987-04-27",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "UNIVINSURE",
+  "isin": "NGUNIVINSUR9",
+  "company": "UNIVERSAL INSURANCE PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2009-11-02",
+  "incorporation_date": "1961-03-01",
+  "ngx_status": null,
+  "tradingview": false
+ },
+ {
+  "symbol": "UPDC",
+  "isin": "NGUACPROP006",
+  "company": "UPDC PLC",
+  "sector": "CONSTRUCTION/REAL ESTATE",
+  "listing_date": null,
+  "incorporation_date": "1997-10-06",
+  "ngx_status": "BLS",
+  "tradingview": true
+ },
+ {
+  "symbol": "UPDCREIT",
+  "isin": "NGUPDCREIT01",
+  "company": "UPDC REAL ESTATE INVESTMENT TRUST",
+  "sector": "CONSTRUCTION/REAL ESTATE",
+  "listing_date": "2008-02-26",
+  "incorporation_date": "2013-03-27",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "UPL",
+  "isin": "NGUPL0000008",
+  "company": "UNIVERSITY PRESS PLC.",
+  "sector": "SERVICES",
+  "listing_date": "1978-08-14",
+  "incorporation_date": "1978-08-14",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "VERITASKAP",
+  "isin": "NGUNITYKAP04",
+  "company": "VERITAS KAPITAL ASSURANCE PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": null,
+  "incorporation_date": "1973-08-08",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "VFDGROUP",
+  "isin": "NGVFDGROUP04",
+  "company": "VFD GROUP PLC",
+  "sector": "INVESTMENT",
+  "listing_date": "2023-10-06",
+  "incorporation_date": "2009-07-07",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "VITAFOAM",
+  "isin": "NGVITAFOAM00",
+  "company": "VITAFOAM NIGERIA PLC",
+  "sector": "CONSUMER GOODS",
+  "listing_date": null,
+  "incorporation_date": "1962-04-08",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "WAPIC",
+  "isin": "NGWAPIC00004",
+  "company": "CORONATION INSURANCE PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "1990-08-31",
+  "incorporation_date": "1958-03-14",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "WEMABANK",
+  "isin": "NGWEMABANK07",
+  "company": "WEMA BANK PLC.",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": null,
+  "incorporation_date": "1945-05-02",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "ZENITHBANK",
+  "isin": "NGZENITHBNK9",
+  "company": "ZENITH BANK PLC",
+  "sector": "FINANCIAL SERVICES",
+  "listing_date": "2004-10-21",
+  "incorporation_date": "1990-05-30",
+  "ngx_status": null,
+  "tradingview": true
+ },
+ {
+  "symbol": "ZICHIS",
+  "isin": "NGZICHIS0009",
+  "company": "ZICHIS AGRO ALLIED INDUSTRIES PLC",
+  "sector": "AGRICULTURE",
+  "listing_date": "2026-01-20",
+  "incorporation_date": "2012-04-17",
+  "ngx_status": null,
+  "tradingview": true
+ }
+]

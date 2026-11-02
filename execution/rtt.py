@@ -18,4 +18,3 @@ def days_since_date(date_str):
     return days_passed
 
 
-print(type((days_since_date('2024-04-16'))))

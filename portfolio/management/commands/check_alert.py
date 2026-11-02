@@ -5,6 +5,7 @@ from portfolio.models import Alert
 from datetime import datetime, timedelta
 from notifications.utils import save_and_send_notification
 from django.utils import timezone
+from portfolio.prices import PriceUnavailable
 from portfolio.utils import get_price
 from portfolio.tasks import send_alert_email
 class Command(BaseCommand):
@@ -29,7 +30,10 @@ class Command(BaseCommand):
             
             if current_time.weekday() < 5 and current_time.time() >= datetime.strptime('6:30 AM', '%I:%M %p').time() and current_time.time() <= datetime.strptime('2:30 PM', '%I:%M %p').time():
                 if timezone.now() < alert.expire:
-                    data = get_price(alert.stock.symbol)
+                    try:
+                        data = get_price(alert.stock.symbol)
+                    except PriceUnavailable:
+                        continue  # never evaluate alerts against a missing/0 price
                     print(data)
                     if alert.alert_type == 'price':
                         price = data['current_price']

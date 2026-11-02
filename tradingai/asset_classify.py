@@ -157,7 +157,6 @@ def classify():
     now = timezone.now()
     for symbol, data in last_item.items():
         if symbol in active_symbols:
-            print(f"classifying {symbol}")
             classification = classify_asset(data, symbol)
             # Always add classification since we now handle None values gracefully
             classified_assets[symbol] = classification

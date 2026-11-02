@@ -38,5 +38,4 @@ def sendMail(
         )
         return True
     except Exception as e:
-        print(str(e))
         return False

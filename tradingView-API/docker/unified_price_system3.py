@@ -2,6 +2,7 @@ import json
 import math
 import os
 import pickle
+import re
 import time as module_time
 from collections import defaultdict
 from datetime import datetime, time, timedelta
@@ -18,7 +19,7 @@ from tvDatafeed import Interval, TvDatafeed
 load_dotenv()
 
 MONGO_URL = os.environ.get("MONGO_URL")
-client = MongoClient(MONGO_URL, tls=True, tlsAllowInvalidCertificates=True)
+client = MongoClient(MONGO_URL, tls=True)
 
 # Database collections - Using TradingView as primary data lake
 # Note: Collections will be created automatically on first insert if they don't exist
@@ -30,6 +31,33 @@ collection_live = db_live["live_price_combined_trdv"]
 collection_merged = db_live["merged_live_price_trdv"]
 
 db_cap = client["ngxlistedcompanies"]
+
+# One document per symbol with the last good (non-zero) price: {_id: symbol, ...}
+collection_latest = db_live["latest_prices"]
+
+# Active symbols come from the backend so delisted/renamed stocks drop out
+# automatically (replaces the hard-coded list).
+BACKEND_URL = os.environ.get(
+    "BACKEND_URL", "https://api-hamma-f0bcaabf77ea.herokuapp.com"
+).rstrip("/")
+SYMBOLS_API_URL = f"{BACKEND_URL}/portfolio/collector-symbols/"
+MARKET_STATUS_API_URL = f"{BACKEND_URL}/portfolio/market-status/"
+SYMBOLS_CACHE_FILE = "symbols_cache.json"
+
+# Snapshot/history documents older than this are deleted once a day after the close
+RETENTION_DAYS = int(os.environ.get("RETENTION_DAYS", "90"))
+
+# Spread 24hr metric refreshes across cycles instead of recomputing all at once
+MAX_INTRADAY_REFRESH_PER_CYCLE = int(
+    os.environ.get("MAX_INTRADAY_REFRESH_PER_CYCLE", "40")
+)
+
+# Collection schedule (Africa/Lagos): every 15 min 09:30-14:30, plus one run
+# after the 14:30 close to capture closing prices.
+SLOT_MINUTES = 15
+FIRST_SLOT = time(9, 30)
+LAST_SLOT = time(14, 30)
+CLOSE_RUN = time(14, 45)
 
 
 def verify_mongodb_connection():
@@ -85,8 +113,43 @@ tv = TvDatafeed()
 lagos_tz = pytz.timezone("Africa/Lagos")
 
 
-# 90-minute cache for volatility data
-VOLATILITY_CACHE_DURATION = 5400  # 90 minutes in seconds
+# Dual-TTL volatility cache:
+# - Long-horizon metrics (1y / YTD / 1m / 1w): once per Lagos trading day
+# - 24hr metrics: 90-minute cache
+INTRADAY_CACHE_DURATION = 5400  # 90 minutes for 24hr metrics
+# Backward-compatible alias
+VOLATILITY_CACHE_DURATION = INTRADAY_CACHE_DURATION
+
+DAILY_METRIC_KEYS = [
+    "volatility_1year",
+    "momentum_1year",
+    "momentum_change_1year",
+    "volume_momentum_1year",
+    "volume_momentum_change_1year",
+    "volatility_ytd",
+    "momentum_ytd",
+    "momentum_change_ytd",
+    "volume_momentum_ytd",
+    "volume_momentum_change_ytd",
+    "volatility",
+    "momentum",
+    "momentum_change",
+    "volume_momentum",
+    "volume_momentum_change",
+    "volatility_1week",
+    "momentum_1week",
+    "momentum_change_1week",
+    "volume_momentum_1week",
+    "volume_momentum_change_1week",
+]
+
+INTRADAY_METRIC_KEYS = [
+    "volatility_24hr",
+    "momentum_24hr",
+    "momentum_change_24hr",
+    "volume_momentum_24hr",
+    "volume_momentum_change_24hr",
+]
 
 
 class VolatilityCache:
@@ -95,12 +158,41 @@ class VolatilityCache:
         self.cache_file = "volatility_cache.pkl"
         self.load_cache()
 
+    @staticmethod
+    def lagos_today():
+        return datetime.now(lagos_tz).date().isoformat()
+
+    def _normalize_entry(self, entry):
+        """Migrate legacy {data, timestamp} entries to dual-TTL shape."""
+        if not isinstance(entry, dict):
+            return None
+        if "data" not in entry:
+            return None
+
+        if "daily_date" not in entry or "intraday_timestamp" not in entry:
+            legacy_ts = entry.get("timestamp", 0) or 0
+            if legacy_ts:
+                legacy_dt = datetime.fromtimestamp(legacy_ts, tz=pytz.UTC).astimezone(
+                    lagos_tz
+                )
+                entry.setdefault("daily_date", legacy_dt.date().isoformat())
+                entry.setdefault("intraday_timestamp", legacy_ts)
+            else:
+                entry.setdefault("daily_date", None)
+                entry.setdefault("intraday_timestamp", 0)
+        return entry
+
     def load_cache(self):
         """Load cache from disk if it exists"""
         try:
             if os.path.exists(self.cache_file):
                 with open(self.cache_file, "rb") as f:
-                    self.cache = pickle.load(f)
+                    raw_cache = pickle.load(f)
+                self.cache = {}
+                for symbol, entry in raw_cache.items():
+                    normalized = self._normalize_entry(entry)
+                    if normalized:
+                        self.cache[symbol] = normalized
                 print(f"Loaded volatility cache with {len(self.cache)} entries")
             else:
                 self.cache = {}
@@ -117,55 +209,97 @@ class VolatilityCache:
         except Exception as e:
             print(f"Error saving cache: {e}")
 
-    def is_cache_valid(self, symbol):
-        """
-        Check if cached data is still valid (less than 90 minutes old).
-        Validity is based on the time the data was last saved (timestamp in cache).
-        """
-        if symbol not in self.cache:
+    def is_daily_valid(self, symbol):
+        """Long-horizon metrics valid for the current Lagos calendar day."""
+        entry = self.cache.get(symbol)
+        if not entry:
             return False
-        cached_time = self.cache[symbol].get("timestamp", 0)
-        current_time = module_time.time()
-        return (current_time - cached_time) < VOLATILITY_CACHE_DURATION
+        entry = self._normalize_entry(entry)
+        return entry.get("daily_date") == self.lagos_today()
+
+    def is_intraday_valid(self, symbol):
+        """24hr metrics valid for INTRADAY_CACHE_DURATION seconds."""
+        entry = self.cache.get(symbol)
+        if not entry:
+            return False
+        entry = self._normalize_entry(entry)
+        cached_time = entry.get("intraday_timestamp", 0) or 0
+        return (module_time.time() - cached_time) < INTRADAY_CACHE_DURATION
+
+    def is_cache_valid(self, symbol):
+        """Fully valid when both daily and 24hr layers are fresh."""
+        return self.is_daily_valid(symbol) and self.is_intraday_valid(symbol)
+
+    def get_refresh_needs(self, symbol):
+        """Return which metric layers need recalculation and any existing data."""
+        entry = self.cache.get(symbol)
+        data = entry.get("data") if entry else None
+        return {
+            "need_daily": not self.is_daily_valid(symbol),
+            "need_intraday": not self.is_intraday_valid(symbol),
+            "data": data,
+        }
 
     def get_cached_data(self, symbol):
-        """Get cached volatility data for a symbol"""
+        """Get cached volatility data when both layers are still valid."""
         if self.is_cache_valid(symbol):
             print(f"Using cached volatility data for {symbol}")
             return self.cache[symbol]["data"]
         return None
 
-    def set_cached_data(self, symbol, data):
-        """Cache volatility data for a symbol"""
-        self.cache[symbol] = {"data": data, "timestamp": module_time.time()}
-        print(f"Cached volatility data for {symbol}")
-        # Save to disk periodically
-        if len(self.cache) % 10 == 0:  # Save every 10 entries
+    def set_cached_data(
+        self, symbol, data, updated_daily=False, updated_intraday=False
+    ):
+        """Cache volatility data, updating only the refreshed TTL layers."""
+        entry = self.cache.get(symbol, {})
+        entry = self._normalize_entry(entry) or {
+            "daily_date": None,
+            "intraday_timestamp": 0,
+        }
+        entry["data"] = data
+        # Keep legacy timestamp for older readers
+        entry["timestamp"] = module_time.time()
+        if updated_daily:
+            entry["daily_date"] = self.lagos_today()
+        if updated_intraday:
+            entry["intraday_timestamp"] = module_time.time()
+        self.cache[symbol] = entry
+        layers = []
+        if updated_daily:
+            layers.append("daily")
+        if updated_intraday:
+            layers.append("24hr")
+        print(f"Cached volatility data for {symbol} ({'+'.join(layers) or 'metadata'})")
+        if len(self.cache) % 10 == 0:
             self.save_cache()
 
     def clear_expired_cache(self):
-        """Remove expired cache entries (older than 90 minutes)"""
-        current_time = module_time.time()
+        """Remove entries whose daily layer is from a previous Lagos day."""
         expired_symbols = []
-        for symbol, cache_entry in self.cache.items():
-            if (current_time - cache_entry["timestamp"]) >= VOLATILITY_CACHE_DURATION:
+        for symbol in list(self.cache.keys()):
+            if not self.is_daily_valid(symbol):
                 expired_symbols.append(symbol)
         for symbol in expired_symbols:
             del self.cache[symbol]
-            print(f"Removed expired cache for {symbol}")
+            print(f"Removed expired daily cache for {symbol}")
         if expired_symbols:
             self.save_cache()
 
     def get_cache_stats(self):
-        """Get cache statistics"""
+        """Get cache statistics for both TTL layers."""
         total = len(self.cache)
-        valid = sum(1 for symbol in self.cache if self.is_cache_valid(symbol))
-        expired = total - valid
+        daily_valid = sum(1 for symbol in self.cache if self.is_daily_valid(symbol))
+        intraday_valid = sum(
+            1 for symbol in self.cache if self.is_intraday_valid(symbol)
+        )
+        fully_valid = sum(1 for symbol in self.cache if self.is_cache_valid(symbol))
 
         return {
             "total_entries": total,
-            "valid_entries": valid,
-            "expired_entries": expired,
+            "valid_entries": fully_valid,
+            "expired_entries": total - fully_valid,
+            "daily_valid": daily_valid,
+            "intraday_valid": intraday_valid,
         }
 
 
@@ -276,63 +410,63 @@ class ChangeDetector:
 # Global change detector
 change_detector = ChangeDetector()
 
-# Stock symbols
-symbols = [
-    "ABBEYBDS",
+# Used only if the backend symbol API is unreachable and there is no cached copy.
+# Active NGX stocks that TradingView carries, as of 2 Nov 2026.
+FALLBACK_SYMBOLS = [
+    "ABBEYBANK",
+    "ABCTRANS",
     "ACADEMY",
     "ACCESSCORP",
-    "AFRIPRUD",
     "AFRINSURE",
+    "AFRIPRUD",
     "AFROMEDIA",
     "AIICO",
     "AIRTELAFRI",
-    "ALEX",
-    "ASOSAVINGS",
-    "ABCTRANS",
+    "ARADEL",
     "AUSTINLAZ",
-    "MANSARD",
+    "AVACAP",
     "BERGER",
     "BETAGLAS",
     "BUACEMENT",
     "BUAFOODS",
-    "CILEASING",
     "CADBURY",
     "CAP",
-    "CAPOIL",
     "CAVERTON",
     "CHAMPION",
     "CHAMS",
     "CHELLARAM",
+    "CILEASING",
+    "CMFC",
+    "CNIF",
+    "CONHALLPLC",
     "CONOIL",
     "CORNERST",
-    "WAPIC",
     "CUSTODIAN",
     "CUTIX",
     "CWG",
     "DAARCOMM",
     "DANGCEM",
     "DANGSUGAR",
-    "DEAPCAP",
-    "DUNLOP",
-    "ETRANZACT",
-    "ETI",
     "EKOCORP",
     "ELLAHLAKES",
+    "ENAMELWA",
     "ETERNA",
+    "ETI",
+    "ETRANZACT",
     "EUNISELL",
-    "FBNH",
     "FCMB",
     "FIDELITYBK",
     "FIDSON",
-    "FLOURMILL",
+    "FIRSTHOLDCO",
+    "FTGINSURE",
     "FTNCOCOA",
     "GEREGU",
     "GOLDBREW",
-    "GOLDINSURE",
-    "VANLEER",
     "GTCO",
     "GUINEAINS",
     "GUINNESS",
+    "HBMNG",
+    "HMCALL",
     "HONYFLOUR",
     "IKEJAHOTEL",
     "IMG",
@@ -341,90 +475,132 @@ symbols = [
     "INTENEGINS",
     "JAIZBANK",
     "JAPAULGOLD",
+    "JBERGER",
     "JOHNHOLT",
     "JULI",
-    "JBERGER",
-    "WAPCO",
     "LASACO",
     "LEARNAFRCA",
+    "LEGENDINT",
     "LINKASSURE",
     "LIVESTOCK",
     "LIVINGTRUST",
+    "MANSARD",
     "MAYBAKER",
+    "MBENEFIT",
     "MCNICHOLS",
-    "MEDVIEWAIR",
+    "MECURE",
     "MEYER",
     "MORISON",
-    "MRS",
     "MTNN",
     "MULTITREX",
     "MULTIVERSE",
-    "MBENEFIT",
-    "NNFM",
+    "NAHCO",
     "NASCON",
+    "NB",
     "NCR",
     "NEIMETH",
     "NEM",
     "NESTLE",
-    "NAHCO",
-    "NB",
-    "ENAMELWA",
     "NGXGROUP",
-    "NOTORE",
+    "NIDF",
+    "NNFM",
     "NPFMCRFBK",
+    "NREIT",
+    "NSLTECH",
     "OANDO",
     "OKOMUOIL",
     "OMATEK",
-    "PZ",
-    "PHARMDEKO",
     "PREMPAINTS",
     "PRESCO",
     "PRESTIGE",
-    "RTBRISCOE",
+    "PZ",
     "REDSTAREX",
     "REGALINS",
-    "RONCHESS",
     "ROYALEX",
+    "RTBRISCOE",
     "SCOA",
-    "NSLTECH",
     "SEPLAT",
     "SFSREIT",
     "SKYAVN",
-    "SMURFIT",
     "SOVRENINS",
-    "STACO",
     "STANBIC",
-    "STDINSURE",
     "STERLINGNG",
     "SUNUASSUR",
     "TANTALIZER",
-    "TIP",
     "THOMASWY",
+    "TIP",
     "TOTAL",
-    "TOURIST",
-    "TRANSEXPR",
     "TRANSCOHOT",
     "TRANSCORP",
+    "TRANSEXPR",
+    "TRANSPOWER",
     "TRIPPLEG",
     "UACN",
-    "UHOMREIT",
-    "UNILEVER",
-    "UBN",
-    "UNIONDICON",
-    "UNHOMES",
     "UBA",
     "UCAP",
+    "UHREIT",
+    "UNILEVER",
+    "UNIONDICON",
     "UNITYBNK",
-    "UNIVINSURE",
-    "UPL",
     "UPDC",
     "UPDCREIT",
+    "UPL",
     "VERITASKAP",
     "VFDGROUP",
     "VITAFOAM",
+    "WAPIC",
     "WEMABANK",
     "ZENITHBANK",
+    "ZICHIS",
 ]
+
+symbols = list(FALLBACK_SYMBOLS)
+# Our symbol -> TradingView ticker on NSENG (identical unless TradingView lags a rename)
+tv_tickers = {}
+_symbols_loaded_for = None
+
+
+def refresh_symbols():
+    """Load active symbols from the backend once per Lagos day."""
+    global symbols, tv_tickers, _symbols_loaded_for
+    today = datetime.now(lagos_tz).date()
+    if _symbols_loaded_for == today:
+        return
+
+    rows = None
+    try:
+        response = requests.get(SYMBOLS_API_URL, timeout=30)
+        response.raise_for_status()
+        rows = response.json()
+        with open(SYMBOLS_CACHE_FILE, "w") as f:
+            json.dump(rows, f)
+    except Exception as e:
+        print(f"Could not load symbols from backend ({e}); trying cached copy")
+        try:
+            with open(SYMBOLS_CACHE_FILE) as f:
+                rows = json.load(f)
+        except Exception:
+            rows = None
+
+    if rows:
+        # Stocks without a TradingView symbol cannot be fetched; skip them
+        priced = [row for row in rows if row.get("tv_symbol")]
+        symbols = [row["symbol"] for row in priced]
+        tv_tickers = {
+            row["symbol"]: row["tv_symbol"].split(":", 1)[-1] for row in priced
+        }
+    else:
+        print("Using built-in fallback symbol list")
+        symbols = list(FALLBACK_SYMBOLS)
+        tv_tickers = {}
+
+    _symbols_loaded_for = today
+    print(f"Tracking {len(symbols)} symbols")
+
+
+def tv_ticker(symbol):
+    return tv_tickers.get(symbol, symbol)
+
 
 
 def safe_float(value):
@@ -437,96 +613,101 @@ def safe_float(value):
     return value
 
 
-def is_market_open():
-    """Check if the Nigerian stock market is currently open (10:00 AM - 2:30 PM weekdays)"""
-    try:
-        lagos_timezone = pytz.timezone("Africa/Lagos")
-        current_time_lagos = datetime.now(lagos_timezone).time()
+_trading_day_cache = {}
 
-        if datetime.today().weekday() < 5:  # Monday to Friday
-            market_open_time = time(10, 0)  # 10:00 AM
-            market_close_time = time(14, 36)  # 2:30 PM
 
-            if market_open_time <= current_time_lagos <= market_close_time:
-                return True
-
+def is_trading_day(day):
+    """Weekday and not an NGX holiday (holidays come from the backend; assume open on error)."""
+    if day.weekday() >= 5:
         return False
+    if day in _trading_day_cache:
+        return _trading_day_cache[day]
+    try:
+        response = requests.get(MARKET_STATUS_API_URL, timeout=15)
+        response.raise_for_status()
+        status = response.json()
+        trading = status.get("reason") != "holiday"
+        _trading_day_cache[day] = trading
+        return trading
+    except Exception as e:
+        print(f"Could not check market status ({e}); assuming trading day")
+        return True
 
+
+def is_market_open():
+    """True inside the collection window (09:30 to just after the close run) on trading days."""
+    try:
+        now = datetime.now(lagos_tz)
+        window_end = (
+            datetime.combine(now.date(), CLOSE_RUN) + timedelta(minutes=5)
+        ).time()
+        return FIRST_SLOT <= now.time() <= window_end and is_trading_day(now.date())
     except Exception as e:
         print(f"Error checking market hours: {e}")
         return False
 
 
 def get_live_data_from_tradingview(symbol):
-    """Get live data from TradingView for a specific symbol"""
-    try:
-        # Add retry logic for connection issues
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                data = tv.get_hist(
-                    symbol=symbol,
-                    exchange="NSENG",
-                    interval=Interval.in_1_minute,
-                    n_bars=2,
-                )
+    """
+    Latest price from TradingView daily bars.
 
-                if data is not None and not data.empty:
-                    data_reset = data.reset_index()
-                    last_two_rows = data_reset.iloc[-2:]
+    change/percent are measured against the previous daily close. If the stock
+    has not traded today, the last close is reported with change 0.
+    """
+    max_retries = 2
+    for attempt in range(max_retries):
+        try:
+            data = tv.get_hist(
+                symbol=tv_ticker(symbol),
+                exchange="NSENG",
+                interval=Interval.in_daily,
+                n_bars=2,
+            )
+        except Exception as e:
+            print(f"Attempt {attempt + 1} failed for {symbol}: {e}")
+            data = None
 
-                    # Get the latest data
-                    latest_data = last_two_rows.iloc[-1]
-                    previous_data = (
-                        last_two_rows.iloc[-2]
-                        if len(last_two_rows) > 1
-                        else latest_data
-                    )
+        if data is not None and not data.empty:
+            bars = data.reset_index()
+            latest = bars.iloc[-1]
+            previous = bars.iloc[-2] if len(bars) > 1 else latest
+            close = float(latest["close"])
+            if close <= 0:
+                return None
 
-                    # Calculate change and percentage change
-                    close_change = latest_data["close"] - previous_data["close"]
-                    percentage_change = (
-                        (close_change / previous_data["close"]) * 100
-                        if previous_data["close"] != 0
-                        else 0
-                    )
+            lagos_now = datetime.now(lagos_tz)
+            bar_date = pd.Timestamp(latest["datetime"]).date()
+            traded_today = bar_date >= lagos_now.date()
 
-                    lagos_now = datetime.now(lagos_tz)
+            if traded_today and float(previous["close"]) > 0:
+                change = close - float(previous["close"])
+                percent = change / float(previous["close"]) * 100
+                volume = int(latest["volume"]) if not pd.isna(latest["volume"]) else 0
+            else:
+                change = 0.0
+                percent = 0.0
+                volume = 0
 
-                    return {
-                        "datetime": lagos_now.strftime("%Y-%m-%d %H:%M:%S"),
-                        "open": float(latest_data["open"]),
-                        "high": float(latest_data["high"]),
-                        "low": float(latest_data["low"]),
-                        "close": float(latest_data["close"]),
-                        "volume": (
-                            int(latest_data["volume"])
-                            if not pd.isna(latest_data["volume"])
-                            else 0
-                        ),
-                        "symbol": symbol,
-                        "change": round(float(close_change), 2),
-                        "percent": round(float(percentage_change), 2),
-                    }
-                else:
-                    print(f"No data returned for {symbol} on attempt {attempt + 1}")
-                    if attempt < max_retries - 1:
-                        module_time.sleep(1)  # Wait 1 second before retry
-                        continue
-                    else:
-                        return None
+            stamp = lagos_now.strftime("%Y-%m-%d %H:%M:%S")
+            return {
+                "datetime": stamp,
+                "as_of": stamp,
+                "last_trade_date": bar_date.isoformat(),
+                "open": float(latest["open"]),
+                "high": float(latest["high"]),
+                "low": float(latest["low"]),
+                "close": close,
+                "volume": volume,
+                "symbol": symbol,
+                "change": round(change, 2),
+                "percent": round(percent, 2),
+                "is_stale": False,
+            }
 
-            except Exception as retry_error:
-                print(f"Attempt {attempt + 1} failed for {symbol}: {retry_error}")
-                if attempt < max_retries - 1:
-                    module_time.sleep(2)  # Wait 2 seconds before retry
-                    continue
-                else:
-                    return None
+        if attempt < max_retries - 1:
+            module_time.sleep(1)
 
-    except Exception as e:
-        print(f"Error getting live data for {symbol}: {e}")
-        return None
+    return None
 
 
 def ensure_all_symbols_included(live_data, volatility_data, merged_data):
@@ -535,8 +716,10 @@ def ensure_all_symbols_included(live_data, volatility_data, merged_data):
         # Check if any symbols are missing from live_data
         missing_from_live = [s for s in symbols if s not in live_data]
         for symbol in missing_from_live:
-            print(f"Adding fallback live data for missing symbol: {symbol}")
-            live_data[symbol] = get_last_available_live_data(symbol)
+            fallback = get_last_available_live_data(symbol)
+            if fallback:
+                print(f"Adding fallback live data for missing symbol: {symbol}")
+                live_data[symbol] = fallback
 
         # Check if any symbols are missing from volatility_data
         missing_from_volatility = [s for s in symbols if s not in volatility_data]
@@ -555,104 +738,46 @@ def ensure_all_symbols_included(live_data, volatility_data, merged_data):
 
 
 def get_last_available_live_data(symbol):
-    """Get the last available live data for a symbol from database"""
+    """
+    Last good (non-zero) price for symbol, marked stale, or None.
+
+    Never returns a 0 price. The carried-forward price gets change/percent 0 so
+    an old move is not shown as today's.
+    """
     try:
-        # Try to get from merged collection first (most complete data)
-        last_data = collection_merged.find_one(
-            {"symbol": symbol},
-            sort=[("_id", -1)],
-            projection={
-                "_id": 0,
-                "open": 1,
-                "high": 1,
-                "low": 1,
-                "close": 1,
-                "volume": 1,
-                "change": 1,
-                "percentage_change": 1,
-            },
-        )
+        doc = collection_latest.find_one({"_id": symbol})
+        if not (doc and doc.get("close")):
+            # Snapshots are keyed by symbol: {SYMBOL: {...}}
+            snapshot = collection_merged.find_one(
+                {f"{symbol}.current_price": {"$gt": 0}},
+                sort=[("_id", -1)],
+                projection={symbol: 1},
+            )
+            doc = (snapshot or {}).get(symbol)
+            if doc:
+                doc = dict(doc, close=doc.get("close") or doc.get("current_price"))
+        if not (doc and doc.get("close")):
+            return None
 
-        if last_data and isinstance(last_data, dict):
-            # Update timestamp to current time but mark as fallback
-            lagos_now = datetime.now(lagos_tz)
-            fallback_data = {
-                "datetime": lagos_now.strftime("%Y-%m-%d %H:%M:%S"),
-                "open": last_data.get("open", 0),
-                "high": last_data.get("high", 0),
-                "low": last_data.get("low", 0),
-                "close": last_data.get("close", 0),
-                "volume": last_data.get("volume", 0),
-                "symbol": symbol,
-                "change": last_data.get("change", 0),
-                "percent": last_data.get("percentage_change", 0),
-                "is_fallback": True,  # Mark as fallback data
-            }
-
-            return fallback_data
-
-        # If no data in merged collection, try live collection
-        last_live = collection_live.find_one(
-            {symbol: {"$exists": True}},
-            sort=[("_id", -1)],
-            projection={"_id": 0, symbol: 1},
-        )
-
-        if last_live and isinstance(last_live, dict) and symbol in last_live:
-            data = last_live[symbol]
-            if isinstance(data, dict):
-                lagos_now = datetime.now(lagos_tz)
-                fallback_data = {
-                    "datetime": lagos_now.strftime("%Y-%m-%d %H:%M:%S"),
-                    "open": data.get("open", 0),
-                    "high": data.get("high", 0),
-                    "low": data.get("low", 0),
-                    "close": data.get("close", 0),
-                    "volume": data.get("volume", 0),
-                    "symbol": symbol,
-                    "change": data.get("change", 0),
-                    "percent": data.get("percent", 0),
-                    "is_fallback": True,
-                }
-
-                return fallback_data
-
-        # If still no data, return default values
-        print(f"No historical data found for {symbol}, using defaults")
         lagos_now = datetime.now(lagos_tz)
-        default_data = {
+        return {
             "datetime": lagos_now.strftime("%Y-%m-%d %H:%M:%S"),
-            "open": 0,
-            "high": 0,
-            "low": 0,
-            "close": 0,
+            "as_of": doc.get("as_of") or doc.get("datetime"),
+            "last_trade_date": doc.get("last_trade_date"),
+            "open": doc.get("open", doc["close"]),
+            "high": doc.get("high", doc["close"]),
+            "low": doc.get("low", doc["close"]),
+            "close": doc["close"],
             "volume": 0,
             "symbol": symbol,
             "change": 0,
             "percent": 0,
             "is_fallback": True,
+            "is_stale": True,
         }
-
-        return default_data
-
     except Exception as e:
         print(f"Error getting last available data for {symbol}: {e}")
-        # Return default values
-        lagos_now = datetime.now(lagos_tz)
-        default_data = {
-            "datetime": lagos_now.strftime("%Y-%m-%d %H:%M:%S"),
-            "open": 0,
-            "high": 0,
-            "low": 0,
-            "close": 0,
-            "volume": 0,
-            "symbol": symbol,
-            "change": 0,
-            "percent": 0,
-            "is_fallback": True,
-        }
-
-        return default_data
+        return None
 
 
 def get_last_available_volatility_data(symbol):
@@ -745,35 +870,23 @@ def get_last_available_volatility_data(symbol):
         return default_volatility_data
 
 
+_known_symbols = None
+
+
 def is_first_entry(symbol):
-    """Check if this is the first entry for a symbol in our database - handles empty collections"""
-    try:
-        # Check merged collection (may not exist in new cluster)
+    """True the first time we ever store a price for symbol (known set loaded once)."""
+    global _known_symbols
+    if _known_symbols is None:
         try:
-            has_merged = collection_merged.find_one({"symbol": symbol}) is not None
-            if has_merged:
-                return False
-        except Exception:
-            # Collection may not exist yet - this is fine, continue checking
-            pass
-
-        # Check live collection (may not exist in new cluster)
-        try:
-            has_live = collection_live.find_one({symbol: {"$exists": True}}) is not None
-            if has_live:
-                return False
-        except Exception:
-            # Collection may not exist yet - this is fine
-            pass
-
-        # If we get here, no data found in either collection - this is the first entry
-        return True
-    except Exception as e:
-        # If we can't check, assume it's a first entry (safe for new cluster)
-        print(
-            f"Could not verify if first entry for {symbol}, assuming yes (new cluster): {e}"
-        )
-        return True  # Assume first entry for new cluster
+            _known_symbols = set(collection_latest.distinct("_id"))
+            latest = collection_merged.find_one(sort=[("_id", -1)]) or {}
+            _known_symbols.update(k for k in latest if k != "_id")
+        except Exception as e:
+            print(f"Could not load known symbols: {e}")
+            _known_symbols = set()
+    first = symbol not in _known_symbols
+    _known_symbols.add(symbol)
+    return first
 
 
 def get_all_live_data():
@@ -802,7 +915,8 @@ def get_all_live_data():
             print(f"Failed to get fresh data for {symbol}, using fallback")
             failed_symbols.append(symbol)
             fallback_data = get_last_available_live_data(symbol)
-            combined[symbol] = fallback_data
+            if fallback_data:
+                combined[symbol] = fallback_data
 
         # Add small delay between requests to avoid overwhelming the API
         if i < len(symbols) - 1:  # Don't delay after the last symbol
@@ -819,21 +933,38 @@ def get_all_live_data():
     return combined
 
 
+_cap_cache = {"day": None, "values": {}}
+
+
 def get_symbol_cap(symbol):
-    """Get market cap data for a symbol - handles empty collections gracefully"""
+    """
+    Shares outstanding for symbol. Loaded for all stocks once per day from the
+    backend (CompanyProfile in Postgres); falls back to the old Mongo collection.
+    """
+    today = datetime.now(lagos_tz).date()
+    if _cap_cache["day"] != today:
+        _cap_cache["day"] = today
+        _cap_cache["values"] = {}
+        try:
+            response = requests.get(f"{BACKEND_URL}/portfolio/shares-outstanding/", timeout=30)
+            response.raise_for_status()
+            _cap_cache["values"] = {
+                key: float(value or 0) for key, value in response.json().items()
+            }
+        except Exception as e:
+            print(f"Could not load shares outstanding from backend: {e}")
+    if symbol in _cap_cache["values"]:
+        return _cap_cache["values"][symbol]
+
+    shares = 0
     try:
-        collection = db_cap[symbol]
-        data = collection.find_one({}, projection={"SharesOutstanding": 1, "_id": 0})
-        if data and isinstance(data, dict) and "SharesOutstanding" in data:
-            shares_outstanding = data["SharesOutstanding"]
-            return float(shares_outstanding) if shares_outstanding is not None else 0
-        return 0  # Return 0 if collection doesn't exist or has no data
+        data = db_cap[symbol].find_one({}, projection={"SharesOutstanding": 1, "_id": 0})
+        if data and data.get("SharesOutstanding") is not None:
+            shares = float(data["SharesOutstanding"])
     except Exception as e:
-        # Collection may not exist in new cluster - this is expected
-        print(
-            f"Market cap data not available for {symbol} (collection may be empty): {e}"
-        )
-        return 0
+        print(f"Market cap data not available for {symbol}: {e}")
+    _cap_cache["values"][symbol] = shares
+    return shares
 
 
 def get_historical_data_for_period(symbol, period_days):
@@ -861,7 +992,10 @@ def get_historical_data_for_period(symbol, period_days):
         for attempt in range(max_retries):
             try:
                 data = tv.get_hist(
-                    symbol=symbol, exchange="NSENG", interval=interval, n_bars=n_bars
+                    symbol=tv_ticker(symbol),
+                    exchange="NSENG",
+                    interval=interval,
+                    n_bars=n_bars,
                 )
 
                 if data is not None and not data.empty:
@@ -1040,206 +1174,159 @@ def calculate_volatility_momentum(data, period):
         return None, None, None, None, None
 
 
-def calculate_comprehensive_metrics(symbol):
-    """Calculate all volatility and momentum metrics for a symbol using TradingView data with 1-hour caching"""
+def _apply_vol_mom_tuple(data_metrics, keys, vol_mom):
+    """Map a (vol, mom, mom_chg, vol_mom, vol_mom_chg) tuple onto metric keys."""
+    for i, key in enumerate(keys):
+        data_metrics[key] = vol_mom[i] if vol_mom else None
 
-    # Check if cached data is available and valid
-    cached_data = volatility_cache.get_cached_data(symbol)
-    if cached_data:
-        # Update current price with fresh live data
+
+def calculate_daily_horizon_metrics(symbol, data_metrics):
+    """Calculate once-per-day long-horizon volatility/momentum metrics."""
+    daily_1y_keys = [
+        "volatility_1year",
+        "momentum_1year",
+        "momentum_change_1year",
+        "volume_momentum_1year",
+        "volume_momentum_change_1year",
+    ]
+    daily_ytd_keys = [
+        "volatility_ytd",
+        "momentum_ytd",
+        "momentum_change_ytd",
+        "volume_momentum_ytd",
+        "volume_momentum_change_ytd",
+    ]
+    daily_1m_keys = [
+        "volatility",
+        "momentum",
+        "momentum_change",
+        "volume_momentum",
+        "volume_momentum_change",
+    ]
+    daily_1w_keys = [
+        "volatility_1week",
+        "momentum_1week",
+        "momentum_change_1week",
+        "volume_momentum_1week",
+        "volume_momentum_change_1week",
+    ]
+
+    # 1-year calculations using daily data
+    data_1year = get_historical_data_for_period(symbol, 365)
+    if data_1year is not None and not data_1year.empty:
+        vol_mom_1year = calculate_volatility_momentum(data_1year, 365)
+        _apply_vol_mom_tuple(data_metrics, daily_1y_keys, vol_mom_1year)
+
+        # Year-to-date calculations
+        current_year = datetime.now().year
+        try:
+            if hasattr(data_1year.index, "year"):
+                data_ytd = data_1year[data_1year.index.year == current_year]
+            else:
+                datetime_index = pd.to_datetime(data_1year.index)
+                data_ytd = data_1year[datetime_index.year == current_year]
+
+            if not data_ytd.empty:
+                ytd_days = (datetime.now() - datetime(current_year, 1, 1)).days
+                vol_mom_ytd = calculate_volatility_momentum(data_ytd, ytd_days)
+                _apply_vol_mom_tuple(data_metrics, daily_ytd_keys, vol_mom_ytd)
+            else:
+                for metric in daily_ytd_keys:
+                    data_metrics[metric] = None
+        except Exception as ytd_error:
+            print(f"Error calculating YTD metrics for {symbol}: {ytd_error}")
+            for metric in daily_ytd_keys:
+                data_metrics[metric] = None
+    else:
+        for metric in daily_1y_keys + daily_ytd_keys:
+            data_metrics[metric] = None
+
+    # 1-month calculations using daily data
+    data_1month = get_historical_data_for_period(symbol, 30)
+    if data_1month is not None and not data_1month.empty:
+        vol_mom_1month = calculate_volatility_momentum(data_1month, 30)
+        _apply_vol_mom_tuple(data_metrics, daily_1m_keys, vol_mom_1month)
+    else:
+        for metric in daily_1m_keys:
+            data_metrics[metric] = None
+
+    # 1-week calculations using hourly data
+    data_1week = get_historical_data_for_period(symbol, 7)
+    if data_1week is not None and not data_1week.empty:
+        vol_mom_1week = calculate_volatility_momentum(data_1week, 7)
+        _apply_vol_mom_tuple(data_metrics, daily_1w_keys, vol_mom_1week)
+    else:
+        for metric in daily_1w_keys:
+            data_metrics[metric] = None
+
+
+def calculate_24hr_metrics(symbol, data_metrics):
+    """Calculate 24hr volatility/momentum metrics (intraday refresh cadence)."""
+    data_24hr = get_historical_data_for_period(symbol, 1)
+    if data_24hr is not None and not data_24hr.empty:
+        vol_mom_24hr = calculate_volatility_momentum_24hr(symbol, data_24hr)
+        _apply_vol_mom_tuple(data_metrics, INTRADAY_METRIC_KEYS, vol_mom_24hr)
+    else:
+        for metric in INTRADAY_METRIC_KEYS:
+            data_metrics[metric] = None
+
+
+def calculate_comprehensive_metrics(
+    symbol, refresh_daily=True, refresh_intraday=True, existing=None
+):
+    """
+    Calculate volatility/momentum metrics with dual-TTL refresh.
+
+    - refresh_daily: recompute 1y / YTD / 1m / 1w (once per Lagos day)
+    - refresh_intraday: recompute 24hr metrics (every 90 minutes)
+    - existing: prior cached metrics to reuse for layers that are still valid
+    """
+    if existing and not refresh_daily and not refresh_intraday:
+        data_metrics = dict(existing)
         live_data = get_live_data_from_tradingview(symbol)
         if live_data:
-            cached_data["current_price"] = live_data["close"]
-            # Recalculate market cap with new price
+            data_metrics["current_price"] = live_data["close"]
             try:
-                cached_data["market_cap"] = get_symbol_cap(symbol) * live_data["close"]
-            except:
-                cached_data["market_cap"] = 0
-        return cached_data
+                data_metrics["market_cap"] = get_symbol_cap(symbol) * live_data["close"]
+            except Exception:
+                data_metrics["market_cap"] = 0
+        return data_metrics
 
-    # If no valid cached data, calculate fresh metrics
-    print(f"Calculating fresh volatility metrics for {symbol} (cache miss)")
-    data_metrics = {"symbol": symbol}
+    layers = []
+    if refresh_daily:
+        layers.append("daily")
+    if refresh_intraday:
+        layers.append("24hr")
+    print(
+        f"Calculating volatility metrics for {symbol} "
+        f"({'+'.join(layers) or 'price-only'})"
+    )
+
+    data_metrics = dict(existing) if existing else {"symbol": symbol}
+    data_metrics["symbol"] = symbol
 
     try:
-        # Get live data for current price
         live_data = get_live_data_from_tradingview(symbol)
         current_price = live_data["close"] if live_data else 0
         data_metrics["current_price"] = current_price
 
-        # 1-year calculations using daily data
-        data_1year = get_historical_data_for_period(symbol, 365)
-        if data_1year is not None and not data_1year.empty:
-            vol_mom_1year = calculate_volatility_momentum(data_1year, 365)
-            data_metrics["volatility_1year"] = (
-                vol_mom_1year[0] if vol_mom_1year else None
-            )
-            data_metrics["momentum_1year"] = vol_mom_1year[1] if vol_mom_1year else None
-            data_metrics["momentum_change_1year"] = (
-                vol_mom_1year[2] if vol_mom_1year else None
-            )
-            data_metrics["volume_momentum_1year"] = (
-                vol_mom_1year[3] if vol_mom_1year else None
-            )
-            data_metrics["volume_momentum_change_1year"] = (
-                vol_mom_1year[4] if vol_mom_1year else None
-            )
+        if refresh_daily:
+            calculate_daily_horizon_metrics(symbol, data_metrics)
 
-            # Year-to-date calculations
-            current_year = datetime.now().year
-            try:
-                # Convert index to datetime if needed and filter by year
-                if hasattr(data_1year.index, "year"):
-                    data_ytd = data_1year[data_1year.index.year == current_year]
-                else:
-                    # Convert to datetime if it's not already
-                    datetime_index = pd.to_datetime(data_1year.index)
-                    data_ytd = data_1year[datetime_index.year == current_year]
+        if refresh_intraday:
+            calculate_24hr_metrics(symbol, data_metrics)
 
-                if not data_ytd.empty:
-                    ytd_days = (datetime.now() - datetime(current_year, 1, 1)).days
-                    vol_mom_ytd = calculate_volatility_momentum(data_ytd, ytd_days)
-                    data_metrics["volatility_ytd"] = (
-                        vol_mom_ytd[0] if vol_mom_ytd else None
-                    )
-                    data_metrics["momentum_ytd"] = (
-                        vol_mom_ytd[1] if vol_mom_ytd else None
-                    )
-                    data_metrics["momentum_change_ytd"] = (
-                        vol_mom_ytd[2] if vol_mom_ytd else None
-                    )
-                    data_metrics["volume_momentum_ytd"] = (
-                        vol_mom_ytd[3] if vol_mom_ytd else None
-                    )
-                    data_metrics["volume_momentum_change_ytd"] = (
-                        vol_mom_ytd[4] if vol_mom_ytd else None
-                    )
-                else:
-                    # Set YTD defaults
-                    for metric in [
-                        "volatility_ytd",
-                        "momentum_ytd",
-                        "momentum_change_ytd",
-                        "volume_momentum_ytd",
-                        "volume_momentum_change_ytd",
-                    ]:
-                        data_metrics[metric] = None
-            except Exception as ytd_error:
-                print(f"Error calculating YTD metrics for {symbol}: {ytd_error}")
-                # Set YTD defaults
-                for metric in [
-                    "volatility_ytd",
-                    "momentum_ytd",
-                    "momentum_change_ytd",
-                    "volume_momentum_ytd",
-                    "volume_momentum_change_ytd",
-                ]:
-                    data_metrics[metric] = None
-        else:
-            # Set 1-year and YTD defaults
-            for metric in [
-                "volatility_1year",
-                "momentum_1year",
-                "momentum_change_1year",
-                "volume_momentum_1year",
-                "volume_momentum_change_1year",
-                "volatility_ytd",
-                "momentum_ytd",
-                "momentum_change_ytd",
-                "volume_momentum_ytd",
-                "volume_momentum_change_ytd",
-            ]:
-                data_metrics[metric] = None
-
-        # 1-month calculations using daily data
-        data_1month = get_historical_data_for_period(symbol, 30)
-        if data_1month is not None and not data_1month.empty:
-            vol_mom_1month = calculate_volatility_momentum(data_1month, 30)
-            data_metrics["volatility"] = vol_mom_1month[0] if vol_mom_1month else None
-            data_metrics["momentum"] = vol_mom_1month[1] if vol_mom_1month else None
-            data_metrics["momentum_change"] = (
-                vol_mom_1month[2] if vol_mom_1month else None
-            )
-            data_metrics["volume_momentum"] = (
-                vol_mom_1month[3] if vol_mom_1month else None
-            )
-            data_metrics["volume_momentum_change"] = (
-                vol_mom_1month[4] if vol_mom_1month else None
-            )
-        else:
-            # Set 1-month defaults
-            for metric in [
-                "volatility",
-                "momentum",
-                "momentum_change",
-                "volume_momentum",
-                "volume_momentum_change",
-            ]:
-                data_metrics[metric] = None
-
-        # 1-week calculations using hourly data
-        data_1week = get_historical_data_for_period(symbol, 7)
-        if data_1week is not None and not data_1week.empty:
-            vol_mom_1week = calculate_volatility_momentum(data_1week, 7)
-            data_metrics["volatility_1week"] = (
-                vol_mom_1week[0] if vol_mom_1week else None
-            )
-            data_metrics["momentum_1week"] = vol_mom_1week[1] if vol_mom_1week else None
-            data_metrics["momentum_change_1week"] = (
-                vol_mom_1week[2] if vol_mom_1week else None
-            )
-            data_metrics["volume_momentum_1week"] = (
-                vol_mom_1week[3] if vol_mom_1week else None
-            )
-            data_metrics["volume_momentum_change_1week"] = (
-                vol_mom_1week[4] if vol_mom_1week else None
-            )
-        else:
-            # Set 1-week defaults
-            for metric in [
-                "volatility_1week",
-                "momentum_1week",
-                "momentum_change_1week",
-                "volume_momentum_1week",
-                "volume_momentum_change_1week",
-            ]:
-                data_metrics[metric] = None
-
-        # 24-hour calculations using hourly data
-        data_24hr = get_historical_data_for_period(symbol, 1)
-        if data_24hr is not None and not data_24hr.empty:
-            vol_mom_24hr = calculate_volatility_momentum_24hr(symbol, data_24hr)
-            data_metrics["volatility_24hr"] = vol_mom_24hr[0] if vol_mom_24hr else None
-            data_metrics["momentum_24hr"] = vol_mom_24hr[1] if vol_mom_24hr else None
-            data_metrics["momentum_change_24hr"] = (
-                vol_mom_24hr[2] if vol_mom_24hr else None
-            )
-            data_metrics["volume_momentum_24hr"] = (
-                vol_mom_24hr[3] if vol_mom_24hr else None
-            )
-            data_metrics["volume_momentum_change_24hr"] = (
-                vol_mom_24hr[4] if vol_mom_24hr else None
-            )
-        else:
-            # Set 24-hour defaults
-            for metric in [
-                "volatility_24hr",
-                "momentum_24hr",
-                "momentum_change_24hr",
-                "volume_momentum_24hr",
-                "volume_momentum_change_24hr",
-            ]:
-                data_metrics[metric] = None
-
-        # Market cap calculation
         try:
             data_metrics["market_cap"] = get_symbol_cap(symbol) * current_price
-        except:
+        except Exception:
             data_metrics["market_cap"] = 0
 
-        # Cache the calculated data
-        volatility_cache.set_cached_data(symbol, data_metrics)
-
+        volatility_cache.set_cached_data(
+            symbol,
+            data_metrics,
+            updated_daily=refresh_daily,
+            updated_intraday=refresh_intraday,
+        )
         return data_metrics
 
     except Exception as e:
@@ -1356,6 +1443,9 @@ def create_merged_data(live_data, volatility_data):
                 "market_cap": 0,
             }
 
+        merged_data["is_stale"] = bool(live_info.get("is_stale"))
+        merged_data["as_of"] = live_info.get("as_of") or live_info["datetime"]
+        merged_data["last_trade_date"] = live_info.get("last_trade_date")
         combined[symbol] = merged_data
 
     return combined
@@ -1375,11 +1465,7 @@ def save_data(live_data, volatility_data, merged_data):
                     collection_live.insert_one(data_to_save)
                     saved_counts["live"] = len(data_to_save)
                     print(f"Saved live data for {len(data_to_save)} symbols")
-
-                    # Also save to today's collection
-                    today_str = datetime.now().strftime("%Y-%m-%d")
-                    today_collection = db_live[today_str]
-                    today_collection.insert_one(data_to_save)
+                    save_latest_prices(data_to_save)
                 except Exception as live_error:
                     print(f"Error saving live data: {live_error}")
 
@@ -1445,6 +1531,55 @@ def save_data(live_data, volatility_data, merged_data):
     except Exception as e:
         print(f"Error in save operation: {e}")
         return {"live": 0, "volatility": 0, "merged": 0}
+
+
+def save_latest_prices(live_data):
+    """Upsert one document per symbol with its latest fresh, non-zero price."""
+    from pymongo import ReplaceOne
+
+    operations = []
+    for symbol, info in live_data.items():
+        if not isinstance(info, dict) or info.get("is_stale") or not info.get("close"):
+            continue
+        doc = {
+            "symbol": symbol,
+            "current_price": info["close"],
+            "close": info["close"],
+            "open": info.get("open"),
+            "high": info.get("high"),
+            "low": info.get("low"),
+            "volume": info.get("volume"),
+            "change": info.get("change"),
+            "percentage_change": info.get("percent"),
+            "as_of": info.get("as_of") or info.get("datetime"),
+            "last_trade_date": info.get("last_trade_date"),
+        }
+        operations.append(ReplaceOne({"_id": symbol}, doc, upsert=True))
+    if operations:
+        try:
+            collection_latest.bulk_write(operations, ordered=False)
+        except Exception as e:
+            print(f"Error saving latest prices: {e}")
+
+
+def apply_retention():
+    """Delete snapshots/history older than RETENTION_DAYS and old per-day collections."""
+    from bson import ObjectId
+
+    cutoff = datetime.now(pytz.UTC) - timedelta(days=RETENTION_DAYS)
+    cutoff_id = ObjectId.from_datetime(cutoff)
+    for collection in (collection_live, collection_merged, collection_price_combined):
+        try:
+            result = collection.delete_many({"_id": {"$lt": cutoff_id}})
+            print(f"Retention: removed {result.deleted_count} from {collection.name}")
+        except Exception as e:
+            print(f"Retention failed for {collection.name}: {e}")
+
+    cutoff_name = cutoff.date().isoformat()
+    for name in db_live.list_collection_names():
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", name) and name < cutoff_name:
+            db_live.drop_collection(name)
+            print(f"Retention: dropped per-day collection {name}")
 
 
 def get_combined():
@@ -1644,22 +1779,28 @@ def write_to_mongodb(dbase, data):
 
 
 def main_cycle():
-    """Main execution cycle - fetches live data every time, uses 1-hour cache for volatility data"""
+    """Main execution cycle - fresh live data; dual-TTL vol/momentum cache."""
     if not is_market_open():
         print("Market closed")
         return
 
     print(
-        "Market is open - Starting data collection (live: fresh, volatility: 1hr cache)"
+        "Market is open - Starting data collection "
+        "(live: fresh, daily metrics: once/day, 24hr metrics: 90min cache)"
     )
 
-    # Clear expired cache entries
+    refresh_symbols()
+
+    # Clear entries from previous Lagos days
     volatility_cache.clear_expired_cache()
 
     # Get cache statistics
     cache_stats = volatility_cache.get_cache_stats()
     print(
-        f"Cache status: {cache_stats['valid_entries']} valid, {cache_stats['expired_entries']} expired, {cache_stats['total_entries']} total"
+        f"Cache status: {cache_stats['valid_entries']} fully valid, "
+        f"{cache_stats['daily_valid']} daily valid, "
+        f"{cache_stats['intraday_valid']} 24hr valid, "
+        f"{cache_stats['total_entries']} total"
     )
 
     # Step 1: Get live data for all symbols - always fresh
@@ -1674,51 +1815,89 @@ def main_cycle():
         print("  - All symbols failed to fetch")
         return
 
-    # Step 2: Calculate volatility metrics - use 1-hour cache when available
-    print("Step 2: Calculating volatility and momentum metrics (with 1hr caching)...")
+    # Step 2: Calculate volatility metrics with dual-TTL caching
+    print(
+        "Step 2: Calculating volatility and momentum metrics "
+        "(daily once/day, 24hr every 90min)..."
+    )
     volatility_data = {}
     failed_volatility_symbols = []
-    cache_hits = 0
-    cache_misses = 0
+    full_cache_hits = 0
+    daily_refreshes = 0
+    intraday_only_refreshes = 0
+    deferred_intraday = 0
 
     for i, symbol in enumerate(symbols):
-        # Check if we can use cached data
-        cached_data = volatility_cache.get_cached_data(symbol)
-        if cached_data:
-            cache_hits += 1
-            volatility_data[symbol] = cached_data
-            # Update current price with fresh live data
+        needs = volatility_cache.get_refresh_needs(symbol)
+        need_daily = needs["need_daily"]
+        need_intraday = needs["need_intraday"]
+        existing = needs["data"]
+
+        if not need_daily and not need_intraday and existing:
+            full_cache_hits += 1
+            volatility_data[symbol] = dict(existing)
             if symbol in live_data:
                 volatility_data[symbol]["current_price"] = live_data[symbol]["close"]
-                # Recalculate market cap with new price
                 try:
                     volatility_data[symbol]["market_cap"] = (
                         get_symbol_cap(symbol) * live_data[symbol]["close"]
                     )
-                except:
+                except Exception:
                     volatility_data[symbol]["market_cap"] = 0
-            print(f"Using cached data for {symbol}")
+            print(f"Using fully cached metrics for {symbol}")
+            continue
+
+        if (
+            not need_daily
+            and existing
+            and intraday_only_refreshes >= MAX_INTRADAY_REFRESH_PER_CYCLE
+        ):
+            # Defer: reuse the previous 24hr metrics; this symbol refreshes next cycle
+            deferred_intraday += 1
+            volatility_data[symbol] = dict(existing)
+            if symbol in live_data:
+                volatility_data[symbol]["current_price"] = live_data[symbol]["close"]
+            continue
+
+        if need_daily or existing is None:
+            daily_refreshes += 1
+            # Daily miss (or missing data) implies a full recompute including 24hr
+            refresh_daily = True
+            refresh_intraday = True
+            print(f"Daily cache miss for {symbol} - recalculating all horizons")
         else:
-            cache_misses += 1
-            print(f"Making fresh API call for {symbol} (cache miss)")
-            metrics = calculate_comprehensive_metrics(symbol)
-            if metrics:
-                volatility_data[symbol] = metrics
-                print(f"Successfully calculated fresh metrics for {symbol}")
-            else:
-                print(f"API call failed for {symbol}, using fallback data")
-                failed_volatility_symbols.append(symbol)
-                fallback_metrics = get_last_available_volatility_data(symbol)
-                volatility_data[symbol] = fallback_metrics
+            intraday_only_refreshes += 1
+            refresh_daily = False
+            refresh_intraday = True
+            print(f"24hr cache miss for {symbol} - recalculating 24hr only")
 
-            # Add delay to avoid API overload only for fresh API calls
-            if i < len(symbols) - 1:  # Don't delay after the last symbol
-                module_time.sleep(2)  # 2 second delay between API calls
+        metrics = calculate_comprehensive_metrics(
+            symbol,
+            refresh_daily=refresh_daily,
+            refresh_intraday=refresh_intraday,
+            existing=existing,
+        )
+        if metrics:
+            volatility_data[symbol] = metrics
+            print(f"Successfully calculated metrics for {symbol}")
+        else:
+            print(f"API call failed for {symbol}, using fallback data")
+            failed_volatility_symbols.append(symbol)
+            fallback_metrics = get_last_available_volatility_data(symbol)
+            volatility_data[symbol] = fallback_metrics
 
+        # Delay only when we hit TradingView historical endpoints
+        if i < len(symbols) - 1:
+            module_time.sleep(2)
+
+    total_lookups = full_cache_hits + daily_refreshes + intraday_only_refreshes
+    hit_rate = (full_cache_hits / total_lookups * 100) if total_lookups else 0.0
     print(
-        f"Cache performance: {cache_hits} hits, {cache_misses} misses (hit rate: {cache_hits/(cache_hits+cache_misses)*100:.1f}%)"
+        f"Cache performance: {full_cache_hits} full hits, "
+        f"{daily_refreshes} daily refreshes, "
+        f"{intraday_only_refreshes} 24hr-only refreshes "
+        f"(full-hit rate: {hit_rate:.1f}%)"
     )
-    print(f"Fresh volatility calculations: {cache_misses}")
 
     if failed_volatility_symbols:
         print(
@@ -1769,7 +1948,10 @@ def main_cycle():
 
     print(f"Live data - Fresh: {fresh_live_count}, Fallback: {fallback_live_count}")
     print(f"Volatility data - Fresh: {fresh_vol_count}, Fallback: {fallback_vol_count}")
-    print(f"Volatility cache performance: {cache_hits} hits, {cache_misses} misses")
+    print(
+        f"Volatility cache: {full_cache_hits} full hits, "
+        f"{daily_refreshes} daily, {intraday_only_refreshes} 24hr-only"
+    )
     print(
         f"Total symbols expected: {len(symbols)}, Total symbols saved: {len(merged_data)}"
     )
@@ -1779,68 +1961,79 @@ def main_cycle():
         print(f"WARNING: Missing symbols in final dataset: {missing_symbols}")
 
 
+def _todays_slots(day):
+    slots = []
+    current = datetime.combine(day, FIRST_SLOT)
+    last = datetime.combine(day, LAST_SLOT)
+    while current <= last:
+        slots.append(current.time())
+        current += timedelta(minutes=SLOT_MINUTES)
+    slots.append(CLOSE_RUN)
+    return slots
+
+
+def next_run_time(now):
+    """Next scheduled slot (Lagos time) after now."""
+    day = now.date()
+    for _ in range(10):
+        if day.weekday() >= 5:
+            day += timedelta(days=1)
+            continue
+        for slot in _todays_slots(day):
+            candidate = lagos_tz.localize(datetime.combine(day, slot))
+            if candidate > now:
+                return candidate
+        day += timedelta(days=1)
+    return now + timedelta(minutes=SLOT_MINUTES)
+
+
 def run_unified_system():
-    """Run the unified price system - fresh live data every 15 minutes, 1-hour cache for volatility data"""
+    """Run collection on fixed Lagos-time slots on trading days."""
     print("=" * 80)
+    print("Starting Unified Price System")
     print(
-        "Starting Unified Price System - Live Data Fresh, Volatility Data with 1-Hour Cache"
+        f"Slots: every {SLOT_MINUTES} min {FIRST_SLOT:%H:%M}-{LAST_SLOT:%H:%M}, "
+        f"close run {CLOSE_RUN:%H:%M} (Africa/Lagos); retention {RETENTION_DAYS} days"
     )
     print("=" * 80)
 
-    # Verify MongoDB connection and cluster status
     if not verify_mongodb_connection():
         print("FATAL: Cannot proceed without MongoDB connection")
         return
 
-    print("\nConfiguration:")
-    print(
-        "Live data: fetched every 15 minutes during market hours (10 AM - 2:30 PM weekdays)"
-    )
-    print(
-        "Volatility data: calculated fresh on cache miss, reused for 1 hour on cache hit"
-    )
-    print(
-        "\nNote: This script works with empty MongoDB clusters - collections will be created automatically"
-    )
-    print("=" * 80)
-    print()
-
-    # Update interval: 15 minutes
-    update_interval = 1200  # 20 minutes in seconds
-
     while True:
         try:
-            current_time = module_time.time()
-            today = datetime.today().weekday()
+            run_at = next_run_time(datetime.now(lagos_tz))
+            wait = (run_at - datetime.now(lagos_tz)).total_seconds()
+            print(f"Next run at {run_at:%Y-%m-%d %H:%M} ({wait / 60:.0f} min)")
+            if wait > 0:
+                module_time.sleep(wait)
 
-            if is_market_open() and today < 5:
-                print("=" * 60)
-                lagos_now = datetime.now(lagos_tz)
-                print(
-                    f"Market is open - Starting data fetch at {lagos_now.strftime('%Y-%m-%d %H:%M:%S')}"
-                )
+            if not is_trading_day(run_at.date()):
+                print(f"{run_at:%Y-%m-%d} is not a trading day - skipping")
+                continue
 
-                # Run the full cycle with 1-hour volatility caching
-                main_cycle()
+            lagos_now = datetime.now(lagos_tz)
+            if (lagos_now - run_at).total_seconds() > SLOT_MINUTES * 60:
+                print("Missed this slot (previous cycle overran) - skipping")
+                continue
 
-                print(
-                    f"Next update in 15 minutes - {(lagos_now + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S')}"
-                )
-                print("=" * 60)
+            print("=" * 60)
+            print(f"Starting data fetch at {lagos_now:%Y-%m-%d %H:%M:%S}")
+            main_cycle()
+            print(f"Cycle finished at {datetime.now(lagos_tz):%H:%M:%S}")
+            print("=" * 60)
 
-            else:
-                print("Market closed or weekend - waiting for next market session")
-
-            module_time.sleep(update_interval)  # Sleep for 15 minutes
+            if run_at.time() == CLOSE_RUN:
+                apply_retention()
 
         except KeyboardInterrupt:
             print("System stopped by user")
-            # Save cache before exiting
             volatility_cache.save_cache()
             break
         except Exception as e:
             print(f"Error in main loop: {e}")
-            module_time.sleep(60)  # Wait 1 minute before retrying
+            module_time.sleep(60)
 
 
 def clear_volatility_cache():
@@ -1856,15 +2049,22 @@ def get_cache_info():
     stats = volatility_cache.get_cache_stats()
     print(f"Volatility Cache Information:")
     print(f"  Total entries: {stats['total_entries']}")
-    print(f"  Valid entries: {stats['valid_entries']}")
-    print(f"  Expired entries: {stats['expired_entries']}")
+    print(f"  Fully valid entries: {stats['valid_entries']}")
+    print(f"  Daily-valid entries: {stats['daily_valid']}")
+    print(f"  24hr-valid entries: {stats['intraday_valid']}")
+    print(f"  Expired / partial entries: {stats['expired_entries']}")
     print(
-        f"  Cache duration: {VOLATILITY_CACHE_DURATION/60} minutes ({VOLATILITY_CACHE_DURATION/3600:.2f} hours)"
+        f"  Daily TTL: until next Lagos calendar day "
+        f"(today={VolatilityCache.lagos_today()})"
+    )
+    print(
+        f"  24hr TTL: {INTRADAY_CACHE_DURATION/60:.0f} minutes "
+        f"({INTRADAY_CACHE_DURATION/3600:.2f} hours)"
     )
 
     if stats["total_entries"] > 0:
         print(
-            f"  Cache hit potential: {stats['valid_entries']/stats['total_entries']*100:.1f}%"
+            f"  Full-hit potential: {stats['valid_entries']/stats['total_entries']*100:.1f}%"
         )
 
     return stats

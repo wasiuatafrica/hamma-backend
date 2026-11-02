@@ -172,7 +172,6 @@ class PortfolioAnalyzer:
                     max_drawdown_percentage = max(
                         max_drawdown_percentage, equity_drawdown
                     )
-        print("max_drawdown", max_drawdown_percentage)
         # check for drawdown violation to send mail
         violated = max_drawdown_percentage > max_drawdown_allowed
 
@@ -186,7 +185,6 @@ class PortfolioAnalyzer:
             resp = get_screenshot(
                 email=self.portfolio.user.email, account_id=self.portfolio.account_id
             )
-            print("resp", resp)
             if resp["status"]:
 
                 sendMail(
@@ -372,7 +370,6 @@ class PortfolioAnalyzer:
         # Make sure we're using timezone-aware datetime objects
         current_time = timezone.now()
         two_weeks_ago = current_time - timedelta(days=14)
-        print(two_weeks_ago)
 
         # Get the most recent created position
         latest_created = self.portfolio.demopositions2.order_by("-created").first()
@@ -403,7 +400,6 @@ class PortfolioAnalyzer:
             if not latest_activity_date or closed_at > latest_activity_date:
                 latest_activity_date = closed_at
 
-        print(latest_activity_date)
 
         # If no activity found, check portfolio creation date
         if not latest_activity_date:
@@ -552,7 +548,6 @@ class PortfolioAnalyzer:
         Apply overnight swap fees for balance-based drawdown accounts
         """
         if not self.portfolio.balance_based_drawdown:
-            print("not balance based")
             return
 
         current_date = timezone.now().date()
@@ -570,7 +565,6 @@ class PortfolioAnalyzer:
             status=DemoPosition.OPEN,
             # created__date__lt=current_date,
         )
-        print("overnight positions", len(overnight_positions))
 
         total_swap_fee = self.swap_fee * Decimal(str(len(overnight_positions)))
 
@@ -584,7 +578,6 @@ class PortfolioAnalyzer:
                 position.swap_fee += 1000
                 position.save()
 
-                print("swap fee applied")
 
             # Log the swap fee charge
             logger.info(
@@ -628,9 +621,7 @@ def analyze_hamma_request_eligibility(portfolio):
         portfolio.can_trade = False
 
     # Check payout eligibility
-    print("checking payout eligibility")
     eligibility = analyzer.check_payout_eligibility()
-    print(eligibility)
 
     # Update portfolio status
     portfolio.blown = account_drawdown["violated"] or daily_drawdown["violated"]
@@ -686,7 +677,6 @@ def analyze_portfolio_status(portfolio):
 
     # Check payout eligibility
     eligibility = analyzer.check_payout_eligibility()
-    print(eligibility)
 
     # Update portfolio status
     portfolio.blown = account_drawdown["violated"] or daily_drawdown["violated"]
@@ -725,11 +715,9 @@ def analyze_hamma_portfolio_status(portfolio):
 
     analyzer = PortfolioAnalyzer(balance_equity_data, portfolio)
 
-    print("applying swap")
 
     analyzer.apply_overnight_swap_fees()
 
-    print("swap appplied")
 
     # Check account drawdown
     account_drawdown = analyzer.check_account_drawdown_violation(portfolio.model_type)
@@ -786,7 +774,6 @@ def analyze_portfolio_status_after_close(portfolio):
 
     # Check payout eligibility
     eligibility = analyzer.check_payout_eligibility()
-    print(eligibility)
 
     # Update portfolio status
     portfolio.blown = account_drawdown["violated"] or daily_drawdown["violated"]
@@ -824,7 +811,6 @@ def get_screenshot(email, account_id):
         dict: A dictionary containing the status and the screenshot URL or an error message.
     """
     url = settings.SCREENSHOT_URL
-    print("Helloo screenshot")
     try:
         # Make a GET request to the screenshot URL
         resp = requests.get(

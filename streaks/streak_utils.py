@@ -128,12 +128,8 @@ def process_accounts(accounts, portfolio_type, today, current_time, market_close
 
     for account in accounts:
         user = account.user
-        print(
-            f"Processing {portfolio_type} account {account.account_name} for user: {user.email}"
-        )
 
         has_open_trade = check_open_trades(account, position_model, today)
-        print(f"Has trade today: {has_open_trade}")
 
         with transaction.atomic():
             streak_info = get_or_create_streak_info(user, account, portfolio_field)
@@ -247,7 +243,6 @@ def create_daily_activity(user, streak_run, trade_date, account, portfolio_field
 def reset_streak(user, account, portfolio_field, streak_info):
     """Reset streak for user."""
     active_streak_run = get_active_streak_run(user, account, portfolio_field)
-    print(active_streak_run, "this is the active run")
     if active_streak_run:
         active_streak_run.end_streak()
     streak_info.reset_streak()
@@ -268,8 +263,7 @@ def update_user_streaks_daily_task():
         and current_time_lagos.weekday() < 5
     ):
         # logger.info("Updating user streaks during trading hours")
-        print("Updating user streaks during trading hours")
         update_user_streaks_daily()
     else:
         # logger.info(f"Streak checking is outside trading hours: {current_time_lagos}")
-        print(f"Streak checking is outside trading hours: {current_time_lagos}")
+        pass

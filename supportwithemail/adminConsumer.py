@@ -118,7 +118,6 @@ class AdminSupportConsumer(AsyncWebsocketConsumer):
         # Randomly select a name from the list
         selected_name = random.choice(names)
 
-        print(selected_name, "this is the selected name..")
 
         try:
             # Filter and return the first instance with the selected name
@@ -127,9 +126,9 @@ class AdminSupportConsumer(AsyncWebsocketConsumer):
             ).first()
 
             if profile:
-                print(f"Selected Profile: {profile.name}, Gender: {profile.gender}")
+                pass
             else:
-                print(f"No profile found for the selected name: {selected_name}")
+                pass
 
             return profile
 
@@ -168,7 +167,6 @@ class AdminSupportConsumer(AsyncWebsocketConsumer):
         self.conversation = await self.get_conversation(self.thread_id)
         self.channel_room_name = "admin_support_group_"
 
-        print(self.thread_id, "this is the thread_id")
 
     async def connect(self):
         await self.accept()
@@ -199,7 +197,6 @@ class AdminSupportConsumer(AsyncWebsocketConsumer):
             self.channel_room_name = f"switch_to_admin_request_{str(self.is_prop)}"
             await self.send_message_to_user({"message": self.request_messages})
 
-        print(self.channel_room_name, "this is the admin room name")
 
     async def disconnect(self, close_code):
 

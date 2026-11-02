@@ -89,4 +89,3 @@ def simulate__mail(payload: any = None, id: int = 1):
     # 21
     # user= CustomUser.objects.get(id=1)
     # port_task_mails.send_alert_email(user=user, symbol="UBA",alert_type="Test",action="Test_Action",to_price="2000")
-    print("sent")

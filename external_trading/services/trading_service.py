@@ -244,6 +244,9 @@ class TradingService:
             raise ValidationError("Position not found")
         if not position.stock.active:
             raise ValidationError("Stock is not active")
+
+        # Never close at a fallback price; raises PriceUnavailable
+        get_price(position.stock.symbol)
         if position.status != "open":
             raise ValidationError("Position is not open")
 
@@ -426,6 +429,5 @@ class TradingService:
 
         all_prices = get_stockdata2()
         position_data = get_position(all_prices, positions)
-        print(position_data)
 
         return position_data

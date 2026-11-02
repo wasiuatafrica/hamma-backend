@@ -120,9 +120,7 @@ def safe_float(value):
 
 def get_combined():
     volatile_data = get_price()
-    print("volatile gotten")
     all_live_data = get_live()
-    print("all live gotten")
     live_data = all_live_data[-1]
 
     # Combined data storage
@@ -282,9 +280,8 @@ def collect_live():
     if is_market_open() and today < 5:
         get_live_data()
         lagos_now = datetime.now(lagos_tz)
-        print("Live Price Updated", lagos_now.strftime("%Y-%m-%d %H:%M:%S"))
     else:
-        print("Market closed - Live")
+        pass
 
 
 @shared_task
@@ -294,6 +291,5 @@ def collect_merged():
         combined = get_combined()
         # print(combined)
         write_to_mongodb2("livelake3", combined)
-        print("Live Price merged")
     else:
-        print("Market closed - Merge")
+        pass

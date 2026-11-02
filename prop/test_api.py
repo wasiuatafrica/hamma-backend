@@ -42,38 +42,22 @@ def test_prop_account_data_api():
     try:
         response = requests.post(f"{base_url}{endpoint}", headers=headers, json=data)
 
-        print(f"Status Code: {response.status_code}")
-        print(f"Response Headers: {dict(response.headers)}")
 
         if response.status_code == 200:
             result = response.json()
-            print(f"Success! Found {result.get('total_accounts', 0)} accounts")
-            print(f"User: {result.get('user_fullname', 'N/A')}")
-            print(f"Last Updated: {result.get('last_updated', 'N/A')}")
 
             # Print account details
             for i, account in enumerate(result.get("accounts", []), 1):
-                print(f"\nAccount {i}:")
-                print(f"  ID: {account.get('account_id', 'N/A')}")
-                print(f"  Model: {account.get('model_type', 'N/A')}")
-                print(f"  Type Level: {account.get('account_type_level', 'N/A')}")
-                print(f"  Profit: {account.get('current_percentage_profit', 0)}%")
-                print(f"  Balance: {account.get('current_balance', 0)}")
-                print(f"  Equity: {account.get('current_equity', 0)}")
-                print(f"  Blown: {account.get('blown', False)}")
-                print(f"  Inactive: {account.get('inactive_by_inactivity', False)}")
-                print(f"  Trading Days: {account.get('trading_days', 0)}")
+                pass
 
         else:
-            print(f"Error: {response.text}")
+            pass
 
     except requests.exceptions.RequestException as e:
-        print(f"Request failed: {e}")
+        pass
     except json.JSONDecodeError as e:
-        print(f"Failed to parse JSON response: {e}")
+        pass
 
 
 if __name__ == "__main__":
-    print("Testing Prop Account Data API...")
-    print("=" * 50)
     test_prop_account_data_api()

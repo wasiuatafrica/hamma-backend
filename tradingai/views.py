@@ -207,7 +207,6 @@ class TradeRecommendationViewSub(APIView, AIFeatureMixin):
                 },
                 status=403,
             )
-        print("has access")
 
         profile = request.user.trade_profile
         if not profile:

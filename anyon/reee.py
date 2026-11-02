@@ -18,6 +18,6 @@ date_str = "2024-12-01T00:00:00"
 result = get_quarter(date_str)
 
 if isinstance(result, int):
-    print(f"The quarter for {date_str} is {result}")
+    pass
 else:
-    print(result)
+    pass

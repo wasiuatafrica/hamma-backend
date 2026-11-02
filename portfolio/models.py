@@ -131,6 +131,14 @@ class Stock(auto_prefetch.Model):
     email_logo_url = models.TextField(blank=True, null=True)
     converted_png = models.BooleanField(default=False)
     reversed_to_svg = models.BooleanField(default=False)
+    # Stable identity across ticker renames (e.g. FBNH -> FIRSTHOLDCO)
+    isin = models.CharField(max_length=12, unique=True, null=True, blank=True)
+    # TradingView chart symbol, e.g. "NSENG:ZENITHBANK"; null when TradingView has no data
+    tv_symbol = models.CharField(max_length=40, null=True, blank=True)
+    # NGX market flag from the company directory: MRF, BMF, RST, BLS
+    ngx_status = models.CharField(max_length=10, null=True, blank=True)
+    # Old tickers, so price history keyed by them still resolves
+    previous_symbols = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return self.symbol
@@ -623,3 +631,16 @@ class DataSourceSetting(models.Model):
 
     def __str__(self):
         return f"Current Data Source: {self.source}"
+
+
+class MarketHoliday(models.Model):
+    """NGX non-trading days, maintained in Django admin."""
+
+    date = models.DateField(unique=True)
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ["date"]
+
+    def __str__(self):
+        return f"{self.date} - {self.name}"

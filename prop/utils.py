@@ -154,7 +154,6 @@ def get_fixed_balance_equity_data():
     calculator = EnhancedPortfolioCalculator()
 
     for account in prop_accounts:
-        print(account.id)
 
         # Fetch positions for the account
         positions = DemoPosition.objects.filter(portfolio=account)
@@ -169,7 +168,6 @@ def get_fixed_balance_equity_data():
             "timestamp": timezone.now().strftime("%Y-%m-%dT%H:%M"),
             "account_id": account.account_id,
         }
-        print(mongo_data)
 
         # Insert data into MongoDB
         collection = db_prop[account.account_id]
@@ -277,7 +275,6 @@ def sendMail(
         )
         return True
     except Exception as e:
-        print(str(e))
         return False
 
 

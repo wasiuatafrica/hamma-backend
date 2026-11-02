@@ -59,7 +59,6 @@ class CompetitionPortfolio(auto_prefetch.Model):
     account_name = models.CharField(max_length=20, default="hackathon_account_1")
 
     def __str__(self):
-        print(self.user.clan)
         return f"{self.competition.title} {self.user.email}|clan= {self.user.clans}"
 
     @property

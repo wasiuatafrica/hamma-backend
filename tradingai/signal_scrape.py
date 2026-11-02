@@ -488,7 +488,6 @@ def get_all_data(symbols):
     data = {}
     for symbol in symbols:
         try:
-            print(f"getting data for {symbol}")
             final_symbol_data = {"1M": {}, "1W": {}, "1D": {}, "1H": {}}
             api_data = get_data(symbol)
             analysis_data = analyze_indicators5(
@@ -504,7 +503,6 @@ def get_all_data(symbols):
             final_symbol_data["symbol"] = symbol
             data[symbol] = final_symbol_data
         except Exception as e:
-            print(f"Error getting data for {symbol}: {str(e)}")
             continue
 
     return data
@@ -516,5 +514,4 @@ def get_signal_tv():
     collected_data = get_all_data(symbols)
     end_time = time.time()
     total_time = end_time - start_time
-    print(f"Total time : {total_time:.2f} seconds")
     signal_collection.insert_one(collected_data)

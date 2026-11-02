@@ -54,6 +54,7 @@ dependencies = [
     "tradingview-datafeed",
     "urllib3",
     "websockets",
+    "holidays>=0.107",
 ]
 
 [tool.uv]

@@ -125,7 +125,6 @@ class VerifyToken(APIView):
         user_email = request.data.get("user_email")
         device_type = request.data.get("device_type", None)
         source = request.data.get("source", None)
-        print(user_email, token, source, device_type)
 
         if not token and user_email:
             return Response(
@@ -447,7 +446,6 @@ class LoginWithEmailView(APIView):
             if user.check_password(password):
                 # requires_2fa = self.requires_2fa(user, ip_address, location, device)
                 requires_2fa = False
-                print(requires_2fa)
 
                 if requires_2fa:
                     if user.has_2fa:
@@ -531,7 +529,6 @@ class LoginWithEmailView(APIView):
             first_time = None
 
         if not first_time:
-            print("first_time", True)
             # first_time = models.FirstLogin(user=user)
             # first_time.save()
             return True
@@ -551,8 +548,6 @@ class LoginWithEmailView(APIView):
         #     return True
 
         if user.last_device != device:
-            print(device, user.last_device)
-            print("device", True)
 
             # user.last_device = device
             # user.save()

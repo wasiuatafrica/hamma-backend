@@ -23,7 +23,7 @@ from .models import (
     CompanyFundamental,
     CompanyProfile,
 )
-from .models import DataSourceSetting
+from .models import DataSourceSetting, MarketHoliday
 
 
 @admin.register(DemoTransaction)
@@ -42,8 +42,9 @@ class BonusWalletAdmin(admin.ModelAdmin):
 
 
 class StockAdmin(admin.ModelAdmin):
-    search_fields = ["symbol"]
-    list_display = ("company", "symbol")
+    search_fields = ["symbol", "company", "isin"]
+    list_display = ("company", "symbol", "isin", "tv_symbol", "ngx_status", "active")
+    list_filter = ("active", "ngx_status")
 
 
 admin.site.register(Stock, StockAdmin)
@@ -100,3 +101,9 @@ admin.site.register(ButtonClick)
 admin.site.register(DashboardFeed)
 admin.site.register(ViewOtherIdeasLog)
 admin.site.register(OpenedDashboardFeed)
+
+
+@admin.register(MarketHoliday)
+class MarketHolidayAdmin(admin.ModelAdmin):
+    list_display = ("date", "name")
+    ordering = ("-date",)

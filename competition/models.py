@@ -10,7 +10,7 @@ from django.core.cache import cache
 from decimal import Decimal
 from portfolio.models import Stock
 import string
-from portfolio.utils import db_merged
+from portfolio.prices import get_price  # noqa: F401 (used by models and importers)
 from collections import defaultdict
 from collections import defaultdict
 import pandas as pd
@@ -23,12 +23,6 @@ def generate_account_id():
     return "".join(random.choices(string.digits, k=6))
 
 
-def get_price(symbol):
-    # collection = db_merged["merged_live_price"]
-    collection = db_merged["merged_live_price_trdv"]
-    last_item = collection.find_one(sort=[("_id", -1)])
-
-    return last_item[symbol]
 
 
 class Competition(auto_prefetch.Model):
@@ -319,7 +313,6 @@ def get_leaderboard():
             clan = account.user.clans
             clan_returns[clan].append(profit / 1000000)
 
-    print(clan_returns)
     ranked_clans = []
     for clan, returns in clan_returns.items():
         cumulative_return = (1 + pd.Series(returns)).cumprod() - 1

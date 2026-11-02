@@ -39,6 +39,7 @@ from competition.models import (
 from notifications.utils import save_and_send_notification
 from portfolio.models import DemoTransaction, Stock, Wallet
 from portfolio.utils import get_price, get_stockdata2
+from portfolio.prices import PriceUnavailable, price_from_map
 
 from . import serializers as exec_serializer
 from .models import (
@@ -647,7 +648,6 @@ class Home(APIView):
                 def pl_cv(position):
                     pl, cur_val, price = position.calculate_profit_loss()
                     symbol = position.stock.symbol
-                    print(pl)
                     data2 = {"stock": symbol, "current_value": round(cur_val, 2)}
 
                     return pl, data2
@@ -787,7 +787,6 @@ class Home(APIView):
                 def pl_cv(position):
                     pl, cur_val, price = position.calculate_profit_loss()
                     symbol = position.stock.symbol
-                    print(pl)
                     data2 = {"stock": symbol, "current_value": round(cur_val, 2)}
 
                     return pl, data2
@@ -940,7 +939,6 @@ class SupportHome(APIView):
                 def pl_cv(position):
                     pl, cur_val, price = position.calculate_profit_loss()
                     symbol = position.stock.symbol
-                    print(pl)
                     data2 = {"stock": symbol, "current_value": round(cur_val, 2)}
 
                     return pl, data2
@@ -1079,7 +1077,6 @@ class SupportHome(APIView):
                 def pl_cv(position):
                     pl, cur_val, price = position.calculate_profit_loss()
                     symbol = position.stock.symbol
-                    print(pl)
                     data2 = {"stock": symbol, "current_value": round(cur_val, 2)}
 
                     return pl, data2
@@ -1565,7 +1562,6 @@ from accounts.models import CustomUser
 class SupportDemoHolding(APIView):
     def get(self, request, *args, **kwargs):
         email = kwargs.get("email")
-        print(email)
         user = CustomUser.objects.get(email=email)
 
         competition = Competition.objects.filter(status="current").first()
@@ -1832,7 +1828,9 @@ class DemoHolding2(APIView):
                             )
                         else:
                             percent_change = None
-                        price = all_prices[position.stock.symbol]["current_price"]
+                        price = price_from_map(
+                            all_prices, position.stock.symbol, position.open_price
+                        )
                         value = round(position.quantity * price, 2)
 
                         data = {
@@ -2536,7 +2534,7 @@ def get_position(all_prices, queryset):
     all_positions = []
     for position in queryset:
         symbol = position.stock.symbol
-        price = all_prices[symbol]["current_price"]
+        price = price_from_map(all_prices, symbol, position.open_price)
         current_value = round(position.quantity * price, 2)
 
         if position.status == "open":
@@ -3288,7 +3286,6 @@ class NewHome(APIView):
                 def pl_cv(position):
                     pl, cur_val, price = position.calculate_profit_loss()
                     symbol = position.stock.symbol
-                    print(pl)
                     data2 = {
                         "stock": symbol,
                         "current_value": round(cur_val, 2),
@@ -3442,7 +3439,6 @@ class NewHome(APIView):
             def pl_cv(position):
                 pl, cur_val, price = position.calculate_profit_loss()
                 symbol = position.stock.symbol
-                print(pl)
                 data2 = {
                     "stock": symbol,
                     "current_value": round(cur_val, 2),
@@ -3639,7 +3635,6 @@ class NewSupportHome(APIView):
                 def pl_cv(position):
                     pl, cur_val, price = position.calculate_profit_loss()
                     symbol = position.stock.symbol
-                    print(pl)
                     data2 = {
                         "stock": symbol,
                         "current_value": round(cur_val, 2),
@@ -3794,7 +3789,6 @@ class NewSupportHome(APIView):
             def pl_cv(position):
                 pl, cur_val, price = position.calculate_profit_loss()
                 symbol = position.stock.symbol
-                print(pl)
                 data2 = {
                     "stock": symbol,
                     "current_value": round(cur_val, 2),
@@ -4539,7 +4533,6 @@ class NewDemoCloseTrade(APIView):
                     "Position is not open", status=status.HTTP_400_BAD_REQUEST
                 )
 
-            print("here")
 
             result = self._process_close_trade(
                 position=position,
@@ -4555,7 +4548,6 @@ class NewDemoCloseTrade(APIView):
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             transaction.set_rollback(True)
-            print(e)
             return Response(
                 "An error occurred", status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
@@ -4703,10 +4695,9 @@ def get_holdings_positions(queryset):
     for position in queryset:
         symbol = position.stock.symbol
         try:
-            price = all_prices[symbol]["current_price"]
+            price = price_from_map(all_prices, symbol, position.open_price)
         except Exception as e:
             price = 0
-            print(e)
         current_value = round(position.quantity * price, 2)
 
         if position.status == "open":
@@ -4933,7 +4924,6 @@ class NewDemoHolding(APIView):
                         if data["status"] == "close"
                     ]
                 )
-                print(closed_pl)
                 open_trade_sum = sum(
                     [
                         data["invested"]
@@ -5127,9 +5117,6 @@ class NewSupportDemoHolding(APIView):
                         if data["status"] == "close"
                     ]
                 )
-                print(closed_pl)
-                print(portfolio.get_commissions())
-                print(portfolio.get_swap_fees())
                 open_trade_sum = sum(
                     [
                         data["invested"]

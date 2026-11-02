@@ -45,7 +45,6 @@ class NoAuthSupportConsumer(AsyncWebsocketConsumer):
         self.conversation_id = self.conversation.id
 
     async def connect(self):
-        print("Heloooo reached here")
         await self.accept()
         await self.initialize()
 
@@ -60,7 +59,6 @@ class NoAuthSupportConsumer(AsyncWebsocketConsumer):
             )
             await self.channel_layer.group_add(f"admin_room", self.channel_name)
             self.channel_room_name = f"email_{self.conversation.thread_id}_bot"
-        print(self.channel_room_name, "this is the room name")
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
@@ -74,7 +72,6 @@ class NoAuthSupportConsumer(AsyncWebsocketConsumer):
             message = data.get("message")
 
             def create_message(sender, content):
-                print(self.conversation, "this is the thread...")
                 return models.SupportMessage.objects.create(
                     email=self.email,
                     thread=self.conversation,

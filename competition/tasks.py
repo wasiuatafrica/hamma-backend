@@ -85,14 +85,11 @@ def getProfit(portfolio):
 
 
 def Create_competiton_summary(competition):
-    print("closing open positions")
     close_competition_trades(competition)
-    print("positions closed")
     portfolios = CompetitionPortfolio.objects.filter(
         competition=competition, active=True
     )
 
-    print("creating summary")
     for portfolio in portfolios:
         try:
             clan = Clan.objects.filter(member=portfolio.user).first()
@@ -115,7 +112,6 @@ def Create_competiton_summary(competition):
             trading_days=trading_days,
         )
 
-        print(f"created summary for {portfolio.user}")
     # close the competition after the loop is completed
     # competition.status = "closed"
     # competition.save()
@@ -225,13 +221,9 @@ def end_competition(id):
     competition.status = "closed"
     competition.save()
 
-    print("competition closed")
     if competition.status == "closed":
-        print("creating competition summary")
         Create_competiton_summary(competition)
-        print("ranking traders")
         rank_traders(competition)
-        print("ranking clans")
         rank_clans(competition)
 
     # user_ids = [id for id in get_user_model().objects.values_list('id', flat=True)]
@@ -252,9 +244,7 @@ def create_crontab(target_time):
 @shared_task
 def trading_rule_task(user_id):
     user = User.objects.get(id=user_id)
-    print(user.id)
     send_trading_rules(user)
-    print("sent trading rule")
 
 
 @shared_task
@@ -686,7 +676,6 @@ def check_pending_join_clan_requests():
                     "clan_name": req.clan.clan_name.title(),
                 },
             )
-    print("check pending join clan requests done for today")
 
 
 @shared_task
@@ -710,7 +699,6 @@ def auto_approve_join_clan_requests(id):
             "clan_name": join_request.clan.clan_name,
         },
     )
-    print("request approved")
 
 
 @shared_task
@@ -767,4 +755,4 @@ def first_daily_trade(portfolio_id):
         }
         send_daily_trade_confirmation(portfolio.user, context)
     else:
-        print("No trades to confirm today or this is not first trade")
+        pass

@@ -272,7 +272,6 @@ class ReferralWithdrawal(APIView):
         amount = Decimal(request.data.get('amount'))
         wallet = ReferralWallet.objects.get(user=request.user)
         
-        print(amount, wallet.balance)
         if amount <= wallet.balance:
             ReferralWithdrawalRequest.objects.create(wallet=wallet, amount=amount)
             save_and_send_notification(request.user.id, f"Your referral commission withdrawal has been submitted.")

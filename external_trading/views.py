@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 
 from execution.models import DemoPortfolio
 from portfolio.utils import get_price, get_stockdata2
+from portfolio.prices import PriceUnavailable, price_unavailable_message
 
 from .models import (
     ApiKey,
@@ -130,9 +131,7 @@ class DeleteConnectionView(APIView):
     def delete(self, request):
         """Get all available accounts for the authenticated connection"""
         # Authenticate request
-        print(request.body)
         is_valid, connection, message = self._authenticate(request)
-        print(message)
         if not is_valid:
             return Response({"error": message}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -379,7 +378,6 @@ class ExternalTradeAPI(APIView):
             return Response(serialized_data)
 
         except ValidationError as e:
-            print(e)
             # Log failed request
             self._log_request(
                 connection,
@@ -389,8 +387,12 @@ class ExternalTradeAPI(APIView):
                 error_message=str(e),
             )
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except PriceUnavailable as e:
+            return Response(
+                {"error": str([price_unavailable_message(e.symbol)])},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
-            print(e)
             # Log failed request
             self._log_request(
                 connection,
@@ -410,7 +412,6 @@ class ExternalTradeAPI(APIView):
         is_valid, connection, message = self._authenticate(request)
         if not is_valid:
             return Response({"error": message}, status=status.HTTP_401_UNAUTHORIZED)
-        print(request.data)
 
         # Check permissions
         if not connection.permissions.can_open_trades:
@@ -516,7 +517,6 @@ class ExternalTradeAPI(APIView):
                     "quantity": quantity,
                     "stock": symbol,
                 }
-                print(response_data)
 
             elif order_type == "limit":
                 position = TradingService.process_limit_order(
@@ -553,8 +553,12 @@ class ExternalTradeAPI(APIView):
                 connection, "open_trade", request, status="failed", error_message=str(e)
             )
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except PriceUnavailable as e:
+            return Response(
+                {"error": str([price_unavailable_message(e.symbol)])},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
-            print(e)
             # Log failed request
             self._log_request(
                 connection, "open_trade", request, status="failed", error_message=str(e)
@@ -611,9 +615,13 @@ class ExternalTradeAPI(APIView):
                 error_message=str(e),
             )
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except PriceUnavailable as e:
+            return Response(
+                {"error": str([price_unavailable_message(e.symbol)])},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
             # Log failed request
-            print(str(e))
             self._log_request(
                 connection,
                 "delete_connection",
@@ -671,6 +679,11 @@ class ExternalTradeAPI(APIView):
                 error_message=str(e),
             )
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except PriceUnavailable as e:
+            return Response(
+                {"error": str([price_unavailable_message(e.symbol)])},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
             # Log failed request
             self._log_request(
@@ -739,7 +752,6 @@ class DeleteActionView(APIView):
                     status=status.HTTP_200_OK,
                 )
             except Exception as e:
-                print(str(e))
 
                 return Response(
                     {

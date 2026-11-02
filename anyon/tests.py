@@ -66,7 +66,6 @@ class TestManageUserEndPoint(acc_tests.AuthenticateUserForTesting):
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        print(response.data)
 
     # def test_list_users(self):
     #     url = reverse('manage-users')

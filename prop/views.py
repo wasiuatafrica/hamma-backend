@@ -800,7 +800,6 @@ class AdminReceiptsView(APIView):
         comment = request.data.get("comment", None)
 
         receipt_ids = request.data.get("receipt_ids", [])
-        print("recipt ids", receipt_ids)
 
         if receipt_status not in statuses:
             return Response("receipt_status must either be approved or rejected ")
@@ -2002,7 +2001,6 @@ class HammaAccountRequestView(APIView):
         account = DemoPortfolio.objects.get(
             account_id=account_id, account_type_level="challenge", user=request.user
         )
-        print(account.account_id)
 
         if account.blown:
             return Response({"can_request": False, "reason": "Account has been blown"})
@@ -2053,7 +2051,6 @@ class HammaAccountRequestView(APIView):
             )
 
             analysis = analyze_hamma_request_eligibility(account)
-            print(analysis)
             if analysis["eligibility_details"]["eligible"]:
                 account.time_to_payout = analysis["eligibility_details"].get(
                     "weeks_to_target", 0
@@ -2069,7 +2066,6 @@ class HammaAccountRequestView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         except Exception as e:
-            print(e)
             return Response(
                 {"error": "Account not found"}, status=status.HTTP_400_BAD_REQUEST
             )

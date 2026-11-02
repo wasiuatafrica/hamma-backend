@@ -50,7 +50,6 @@ class MarketConsumer(AsyncWebsocketConsumer):
         ]
 
             
-        print(messages)
         return messages
     
     
@@ -67,7 +66,6 @@ class MarketConsumer(AsyncWebsocketConsumer):
         
         conversation_id  = query_params.get('conversation_id', None)
 
-        print(access_token, conversation_id)
         # access_token = self.scope.get('query_string').decode('utf-8').split('=')[1]
         if access_token:
             self.user_id = await self.get_user_id_from_token(access_token)
@@ -76,7 +74,6 @@ class MarketConsumer(AsyncWebsocketConsumer):
             
         # print('user',self.user_id)
         self.user = await self.get_user(self.user_id)
-        print(self.user.email)
         self.conversation_id = conversation_id
         self.conversation = await get_conversation(conversation_id,self.user)
         
@@ -199,7 +196,6 @@ class MarketConsumer2(AsyncWebsocketConsumer):
         ]
 
             
-        print(messages)
         return messages
     
     
@@ -216,7 +212,6 @@ class MarketConsumer2(AsyncWebsocketConsumer):
         
         conversation_id  = query_params.get('conversation_id', None)
 
-        print(access_token, conversation_id)
         # access_token = self.scope.get('query_string').decode('utf-8').split('=')[1]
         if access_token:
             self.user_id = await self.get_user_id_from_token(access_token)
@@ -225,7 +220,6 @@ class MarketConsumer2(AsyncWebsocketConsumer):
             
         # print('user',self.user_id)
         self.user = await self.get_user(self.user_id)
-        print(self.user.email)
         self.conversation_id = conversation_id
         self.conversation = await get_conversation(conversation_id,self.user)
         

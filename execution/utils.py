@@ -92,14 +92,12 @@ def calculate_cumulative_returns():
             }
             df = pd.DataFrame(data)
 
-            print(df)
 
             df["portfolio_cumulative"] = (
                 (1 + df["portfolio_returns"]).cumprod() - 1
             ) * 100
             df["market_cumulative"] = ((1 + df["market_returns"]).cumprod() - 1) * 100
 
-            print(df)
             for index, row in df.iterrows():
                 DemoCumulativeReturns.objects.create(
                     user=user,
@@ -135,7 +133,6 @@ def calculate_cumulative_returns_user(user):
         df["portfolio_cumulative"] = ((1 + df["portfolio_returns"]).cumprod() - 1) * 100
         df["market_cumulative"] = ((1 + df["market_returns"]).cumprod() - 1) * 100
 
-        print(df)
         for index, row in df.iterrows():
             DemoCumulativeReturns.objects.create(
                 user=user,
@@ -152,7 +149,6 @@ from django.utils import timezone
 def daily_returns2():
     users = User.objects.all()
     for user in users:
-        print(user)
         positions = DemoPosition.objects.filter(portfolio__user=user, status="close")
         if positions.exists():
 
@@ -226,7 +222,6 @@ def daily_returns2():
                     portfolio_returns=round(row["cum_returns"], 2),
                     created=row["closedatetime"],
                 )
-        print("done")
 
 
 import numpy as np
@@ -246,7 +241,6 @@ def mark_returns():
     ASI_daily_selected["Date"] = ASI_daily_selected["datetime"].dt.strftime("%Y-%m-%d")
 
     for index, row in ASI_daily_selected.iterrows():
-        print(row["Date"], row["ASI_daily_retuns"])
         market_returns = row["ASI_daily_retuns"]
         if np.isnan(market_returns):
             market_returns = 0  # or any other valid value
@@ -261,7 +255,6 @@ def mark_returns():
     cum_mark_table["cum_ASI_daily_retuns"] = cum_mark_table.cum_ASI_daily_retuns * 100
 
     for index, row in cum_mark_table.iterrows():
-        print(row["Date"], row["cum_ASI_daily_retuns"])
         cum_market_returns = row["cum_ASI_daily_retuns"]
         if np.isnan(cum_market_returns):
             cum_market_returns = 0  # or any other valid value
@@ -651,7 +644,6 @@ def competition_daily_returns4():
                     cum_table.running_pl / cum_table.Balance
                 ) * 100
 
-                print(cum_table)
                 last_row_cum = cum_table.iloc[-1]
 
                 c_returns = CompetitionCumulativeReturns2.objects.filter(
@@ -690,7 +682,6 @@ def competition_daily_returns4():
             "%Y-%m-%d"
         )
 
-        print(ASI_daily_selected)
         # # Save the last row to the database
         last_row_market = ASI_daily_selected.iloc[-1]
         # # print(last_row_market)
@@ -739,7 +730,6 @@ def competition_daily_returns4():
         comp_market_cum2.market_returns = round(cum_market_returns, 2)
         comp_market_cum2.save()
 
-        print("all calculated")
 
 
 def daily_returns5():
@@ -761,7 +751,6 @@ def daily_returns5():
         for user in users:
             portfolios = DemoPortfolio.objects.filter(user=user)
             for portfolio in portfolios:
-                print(portfolio.account_name)
                 positions_today = DemoPosition.objects.filter(
                     portfolio=portfolio, status="close", closed_at__date=today
                 )
@@ -850,7 +839,6 @@ def daily_returns5():
                         d_returns.created = timezone.now()
                         d_returns.save()
                     else:
-                        print("daily returns created first time today")
 
                         d_returns = DemoDailyReturns2.objects.create(
                             user=portfolio.user,
@@ -950,7 +938,6 @@ def daily_returns5():
                     c_returns.market_returns = round(cum_market_returns, 2)
                     c_returns.save()
 
-        print("all demo returns calculated")
 
 
 def competition_daily_returns7():
@@ -977,7 +964,6 @@ def competition_daily_returns7():
             )
 
             if positions_today.exists():
-                print(f"{portfolio.user} closed position today")
                 positions = CompetitionPosition.objects.filter(
                     portfolio=portfolio, status="close"
                 )
@@ -1060,7 +1046,6 @@ def competition_daily_returns7():
                     cum_table.running_pl / cum_table.Balance
                 ) * 100
 
-                print(cum_table)
                 last_row_cum = cum_table.iloc[-1]
 
                 c_returns = CompetitionCumulativeReturns2.objects.filter(
@@ -1095,7 +1080,6 @@ def competition_daily_returns7():
                 c_returns.market_returns = round(cum_market_returns, 2)
                 c_returns.save()
 
-        print("all demo returns calculated")
 
 
 def daily_returns7():
@@ -1126,7 +1110,6 @@ def daily_returns7():
             )
 
             if positions_today.exists():
-                print(f"{portfolio.user} closed position today")
                 positions = DemoPosition.objects.filter(
                     portfolio=portfolio, status="close"
                 )
@@ -1177,7 +1160,6 @@ def daily_returns7():
                 # print(df)
 
                 df_final = df.groupby("Closedate").tail(1).reset_index(drop=True)
-                print(df_final)
 
                 # Save the last row to the database
                 last_row = df_final.iloc[-1]
@@ -1212,8 +1194,6 @@ def daily_returns7():
                 cum_table["cum_returns"] = (
                     cum_table.running_pl / cum_table.Balance
                 ) * 100
-                print("nex cum")
-                print(cum_table)
                 last_row_cum = cum_table.iloc[-1]
 
                 c_returns = DemoCumulativeReturns.objects.filter(
@@ -1248,7 +1228,6 @@ def daily_returns7():
                 c_returns.market_returns = round(cum_market_returns, 2)
                 c_returns.save()
 
-        print("all demo returns calculated")
 
 
 def send_trade_notification(trade_type, action, trade_data):

@@ -64,10 +64,8 @@ class AlertConsumer(AsyncWebsocketConsumer):
         # Extract the values for 'token' and 'status' parameters
         access_token = query_params.get('token', None)
         email = query_params.get('email', None)
-        print(email)
         conversation_id  = query_params.get('conversation_id', None)
 
-        print(access_token, conversation_id)
         # access_token = self.scope.get('query_string').decode('utf-8').split('=')[1]
         if access_token:
             self.user_id = await self.get_user_id_from_token(access_token)
@@ -211,10 +209,8 @@ class AlertConsumer2(AsyncWebsocketConsumer):
         # Extract the values for 'token' and 'status' parameters
         access_token = query_params.get('token', None)
         email = query_params.get('email', None)
-        print(email)
         conversation_id  = query_params.get('conversation_id', None)
 
-        print(access_token, conversation_id)
         # access_token = self.scope.get('query_string').decode('utf-8').split('=')[1]
         if access_token:
             self.user_id = await self.get_user_id_from_token(access_token)

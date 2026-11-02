@@ -8,6 +8,7 @@ from django.utils.crypto import get_random_string
 
 import pytz
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.mail import send_mail
 from django.db import close_old_connections
 from django.db.models import Count, Exists, F, OuterRef, Q, Sum
@@ -39,6 +40,7 @@ from execution import models as exec_models
 from lock.models import Saving
 from notifications.utils import save_and_send_notification
 
+from .market_hours import market_status
 from .models import (
     Alert,
     AlertAI,
@@ -79,6 +81,7 @@ from .company_profile import get_all_shares_outstanding, get_shares_outstanding
 from .utils import (
     get_calendar,
     get_details3,
+    get_tradeable_details,
     get_historical_data,
     get_mini_data,
     get_price,
@@ -428,7 +431,7 @@ class ResendWithdrawalOtp(APIView):
 #         queryset = self.get_queryset()
 #         first = queryset.first()
 
-#         details = get_details3(queryset)
+#         details = get_tradeable_details(queryset)
 #         watchlist = [ watch.stock.symbol for watch in StockWatchlist.objects.filter(user=request.user)]
 #         for detail in details:
 #             if detail['symbol'] in watchlist:
@@ -444,6 +447,10 @@ class ResendWithdrawalOtp(APIView):
 #         return Response(response_data)
 
 
+STOCK_LIST_CACHE_KEY = "portfolio:stock_list_details"
+STOCK_LIST_CACHE_SECONDS = 30
+
+
 class StockList(generics.ListAPIView):
     queryset = Stock.objects.filter(active=True).order_by("symbol")
     permission_classes = [
@@ -451,10 +458,18 @@ class StockList(generics.ListAPIView):
     ]
 
     def get(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-
-        # Fetch stock details
-        details = get_details3(queryset)
+        # Shared across users; prices only change when the collector writes a snapshot
+        try:
+            details = cache.get(STOCK_LIST_CACHE_KEY)
+        except Exception:
+            details = None
+        if details is None:
+            details = get_tradeable_details(self.get_queryset())
+            try:
+                cache.set(STOCK_LIST_CACHE_KEY, details, STOCK_LIST_CACHE_SECONDS)
+            except Exception:
+                pass
+        details = [dict(detail) for detail in details]
 
         # Initialize empty watchlist
         watchlist = []
@@ -697,7 +712,6 @@ class ReceiptsView(APIView):
         drawdown_type = request.data.get("drawdown_type", "balance_equity")
         discount_code = request.data.get("discount_code", None)
         receipt_type = request.data.get("receipt_type", None)
-        print(request.data)
         discount_instance = None
         if discount_code:
             discount_instance = get_object_or_404(
@@ -708,7 +722,6 @@ class ReceiptsView(APIView):
             serializers = ReceiptsViewSerializer(data=request.data)
             if serializers.is_valid():
                 image = serializers.validated_data["image"]
-                print(image, "sadbscv")
                 receipt = Receipts.objects.create(user=request.user, image=image)
 
                 if not receipt_type:
@@ -1319,13 +1332,13 @@ class StockWatchlistAPIView(APIView):
 
         # Get the queryset of stocks related to these feeds
         analyst = Stock.objects.filter(feed__in=published_feeds).distinct()
-        analyst_pick = get_details3(analyst)
+        analyst_pick = get_tradeable_details(analyst)
 
         response_data = {"analyst_pick": analyst_pick}
 
         if request.user.is_authenticated:
             queryset = Stock.objects.filter(watchlisted_by__user=request.user)
-            details = get_details3(queryset)
+            details = get_tradeable_details(queryset)
             response_data["watchlist"] = details
         else:
             response_data["watchlist"] = []
@@ -1400,10 +1413,9 @@ class SupportStockWatchlistAPIView(APIView):
     def get(self, request, *args, **kwargs):
 
         email = kwargs.get("email")
-        print(email)
 
         queryset = Stock.objects.filter(watchlisted_by__user__email=email)
-        details = get_details3(queryset)
+        details = get_tradeable_details(queryset)
 
         response_data = {
             "watchlist": details,
@@ -1429,7 +1441,7 @@ class MostTradedStocks(APIView):
         )
         most_traded_stock = most_traded_stock[:10]
 
-        details = get_details3(most_traded_stock)
+        details = get_tradeable_details(most_traded_stock)
 
         response_data = {
             "trending": details,
@@ -1758,7 +1770,6 @@ class DashboardFeedReactionAPIView(APIView):
         reaction, created = FeedReaction.objects.get_or_create(
             user=request.user, feed=feed
         )
-        print(like)
 
         # Handle voting and unvoting
         if agree is not None:
@@ -1813,7 +1824,6 @@ class DashboardFeedReactionAPIView(APIView):
 
         # Save the updated reaction
         reaction.save()
-        print(reaction.like)
 
         return Response(
             {"message": "Reaction updated successfully"}, status=status.HTTP_200_OK
@@ -1827,7 +1837,6 @@ class CheckReaction(APIView):
         # feed_id = request.data.get('feed_id')
         feed = get_object_or_404(DashboardFeed, id=feed_id)
         reaction = FeedReaction.objects.get_or_create(user=request.user, feed=feed)[0]
-        print(reaction)
         if reaction:
             serializer = FeedReactionSerializer(reaction)
             return Response(serializer.data)
@@ -1841,7 +1850,6 @@ class CheckReaction(APIView):
 
 
 def track_daily_mail(request, user_id, feed_id):
-    print("Heyyy")
 
     feed = DashboardFeed.objects.get(id=feed_id)
     user = User.objects.get(id=user_id)
@@ -1888,11 +1896,10 @@ class PopularStocks(generics.ListAPIView):
             "ZENITHBANK",
             "ACCESSCORP",
             "UBA",
-            "FBNH",
+            "FIRSTHOLDCO",
             "STANBIC",
             "NB",
-            "WAPCO",
-            "FLOURMILL",
+            "HBMNG",
             "UNILEVER",
             "SEPLAT",
             "CADBURY",
@@ -1907,7 +1914,7 @@ class PopularStocks(generics.ListAPIView):
         queryset = Stock.objects.filter(symbol__in=symbols, active=True).order_by(
             "symbol"
         )
-        details = get_details3(queryset)
+        details = get_tradeable_details(queryset)
         if request.user.is_authenticated:
             # Get the watchlist for the logged-in user
             watchlist = [
@@ -1941,6 +1948,34 @@ class ToggleDataSourceView(APIView):
         setting = DataSourceSetting.objects.first()
         source = setting.source if setting else "NGX"
         return Response({"source": source})
+
+
+class CollectorSymbolsView(APIView):
+    """Active stocks for the price collector (replaces its hard-coded symbol list)."""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        stocks = Stock.objects.filter(active=True).order_by("symbol")
+        return Response(
+            [
+                {
+                    "symbol": stock.symbol,
+                    "tv_symbol": stock.tv_symbol,
+                    "previous_symbols": stock.previous_symbols,
+                }
+                for stock in stocks
+            ]
+        )
+
+
+class MarketStatusView(APIView):
+    """Whether NGX is open now (Lagos time, weekdays, MarketHoliday-aware)."""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response(market_status())
 
 
 class DataSourceStatusView(APIView):

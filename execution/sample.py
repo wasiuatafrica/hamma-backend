@@ -15,7 +15,6 @@ def execute_trade(symbol, quantity, price, order_type, time_in_force, take_profi
   try:
     market_price = r.get_latest_price(symbol)[0]
   except:
-    print("Invalid symbol")
     return
 
   # Check if the order type is valid and execute the trade
@@ -26,15 +25,12 @@ def execute_trade(symbol, quantity, price, order_type, time_in_force, take_profi
     # Execute a limit order
     order = r.order_buy_limit(symbol, quantity, price, timeInForce=time_in_force)
   else:
-    print("Invalid order type")
     return
 
   # Check if the order was successful and get the order ID
   if order['detail'] == "Order placed.":
     order_id = order['id']
-    print("Order placed successfully")
   else:
-    print("Order failed")
     return
 
   # If take profit or stop loss parameters are given, create conditional sell orders

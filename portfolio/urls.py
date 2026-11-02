@@ -41,6 +41,12 @@ urlpatterns = [
         views.DataSourceStatusView.as_view(),
         name="data-source-status",
     ),
+    path("market-status/", views.MarketStatusView.as_view(), name="market-status"),
+    path(
+        "collector-symbols/",
+        views.CollectorSymbolsView.as_view(),
+        name="collector-symbols",
+    ),
     path("alert/<int:id>/", views.AlertUpdateView.as_view()),
     path("fund-live/", views.FundLiveAccount.as_view()),
     path("withdraw-live/", views.WithdrawLiveAccount.as_view()),

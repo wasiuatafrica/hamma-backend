@@ -12,7 +12,7 @@ from accounts.models import Profile
 from competition.models import CompetitionPortfolio
 import random
 import string
-from portfolio.utils import db_merged
+from portfolio.prices import get_price  # noqa: F401 (used by models and importers)
 from simple_history.models import HistoricalRecords
 
 User = get_user_model()
@@ -22,12 +22,6 @@ def generate_account_id():
     return "".join(random.choices(string.digits, k=6))
 
 
-def get_price(symbol):
-    # collection = db_merged["merged_live_price"]
-    collection = db_merged["merged_live_price_trdv"]
-    last_item = collection.find_one(sort=[("_id", -1)])
-    # print(symbol)
-    return last_item[symbol]
 
 
 class DiscountCode(auto_prefetch.Model):
@@ -400,7 +394,6 @@ class DemoPosition(auto_prefetch.Model):
 
     @property
     def current_price(self):
-        print(self.stock.symbol)
         try:
             price = get_price(self.stock.symbol)
             if price is None:

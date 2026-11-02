@@ -46,7 +46,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         try:
             data = json.loads(text_data)
             notification_id = data.get('notification_id')
-            print(notification_id)
             for id in notification_id:
                 notification = id.split('-')
                 if notification:

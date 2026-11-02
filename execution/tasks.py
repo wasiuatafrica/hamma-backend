@@ -43,7 +43,13 @@ from execution.utils import (
 )
 from notifications.utils import save_and_send_notification
 from portfolio.models import Conversation, DemoTransaction, MarketAI, Message, Stock
+from portfolio.prices import get_price_info
 from portfolio.utils import get_price, get_stockdata2
+from portfolio.prices import (
+    PriceUnavailable,
+    price_from_map,
+    price_unavailable_message,
+)
 
 from .models import DemoCumulativeReturns, DemoDailyReturns, DemoPortfolio, DemoPosition
 
@@ -136,7 +142,6 @@ def get_equity_data(user):
         for position in positions_query
     ]
 
-    print(portfolio.calculate_portfolio_return())
     overview = market_returns(portfolio.calculate_portfolio_return())
 
     data = {"equity": float(equity), "positions": positions, "overview": overview}
@@ -228,7 +233,10 @@ def process_limit_order(id, in_competition=False):
 
                 if not expired and current_time_lagos < target_time:
 
-                    data = get_price(position.stock.symbol)
+                    try:
+                        data = get_price(position.stock.symbol)
+                    except PriceUnavailable:
+                        return  # no usable price: leave the order pending, retry next run
                     price = data["current_price"]
                     balance = position.portfolio.balance
 
@@ -325,7 +333,6 @@ def process_limit_order(id, in_competition=False):
                                     f" COMPETITION: Your pending order:  {position.quantity} units of {position.stock.symbol}  cannot be filled because you do not have sufficient funds.",
                                 )
 
-                    print(f"limit order {position.alert_name} checked")
             else:
                 task = PeriodicTask.objects.get(name=position.alert_name)
                 task.enabled = False
@@ -386,7 +393,10 @@ def process_limit_order(id, in_competition=False):
 
                 if not expired and current_time_lagos < target_time:
 
-                    data = get_price(position.stock.symbol)
+                    try:
+                        data = get_price(position.stock.symbol)
+                    except PriceUnavailable:
+                        return  # no usable price: leave the order pending, retry next run
                     price = data["current_price"]
                     balance = position.portfolio.balance
                     if position.action == "buy":
@@ -475,13 +485,12 @@ def process_limit_order(id, in_competition=False):
                                     user.id,
                                     f"Your pending order:  {position.quantity} units of {position.stock.symbol}  cannot be filled because you do not have sufficient funds.",
                                 )
-                    print(f"limit order {position.alert_name} checked")
             else:
                 task = PeriodicTask.objects.get(name=position.alert_name)
                 task.enabled = False
                 task.save()
     else:
-        print("Outside trading hours")
+        pass
 
 
 # Shared helper functions
@@ -499,7 +508,6 @@ def execute_trade(position, price, user, action_type, transaction_model):
     # trade_commission = round(Decimal(0.00435) * amount, 2) + 200
     total = amount  # + trade_commission
 
-    print("portfolio balance", position.portfolio.balance, "total", total)
     if position.portfolio.balance >= total:
         position.status = "open"
         position.open_price = Decimal(price)
@@ -511,10 +519,8 @@ def execute_trade(position, price, user, action_type, transaction_model):
         create_transaction(user, action_type, amount, transaction_model)
         log_activity(user, position, amount, action_type)
         send_trade_notification(user, position, price, amount, action_type)
-        print("trade executed")
     else:
         send_insufficient_funds_notification(user, position)
-        print("insufficient_funds")
 
 
 def create_transaction(user, action_type, amount, transaction_model):
@@ -572,7 +578,6 @@ def process_competition_limit_order(id):
 
     # Validate competition start time
     if timezone.now() <= competition.start_date:
-        print("Competition has not started yet")
         return
 
     position = get_object_or_404(CompetitionPosition, id=id)
@@ -604,24 +609,16 @@ def process_competition_limit_order(id):
             return
 
         # Check price and execute trade
-        data = get_price(position.stock.symbol)
+        try:
+            data = get_price(position.stock.symbol)
+        except PriceUnavailable:
+            return  # no usable price: leave the order pending, retry next run
         price = data["current_price"]
-        print(
-            "current_price:",
-            price,
-            type(price),
-            "limit_price:",
-            position.limit_price,
-            type(position.limit_price),
-            position.action,
-        )
         if position.action == "buy" and price <= position.limit_price:
-            print("buy condition met")
             execute_trade(
                 position, price, user, "competition_open_trade", CompetitionTransaction
             )
         elif position.action == "sell" and price >= position.limit_price:
-            print("sell condition met")
             execute_trade(
                 position, price, user, "competition_open_trade", CompetitionTransaction
             )
@@ -636,15 +633,12 @@ def process_competition_limit_order(id):
 @shared_task
 def process_all_competition_limit_order_task():
     if not is_within_trading_hours():
-        print("Outside trading hours for competition")
         return
 
     pending_positions = CompetitionPosition.objects.filter(
         portfolio__competition__status="current", status="pending"
     )
-    print("length of pending competitions", len(pending_positions))
     for pending_pos in pending_positions:
-        print(f"processing {pending_pos.portfolio.account_name}...")
         process_competition_limit_order(pending_pos.id)
 
 
@@ -681,7 +675,10 @@ def process_demo_limit_order(id):
             return
 
         # Check price and execute trade
-        data = get_price(position.stock.symbol)
+        try:
+            data = get_price(position.stock.symbol)
+        except PriceUnavailable:
+            return  # no usable price: leave the order pending, retry next run
         price = data["current_price"]
 
         if position.action == "buy" and price <= position.limit_price:
@@ -699,12 +696,10 @@ def process_demo_limit_order(id):
 @shared_task
 def process_all_demo_limit_order_task():
     if not is_within_trading_hours():
-        print("Outside trading hours for demo")
         return
 
     pending_positions = DemoPosition.objects.filter(status="pending")
     for pending_pos in pending_positions:
-        print(f"processing {pending_pos.portfolio.account_name}...")
         process_demo_limit_order(pending_pos.id)
 
 
@@ -725,11 +720,9 @@ def get_daily_profit_loss():
 
                     position_shares.append(returned * weight)
                 shares = round(sum(position_shares) * 100, 2)
-                print("return", shares)
                 # DemoDailyReturns.objects.create(user=user, portfolio_returns=shares)
-                print(f"{user.email} daily profit/loss calculated")
     else:
-        print("Not running on weekends.")
+        pass
 
 
 @shared_task
@@ -741,7 +734,6 @@ def daily_returns():
         users = User.objects.all()
         data = get_price("ASI")
         pr = data["current_price"]
-        print(data)
         # pr = 24.15
 
         for user in users:
@@ -768,7 +760,6 @@ def daily_returns():
                     last_ngx = last_ngx_query.ngx_price
                     market_returns = round(((pr - last_ngx) / last_ngx) * 100, 2)
 
-                    print("return", shares)
                 else:
                     market_returns = 0
                 # last_ngx = 25.5
@@ -781,10 +772,9 @@ def daily_returns():
                     market_returns=market_returns,
                     ngx_price=pr,
                 )
-                print(f"{user.email} daily profit/loss calculated")
 
     else:
-        print("Not running on weekends.")
+        pass
 
 
 @shared_task
@@ -796,7 +786,6 @@ def cumulative_returns():
         users = User.objects.all()
         data = get_price("ASI")
         pr = data["current_price"]
-        print(data)
         # pr = 24.15
 
         for user in users:
@@ -823,7 +812,6 @@ def cumulative_returns():
                     last_ngx = last_ngx_query.ngx_price
                     market_returns = round(((pr - last_ngx) / last_ngx) * 100, 2)
 
-                    print("return", shares)
                 else:
                     market_returns = 0
                 # last_ngx = 25.5
@@ -836,10 +824,9 @@ def cumulative_returns():
                     market_returns=market_returns,
                     ngx_price=pr,
                 )
-                print(f"{user.email} daily profit/loss calculated")
 
     else:
-        print("Not running on weekends.")
+        pass
 
 
 @shared_task
@@ -849,7 +836,6 @@ def competition_daily_returns():
         users = User.objects.all()
         data = get_price("ASI")
         pr = data["current_price"]
-        print(data)
         # pr = 24.15
 
         for user in users:
@@ -886,7 +872,6 @@ def competition_daily_returns():
                     last_ngx = last_ngx_query.ngx_price
                     market_returns = round(((pr - last_ngx) / last_ngx) * 100, 2)
 
-                    print("return", shares)
                 else:
                     market_returns = 0
                 # last_ngx = 25.5
@@ -900,10 +885,9 @@ def competition_daily_returns():
                     ngx_price=pr,
                     portfolio=portfolio,
                 )
-                print(f"{user.email} daily profit/loss calculated")
 
     else:
-        print("Not running on weekends.")
+        pass
 
 
 @shared_task
@@ -1026,13 +1010,11 @@ def get_alert_data(prompt):
 @shared_task
 def get_data_prompt(prompt):
     data = get_alert_data(prompt)
-    print(data)
     return data
 
 
 @shared_task
 def process_market_data(prompt, convsersation_id, user_id, channel_name):
-    print(prompt)
     loaded_data = get_data_prompt(prompt)
     user = User.objects.get(id=user_id)
 
@@ -1041,7 +1023,6 @@ def process_market_data(prompt, convsersation_id, user_id, channel_name):
     conversation = Conversation.objects.get(name=convsersation_id)
     extracted_data = json.loads(loaded_data)
 
-    print(extracted_data)
 
     marketai = MarketAI.objects.create(
         user=user, prompt=prompt, extracted_parameters=loaded_data
@@ -1075,7 +1056,14 @@ def process_market_data(prompt, convsersation_id, user_id, channel_name):
             ):
                 stock = get_object_or_404(Stock, symbol=extracted_data["stock"].upper())
                 quantity = int(extracted_data["quantity"])
-                open_price = get_price(stock.symbol)["current_price"]
+                try:
+                    open_price = get_price(stock.symbol)["current_price"]
+                except PriceUnavailable:
+                    async_to_sync(channel_layer.send)(
+                        channel_name,
+                        {"type": "send_message", "message": price_unavailable_message(stock.symbol)},
+                    )
+                    return
                 action = extracted_data["action"]
 
                 balance = portfolio.balance
@@ -1204,7 +1192,6 @@ def process_market_data(prompt, convsersation_id, user_id, channel_name):
                 task="execution.tasks.process_limit_order",
                 args=json.dumps([position.id]),
             )
-            print("demo position created")
 
         else:
             async_to_sync(channel_layer.send)(
@@ -1262,8 +1249,6 @@ def conversation_response(thread_id, prompt, user):
 
     while not completed:
         run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
-        print(run.status)
-        print(run.required_action)
         if run.status == "completed":
             completed = True
             break
@@ -1275,7 +1260,7 @@ def conversation_response(thread_id, prompt, user):
                 if name == "get_current_stock_price":
 
                     symbol = arguments["symbol"]
-                    price = get_price(symbol)
+                    price = get_price_info(symbol)  # never raises; reports unavailable
 
                     return {
                         "tool_call_id": tool_call.id,
@@ -1302,7 +1287,7 @@ def conversation_response(thread_id, prompt, user):
                         result = future.result()
                         tool_outputs.append(result)
                     except Exception as e:
-                        print(f"Exception: {e}")
+                        pass
 
             run = client.beta.threads.runs.submit_tool_outputs(
                 thread_id=thread_id,
@@ -1331,7 +1316,6 @@ def conversation_response(thread_id, prompt, user):
 
 @shared_task
 def process_market_data2(prompt, convsersation_id, user_id, channel_name):
-    print(prompt)
     # loaded_data = get_data_prompt(prompt)
     user = User.objects.get(id=user_id)
 
@@ -1349,7 +1333,6 @@ def process_market_data2(prompt, convsersation_id, user_id, channel_name):
         response_dict = loaded_data
 
     # response_dict = json.loads(loaded_data)
-    print(response_dict)
     if isinstance(response_dict, str):
         response_dict = {"main_response": response_dict, "extracted_data": []}
     async_to_sync(channel_layer.send)(
@@ -1456,7 +1439,6 @@ def process_market_data2(prompt, convsersation_id, user_id, channel_name):
                         task="execution.tasks.process_limit_order",
                         args=json.dumps([position.id]),
                     )
-                    print("demo position created")
                 else:
                     if (
                         "limit_price" not in extracted_data
@@ -1466,7 +1448,14 @@ def process_market_data2(prompt, convsersation_id, user_id, channel_name):
                             Stock, symbol=extracted_data["stock"].upper()
                         )
                         quantity = int(extracted_data["quantity"])
-                        open_price = get_price(stock.symbol)["current_price"]
+                        try:
+                            open_price = get_price(stock.symbol)["current_price"]
+                        except PriceUnavailable:
+                            async_to_sync(channel_layer.send)(
+                                channel_name,
+                                {"type": "send_message", "message": price_unavailable_message(stock.symbol)},
+                            )
+                            return
                         action = extracted_data["action"]
 
                         # balance =portfolio.balance
@@ -1618,7 +1607,6 @@ def update_document(symbol, dbase, new_data):
         collection.update_one({"_id": id}, {"$set": existing_document})
     else:
         # If no existing document found, insert the new data
-        print("created", new_data)
         collection.insert_one(new_data)
 
     # Close the MongoDB connection
@@ -1688,14 +1676,12 @@ def update_live_1m():
     today = datetime.now(lagos_tz).date()
 
     if today in [holiday.date() for holiday in BANK_HOLIDAYS]:
-        print(f"Today {today} is a bank holiday. Skipping update_live_1m task.")
         return
 
     stocks = [
         stock.symbol for stock in Stock.objects.filter(active=True).order_by("symbol")
     ]
     for symbol in stocks:
-        print(symbol)
         df = retrieve_today_live(symbol, "1")
         # print('df',df)
         if df is None or df.empty:
@@ -1711,7 +1697,6 @@ def update_live_1m():
         }
 
         update_document(symbol, "chartdata_5", new_data)
-        print("updated 1m", symbol)
 
 
 @shared_task
@@ -1720,7 +1705,6 @@ def update_live_1m_lambda():
     today = datetime.now(lagos_tz).date()
 
     if today in [holiday.date() for holiday in BANK_HOLIDAYS]:
-        print(f"Today {today} is a bank holiday. Skipping update_live_1m task.")
         return
 
     if today.weekday() < 5:
@@ -1739,15 +1723,12 @@ def update_live_1m_lambda():
             Payload=json.dumps(event_payload),
         )
 
-        print("Lambda function triggered")
 
         # Process the response if needed
         response_payload = json.loads(response["Payload"].read())
-        print(f"Lambda function response: {response_payload}")
 
-        print("All done")
     else:
-        print("Update will not run on weekends")
+        pass
 
 
 def last_data(last_item, symbol):
@@ -1786,7 +1767,6 @@ def update_live_1d():
     today2 = datetime.now(lagos_tz).date()
 
     if today2 in [holiday.date() for holiday in BANK_HOLIDAYS]:
-        print(f"Today {today} is a bank holiday. Skipping update_live_1d  task.")
         return
 
     stocks = [
@@ -1800,7 +1780,6 @@ def update_live_1d():
         try:
             df = last_data(last_item, symbol)
             if df is None or df.empty:
-                print(f"No data available for {symbol} today")
                 continue
 
             t = df["timestamp"].tolist()[-1]
@@ -1819,17 +1798,13 @@ def update_live_1d():
                 "v": [v],
             }
 
-            print(new_data)
 
             # update_document(symbol, 'chartdata_5', new_data)
             # print('updated 5m', symbol)
             update_document(symbol, "chartdata_1D", new_data)
-            print("updated 1D", symbol)
             if today.weekday() == 0:  # Monday
                 update_document(symbol, "chartdata_1W", new_data)
-                print("updated 1W", symbol)
         except Exception as e:
-            print(f"Error processing {symbol}: {e}")
             continue
 
 
@@ -1854,10 +1829,11 @@ def calc_take_profit():
         for position in positions:
             if position.take_profit:
                 symbol = position.stock.symbol
-                current_price = all_prices[symbol]["current_price"]
+                current_price = price_from_map(all_prices, symbol)
+                if current_price is None:
+                    continue  # no usable price: never trigger TP/SL on a missing/0 price
                 if position.action == "buy":
                     if current_price >= position.take_profit:
-                        print("take profit triggered")
 
                         current_value = round(position.quantity * current_price, 2)
                         profit_loss = Decimal(current_value) - position.amount_invested
@@ -1902,7 +1878,9 @@ def calc_stop_loss():
         for position in positions:
             if position.stop_loss and not position.trailing_stop_loss:
                 symbol = position.stock.symbol
-                current_price = all_prices[symbol]["current_price"]
+                current_price = price_from_map(all_prices, symbol)
+                if current_price is None:
+                    continue  # no usable price: never trigger TP/SL on a missing/0 price
                 if position.action == "buy":
                     if current_price <= position.stop_loss:
                         # print('stop loss triggered')
@@ -1947,7 +1925,9 @@ def calc_tailing_sl():
                 continue
 
             symbol = position.stock.symbol
-            current_price = all_prices[symbol]["current_price"]
+            current_price = price_from_map(all_prices, symbol)
+            if current_price is None:
+                continue  # no usable price: never trigger TP/SL on a missing/0 price
 
             if position.action == "buy":
                 if handle_buy_position(position, current_price):
@@ -2063,28 +2043,22 @@ def start_ec2_instance():
     today = datetime.now(lagos_tz).date()
 
     if today in [holiday.date() for holiday in BANK_HOLIDAYS]:
-        print(f"Today {today} is a bank holiday. Skipping start_ec2_instance task.")
         return
 
     ec2.start_instances(InstanceIds=[INSTANCE_ID])
-    print(f"Starting EC2 instance {INSTANCE_ID}")
     # Wait for the instance to start
     waiter = ec2.get_waiter("instance_running")
     waiter.wait(InstanceIds=[INSTANCE_ID])
-    print(f"EC2 instance {INSTANCE_ID} is running")
 
 
 @shared_task
 def stop_ec2_instance():
     ec2.stop_instances(InstanceIds=[INSTANCE_ID])
-    print(f"Stopping EC2 instance {INSTANCE_ID}")
 
 
 @shared_task
 def restart_ec2_instance():
     ec2.reboot_instances(InstanceIds=[INSTANCE_ID])
-    print(f"Restarting EC2 instance {INSTANCE_ID}")
     # Wait for the instance to come back online
     waiter = ec2.get_waiter("instance_status_ok")
     waiter.wait(InstanceIds=[INSTANCE_ID])
-    print(f"EC2 instance {INSTANCE_ID} has been restarted and is ready")

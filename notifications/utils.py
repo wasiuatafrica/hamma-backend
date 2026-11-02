@@ -26,7 +26,6 @@ def save_and_send_notification(user_id, message):
 
         # Create a new notification item in DynamoDB
         response = table.put_item(Item=data)
-        print(f"Notification saved for user {user_id}")
 
         async_to_sync(channel_layer.group_send)(
             f"user_{user_id}",
@@ -36,7 +35,7 @@ def save_and_send_notification(user_id, message):
             },
         )
     except NoCredentialsError:
-        print("AWS credentials not found. Make sure to configure your AWS credentials.")
+        pass
 
 
 def get_notifications(user_id):
@@ -78,6 +77,5 @@ def update_notification(user_id, notification_id):
             UpdateExpression="SET is_read = :ir",
             ExpressionAttributeValues={":ir": "True"},
         )
-        print(f"Notification {notification_id} marked as read")
     except NoCredentialsError:
-        print("AWS credentials not found. Make sure to configure your AWS credentials.")
+        pass

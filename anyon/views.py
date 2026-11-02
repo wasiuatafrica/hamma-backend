@@ -104,7 +104,6 @@ class LoginView(APIView):
 
         if user is not None and (user.is_staff or user.is_analyst):
             refresh = RefreshToken.for_user(user)
-            print(user)
             token_data = {
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
@@ -559,7 +558,6 @@ class WithdrawalView(APIView):
         action = request.data.get("action")
         type = request.data.get("type", None)
 
-        print(request.data, "vdsfvd")
 
         if not type or type not in ["main", "referral"]:
             return Response(
@@ -1320,7 +1318,6 @@ class AnalyticsView(APIView):
         user_percentage_change = calculate_percentage_change(
             users_last_month, active_users
         )
-        print(active_users, user_percentage_change)
 
         # Assets
 
@@ -1372,7 +1369,6 @@ class AnalyticsView(APIView):
             transactions_before + comp_transactions_before, total_transactions
         )
 
-        print("transactions", total_transactions, transaction_change)
 
         # # Calculate average daily active users
         # users_activity = UserActivityLog.objects.values('user', 'timestamp__date').annotate(daily_activity=Count('id'))

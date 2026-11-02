@@ -38,12 +38,11 @@ def update_user_streaks_daily_task():
         and current_time_lagos.weekday() < 5
     ):
         # logger.info("Updating user streaks during trading hours")
-        print("Updating user streaks during trading hours")
         update_user_streaks_daily()
 
     else:
         # logger.info(f"Streak checking is outside trading hours: {current_time_lagos}")
-        print(f"Streak checking is outside trading hours: {current_time_lagos}")
+        pass
 
 
 default_position_awards = [
@@ -158,7 +157,6 @@ def cache_regular_leaderboard():
     Cache regular leaderboard data for 1 hour.
 
     """
-    print("runnig ...123")
     today = timezone.now().date()
     week_start = today - timedelta(days=today.weekday())
     week_end = week_start + timedelta(days=6)
@@ -226,7 +224,6 @@ def cache_weekly_awards():
     """
     Get weekly awards data for Friday after market close.
     """
-    print("runnig ...3333")
     current_week_start = timezone.now().date() - timedelta(
         days=timezone.now().date().weekday()
     )

@@ -16,14 +16,7 @@ def send_assistant_message(
 
     response = None
     conversation = models.SupportThread.objects.get(thread_id=conversation.thread_id)
-    print(
-        channel_room_name,
-        conversation,
-        "HEYYYY111",
-        conversation.switched_to_admin_support,
-    )
     if conversation.switched_to_admin_support:
-        print("to admin user.....")
 
         message = models.SupportMessage.objects.get(id=message_id)
         user_message_data = {
@@ -119,7 +112,6 @@ def reply_users_message(thread_id, message, admin_profile=None):
     }
 
     room_name = f"email_{thread_id}_bot"
-    print(f"Sending message to room: {room_name}")
 
     async_to_sync(channel_layer.group_send)(
         room_name,

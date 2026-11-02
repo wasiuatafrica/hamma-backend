@@ -302,7 +302,6 @@ class CurrentStreakAPIView(APIView):
 
         if streak_info:
             serializer = UserDailyStreakSerializer(streak_info)
-            print(serializer.data)
 
             # Count trades for the specific account this week
             if account_type == "competition_account":

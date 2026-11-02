@@ -126,7 +126,6 @@ class DiscountCodeValidity(APIView):
     def get(self, request, code, format=None):
         try:
             discount_code = DiscountCode.objects.get(code__iexact=code.strip())
-            print("Discount code found:", discount_code)
             code_details = {
                 "code": discount_code.code,
                 "discount_percentage": discount_code.discount_percentage,
@@ -137,7 +136,6 @@ class DiscountCodeValidity(APIView):
                 "account_size": discount_code.acc_size,
                 "account_model": discount_code.acc_model,
             }
-            print(code_details)
 
             # Check for expired or inactive codes
             if not discount_code.is_active or (

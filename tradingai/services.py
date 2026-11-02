@@ -140,7 +140,7 @@ class NotificationService:
         try:
             save_and_send_notification(user_id=user.id, message=message)
         except Exception as e:
-            print(f"WebSocket notification failed: {str(e)}")
+            pass
 
         return notification
 
@@ -176,12 +176,12 @@ class NotificationService:
             notification.is_email_sent = True
             notification.save(update_fields=["is_email_sent"])
         except Exception as e:
-            print(f"Email sending failed: {str(e)}")
+            pass
 
         try:
             save_and_send_notification(user_id=user.id, message=message)
         except Exception as e:
-            print(f"WebSocket notification failed: {str(e)}")
+            pass
 
         return notification
 

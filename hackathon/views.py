@@ -509,7 +509,6 @@ class SupportJoinClanRequestView(APIView):
             return Response([])
         # Filter by clan_id
         join_request=JoinClanRequest.objects.filter(clan=is_admin.first())
-        print(join_request)
         serializer = self.serializer_class(join_request, many=True)
         return Response([{'admin':is_admin.exists()}, serializer.data])
 
@@ -721,7 +720,6 @@ class ClanMembers(APIView):
         clan_id = kwargs.get('clan_id')
         member_id = request.data.get('member_id')
         action = request.data.get('action')
-        print(action, member_id)
         
         valid_actions = ['remove']
         if action not in valid_actions or member_id is None:
@@ -884,7 +882,6 @@ def leaderboard_view(request):
                 leaderboard_list.append(data)
                 
     sorted_data = sorted(leaderboard_list, key=lambda x: x['profit'], reverse=True)
-    print(sorted_data)
     leaderboard="show"
     pastLeaderboard="hide"
     q=request.GET.get("filter")
@@ -1191,7 +1188,6 @@ def clan_payout_detail(request,payout_id):
         amount=request.POST.get("amount",None)
         comment=request.POST.get("comment",None)
         id=request.POST.get("id")
-        print(status, amount, id, "HELJSDJFHSKJ")
         payout=TopClanMembersPayout.objects.get(id=id)
         payout.status=status
         payout.amount=amount
@@ -1219,7 +1215,6 @@ def trader_payout(request):
         amount=request.POST.get("amount",None)
         comment=request.POST.get("comment",None)
         id=request.POST.get("id")
-        print(status, amount, id, "HELJSDJFHSKJ")
         payout=TopTraderPayout.objects.get(id=id)
         payout.status=status
         payout.amount=amount
@@ -1308,7 +1303,6 @@ class CompetitionSummaryViewForClan(APIView):
             return Response({"detail": "Competition with this ID not found"}, status=status.HTTP_404_NOT_FOUND)
 
         clan_id = request.data.get("clan_id")
-        print("Heloooo")
         summary = competition_id.competitionsummary_set.filter(clan__id=clan_id).order_by("-profit")
         serializer = self.serializer_class(summary, many=True)
 
@@ -1782,7 +1776,6 @@ def payout_details(request,pk):
 @permission_classes([AllowAny])
 def remove_trader(request,pk):
     account=CompetitionPortfolio.objects.get(id=pk)
-    print(account.id)
     account.active=False
     account.save()
     return JsonResponse({'active':False})
@@ -1815,7 +1808,6 @@ def clan_payout_details(request,pk):
 def update_toptrader_payout(request):
     from datetime import date
     id=request.data.get('id')
-    print(id)
     today = datetime.now()
     today_str = today.strftime("%Y-%m-%d")
     payout = TopTraderPayout.objects.get(id=id)
@@ -1831,7 +1823,6 @@ def update_toptrader_payout(request):
 def update_topclan_payout(request):
     from datetime import date
     id=request.data.get('id')
-    print(id)
     today = datetime.now()
     today_str = today.strftime("%Y-%m-%d")
     payout = TopClanMembersPayout.objects.get(id=id)
@@ -1856,7 +1847,6 @@ def login_view(request):
     
         email = request.POST.get("email")
         password = request.POST.get("password")
-        print(email, password,"sdbsvds")
         user = authenticate(email=email, password=password)
         if user is not None and (user.is_staff):
             login(request, user)

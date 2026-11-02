@@ -48,11 +48,9 @@ def analyze_portfolio_status_task():
     for portfolio in portfolios:
         if portfolio.account_type_level == "challenge":
             data = analyze_portfolio_status(portfolio)
-            print(data)
         elif portfolio.account_type_level == "hamma":
             data = analyze_hamma_portfolio_status(portfolio)
 
-            print(data)
 
 
 @shared_task
@@ -70,7 +68,6 @@ def analyze_portfolio_after_close_task(account_id):
     for portfolio in portfolios:
         if portfolio.account_type_level == "challenge":
             data = analyze_portfolio_status_after_close(portfolio)
-            print(data)
 
 
 @shared_task
@@ -123,9 +120,9 @@ def send_drawdown_volation_mail(user, email, password, key):
                 },
             )
         else:
-            print(f"Failed to get screenshot: {resp.status_code} - {resp.text}")
+            pass
     except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
+        pass
 
 
 @shared_task

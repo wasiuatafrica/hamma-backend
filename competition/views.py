@@ -554,9 +554,7 @@ class TradingDays(APIView):
     def get(self, request):
         competition = Competition.objects.filter(status="current").first()
         if competition:
-            print("here1")
             if timezone.now() > competition.start_date:
-                print("here2")
                 portfolio = CompetitionPortfolio.objects.filter(
                     competition__status="current", user=request.user, active=True
                 ).first()
@@ -578,7 +576,6 @@ class TradingDays(APIView):
                 else:
                     return Response({"trading_days": []})
             else:
-                print("here3")
                 last_account = (
                     CompetitionPortfolio.objects.filter(
                         user=request.user, competition__status="closed", active=True
@@ -848,7 +845,6 @@ class SupportJoinClanRequestView(APIView):
             return Response([])
         # Filter by clan_id
         join_request = JoinClanRequest.objects.filter(clan=is_admin.first())
-        print(join_request)
         serializer = self.serializer_class(join_request, many=True)
         return Response([{"admin": is_admin.exists()}, serializer.data])
 
@@ -1198,7 +1194,6 @@ class ClanMembers(APIView):
         clan_id = kwargs.get("clan_id")
         member_id = request.data.get("member_id")
         action = request.data.get("action")
-        print(action, member_id)
 
         valid_actions = ["remove"]
         if action not in valid_actions or member_id is None:
@@ -1381,7 +1376,6 @@ def leaderboard_view(request):
                 leaderboard_list.append(data)
 
     sorted_data = sorted(leaderboard_list, key=lambda x: x["profit"], reverse=True)
-    print(sorted_data)
     leaderboard = "show"
     pastLeaderboard = "hide"
     q = request.GET.get("filter")
@@ -1801,7 +1795,6 @@ def clan_payout_detail(request, payout_id):
         amount = request.POST.get("amount", None)
         comment = request.POST.get("comment", None)
         id = request.POST.get("id")
-        print(status, amount, id, "HELJSDJFHSKJ")
         payout = TopClanMembersPayout.objects.get(id=id)
         payout.status = status
         payout.amount = amount
@@ -1850,7 +1843,6 @@ def trader_payout(request):
         amount = request.POST.get("amount", None)
         comment = request.POST.get("comment", None)
         id = request.POST.get("id")
-        print(status, amount, id, "HELJSDJFHSKJ")
         payout = TopTraderPayout.objects.get(id=id)
         payout.status = status
         payout.amount = amount
@@ -2021,7 +2013,6 @@ class CompetitionSummaryViewForClan(APIView):
             )
 
         clan_id = request.data.get("clan_id")
-        print("Heloooo")
         summary = competition_id.competitionsummary_set.filter(
             clan__id=clan_id
         ).order_by("-profit")
@@ -2236,8 +2227,6 @@ class TopClanPayoutRequest(APIView):
                 {"status": False, "reason": "not a clan admin"},
                 status=status.HTTP_200_OK,
             )
-        print(request.user.clans)
-        print(request.user.email)
         if clan:
             top_3 = [
                 summary.clan
@@ -2279,7 +2268,6 @@ class TopClanPayoutRequest(APIView):
             #     )
 
             in_top_clan = top_clan_trader(request.user)
-            print(in_top_clan)
             if in_top_clan[1]:
                 return Response({"status": True, "reason": ""})
             else:
@@ -2455,7 +2443,6 @@ def rank_clans(competition):
     competition_summary = CompetitionSummary.objects.filter(
         competition=competition
     ).exclude(profit=0)
-    print(competition_summary)
     clan_profit_summary = (
         competition_summary.values("clan")
         # .annotate(total_profit=Sum('profit'))
@@ -2584,7 +2571,6 @@ class TopClans(APIView):
             ranked_clans = sorted(ranked_clans, key=lambda x: x["profit"], reverse=True)
             for data in ranked_clans:
                 clan_name = data["clan_name"]
-                print(clan_name)
                 if clan_name:
                     clan = Clan.objects.get(clan_name=clan_name)
                     if clan.clan_logo:
@@ -2725,7 +2711,6 @@ def payout_details(request, pk):
 @permission_classes([AllowAny])
 def remove_trader(request, pk):
     account = CompetitionPortfolio.objects.get(id=pk)
-    print(account.id)
     account.active = False
     account.save()
     return JsonResponse({"active": False})
@@ -2761,7 +2746,6 @@ def update_toptrader_payout(request):
     from datetime import date
 
     id = request.data.get("id")
-    print(id)
     today = datetime.now()
     today_str = today.strftime("%Y-%m-%d")
     payout = TopTraderPayout.objects.get(id=id)
@@ -2784,7 +2768,6 @@ def update_topclan_payout(request):
     from datetime import date
 
     id = request.data.get("id")
-    print(id)
     today = datetime.now()
     today_str = today.strftime("%Y-%m-%d")
     payout = TopClanMembersPayout.objects.get(id=id)
@@ -2805,7 +2788,6 @@ def login_view(request):
 
         email = request.POST.get("email")
         password = request.POST.get("password")
-        print(email, password, "sdbsvds")
         user = authenticate(email=email, password=password)
         if user is not None and (user.is_staff):
             login(request, user)
@@ -2996,7 +2978,6 @@ def top_clan_trader(user):
             }
             for comp in clans
         ]
-        print(data)
 
         top_clan = data[0]
         if top_clan["clan_name"] == user.clans:
@@ -3073,7 +3054,6 @@ class AllCompetitions(APIView):
 
     def get(self, request):
         competitions = Competition.objects.all().order_by("-created_at")
-        print(len(competitions))
         serializer = competion_serializers.CompetitionSerializer(
             competitions, many=True
         )
@@ -3251,7 +3231,6 @@ class ClancompetitionHistory(APIView):
             competition.status == "current" and timezone.now() < competition.start_date
         ):
 
-            print("here")
 
             clan_summary = ClanCompetitionSummary.objects.filter(clan=clan).last()
             clan_data["profit_comparison"] = clan_summary.profit
@@ -3261,7 +3240,6 @@ class ClancompetitionHistory(APIView):
             }
         else:
 
-            print("here")
 
             clan_summary = ClanCompetitionSummary.objects.filter(
                 clan=clan, competition=competition

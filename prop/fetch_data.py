@@ -210,7 +210,6 @@ def calculate_portfolio_metrics(portfolio, position_list, last_item):
 def process_balance_equity_data():
     """Process and store balance and equity data during trading hours using enhanced calculator logic."""
     portfolios, positions = fetch_portfolio_data()
-    print("All data fetched")
 
     current_datetime = datetime.now(WAT_TIMEZONE)
     current_time = current_datetime.time()
@@ -237,7 +236,6 @@ def process_balance_equity_data():
                 "account_id": portfolio["account_id"],
             }
 
-            print(mongo_data)
 
             # Insert into MongoDB
             collection = db_prop[portfolio["account_id"]]
@@ -249,8 +247,7 @@ if __name__ == "__main__":
         try:
             process_balance_equity_data()
         except Exception as e:
-            print(f"Error occurred: {e}")
-        print("sleeping...")
+            pass
 
         pytime.sleep(120)
         pytime.sleep(120)

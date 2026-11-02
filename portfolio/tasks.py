@@ -17,7 +17,9 @@ from django.utils.html import strip_tags
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
 from notifications.utils import save_and_send_notification
+from portfolio.prices import get_price_info
 from portfolio.utils import get_price
+from portfolio.prices import PriceUnavailable
 
 from .models import Alert, AlertAI, AlertAITracker, Conversation, Message, Stock
 from .utils import get_alert_data, get_alerts
@@ -31,7 +33,6 @@ channel_layer = get_channel_layer()
 @shared_task
 def create_alert_schedule(id):
     alert = Alert.objects.get(id=id)
-    print("Alert object gotten")
     schedule = IntervalSchedule.objects.get_or_create(
         every=5,
         period=IntervalSchedule.MINUTES,
@@ -46,7 +47,6 @@ def create_alert_schedule(id):
     save_and_send_notification(
         alert.user.id, f"You created alert for {alert.stock.symbol}"
     )
-    print(f"Alert created for {alert.user} on {alert.stock}")
 
 
 def send_alert_email(user, symbol, alert_type, action, to_price):
@@ -73,7 +73,6 @@ def check_alert(id):
 
     try:
         alert = Alert.objects.get(id=id)
-        print(f"{alert.alert_name} object gotten")
     except Alert.DoesNotExist:
         alert = None
     # print(alert.created.month )
@@ -83,16 +82,12 @@ def check_alert(id):
 
         current_month = timezone.now().astimezone(lagos_tz).month
         if alert.created.astimezone(lagos_tz).month != current_month:
-            print(
-                f"Alert {alert.alert_name} was not created in the current month. Disabling the periodic task."
-            )
             task = PeriodicTask.objects.get(name=alert.alert_name)
             task.enabled = False
             task.save()
             return
 
         current_time = timezone.now().astimezone(lagos_tz)
-        print(current_time)
         if (
             current_time.weekday() < 5
             and current_time.time() >= datetime.strptime("9:30 AM", "%I:%M %p").time()
@@ -100,7 +95,10 @@ def check_alert(id):
         ):
             if timezone.now().astimezone(lagos_tz) < alert.expire:
                 if not alert.trigerred:
-                    data = get_price(alert.stock.symbol)
+                    try:
+                        data = get_price(alert.stock.symbol)
+                    except PriceUnavailable:
+                        return  # never evaluate alerts against a missing/0 price
                     if alert.alert_type == "price":
                         price = data["current_price"]
                         if alert.action == "below":
@@ -121,7 +119,6 @@ def check_alert(id):
                                             alert.action,
                                             alert.to_price,
                                         )
-                                        print("sent")
                                         save_and_send_notification(
                                             alert.user.id,
                                             f"{alert.stock} price has gone below {alert.to_price} for the {alert.alert_name}.",
@@ -252,19 +249,16 @@ def check_alert(id):
                 task = PeriodicTask.objects.get(name=alert.task_name)
                 task.enabled = False
                 task.save()
-            print(f"Checking for alert {alert.task_name} completed")
 
 
 @shared_task
 def get_data_prompt(prompt):
     data = get_alert_data(prompt)
-    print(data)
     return data
 
 
 @shared_task
 def process_alert_data(prompt, convsersation_id, user_id, channel_name):
-    print(prompt)
     loaded_data = get_data_prompt(prompt)
     user = User.objects.get(id=user_id)
     conversation = Conversation.objects.get(name=convsersation_id)
@@ -338,7 +332,6 @@ def process_alert_data(prompt, convsersation_id, user_id, channel_name):
 
                     alertai.alert_created = True
                     alertai.save()
-                    print("price alert created")
 
                     counter.count += 1
                     counter.save()
@@ -373,7 +366,6 @@ def process_alert_data(prompt, convsersation_id, user_id, channel_name):
 
                     alertai.alert_created = True
                     alertai.save()
-                    print("volume alert created")
 
                     counter.count += 1
                     counter.save()
@@ -434,8 +426,6 @@ def conversation_response(thread_id, prompt, user):
 
     while not completed:
         run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
-        print(run.status)
-        print(run.required_action)
         if run.status == "completed":
             completed = True
             break
@@ -447,7 +437,7 @@ def conversation_response(thread_id, prompt, user):
                 if name == "get_current_stock_price":
                     arguments = json.loads(tool_call.function.arguments)
                     symbol = arguments["symbol"]
-                    price = get_price(symbol)
+                    price = get_price_info(symbol)  # never raises; reports unavailable
 
                     return {
                         "tool_call_id": tool_call.id,
@@ -473,7 +463,7 @@ def conversation_response(thread_id, prompt, user):
                         result = future.result()
                         tool_outputs.append(result)
                     except Exception as e:
-                        print(f"Exception: {e}")
+                        pass
             # print('alerts:',tool_outputs)
             run = client.beta.threads.runs.submit_tool_outputs(
                 thread_id=thread_id,
@@ -502,7 +492,6 @@ def conversation_response(thread_id, prompt, user):
 
 @shared_task
 def process_alert_data2(prompt, convsersation_id, user_id, channel_name):
-    print(prompt)
 
     conversation = Conversation.objects.get(name=convsersation_id)
     # loaded_data = conversation_response(conversation.thread_id, prompt)
@@ -526,14 +515,12 @@ def process_alert_data2(prompt, convsersation_id, user_id, channel_name):
         )
     else:
         loaded_data = conversation_response(conversation.thread_id, prompt, user)
-        print(loaded_data)
         try:
             response_dict = json.loads(loaded_data)
         except json.decoder.JSONDecodeError:
             response_dict = loaded_data
 
         # response_dict = json.loads(loaded_data)
-        print(response_dict)
         if isinstance(response_dict, str):
             response_dict = {"main_response": response_dict, "extracted_data": []}
         async_to_sync(channel_layer.send)(
@@ -595,7 +582,6 @@ def process_alert_data2(prompt, convsersation_id, user_id, channel_name):
 
                             alertai.alert_created = True
                             alertai.save()
-                            print("price alert created")
 
                             counter.count += 1
                             counter.save()
@@ -624,7 +610,6 @@ def process_alert_data2(prompt, convsersation_id, user_id, channel_name):
 
                             alertai.alert_created = True
                             alertai.save()
-                            print("volume alert created")
 
                             counter.count += 1
                             counter.save()

@@ -10,7 +10,6 @@ from django.contrib.auth import get_user_model
 class TestAffilateProgram(acc_tests.AuthenticateUserForTesting):
     def setup(self):
         super.setup()
-        print("hello")
         self.users = [
             get_user_model().objects.create_user(
                 email="user1@example.com",
@@ -31,7 +30,6 @@ class TestAffilateProgram(acc_tests.AuthenticateUserForTesting):
         self.url=reverse("my_referal_link")
         self.authenticate_user()
         response = self.client.get(self.url)
-        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     # def test_get_all_user_success(self):

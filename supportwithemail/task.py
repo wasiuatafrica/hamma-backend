@@ -48,8 +48,6 @@ def start_conversation(
 
     while not completed:
         run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
-        print(run.status)
-        print(run.required_action)
         if run.status == "completed":
             completed = True
             break
@@ -91,10 +89,9 @@ def start_conversation(
                 for future in concurrent.futures.as_completed(futures):
                     try:
                         result = future.result()
-                        print(result, "result")
                         tool_outputs.append(result)
                     except Exception as e:
-                        print(f"Exception: {e}")
+                        pass
 
             run = client.beta.threads.runs.submit_tool_outputs(
                 thread_id=thread_id,
@@ -162,7 +159,6 @@ def switch_to_human_assistant(thread_id, message=None):
     thread.switched_to_admin_support = True
     thread.save()
 
-    print("switch to admin func called..")
 
     # check if the converstion is from email_ai_support
 
