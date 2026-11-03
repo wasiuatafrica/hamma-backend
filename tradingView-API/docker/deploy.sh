@@ -6,7 +6,8 @@
 #
 # The server runs the collector with Docker Compose from REMOTE_DIR, which is
 # bind-mounted into the container. docker-compose.yml and .env (MONGO_URL) on
-# the server are not overwritten by this script.
+# the server are not overwritten by this script, but it refuses to deploy
+# unless the Mongo URL lives in .env and not in docker-compose.yml.
 set -euo pipefail
 
 HOST="${COLLECTOR_HOST:-ubuntu@ec2-54-235-238-247.compute-1.amazonaws.com}"
@@ -26,6 +27,25 @@ python3 -m py_compile unified_price_system3.py
 
 SSH=(ssh -i "$KEY" -o BatchMode=yes "$HOST")
 STAMP="$(date +%Y%m%d%H%M%S)"
+
+echo "Checking server config..."
+"${SSH[@]}" "cd '$REMOTE_DIR' && bash -s" <<'EOF' || { echo "Fix the server config above, then deploy again." >&2; exit 1; }
+problems=0
+if ! grep -Eq '^MONGO_URL=.+' .env 2>/dev/null; then
+    echo "  .env is missing or has no MONGO_URL (see .env.example)" >&2
+    problems=1
+fi
+if grep -Eq 'mongodb(\+srv)?://' docker-compose.yml; then
+    echo "  docker-compose.yml still contains a Mongo URL; move it to .env" >&2
+    problems=1
+fi
+if ! grep -q 'env_file' docker-compose.yml; then
+    echo "  docker-compose.yml does not load .env (add 'env_file: .env' to the service)" >&2
+    problems=1
+fi
+[ "$problems" = 0 ] || exit 1
+chmod 600 .env
+EOF
 
 echo "Backing up current server copy..."
 "${SSH[@]}" "cd '$REMOTE_DIR' && cp unified_price_system3.py 'unified_price_system3.py.bak-$STAMP'"

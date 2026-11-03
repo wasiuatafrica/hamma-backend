@@ -19,6 +19,9 @@ from tvDatafeed import Interval, TvDatafeed
 load_dotenv()
 
 MONGO_URL = os.environ.get("MONGO_URL")
+if not MONGO_URL:
+    # MongoClient(None) would quietly try localhost instead.
+    raise SystemExit("MONGO_URL is not set; put it in .env (see .env.example)")
 client = MongoClient(MONGO_URL, tls=True)
 
 # Database collections - Using TradingView as primary data lake
