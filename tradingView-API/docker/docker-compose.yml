@@ -3,8 +3,7 @@ services:
   unified_price_system:
     build: .
     command: python unified_price_system3.py
-    environment:
-      - MONGO_URL=mongodb+srv://ft9jatraders_db_user:HnyOs6KBOwGKjJmy@reducebill.yxn3gnr.mongodb.net/
+    env_file: .env  # MONGO_URL=...; see .env.example
     volumes:
       - .:/app
     restart: unless-stopped

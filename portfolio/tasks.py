@@ -623,7 +623,7 @@ def disable_old_periodic_tasks():
     # Find PeriodicTask objects not created in the current month and year
     old_periodic_tasks = PeriodicTask.objects.filter(
         ~Q(date_changed__month=current_month) | ~Q(date_changed__year=current_year)
-    )
+    ).exclude(task="portfolio.tasks.sync_ngx_stocks")  # permanent schedule
 
     # Disable these old periodic tasks
     old_periodic_tasks.update(enabled=False)
@@ -637,3 +637,12 @@ def get_company_details():
     call_command(
         "company-details",
     )
+
+
+@shared_task
+def sync_ngx_stocks():
+    """Weekday after-close sync with the NGX directory (see portfolio/ngx_sync.py)."""
+    from .ngx_sync import run_sync
+
+    _, summary, errors = run_sync(apply=True)
+    return {"summary": summary, "errors": errors}

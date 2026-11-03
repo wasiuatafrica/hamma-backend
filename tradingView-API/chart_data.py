@@ -1,5 +1,10 @@
 from pymongo import MongoClient
 from tvDatafeed import Interval, TvDatafeed
+import os
+from pathlib import Path
+import environ
+
+environ.Env.read_env(Path(__file__).resolve().parent.parent / ".env")
 
 tv = TvDatafeed()
 
@@ -164,7 +169,7 @@ symbols = [
 
 def connect_to_mongodb():
     client = MongoClient(
-        "mongodb+srv://ft9jatraders_db_user:HnyOs6KBOwGKjJmy@reducebill.yxn3gnr.mongodb.net/",
+        os.environ["MONGO_STRING"],
         maxPoolSize=20,
         tls=True,
         tlsAllowInvalidCertificates=True,

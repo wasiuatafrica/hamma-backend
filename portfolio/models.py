@@ -139,6 +139,8 @@ class Stock(auto_prefetch.Model):
     ngx_status = models.CharField(max_length=10, null=True, blank=True)
     # Old tickers, so price history keyed by them still resolves
     previous_symbols = models.JSONField(default=list, blank=True)
+    # Consecutive NGX syncs this stock was missing from the directory (see ngx_sync)
+    ngx_missing_runs = models.PositiveSmallIntegerField(default=0)
 
     def __str__(self):
         return self.symbol
@@ -644,3 +646,80 @@ class MarketHoliday(models.Model):
 
     def __str__(self):
         return f"{self.date} - {self.name}"
+
+
+class StockSyncRun(models.Model):
+    """One run of the NGX directory sync (portfolio/ngx_sync.py)."""
+
+    started = models.DateTimeField(auto_now_add=True)
+    finished = models.DateTimeField(null=True, blank=True)
+    applied = models.BooleanField(default=False)
+    listed_count = models.PositiveIntegerField(default=0)
+    # Parsed directory rows (symbol, isin, company, ...), kept for auditing
+    rows = models.JSONField(default=list, blank=True)
+    summary = models.JSONField(default=dict, blank=True)
+    error = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-started"]
+
+    def __str__(self):
+        mode = "apply" if self.applied else "dry run"
+        return f"NGX sync {self.started:%Y-%m-%d %H:%M} ({mode})"
+
+
+class StockChange(models.Model):
+    """A listing change found by the NGX sync: applied, or waiting for review."""
+
+    RENAMED = "renamed"
+    LISTED = "listed"
+    DELISTED = "delisted"
+    RELISTED = "relisted"
+    STATUS_CHANGED = "status_changed"
+    REVIEW = "review"
+    KIND_CHOICES = [
+        (RENAMED, "Renamed"),
+        (LISTED, "New listing"),
+        (DELISTED, "Delisted"),
+        (RELISTED, "Relisted"),
+        (STATUS_CHANGED, "NGX status changed"),
+        (REVIEW, "Needs review"),
+    ]
+
+    APPLIED = "applied"
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    STATUS_CHOICES = [
+        (APPLIED, "Applied automatically"),
+        (PENDING, "Waiting for approval"),
+        (APPROVED, "Approved"),
+        (REJECTED, "Rejected"),
+    ]
+
+    run = models.ForeignKey(
+        StockSyncRun, on_delete=models.CASCADE, related_name="changes"
+    )
+    stock = models.ForeignKey(
+        Stock, on_delete=models.SET_NULL, null=True, blank=True, related_name="ngx_changes"
+    )
+    kind = models.CharField(max_length=20, choices=KIND_CHOICES)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+    symbol = models.CharField(max_length=20)
+    old_value = models.CharField(max_length=200, blank=True)
+    new_value = models.CharField(max_length=200, blank=True)
+    isin = models.CharField(max_length=12, blank=True)
+    note = models.TextField(blank=True)
+    # Open positions, orders, alerts and watchlist entries at the time of the change
+    holders = models.JSONField(default=dict, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    resolved_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+
+    class Meta:
+        ordering = ["-created"]
+
+    def __str__(self):
+        return f"{self.get_kind_display()} {self.symbol} ({self.status})"

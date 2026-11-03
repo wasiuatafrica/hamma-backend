@@ -3,9 +3,14 @@ import time
 
 from playwright.sync_api import sync_playwright
 from pymongo import MongoClient
+import os
+from pathlib import Path
+import environ
+
+environ.Env.read_env(Path(__file__).resolve().parent / ".env")
 
 client = MongoClient(
-    "mongodb+srv://ft9jatraders_db_user:HnyOs6KBOwGKjJmy@reducebill.yxn3gnr.mongodb.net/",
+    os.environ["MONGO_STRING"],
     tls=True,
     tlsAllowInvalidCertificates=True,
 )

@@ -8,11 +8,16 @@ import numpy as np
 import pandas as pd
 import pandas_market_calendars as mcal
 from pymongo import MongoClient
+import os
+from pathlib import Path
+import environ
+
+environ.Env.read_env(Path(__file__).resolve().parent / ".env")
 
 
 def connect_to_mongodb():
     client = MongoClient(
-        "mongodb+srv://ft9jatraders_db_user:HnyOs6KBOwGKjJmy@reducebill.yxn3gnr.mongodb.net/",
+        os.environ["MONGO_STRING"],
         tls=True,
         tlsAllowInvalidCertificates=True,
     )

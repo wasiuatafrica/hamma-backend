@@ -10,6 +10,10 @@ import psycopg2
 from psycopg2.extras import DictCursor
 from pymongo import MongoClient
 from pytz import timezone
+from pathlib import Path
+import environ
+
+environ.Env.read_env(Path(__file__).resolve().parent.parent / ".env")
 
 # Configuration
 POSTGRES_SETTINGS = {
@@ -24,7 +28,7 @@ WAT_TIMEZONE = timezone("Africa/Lagos")
 
 # MongoDB Client
 mongo_client = MongoClient(
-    "mongodb+srv://ft9jatraders_db_user:HnyOs6KBOwGKjJmy@reducebill.yxn3gnr.mongodb.net/",
+    os.environ["MONGO_STRING"],
     maxPoolSize=20,
     tls=True,
     tlsAllowInvalidCertificates=True,

@@ -1,5 +1,6 @@
 from pyexpat.errors import messages
 from django.contrib import admin
+from django.utils import timezone
 
 from .models import (
     ButtonClick,
@@ -23,7 +24,7 @@ from .models import (
     CompanyFundamental,
     CompanyProfile,
 )
-from .models import DataSourceSetting, MarketHoliday
+from .models import DataSourceSetting, MarketHoliday, StockChange, StockSyncRun
 
 
 @admin.register(DemoTransaction)
@@ -107,3 +108,51 @@ admin.site.register(OpenedDashboardFeed)
 class MarketHolidayAdmin(admin.ModelAdmin):
     list_display = ("date", "name")
     ordering = ("-date",)
+
+
+@admin.register(StockSyncRun)
+class StockSyncRunAdmin(admin.ModelAdmin):
+    list_display = ("started", "applied", "listed_count", "has_error")
+    list_filter = ("applied",)
+    readonly_fields = [f.name for f in StockSyncRun._meta.fields]
+
+    @admin.display(boolean=True, description="Error")
+    def has_error(self, obj):
+        return bool(obj.error)
+
+
+@admin.register(StockChange)
+class StockChangeAdmin(admin.ModelAdmin):
+    """NGX listing changes. Approve a pending delisting to deactivate the stock."""
+
+    list_display = ("created", "kind", "symbol", "old_value", "new_value", "status", "holders")
+    list_filter = ("status", "kind")
+    search_fields = ("symbol", "old_value", "new_value", "isin")
+    readonly_fields = [
+        f.name for f in StockChange._meta.fields if f.name not in ("note",)
+    ]
+    actions = ["approve", "reject"]
+
+    @admin.action(description="Approve (delistings: deactivate the stock)")
+    def approve(self, request, queryset):
+        done = 0
+        for change in queryset.filter(status=StockChange.PENDING):
+            if change.kind == StockChange.DELISTED and change.stock_id:
+                Stock.objects.filter(pk=change.stock_id).update(
+                    active=False, tv_symbol=None
+                )
+            change.status = StockChange.APPROVED
+            change.resolved_at = timezone.now()
+            change.resolved_by = request.user
+            change.save(update_fields=["status", "resolved_at", "resolved_by"])
+            done += 1
+        self.message_user(request, f"Approved {done} change(s).")
+
+    @admin.action(description="Reject (keep the stock as it is)")
+    def reject(self, request, queryset):
+        done = queryset.filter(status=StockChange.PENDING).update(
+            status=StockChange.REJECTED,
+            resolved_at=timezone.now(),
+            resolved_by=request.user,
+        )
+        self.message_user(request, f"Rejected {done} change(s).")

@@ -5,8 +5,8 @@
 #   ALLOW_DIRTY=1 ./deploy.sh   deploy with uncommitted changes in this folder
 #
 # The server runs the collector with Docker Compose from REMOTE_DIR, which is
-# bind-mounted into the container. docker-compose.yml on the server holds its
-# own environment and is not overwritten by this script.
+# bind-mounted into the container. docker-compose.yml and .env (MONGO_URL) on
+# the server are not overwritten by this script.
 set -euo pipefail
 
 HOST="${COLLECTOR_HOST:-ubuntu@ec2-54-235-238-247.compute-1.amazonaws.com}"

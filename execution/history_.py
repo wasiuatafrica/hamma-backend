@@ -2,6 +2,11 @@ import json
 
 from pymongo import MongoClient
 from tvDatafeed import Interval, TvDatafeed
+import os
+from pathlib import Path
+import environ
+
+environ.Env.read_env(Path(__file__).resolve().parent.parent / ".env")
 
 
 def load_list(filename):
@@ -15,7 +20,7 @@ def get_data(symbol):
     return dataframe
 
 def connect_to_mongodb():
-    client = MongoClient("mongodb+srv://ft9jatraders_db_user:HnyOs6KBOwGKjJmy@reducebill.yxn3gnr.mongodb.net/",
+    client = MongoClient(os.environ["MONGO_STRING"],
                          tls=True, tlsAllowInvalidCertificates=True)
     db = client["anyon_history"]
     return db

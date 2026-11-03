@@ -288,6 +288,14 @@ SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 DEFAULT_FROM_EMAIL = "teamgohamma@gmail.com"
 SENDGRID_ECHO_TO_STDOUT = False
 
+# Who gets the NGX stock sync emails (portfolio/ngx_sync.py). dev5 always does;
+# add more with a comma-separated STOCK_SYNC_EMAILS env var.
+STOCK_SYNC_EMAILS = ["dev5.ft9ja@gmail.com"] + [
+    email.strip()
+    for email in os.environ.get("STOCK_SYNC_EMAILS", "").split(",")
+    if email.strip() and email.strip() != "dev5.ft9ja@gmail.com"
+]
+
 
 CORS_ALLOW_METHODS = [
     "DELETE",
