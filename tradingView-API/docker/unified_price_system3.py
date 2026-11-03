@@ -652,8 +652,9 @@ def get_live_data_from_tradingview(symbol):
     """
     Latest price from TradingView daily bars.
 
-    change/percent are measured against the previous daily close. If the stock
-    has not traded today, the last close is reported with change 0.
+    change/percent are the latest daily bar against the one before it, as the
+    TradingView chart shows them. If the stock has not traded today, that is
+    the last session's change; volume is 0.
     """
     max_retries = 2
     for attempt in range(max_retries):
@@ -680,13 +681,19 @@ def get_live_data_from_tradingview(symbol):
             bar_date = pd.Timestamp(latest["datetime"]).date()
             traded_today = bar_date >= lagos_now.date()
 
-            if traded_today and float(previous["close"]) > 0:
-                change = close - float(previous["close"])
-                percent = change / float(previous["close"]) * 100
-                volume = int(latest["volume"]) if not pd.isna(latest["volume"]) else 0
+            # Same as the TradingView chart: the latest bar against the bar
+            # before it, even when the latest bar is from an earlier session.
+            prev_close = float(previous["close"])
+            if prev_close > 0 and len(bars) > 1:
+                change = close - prev_close
+                percent = change / prev_close * 100
             else:
                 change = 0.0
                 percent = 0.0
+            # Volume stays today's only.
+            if traded_today and not pd.isna(latest["volume"]):
+                volume = int(latest["volume"])
+            else:
                 volume = 0
 
             stamp = lagos_now.strftime("%Y-%m-%d %H:%M:%S")
