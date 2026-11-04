@@ -16,6 +16,8 @@ from django.http import HttpResponse
 from django.shortcuts import get_list_or_404, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.gzip import gzip_page
 from django_celery_beat.models import CrontabSchedule, IntervalSchedule, PeriodicTask
 from rest_framework import generics, serializers, status
 from rest_framework.decorators import api_view, permission_classes
@@ -451,6 +453,10 @@ STOCK_LIST_CACHE_KEY = "portfolio:stock_list_details"
 STOCK_LIST_CACHE_SECONDS = 30
 
 
+# Compress the public market-data responses (the full stock list is ~185 KB of JSON).
+# Applied per view rather than site-wide so responses carrying tokens or other
+# secrets stay uncompressed (BREACH).
+@method_decorator(gzip_page, name="dispatch")
 class StockList(generics.ListAPIView):
     queryset = Stock.objects.filter(active=True).order_by("symbol")
     permission_classes = [
@@ -530,6 +536,8 @@ class MiniData(APIView):
 #         return Response(response_data)
 
 
+# Gzip: see the note on StockList.
+@method_decorator(gzip_page, name="dispatch")
 class GetSingleStock(APIView, AIFeatureMixin):
     permission_classes = [
         AllowAny,
@@ -1424,6 +1432,8 @@ class SupportStockWatchlistAPIView(APIView):
         return Response(response_data)
 
 
+# Gzip: see the note on StockList.
+@method_decorator(gzip_page, name="dispatch")
 class MostTradedStocks(APIView):
     permission_classes = [AllowAny]
 
@@ -1885,6 +1895,8 @@ class VIewotherIdeasLogView(APIView):
         return Response(status=status.HTTP_201_CREATED)
 
 
+# Gzip: see the note on StockList.
+@method_decorator(gzip_page, name="dispatch")
 class PopularStocks(generics.ListAPIView):
     permission_classes = [AllowAny]
 
