@@ -2803,6 +2803,11 @@ class AdminManageUser2(APIView):
                 value = is_active.lower() == "true"
                 users = users.filter(Q(is_active=value))
 
+            # Export: return every matching user, unpaginated
+            if request.GET.get("export", "").lower() == "true":
+                serializer = self.serializer_class(users, many=True)
+                return Response(serializer.data)
+
             # Apply pagination
             result_page = paginator.paginate_queryset(users, request)
             serializer = self.serializer_class(result_page, many=True)

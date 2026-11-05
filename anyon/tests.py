@@ -33,6 +33,57 @@ class TestAdminManageUserEmailSearch(APITestCase):
         self.assertEqual(response.data["results"][0]["email"], "nexxyb@gmail.com")
 
 
+class TestAdminManageUserExport(APITestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.admin = user_model.objects.create_user(
+            email="admin@example.com",
+            password="password123",
+            is_staff=True,
+        )
+        for i in range(14):
+            user_model.objects.create_user(
+                email=f"export{i}@example.com",
+                password="password123",
+                firstname="Export",
+                lastname=str(i),
+                is_active=i % 2 == 0,
+            )
+
+    def test_export_returns_all_users_unpaginated(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get("/anyon/new/manage-users/", {"export": "true"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsInstance(response.data, list)
+        self.assertEqual(len(response.data), 15)
+
+    def test_export_respects_filters(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get(
+            "/anyon/new/manage-users/",
+            {"export": "true", "is_active": "false", "name": "export"},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 7)
+        self.assertTrue(all(not u["is_active"] for u in response.data))
+
+    def test_export_requires_admin(self):
+        user = get_user_model().objects.get(email="export0@example.com")
+        self.client.force_authenticate(user=user)
+        response = self.client.get("/anyon/new/manage-users/", {"export": "true"})
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_without_export_flag_still_paginated(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get("/anyon/new/manage-users/")
+
+        self.assertEqual(response.data["count"], 15)
+        self.assertEqual(len(response.data["results"]), 10)
+
+
 class TestManageUserEndPoint(acc_tests.AuthenticateUserForTesting):
     def setup(self):
         super.setup()
