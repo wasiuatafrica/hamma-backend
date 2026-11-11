@@ -1,6 +1,7 @@
 from unittest import mock
 
 from django.core import mail
+from django.core.cache import cache
 from django.test import TestCase
 
 from portfolio import ngx_sync
@@ -234,3 +235,65 @@ class NgxSyncTests(TestCase):
         self.assertEqual(ngx_sync.parse_status("[MRF],[BLS],"), "MRF,BLS")
         self.assertIsNone(ngx_sync.parse_status(","))
         self.assertEqual(ngx_sync.parse_status("[MRF],[BLS],[RST],"), "MRF,BLS")
+
+
+def price(value):
+    return {"current_price": value, "percentage_change": 0.0, "change": 0.0}
+
+
+@mock.patch("portfolio.utils.get_prices_map")
+class SymbolsMatchMarketsTests(TestCase):
+    """GET /portfolio/symbols/ (alert form) lists exactly the Markets page stocks."""
+
+    def setUp(self):
+        # Migrations seed real stocks; they have no price here, so they drop out.
+        # The TST* symbols below are not in the seed data.
+        cache.clear()
+        self.addCleanup(cache.clear)
+        self.zen = Stock.objects.create(symbol="TSTZEN", isin="NGX000000001")
+        self.acc = Stock.objects.create(symbol="TSTACC", isin="NGX000000002")
+        self.mtn = Stock.objects.create(symbol="TSTMTN", isin="NGX000000003")
+        # Active but no usable price
+        Stock.objects.create(symbol="TSTNOPRICE", isin="NGX000000004")
+        # Priced but delisted
+        Stock.objects.create(symbol="TSTDELISTED", isin="NGX000000005", active=False)
+        self.prices = {
+            "TSTZEN": price(40.0),
+            "TSTACC": price(20.0),
+            "TSTMTN": price(200.0),
+            "TSTDELISTED": price(1.0),
+        }
+
+    def symbols(self, prices_map):
+        prices_map.return_value = self.prices
+        response = self.client.get("/portfolio/symbols/")
+        self.assertEqual(response.status_code, 200)
+        return response.json()
+
+    def test_priced_active_stock_is_listed_with_its_id(self, prices_map):
+        self.assertIn({"TSTZEN": self.zen.id}, self.symbols(prices_map))
+
+    def test_stock_without_price_is_not_listed(self, prices_map):
+        symbols = [next(iter(entry)) for entry in self.symbols(prices_map)]
+        self.assertNotIn("TSTNOPRICE", symbols)
+
+    def test_inactive_stock_is_not_listed(self, prices_map):
+        symbols = [next(iter(entry)) for entry in self.symbols(prices_map)]
+        self.assertNotIn("TSTDELISTED", symbols)
+
+    def test_sorted_by_symbol(self, prices_map):
+        self.assertEqual(
+            self.symbols(prices_map),
+            [
+                {"TSTACC": self.acc.id},
+                {"TSTMTN": self.mtn.id},
+                {"TSTZEN": self.zen.id},
+            ],
+        )
+
+    def test_same_stocks_as_markets_page(self, prices_map):
+        symbols = {next(iter(entry)) for entry in self.symbols(prices_map)}
+        response = self.client.get("/portfolio/stocks/")
+        self.assertEqual(response.status_code, 200)
+        markets = {detail["symbol"] for detail in response.json()["stock_list"]}
+        self.assertEqual(symbols, markets)

@@ -453,6 +453,25 @@ STOCK_LIST_CACHE_KEY = "portfolio:stock_list_details"
 STOCK_LIST_CACHE_SECONDS = 30
 
 
+def cached_tradeable_details():
+    """Details of every tradeable stock, as shown on the Markets page, sorted by symbol.
+
+    Shared across users; prices only change when the collector writes a snapshot.
+    A cache outage still serves data.
+    """
+    try:
+        details = cache.get(STOCK_LIST_CACHE_KEY)
+    except Exception:
+        details = None
+    if details is None:
+        details = get_tradeable_details(Stock.objects.filter(active=True).order_by("symbol"))
+        try:
+            cache.set(STOCK_LIST_CACHE_KEY, details, STOCK_LIST_CACHE_SECONDS)
+        except Exception:
+            pass
+    return details
+
+
 # Compress the public market-data responses (the full stock list is ~185 KB of JSON).
 # Applied per view rather than site-wide so responses carrying tokens or other
 # secrets stay uncompressed (BREACH).
@@ -464,18 +483,7 @@ class StockList(generics.ListAPIView):
     ]
 
     def get(self, request, *args, **kwargs):
-        # Shared across users; prices only change when the collector writes a snapshot
-        try:
-            details = cache.get(STOCK_LIST_CACHE_KEY)
-        except Exception:
-            details = None
-        if details is None:
-            details = get_tradeable_details(self.get_queryset())
-            try:
-                cache.set(STOCK_LIST_CACHE_KEY, details, STOCK_LIST_CACHE_SECONDS)
-            except Exception:
-                pass
-        details = [dict(detail) for detail in details]
+        details = [dict(detail) for detail in cached_tradeable_details()]
 
         # Initialize empty watchlist
         watchlist = []
@@ -928,7 +936,14 @@ class Symbols(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        stocks = Stock.objects.filter(active=True)
+        # Same stocks as the Markets page (StockList), so the alert form only
+        # offers stocks that can be traded.
+        tradeable = {detail["symbol"] for detail in cached_tradeable_details()}
+        stocks = (
+            Stock.objects.filter(active=True, symbol__in=tradeable)
+            .order_by("symbol")
+            .only("id", "symbol")
+        )
         symbols = [{stock.symbol: stock.id} for stock in stocks]
         return Response(symbols)
 
