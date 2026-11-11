@@ -940,7 +940,7 @@ def update_latest_competition_cumulative_returns():
                     )
 
 
-from openai import OpenAI
+from backend.lazy import LazyOpenAIClient, OpenAI
 
 from .symbol_pair import pairs
 
@@ -1174,7 +1174,7 @@ def process_market_data(prompt, convsersation_id, user_id, channel_name):
             marketai.save()
 
             schedule, created = IntervalSchedule.objects.get_or_create(
-                every=3,
+                every=5,  # 5 min minimum: beat_tick runs every 5 min
                 period=IntervalSchedule.MINUTES,
             )
 
@@ -1219,9 +1219,7 @@ def process_market_data(prompt, convsersation_id, user_id, channel_name):
 # import time
 import concurrent.futures
 
-from openai import OpenAI
-
-client = OpenAI()
+client = LazyOpenAIClient()
 
 
 def conversation_response(thread_id, prompt, user):
@@ -1421,7 +1419,7 @@ def process_market_data2(prompt, convsersation_id, user_id, channel_name):
                     marketai.save()
 
                     schedule, created = IntervalSchedule.objects.get_or_create(
-                        every=3,
+                        every=5,  # 5 min minimum: beat_tick runs every 5 min
                         period=IntervalSchedule.MINUTES,
                     )
 

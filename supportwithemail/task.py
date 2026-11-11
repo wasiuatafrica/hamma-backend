@@ -1,7 +1,7 @@
 from . import models
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from openai import OpenAI
+from backend.lazy import LazyOpenAIClient
 from django.conf import settings
 from typing import Optional, Any
 from django.contrib.auth import get_user_model
@@ -20,7 +20,7 @@ import json
 User = get_user_model()
 channel_layer = get_channel_layer()
 
-client = OpenAI()
+client = LazyOpenAIClient()
 
 
 def start_conversation(

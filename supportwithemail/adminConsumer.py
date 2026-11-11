@@ -7,9 +7,9 @@ from urllib.parse import parse_qs
 from . import utils
 from . import models
 from accounts.models import CustomUser
-from openai import OpenAI
+from backend.lazy import OpenAI
 from rest_framework_simplejwt.tokens import UntypedToken
-from openai import OpenAI
+from backend.lazy import OpenAI
 import random
 from .models import SupportAdminProfile
 

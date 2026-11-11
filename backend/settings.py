@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "prop",
     "discount",
     "external_trading",
+    "backend",  # management commands (beat_tick)
 ]
 
 
@@ -114,12 +115,19 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
+# DB_URL wins over DATABASE_URL so a host whose DATABASE_URL is fixed by an
+# add-on (Heroku) can be pointed at another database during a migration.
+# parse() is used because config() always prefers DATABASE_URL over default=.
+# No URL at all (Docker build running collectstatic) leaves the DB unset.
+_DB_URL = os.environ.get("DB_URL") or os.environ.get("DATABASE_URL")
 DATABASES = {
-    "default": dj_database_url.config(
-        conn_max_age=600,
-        default=os.environ.get("DATABASE_URL"),
-        #  default=config('DATABASE_URL')
+    "default": dj_database_url.parse(
+        _DB_URL,
+        conn_max_age=int(os.environ.get("DB_CONN_MAX_AGE", "600")),
+        conn_health_checks=True,
     )
+    if _DB_URL
+    else {}
 }
 
 
@@ -332,10 +340,10 @@ if os.environ.get("server") == "local":
     MIDDLEWARE += ["silk.middleware.SilkyMiddleware"]
     SILKY_PYTHON_PROFILER = True
 else:
-    # Use Redis for production
-    CELERY_BROKER_URL = os.environ.get("REDISCLOUD_URL")
-    CELERY_RESULT_BACKEND = os.environ.get("REDISCLOUD_URL")
-    REDIS_URL = os.environ.get("REDISCLOUD_URL")
+    # Use Redis for production. Railway exposes REDIS_URL, Heroku REDISCLOUD_URL.
+    REDIS_URL = os.environ.get("REDIS_URL") or os.environ.get("REDISCLOUD_URL")
+    CELERY_BROKER_URL = REDIS_URL
+    CELERY_RESULT_BACKEND = REDIS_URL
     CHANNEL_LAYERS = {
         "default": {
             "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -350,6 +358,11 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "Africa/Lagos"
 CELERY_BROKER_POOL_LIMIT = 10
+# CELERY_EAGER=True (Railway): no broker or worker. .delay() runs in the
+# calling process, and periodic tasks run from the beat_tick cron command.
+CELERY_TASK_ALWAYS_EAGER = os.environ.get("CELERY_EAGER") == "True"
+CELERY_TASK_EAGER_PROPAGATES = False  # a failing task must not 500 the request
+CELERY_TASK_IGNORE_RESULT = True  # nothing reads task results
 
 CACHES = {
     "default": {

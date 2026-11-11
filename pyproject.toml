@@ -13,7 +13,7 @@ dependencies = [
     "daphne",
     "dj-database-url",
     "dj-rest-auth",
-    "django",
+    "django>=6.0.10",  # 6.0.9 and 6.0.10 are security releases
     "django-allauth",
     "django-auto-prefetch",
     "django-celery-beat",
@@ -28,7 +28,7 @@ dependencies = [
     "django-sms",
     "django-storages",
     "whitenoise",
-    "djangorestframework",
+    "djangorestframework>=3.18.2",  # security fixes
     "djangorestframework-simplejwt",
     "drf-yasg",
     "duckduckgo-search",
@@ -39,10 +39,10 @@ dependencies = [
     "openai",
     "openpyxl",
     "pandas",
-    "pillow",
+    "pillow>=13.0.0",  # security fixes
     "psycopg2-binary",
     "pyjwt",
-    "pymongo",
+    "pymongo>=4.18.3",  # security fix
     "pytz",
     "qrcode",
     "redis",
@@ -59,3 +59,6 @@ dependencies = [
 
 [tool.uv]
 package = false
+# Floors for indirect dependencies with known security fixes.
+# Twisted is the HTTP/WebSocket server underneath Daphne.
+constraint-dependencies = ["twisted>=26.10.0", "autobahn>=26.10.1"]

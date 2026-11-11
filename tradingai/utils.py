@@ -4,8 +4,6 @@ from functools import wraps
 
 import pandas as pd
 from pymongo import MongoClient
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder
 
 from portfolio.models import Stock
 
@@ -229,6 +227,10 @@ def rule_based_recommendation(trader, stocks):
 def ml_based_recommendation(trader, stocks, model, le):
     recommendations = []
     timeframe = get_relevant_timeframe(trader.trading_frequency)
+
+    # Imported here, not at module level: scikit-learn costs ~79 MB of memory
+    # and only this function uses it.
+    from sklearn.preprocessing import LabelEncoder
 
     # Create a custom LabelEncoder for each feature
     risk_le = LabelEncoder()

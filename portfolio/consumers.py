@@ -2,6 +2,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from backend.threads import dispatch
 from django.contrib.auth import get_user_model
 from .tasks import process_alert_data, process_alert_data2
 from .utils import get_alert_prompt_history, get_conversation
@@ -253,7 +254,7 @@ class AlertConsumer2(AsyncWebsocketConsumer):
             return Message.objects.create(user=self.user, room=self.conversation, sender=sender,content=content)
         
         await database_sync_to_async(create_message)('user',message)
-        process_alert_data2.delay(message,self.conversation_id, self.user_id, self.channel_name)
+        dispatch(process_alert_data2, message, self.conversation_id, self.user_id, self.channel_name)
                 
         
     async def send_message(self, event):

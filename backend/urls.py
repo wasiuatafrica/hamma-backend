@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.http import HttpResponse
 from django.urls import path, include
 from backend import views
 from django.conf import settings
@@ -91,5 +92,8 @@ urlpatterns = (
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 )
+# Railway deploy health check. Deliberately no DB access.
+urlpatterns = [path("healthz", lambda request: HttpResponse("ok"))] + urlpatterns
+
 if os.environ.get("server") == "local":
     urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]

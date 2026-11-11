@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from bson import json_util
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from openai import OpenAI
+from backend.lazy import OpenAI
 from pymongo import MongoClient
 
 from execution.symbol_pair import pairs

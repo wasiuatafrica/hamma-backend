@@ -120,37 +120,64 @@ def process_accounts(accounts, portfolio_type, today, current_time, market_close
         DemoPosition if portfolio_type == PortfolioType.DEMO else CompetitionPosition
     )
     portfolio_field = PortfolioType.get_portfolio_field(portfolio_type)
+    portfolio_id_field = f"{portfolio_field}_id"
+    has_portfolio = {f"{portfolio_field}__isnull": False}
 
-    for account in accounts:
+    # Three set-building queries replace 4 queries per account. Most accounts
+    # have no trade today and already have a streak record, so they need none.
+    traded_ids = set(
+        position_model.objects.filter(open_trade_today_filter(position_model, today))
+        .values_list("portfolio_id", flat=True)
+        .distinct()
+    )
+    done_ids = set(
+        UserDailyTradeActivity.objects.filter(
+            trade_date=today, **has_portfolio
+        ).values_list(portfolio_id_field, flat=True)
+    )
+    have_streak_info = set(
+        UserDailyStreak.objects.filter(**has_portfolio).values_list(
+            "user_id", portfolio_id_field
+        )
+    )
+    after_close = current_time >= market_close_time
+
+    for account in accounts.select_related("user"):
         user = account.user
+        needs_streak_info = (account.user_id, account.id) not in have_streak_info
+        has_open_trade = account.id in traded_ids
 
-        has_open_trade = check_open_trades(account, position_model, today)
+        # Nothing to record for this account in this run.
+        if account.id in done_ids or (not has_open_trade and not after_close):
+            if needs_streak_info:
+                get_or_create_streak_info(user, account, portfolio_field)
+            continue
 
         with transaction.atomic():
             streak_info = get_or_create_streak_info(user, account, portfolio_field)
             # print(f"Streak info: {streak_info.__dict__}")
-            # Skip if already processed today
+            # Skip if already processed today (re-checked inside the transaction)
             if check_activity_exists(user, account, portfolio_field, today):
                 continue
 
             if has_open_trade:
                 process_trading_day(user, account, portfolio_field, streak_info, today)
             else:
-                if current_time >= market_close_time:
-                    reset_streak(user, account, portfolio_field, streak_info)
+                reset_streak(user, account, portfolio_field, streak_info)
+
+
+def open_trade_today_filter(position_model, today):
+    """Positions that count as a trade opened today."""
+    return Q(created__date=today, order_type="market") | Q(
+        status=position_model.OPEN, order_type="limit", updated__date=today
+    )
 
 
 def check_open_trades(account, position_model, today):
     """Check if account has open trades today."""
     return (
         position_model.objects.filter(portfolio=account)
-        .filter(
-            Q(
-                created__date=today,
-                order_type="market",
-            )
-            | Q(status=position_model.OPEN, order_type="limit", updated__date=today)
-        )
+        .filter(open_trade_today_filter(position_model, today))
         .exists()
     )
 

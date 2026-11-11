@@ -401,9 +401,9 @@ def process_alert_data(prompt, convsersation_id, user_id, channel_name):
 import concurrent.futures
 import time
 
-from openai import OpenAI
+from backend.lazy import LazyOpenAIClient
 
-client = OpenAI()
+client = LazyOpenAIClient()
 
 
 def conversation_response(thread_id, prompt, user):

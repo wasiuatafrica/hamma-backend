@@ -944,9 +944,15 @@ def competition_daily_returns7():
     if is_trading_time(current_time_lagos, start_offset=2):
 
         asi_history = None
+        # Only portfolios that closed a trade today (one query), instead of
+        # checking every portfolio with its own query on each run.
         portfolios = CompetitionPortfolio.objects.filter(
-            active=True, competition__status="current"
-        )
+            active=True,
+            competition__status="current",
+            id__in=CompetitionPosition.objects.filter(
+                status="close", closed_at__date=today
+            ).values("portfolio_id"),
+        ).select_related("user")
         for portfolio in portfolios:
             positions_today = CompetitionPosition.objects.filter(
                 portfolio=portfolio, status="close", closed_at__date=today
@@ -955,10 +961,10 @@ def competition_daily_returns7():
             if positions_today.exists():
                 positions = CompetitionPosition.objects.filter(
                     portfolio=portfolio, status="close"
-                )
+                ).select_related("stock")
 
                 data = {
-                    "email": [position.portfolio.user.email for position in positions],
+                    "email": [portfolio.user.email for position in positions],
                     "Stock": [position.stock.symbol for position in positions],
                     "Quantity": [position.quantity for position in positions],
                     "Open_Price": [position.open_price for position in positions],
@@ -1086,7 +1092,13 @@ def daily_returns7():
     if is_trading_time(current_time_lagos, start_offset=2):
 
         asi_history = None
-        portfolios = DemoPortfolio.objects.all()
+        # Only portfolios that closed a trade today (one query), instead of
+        # checking every portfolio with its own query on each run.
+        portfolios = DemoPortfolio.objects.filter(
+            id__in=DemoPosition.objects.filter(
+                status="close", closed_at__date=today
+            ).values("portfolio_id")
+        ).select_related("user")
         # portfolios = DemoPortfolio.objects.filter(account_id="12343162")
         # print(portfolios)
         for portfolio in portfolios:
@@ -1097,10 +1109,10 @@ def daily_returns7():
             if positions_today.exists():
                 positions = DemoPosition.objects.filter(
                     portfolio=portfolio, status="close"
-                )
+                ).select_related("stock")
 
                 data = {
-                    "email": [position.portfolio.user.email for position in positions],
+                    "email": [portfolio.user.email for position in positions],
                     "Stock": [position.stock.symbol for position in positions],
                     "Quantity": [position.quantity for position in positions],
                     "Open_Price": [position.open_price for position in positions],

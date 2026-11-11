@@ -483,10 +483,11 @@ class StockList(generics.ListAPIView):
         # Check if the user is authenticated
         if request.user.is_authenticated:
             # Get the watchlist for the logged-in user
-            watchlist = [
-                watch.stock.symbol
-                for watch in StockWatchlist.objects.filter(user=request.user)
-            ]
+            watchlist = set(
+                StockWatchlist.objects.filter(user=request.user).values_list(
+                    "stock__symbol", flat=True
+                )
+            )
 
         # Add 'in_watchlist' flag to stock details
         for detail in details:
@@ -1929,10 +1930,11 @@ class PopularStocks(generics.ListAPIView):
         details = get_tradeable_details(queryset)
         if request.user.is_authenticated:
             # Get the watchlist for the logged-in user
-            watchlist = [
-                watch.stock.symbol
-                for watch in StockWatchlist.objects.filter(user=request.user)
-            ]
+            watchlist = set(
+                StockWatchlist.objects.filter(user=request.user).values_list(
+                    "stock__symbol", flat=True
+                )
+            )
 
         # Add 'in_watchlist' flag to stock details
         for detail in details:

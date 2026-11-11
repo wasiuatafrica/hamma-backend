@@ -471,7 +471,7 @@ class DemoTradeAPIView(APIView):
                 )
 
                 schedule, created = IntervalSchedule.objects.get_or_create(
-                    every=3,
+                    every=5,  # 5 min minimum: beat_tick runs every 5 min
                     period=IntervalSchedule.MINUTES,
                 )
 
