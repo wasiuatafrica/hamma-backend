@@ -94,8 +94,10 @@ COPY --from=build /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 \
     MALLOC_ARENA_MAX=2
 COPY --chown=app:app . .
-# Build-time key only for collectstatic; the real SECRET_KEY comes from Railway at runtime.
-RUN SECRET_KEY=collectstatic-only python manage.py collectstatic --noinput
+# Build-time placeholders only for collectstatic: Railway does not pass service
+# variables to RUN steps, and notifications/utils.py opens the DynamoDB table
+# named by TABLE at import. The real values come from Railway at runtime.
+RUN SECRET_KEY=collectstatic-only TABLE=build-placeholder python manage.py collectstatic --noinput
 USER app
 CMD ["sh", "bin/start.sh"]
 ```
@@ -116,6 +118,7 @@ CMD ["sh", "bin/start.sh"]
 - Off-peak, a due task can run up to an hour late: one-off competition and email tasks, and the weekend trial reminders (08:10 runs at 09:00, 17:10 at 18:00).
 - Market holidays on weekdays still get 5-minute runs. The tasks themselves skip work on holidays.
 - Set `TICK_ALWAYS=1` on the `tick` service to run every 5 minutes around the clock.
+- Set `TICK_PAUSED=1` to keep the cron deployed but idle: every start exits at once with `tick: paused`. This is how `tick` waits for cutover.
 
 This cuts full runs from about 8,640 to about 3,600 a month, with one cron service and no locking.
 
@@ -263,6 +266,8 @@ restartPolicyType = "NEVER"
 ```
 
 Only `web` runs migrations.
+
+> Railway has deprecated the config-as-code path for new services, so these two files are the reference, and the same values are set directly on each service (Settings → Build / Deploy). Keep the two in step when one changes.
 
 ### 4.9 Memory and query optimizations (on the branch)
 
@@ -416,6 +421,7 @@ Both come from **+ New → GitHub repo → wasiuatafrica/hamma-backend** (`main`
 | `DB_CONN_MAX_AGE` | `0` | `0` |
 | `ASGI_THREADS` | `4` | — |
 | `TICK_ALWAYS` | — | unset (set `1` to disable the off-peak gate) |
+| `TICK_PAUSED` | — | `1` until cutover, then delete it |
 
 `DB_CONN_MAX_AGE=0` on web avoids connection leaks under ASGI.
 
@@ -423,7 +429,7 @@ Both come from **+ New → GitHub repo → wasiuatafrica/hamma-backend** (`main`
 
 | Setting | web | tick |
 |---|---|---|
-| Config-as-code path | `railway/web.toml` | `railway/tick.toml` |
+| Build / deploy settings | the values in `railway/web.toml` | the values in `railway/tick.toml` |
 | Replicas | 1 | 1 (cron) |
 | Serverless / sleep | **off** (websockets and polling would wake it constantly anyway) | n/a |
 | Resource limits | **0.5 vCPU / 512 MB** | 0.5 vCPU / 512 MB |
@@ -431,7 +437,7 @@ Both come from **+ New → GitHub repo → wasiuatafrica/hamma-backend** (`main`
 
 The resource limits are the budget guard. They cap web at worst at ~$15/month, and Railway restarts the service on out-of-memory instead of letting the bill grow. Normal use is ~$4.
 
-**Deploy `web` now. Leave `tick` paused** (Settings → Cron → disable) until cutover, so that it and Heroku's beat never both run the tasks.
+**Deploy `web` now. Leave `tick` paused** (`TICK_PAUSED=1` on the `tick` service) until cutover, so that it and Heroku's beat never both run the tasks.
 
 ### Step 4. Moving the data (manual, kept minimal)
 
@@ -506,7 +512,7 @@ No frontend uses `worldclass.gohamma.com` today, and its HTTPS is broken, so the
    ```bash
    heroku config:set DB_URL="$RAILWAY_PG_PUBLIC_URL" REDIS_URL="$RAILWAY_REDIS_PUBLIC_URL" CELERY_EAGER=True -a api-hamma
    ```
-5. **Enable `tick`** on Railway (Settings → Cron). Check that its first run logs `tick: N due`.
+5. **Enable `tick`** on Railway: delete the `TICK_PAUSED` variable from the `tick` service. Check that its next run logs `tick: N due`.
 6. **Reopen:**
    ```bash
    heroku maintenance:off -a api-hamma

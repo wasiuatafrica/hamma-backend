@@ -17,7 +17,9 @@ COPY --from=build /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 \
     MALLOC_ARENA_MAX=2
 COPY --chown=app:app . .
-# Build-time key only for collectstatic; the real SECRET_KEY comes from Railway at runtime.
-RUN SECRET_KEY=collectstatic-only python manage.py collectstatic --noinput
+# Build-time placeholders only for collectstatic: Railway does not pass service
+# variables to RUN steps, and notifications/utils.py opens the DynamoDB table
+# named by TABLE at import. The real values come from Railway at runtime.
+RUN SECRET_KEY=collectstatic-only TABLE=build-placeholder python manage.py collectstatic --noinput
 USER app
 CMD ["sh", "bin/start.sh"]

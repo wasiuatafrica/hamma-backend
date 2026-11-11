@@ -12,6 +12,12 @@ case "$PROCESS" in
     # hour go on to load Django; the rest exit here, in well under a second.
     # Off-peak, due tasks therefore run up to an hour late.
     # Set TICK_ALWAYS=1 to run every 5 minutes around the clock.
+    # Set TICK_PAUSED=1 to keep the cron deployed but idle (before cutover,
+    # while Heroku's beat still runs the tasks).
+    if [ "${TICK_PAUSED:-0}" = "1" ]; then
+      echo "tick: paused (TICK_PAUSED=1), skipping"
+      exit 0
+    fi
     if [ "${TICK_ALWAYS:-0}" != "1" ]; then
       dow=$(date -u +%u); hour=$(date -u +%H); min=$(date -u +%M)
       hour=${hour#0}; min=${min#0}
